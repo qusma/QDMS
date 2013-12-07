@@ -4,7 +4,7 @@ The server manages metadata on instruments, acquires data from external data sou
 
 A simple sample application showing usage of the client can be found in the SampleApp project.
 
-QDMS uses MySQL for storage, ZeroMQ and Protocol Buffers for client/server communications, MahApps.Metro for the interface
+QDMS uses MySQL for storage, ZeroMQ and Protocol Buffers for client/server communications, MahApps.Metro for the interface, and ib-csharp to communicate with IB's TWS.
 
 Screenshots:
 ------------------------
