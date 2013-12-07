@@ -6,6 +6,8 @@ A simple sample application showing usage of the client can be found in the Samp
 
 QDMS uses MySQL for storage, ZeroMQ and Protocol Buffers for client/server communications, MahApps.Metro for the interface, and ib-csharp to communicate with IB's TWS.
 
+If you wish to contribute, fork the repo and send a pull request with your changes.
+
 Screenshots:
 ------------------------
 * [Instrument metadata](http://i.imgur.com/QACkNxI.png).
