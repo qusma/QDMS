@@ -1,0 +1,74 @@
+﻿<controls:MetroWindow
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    x:Class="QDMSServer.DataEditWindow"
+    Title="Edit Data" Height="432" Width="1200"
+    BorderBrush="Black"
+    BorderThickness="1"
+    >
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="13*"/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="297*"/>
+            <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <Label Content="Resolution: " HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ResolutionComboBox" SelectedIndex="0" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Margin="78,3,0,0" VerticalAlignment="Top" Width="150"/>
+        <Label Grid.Row="0" Grid.Column="0" Content="Time Zone: " HorizontalAlignment="Left" Margin="549,6,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="TimezoneComboBox" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Margin="618,3,0,0" VerticalAlignment="Top" Width="150" SelectedIndex="0">
+            <ComboBoxItem Content="Exchange"/>
+            <ComboBoxItem Content="UTC"/>
+            <ComboBoxItem Content="Local"/>
+        </ComboBox>
+
+
+        <Label Grid.Column="0" Content="Start: " HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Grid.Row="1"/>
+        <DatePicker Name="StartDateEdit" SelectedDate="{Binding StartTime}" Grid.Column="0" HorizontalAlignment="Left" Margin="56,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150"/>
+        <xctk:MaskedTextBox Text="{Binding StartTime}" Name="StartTimeEdit" Mask="00:00:00.000"  Grid.Column="0" HorizontalAlignment="Left" Margin="220,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="118"/>
+
+
+        <Label Grid.Column="0" Content="End: " HorizontalAlignment="Left" Margin="370,6,0,0" VerticalAlignment="Top" Grid.Row="1"/>
+        <DatePicker Name="EndDateEdit" SelectedDate="{Binding EndTime}" Grid.Column="0" HorizontalAlignment="Left" Margin="406,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150"/>
+        <xctk:MaskedTextBox Text="{Binding EndTime}" Name="EndTimeEdit" Mask="00:00:00.000"  Grid.Column="0" HorizontalAlignment="Left" Margin="561,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="118"/>
+
+        <Button x:Name="LoadDataBtn" Click="LoadDataBtn_Click" Content="Load" Grid.Column="1" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
+        <DataGrid x:Name="DataGrid" ItemsSource="{Binding Data}" Grid.Column="0" AutoGenerateColumns="False"  IsReadOnly="False"  RowStyle="{DynamicResource DataGridRowStyle}"
+                  HorizontalAlignment="Stretch" Margin="10" Grid.Row="2" VerticalAlignment="Stretch">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date" Binding="{Binding Path=DT, StringFormat={}{0:yyyy-MM-dd}}" />
+                <DataGridTextColumn Header="Time" Binding="{Binding Path=DT, StringFormat={}{0:HH:mm:ss.fff}}" />
+                <DataGridTextColumn Width="65" Header="Open" Binding="{Binding Path=Open}" />
+                <DataGridTextColumn Width="65" Header="High" Binding="{Binding Path=High}" />
+                <DataGridTextColumn Width="65" Header="Low" Binding="{Binding Path=Low}" />
+                <DataGridTextColumn Width="65" Header="Close" Binding="{Binding Path=Close}" />
+                <DataGridTextColumn Width="75" Header="Volume" Binding="{Binding Path=Volume}" />
+                <DataGridTextColumn Width="75" Header="Open Interest" Binding="{Binding Path=OpenInterest}" />
+                <DataGridTextColumn Width="60" Header="Dividend" Binding="{Binding Path=Dividend}" />
+                <DataGridTextColumn Width="50" Header="Split" Binding="{Binding Path=Split}" />
+
+                <DataGridTextColumn Width="65" Header="AdjOpen" Binding="{Binding Path=AdjOpen}" />
+                <DataGridTextColumn Width="65" Header="AdjHigh" Binding="{Binding Path=AdjHigh}" />
+                <DataGridTextColumn Width="65" Header="AdjLow" Binding="{Binding Path=AdjLow}" />
+                <DataGridTextColumn Width="65" Header="AdjClose" Binding="{Binding Path=AdjClose}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+
+        <Button Click="DeleteBtn_Click" x:Name="DeleteBtn" Content="Delete" Grid.Column="1" HorizontalAlignment="Left" Margin="10,11,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
+        <Button Click="ExportBtn_Click" x:Name="ExportBtn" Content="Export..." Grid.Column="1" HorizontalAlignment="Left" Margin="10,87,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
+        <Button Click="CloseBtn_Click" x:Name="CloseBtn" Content="Close" Grid.Column="1" HorizontalAlignment="Left" Margin="10,0,0,10" Grid.Row="3" VerticalAlignment="Bottom" Width="75"/>
+        <Label Grid.Column="0" Name="StatusLabel" Content="Ready" HorizontalAlignment="Left" Margin="10,12,0,0" Grid.Row="3" VerticalAlignment="Top"/>
+        <Button Click="SaveChangesBtn_Click" x:Name="SaveChangesBtn" Content="Save Changes" FontSize="8" IsEnabled="False" Grid.Column="1" HorizontalAlignment="Left" Margin="10,41,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
+
+
+
+    </Grid>
+</controls:MetroWindow>

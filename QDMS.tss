@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ArrayOfArrayOfArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ArrayOfArrayOfString>
+    <ArrayOfString>
+      <string>C:\Users\Alex\Documents\Csharp\Projects\QDMS\EntityData\MyDBContext.cs</string>
+    </ArrayOfString>
+    <ArrayOfString>
+      <string>C:\Users\Alex\Documents\Csharp\Projects\QDMS\QDMSServer\App.config</string>
+    </ArrayOfString>
+    <ArrayOfString>
+      <string>C:\Users\Alex\Documents\Csharp\Projects\QDMS\EntityData\App.config</string>
+    </ArrayOfString>
+    <ArrayOfString>
+      <string>Object Browser</string>
+    </ArrayOfString>
+  </ArrayOfArrayOfString>
+</ArrayOfArrayOfArrayOfString>

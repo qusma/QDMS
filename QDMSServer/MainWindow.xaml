@@ -1,0 +1,205 @@
+﻿<controls:MetroWindow
+    xmlns:filterLibrary="clr-namespace:DataGridFilterLibrary;assembly=DataGridFilterLibrary"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:QDMSServer"
+    xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    x:Class="QDMSServer.MainWindow"
+        Title="QDMS Server" Height="764" Width="1680"
+    BorderBrush="Black"
+    BorderThickness="1"
+    Icon="Resources\appbar.box.layered.png"
+    
+               Closing="DXWindow_Closing" >
+    <controls:MetroWindow.Resources>
+        <local:LogItemToColorConverter x:Key="LogColorConverter" />
+        <local:LogEventInfoToStringConverter x:Key="LogInfoToStringConverter" />
+
+        <Style TargetType="DataGridColumnHeader" x:Key="FilterStyle" BasedOn="{StaticResource {ComponentResourceKey 
+		                       TypeInTargetAssembly={x:Type filterLibrary:DataGridHeaderFilterControl}, 
+		                       ResourceId=DataGridHeaderFilterControlStyle}}">
+            <Setter Property="Padding" Value="5,4,4,5" />
+        </Style>
+
+        <MenuItem x:Key="NewTagMenuItem" >
+            <MenuItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="New Tag: " Margin="0" />
+                    <TextBox Name="NewTagTextBox" Width="100" KeyDown="NewTagTextBox_KeyDown" />
+                </StackPanel>
+            </MenuItem.Header>
+        </MenuItem>
+
+        <MenuItem Header="Get New Data" x:Key="UpdateFreqSubMenu">
+        </MenuItem>
+
+        <MenuItem Header="Tags" x:Key="InstrumentTagMenu" SubmenuOpened="InstrumentTagMenu_OnSubmenuOpened">
+        </MenuItem>
+
+        <ContextMenu x:Key="RowMenu">
+            <MenuItem Header="Data Request..." Name="NewDataRequestBtn" Click="NewDataRequestBtn_OnClick"/>
+            <StaticResource ResourceKey="UpdateFreqSubMenu" />
+            <Separator />
+
+            <StaticResource ResourceKey="InstrumentTagMenu" />
+
+            <MenuItem Header="Clone" Name="InstrumentContextCloneBtn" Click="InstrumentContextCloneBtn_ItemClick"/>
+            <MenuItem Header="Import Data" Name="ImportDataBtn" Click="ImportDataBtn_ItemClick"/>
+            <MenuItem Header="Edit Data" Name="EditDataBtn" Click="EditDataBtn_ItemClick"/>
+            <MenuItem Header="Clear Data" Name="ClearDataBtn" Click="ClearDataBtn_ItemClick"/>
+            <MenuItem Header="Delete" Name="DeleteInstrumentBtn" Click="DeleteInstrumentBtn_ItemClick"/>
+        </ContextMenu>
+
+        <Style x:Key="DataGridRowStyle" TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource MetroDataGridRow}">
+            <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
+            <EventSetter Event="MouseDoubleClick" Handler="TableView_RowDoubleClick"/>
+            <Setter Property="MinHeight" Value="20"/>
+            <EventSetter Event="ContextMenuOpening" Handler="ContextMenu_ContextMenuOpening"/>
+        </Style>
+
+
+
+
+        <ObjectDataProvider x:Key="InstrumentTypes" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:InstrumentType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </controls:MetroWindow.Resources>
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+
+        <Menu Background="WhiteSmoke">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Exit" x:Name="BtnExit" Click="BtnExit_ItemClick"/>
+            </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="Add Instrument">
+                    <MenuItem Header="Manual" x:Name="AddInstrumentManuallyBtn" Click="AddInstrumentManuallyBtn_ItemClick"/>
+                    <MenuItem Header="Interactive Brokers" x:Name="AddInstrumentIBBtn" Click="AddInstrumentIBBtn_ItemClick"/>
+                    <MenuItem IsEnabled="False" Header="Custom Futures" x:Name="BtnAddCustomFutures" Click="BtnAddCustomFutures_ItemClick"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Exchanges" x:Name="ExchangesBtn" Click="ExchangesBtn_OnItemClick"/>
+                <Separator/>
+                <MenuItem Header="Session Templates" x:Name="SessionTemplateBtn" Click="SessionTemplateBtn_OnItemClick"/>
+                <Separator/>
+                <MenuItem Header="Settings" x:Name="BtnSettings" Click="BtnSettings_OnItemClick" />
+            </MenuItem>
+        </Menu>
+
+
+        <TabControl SelectedIndex="0" Grid.Row="1">
+            <TabItem Header="Instruments">
+                <Grid Background="Transparent">
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Instruments}" RowStyle="{StaticResource DataGridRowStyle}"
+                              Name="InstrumentsGrid" IsReadOnly="True" Margin="10,0,10,0"
+                              
+                              filterLibrary:DataGridExtensions.UseBackgroundWorkerForFiltering="True"
+                              
+                              ColumnHeaderStyle="{StaticResource FilterStyle}"
+                              >
+
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn x:Name="ColID" Binding="{Binding Path=ID}" Header="ID" Width="40"  filterLibrary:DataGridColumnExtensions.DoNotGenerateFilterControl="True"  />
+                            <DataGridTextColumn x:Name="ColSymbol" Binding="{Binding Path=Symbol}" Header="Symbol" Width="75"/>
+                            <DataGridTextColumn x:Name="ColName" Binding="{Binding Path=Name}" Header="Name" Width="auto"/>
+                            <DataGridTextColumn x:Name="ColUnderlying" Binding="{Binding Path=UnderlyingSymbol}" Header="Underlying" Width="70"/>
+                            <DataGridComboBoxColumn x:Name="ColType" 
+                                                    filterLibrary:DataGridColumnExtensions.FilterMemberPathProperty="Type"  
+                                                    ItemsSource="{Binding Source={StaticResource InstrumentTypes}}"
+                                                    SelectedItemBinding="{Binding Path=Type}" Header="Type" Width="60" />
+                            <DataGridTextColumn x:Name="ColExpiration" Binding="{Binding Path=Expiration,StringFormat={}{0:dd/MM/yyyy}}" Header="Expiration" Width="100"/>
+                            <DataGridTextColumn x:Name="ColMinTick" Binding="{Binding Path=MinTick}" Header="Min. Tick" Width="60"/>
+                            <DataGridTextColumn x:Name="ColMult" Binding="{Binding Path=Multiplier}" Header="Multiplier" Width="60"/>
+                            <DataGridTextColumn x:Name="ColOptType" Binding="{Binding Path=OptionType}" Header="Opt Type" Width="50"/>
+                            <DataGridTextColumn x:Name="ColStrike" Binding="{Binding Path=Strike}" Header="Strike" Width="60"/>
+                            <DataGridTextColumn x:Name="ColCurrency" Binding="{Binding Path=Currency}" Header="Currency" Width="60"/>
+                            <DataGridTextColumn x:Name="ColDatasource" Binding="{Binding Path=Datasource.Name}" Header="Datasource" Width="80"/>
+                            <DataGridTextColumn x:Name="ColIndustry" Binding="{Binding Path=Industry}" Header="Industry" Width="60"/>
+                            <DataGridTextColumn x:Name="ColCategory" Binding="{Binding Path=Category}" Header="Category" Width="60"/>
+                            <DataGridTextColumn x:Name="ColSubcategory" Binding="{Binding Path=Subcategory}" Header="Subcategory" Width="60"/>
+                            <DataGridTextColumn x:Name="ColExchange" Binding="{Binding Path=Exchange.Name}" Header="Exchange" Width="60"/>
+                            <DataGridTextColumn x:Name="ColPrimaryExchange" Binding="{Binding Path=PrimaryExchange.Name}" Header="Prim. Exch." Width="60"/>
+
+                            <DataGridTemplateColumn Width="40" Header="Cont Fut." filterLibrary:DataGridColumnExtensions.DoNotGenerateFilterControl="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Style="{StaticResource DataGridCheckBoxStyle}" IsChecked="{Binding Path=IsContinuousFuture}" IsEnabled="False" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn x:Name="ColTags" Binding="{Binding Path=TagsAsString}" Header="Tags" Width="150" />
+                            <DataGridTextColumn x:Name="ColValidExchanges" Binding="{Binding Path=ValidExchanges}" Header="Valid Exch." Width="60"/>
+
+                        </DataGrid.Columns>
+
+                    </DataGrid>
+
+
+
+                </Grid>
+                <!--</dxb:BarManager>-->
+            </TabItem>
+            <TabItem Header="Server">
+                <Grid Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="286*"/>
+                        <RowDefinition Height="315*"/>
+                    </Grid.RowDefinitions>
+
+                    <DataGrid IsReadOnly="True" x:Name="ActiveStreamGrid" AutoGenerateColumns="False" Margin="10,0,10,0"  Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                    >
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Value.Instrument.Symbol}" />
+                            <DataGridTextColumn Header="Source" Binding="{Binding Path=Value.Instrument.Datasource.Name}" />
+                            <DataGridTextColumn Header="Frequency" Binding="{Binding Path=Value.Frequency}" />
+                            <DataGridTextColumn Header="RTH Only" Binding="{Binding Path=Value.RTHOnly}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Label Grid.Row="0" Grid.Column="0" Content="Active Real Time Data Streams:" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" Width="208"/>
+                    <Label Grid.Row="0" Grid.Column="1" Content="Active Historical Data Requests:" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" Width="208"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Log">
+                <Grid Background="Transparent">
+                    <ListBox x:Name="RequestListBox" ItemsSource="{Binding LogMessages}"  local:ListBoxExt.AutoScroll="True">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource LogInfoToStringConverter}}" Foreground="{Binding Converter={StaticResource LogColorConverter}}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Separator Grid.Row="2" VerticalAlignment="Top" />
+        <Label Margin="10,3,0,0" Grid.Row="2" Content="Ready" Name="StatusBarLabel"/>
+        <controls:MetroProgressBar Grid.Row="2" Name="PBar" HorizontalAlignment="Right" Width="164" Height="10" Value="0" Maximum="1" Loaded="PBar_Loaded" Margin="0,10,10,10">
+            <ProgressBar.Style>
+                <Style BasedOn="{StaticResource MetroProgressBar}" TargetType="ProgressBar">
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="BorderBrush" Value="Black"/>
+                </Style>
+            </ProgressBar.Style>
+        </controls:MetroProgressBar>
+
+    </Grid>
+</controls:MetroWindow>

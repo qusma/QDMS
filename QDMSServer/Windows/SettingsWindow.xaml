@@ -1,0 +1,89 @@
+﻿<controls:MetroWindow 
+    x:Class="QDMSServer.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+    Title="Settings" Height="413" Width="458"
+    ResizeMode="NoResize"
+    BorderBrush="Black"
+    BorderThickness="1"
+    >
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <TabControl >
+            <TabItem Header="General">
+                <Grid>
+                    <GroupBox Header="Ports" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" Height="193">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="293*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="36"/>
+                            </Grid.RowDefinitions>
+                            <Label Content="Realtime Data PUB Port:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="140"/>
+                            <TextBox Grid.Row="0" Name="RTDPubPortTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+                            <Label  Grid.Column="0" Grid.Row="1" Content="Realtime Data PUB Port:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="140"/>
+                            <TextBox Grid.Row="1" Name="RTDReqPortTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+                            <Label Grid.Column="0" Grid.Row="2" Content="Historical Data Port:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="140"/>
+                            <TextBox Grid.Row="2" Name="HDPortTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+                            <Label Grid.Column="0" Grid.Row="3" Content="Instruments Server Port:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="140"/>
+                            <TextBox Grid.Row="3" Name="InstrumentServerPortTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Logging" HorizontalAlignment="Stretch" Margin="10,208,10,0" VerticalAlignment="Top" Height="77">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="293*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Logs Folder:" HorizontalAlignment="Left"  VerticalAlignment="Top" Margin="10,7,0,0"/>
+                            <TextBox Name="LogFolderTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="10,4,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="230"/>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="IB">
+                <Grid>
+                    <GroupBox Header="IB Settings" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" Height="187">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="293*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="36"/>
+                            </Grid.RowDefinitions>
+                            <Label Content="Host:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="97"/>
+                            <TextBox Grid.Row="0" Name="IBHostTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="273" Margin="10,10,0,0" Grid.Column="1"/>
+
+                            <Label  Grid.Column="0" Grid.Row="1" Content="Port:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="97"/>
+                            <TextBox Grid.Row="1" Name="IBPortTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+
+                            <Label Grid.Column="0" Grid.Row="2" Content="Client ID:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="97"/>
+                            <TextBox Grid.Row="2" Name="IBClientIDTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Button Name="CancelBtn" Click="CancelBtn_Click" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,5,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
+        <Button Name="SaveBtn" Click="SaveBtn_Click" Content="Save" HorizontalAlignment="Right" Margin="0,0,100,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
+    </Grid>
+</controls:MetroWindow>

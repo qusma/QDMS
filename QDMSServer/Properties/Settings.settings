@@ -1,0 +1,45 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="QDMSServer.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ibClientHost" Type="System.String" Scope="User">
+      <Value Profile="(Default)">127.0.0.1</Value>
+    </Setting>
+    <Setting Name="ibClientPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">7496</Value>
+    </Setting>
+    <Setting Name="ibClientID" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="ibClientRequestCounter" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="dbHost" Type="System.String" Scope="User">
+      <Value Profile="(Default)">127.0.0.1</Value>
+    </Setting>
+    <Setting Name="instrumentsGridLayout" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="rtDBPubPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5557</Value>
+    </Setting>
+    <Setting Name="rtDBReqPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5556</Value>
+    </Setting>
+    <Setting Name="instrumentServerPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5558</Value>
+    </Setting>
+    <Setting Name="hDBPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5555</Value>
+    </Setting>
+    <Setting Name="logDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\QDMSLog\</Value>
+    </Setting>
+    <Setting Name="dbUsername" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
+      <Value Profile="(Default)">username</Value>
+    </Setting>
+    <Setting Name="dbPassword" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
+      <Value Profile="(Default)">password</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
