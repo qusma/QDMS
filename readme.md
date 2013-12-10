@@ -1,6 +1,6 @@
 The QUSMA Data Management System (QDMS) is an application for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. QDMS uses a client/server model and has the ability to distribute data both locally and over a network.
 
-The server manages metadata on instruments, acquires data from external data sources, manages local storage of historical data, and acts as a "router" for real time data streams. The server application also functions as a UI for managing the data, as well as importing/exporting data from and to CSV files. 
+The server manages metadata on instruments, acquires data from external data sources, manages local storage of historical data, and acts as a "router" for real time data streams. The server application also functions as a UI for managing the metadata & data, as well as importing/exporting data from and to CSV files. 
 
 A simple sample application showing usage of the client can be found in the SampleApp project.
 
@@ -14,6 +14,7 @@ Screenshots:
 * [The main server interface](http://i.imgur.com/i985ZUW.png).
 * [Adding a new instrument from IB](http://i.imgur.com/HGPsoK5.png).
 * [Importing CSV data](http://i.imgur.com/en6kDo1.png).
+* [A rough view of how the systems are connected to each other](http://i.imgur.com/qUWlpj7.png).
 
 Currently Supported Data Sources:
 ------------------------
@@ -23,6 +24,7 @@ Currently Supported Data Sources:
 Requirements:
 ------------------------
 * A reasonably recent version of MySQL.
+* .NET 4.5
 
 Planned features/improvements:
 ------------------------
@@ -32,5 +34,6 @@ Planned features/improvements:
 * Support for more data sources.
 * Support for fundamental data.
 * Alternative (binary files) storage mechanism for tick data.
+* Some sort of market-wide "snapshot" functionality.
 * Far wider test coverage.
 * Proper docs.
