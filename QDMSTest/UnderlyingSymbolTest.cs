@@ -106,10 +106,13 @@ namespace QDMSTest
             Assert.AreEqual(new DateTime(2014, 5, 14), may14Expiration);
 
             DateTime jul14Expiration = zw.ExpirationDate(2014, 7);
-            Assert.AreEqual(new DateTime(2014, 7, 12), jul14Expiration);
+            Assert.AreEqual(new DateTime(2014, 7, 14), jul14Expiration);
 
             DateTime sep14Expiration = zw.ExpirationDate(2014, 9);
-            Assert.AreEqual(new DateTime(2014, 9, 13), sep14Expiration);
+            Assert.AreEqual(new DateTime(2014, 9, 12), sep14Expiration);
+
+            DateTime dec14Expiration = zw.ExpirationDate(2014, 12);
+            Assert.AreEqual(new DateTime(2014, 12, 12), dec14Expiration);
         }
 
         [Test]
