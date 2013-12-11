@@ -68,9 +68,9 @@
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.6.0.1\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Krs.Ats.IBNet, Version=9.66.0.21, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Krs.Ats.IBNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\ib-csharp-forked\Krs.Ats.IBNet\bin\Release\Krs.Ats.IBNet.dll</HintPath>
+      <HintPath>..\Libraries\ib-csharp\Krs.Ats.IBNet.dll</HintPath>
     </Reference>
     <Reference Include="LZ4">
       <HintPath>..\packages\lz4net.1.0.3.93\lib\net40-client\LZ4.dll</HintPath>
