@@ -134,12 +134,12 @@ namespace QDMSServer.DataSources
                             Split = reader.IsDBNull(14) ? null : (decimal?) reader.GetDecimal("Split")
                         };
 
-                        bar.DT = reader.GetDateTime("DT").Date;
+                        bar.DT = reader.GetDateTime("DT");
                         if (frequency >= BarSize.OneDay)
                         {
                             //in the case of low frequency data
                             //we adjust the closing time to use the proper session time
-                            bar.DT += sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  
+                            bar.DT = bar.DT.Date + sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  
                         }
                         data.Add(bar);
                     }
