@@ -66,11 +66,6 @@
     <Compile Include="EntityModels\Datasource.cs" />
     <Compile Include="EntityModels\Exchange.cs" />
     <Compile Include="EntityModels\Instrument.cs" />
-    <Compile Include="Data\InstrumentData.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>InstrumentData.xsd</DependentUpon>
-    </Compile>
     <Compile Include="EntityModels\InstrumentSession.cs" />
     <Compile Include="EntityModels\OHLCBar.cs" />
     <Compile Include="EntityModels\ExchangeSession.cs" />
@@ -108,17 +103,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Data\InstrumentData.xsc">
-      <DependentUpon>InstrumentData.xsd</DependentUpon>
-    </None>
-    <None Include="Data\InstrumentData.xsd">
-      <SubType>Designer</SubType>
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>InstrumentData.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="Data\InstrumentData.xss">
-      <DependentUpon>InstrumentData.xsd</DependentUpon>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

@@ -105,15 +105,6 @@ namespace QDMS
             return Enum.GetValues(typeof(T)).Cast<T>();
         }
 
-        public static int GetWorkingDays(DateTime from, DateTime to)
-        {
-            var dayDifference = (int)to.Subtract(from).TotalDays;
-            return Enumerable
-                .Range(1, dayDifference)
-                .Select(x => to.AddDays(x))
-                .Count(x => x.DayOfWeek != DayOfWeek.Saturday && x.DayOfWeek != DayOfWeek.Sunday);
-        }
-
         public static byte[] ProtoBufSerialize(object input, MemoryStream ms)
         {
             ms.SetLength(0);
