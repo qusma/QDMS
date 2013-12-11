@@ -157,7 +157,7 @@ namespace QDMSTest
                 DayType = DayType.BusinessDay,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = false,
-                ReferenceWeekDayCount = WeekDayCount.Last
+                ReferenceDayIsLastBusinessDayOfMonth = true
             };
 
             DateTime dec13Expiration = ub.ExpirationDate(2013, 12);
@@ -170,7 +170,7 @@ namespace QDMSTest
             Assert.AreEqual(new DateTime(2014, 6, 19), jun14Expiration);
 
             DateTime sep14Expiration = ub.ExpirationDate(2014, 9);
-            Assert.AreEqual(new DateTime(2014, 9, 9), sep14Expiration);
+            Assert.AreEqual(new DateTime(2014, 9, 19), sep14Expiration);
         }
 
         [Test]
@@ -240,6 +240,5 @@ namespace QDMSTest
 
         //TODO add more contracts
         //for wheat, cl to work we need an option for a business day offset from the reference day
-        //for UB, GC some way to get the last business day of the delivery month
     }
 }
