@@ -46,8 +46,20 @@ namespace QDMS
             DateTime referenceDay = new DateTime(year, month, 1);
             referenceDay = referenceDay.AddMonths((int)Rule.ReferenceRelativeMonth);
 
+            Calendar calendar = new UnitedStates(UnitedStates.Market.NYSE); //todo add functionality to allow changing this to other countries
+
             int day;
-            if (Rule.ReferenceUsesDays) //we use a fixed number of days from the start of the month
+            if (Rule.ReferenceDayIsLastBusinessDayOfMonth)
+            {
+                var tmpDay = referenceDay.AddMonths(1);
+                tmpDay = tmpDay.AddDays(-1);
+                while (!calendar.isBusinessDay(tmpDay))
+                {
+                    tmpDay = tmpDay.AddDays(-1);
+                }
+                day = tmpDay.Day;
+            }
+            else if (Rule.ReferenceUsesDays) //we use a fixed number of days from the start of the month
             {
                 day = Rule.ReferenceDays;
             }
@@ -83,15 +95,14 @@ namespace QDMS
 
             if (Rule.DayType == DayType.BusinessDay)
             {
-                Calendar calendar = new UnitedStates(UnitedStates.Market.NYSE); //todo add functionality to allow changing this to other countries
                 int daysLeft = Rule.DaysBefore;
                 int daysBack = 0;
                 while (daysLeft > 0)
                 {
+                    daysBack++;
+
                     if (calendar.isBusinessDay(referenceDay.AddDays(-daysBack))) //todo fix here...
                         daysLeft--;
-
-                    daysBack++;
                 }
                 return referenceDay.AddDays(-daysBack);
             }

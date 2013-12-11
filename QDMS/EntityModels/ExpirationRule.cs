@@ -4,11 +4,18 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// The idea behind the way expiration rules work is to first find
+// the "reference day", and then use an offset from that day to find
+// the actual expiration date.
+
 using System;
 using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// This class holds a set of rules that collectively can be used to deduce the expiration date of a futures or options contract.
+    /// </summary>
     [ProtoContract]
     [Serializable]
     public class ExpirationRule
@@ -55,5 +62,11 @@ namespace QDMS
         /// </summary>
         [ProtoMember(9)]
         public DayOfTheWeek ReferenceWeekDay { get; set; }
+
+        /// <summary>
+        /// If this is true, the reference day is set to the last business day of the relevant month.
+        /// </summary>
+        [ProtoMember(9)]
+        public bool ReferenceDayIsLastBusinessDayOfMonth { get; set; }
     }
 }

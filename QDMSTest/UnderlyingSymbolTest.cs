@@ -180,11 +180,11 @@ namespace QDMSTest
             var ub = new UnderlyingSymbol();
             ub.Rule = new ExpirationRule
             {
-                DaysBefore = 7,
+                DaysBefore = 2,
                 DayType = DayType.BusinessDay,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = false,
-                ReferenceWeekDayCount = WeekDayCount.Last
+                ReferenceDayIsLastBusinessDayOfMonth = true
             };
 
             DateTime dec13Expiration = ub.ExpirationDate(2013, 12);
