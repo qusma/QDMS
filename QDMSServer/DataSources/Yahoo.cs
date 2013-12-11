@@ -56,8 +56,7 @@ namespace QDMSServer.DataSources
             RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, GetData(request)));
         }
 
-        
-
+        //Downloads data from yahoo. First dividends and splits, then actual price data
         private List<OHLCBar> GetData(HistoricalDataRequest request)
         {
             var barSize = request.Frequency;
@@ -180,6 +179,7 @@ namespace QDMSServer.DataSources
                     return new List<OHLCBar>();
                 }
 
+                //parse the downloaded price data
                 rows = contents.Split("\n".ToCharArray());
                 for (int j = 1; j < rows.Count() - 1; j++) //start at 1 because the first line's a header
                 {

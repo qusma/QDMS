@@ -84,7 +84,15 @@ namespace QDMSServer.DataSources
             return connection;
         }
 
-        public List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize barSize = BarSize.OneDay)
+        /// <summary>
+        /// Returns data from local storage.
+        /// </summary>
+        /// <param name="instrument">The instrument whose data you want.</param>
+        /// <param name="startDate">Starting datetime.</param>
+        /// <param name="endDate">Ending datetime.</param>
+        /// <param name="frequency">Frequency.</param>
+        /// <returns></returns>
+        public List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency = BarSize.OneDay)
         {
             bool isConnected;
             MySqlConnection connection = TryConnect(out isConnected);
@@ -96,7 +104,7 @@ namespace QDMSServer.DataSources
                 cmd.CommandText = "SELECT * FROM data WHERE " +
                                                 "InstrumentID = ?ID AND Frequency = ?Freq AND DT >= ?Start AND DT <= ?End ORDER BY DT ASC";
                 cmd.Parameters.AddWithValue("ID", instrument.ID);
-                cmd.Parameters.AddWithValue("Freq", (int)barSize);
+                cmd.Parameters.AddWithValue("Freq", (int)frequency);
                 cmd.Parameters.AddWithValue("Start", startDate);
                 cmd.Parameters.AddWithValue("End", endDate);
 
@@ -127,7 +135,12 @@ namespace QDMSServer.DataSources
                         };
 
                         bar.DT = reader.GetDateTime("DT").Date;
-                        bar.DT += sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  //we adjust the closing time to use the proper session time
+                        if (frequency >= BarSize.OneDay)
+                        {
+                            //in the case of low frequency data
+                            //we adjust the closing time to use the proper session time
+                            bar.DT += sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  
+                        }
                         data.Add(bar);
                     }
                 }
@@ -138,6 +151,7 @@ namespace QDMSServer.DataSources
             }
         }
 
+        //for IHistoricalDataSource, we just grab data and send it back with the event
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
             var data = GetData(request.Instrument, request.StartingDate, request.EndingDate, request.Frequency);
@@ -158,6 +172,8 @@ namespace QDMSServer.DataSources
             data[data.Count - 1].AdjLow = data[data.Count - 1].Low;
             data[data.Count - 1].AdjClose = data[data.Count - 1].Close;
 
+            //the idea is to calculate the "correct" total return including dividends and splits
+            //and then generate an adjusted price on the previous bar that corresponds to that return
             for (int i = data.Count - 2; i >= 0; i--)
             {
                 decimal adjRet = (data[i + 1].Close + (data[i + 1].Dividend ?? 0)) / (data[i].Close / (data[i+1].Split ?? 1));
@@ -168,10 +184,11 @@ namespace QDMSServer.DataSources
                 data[i].AdjLow = data[i].Low * ratio;
             }
 
+            //data has been adjusted, save it to the db
             UpdateData(data, instrument, frequency);
         }
 
-
+        //Add new data to local storage
         public void AddData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false, bool adjust = true)
         {
             if (!instrument.ID.HasValue)
@@ -229,7 +246,7 @@ namespace QDMSServer.DataSources
 
                     tmpCounter++;
 
-                    //periodically insert
+                    //periodically insert...not sure what the optimal number of rows is
                     if (tmpCounter > 1000)
                     {
                         cmd.CommandText += "COMMIT;";
@@ -288,6 +305,8 @@ namespace QDMSServer.DataSources
 
             connection.Close();
 
+            //if there were dividends or splits in the data we added,
+            //we need to generate adjusted prices
             if (adjust && needsAdjustment && frequency == BarSize.OneDay) //adjustments are nonsensical on any other frequency
                 AdjustData(instrument, frequency);
         }
@@ -399,7 +418,7 @@ namespace QDMSServer.DataSources
 
                     if (count == 0)
                     {
-                        //remove from teh instrumentinfo table
+                        //remove from the instrumentinfo table
                         cmd.CommandText = string.Format("DELETE FROM instrumentinfo WHERE InstrumentID = {0} AND Frequency = {1}", 
                             instrument.ID, 
                             (int)frequency);
