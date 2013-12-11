@@ -11,6 +11,9 @@ namespace QDMS
 {
     public class HistoricalDataEventArgs : EventArgs
     {
+        /// <summary>
+        /// Historical data event args.
+        /// </summary>
         public HistoricalDataEventArgs(HistoricalDataRequest request, List<OHLCBar> data)
         {
             Request = request;
@@ -26,7 +29,14 @@ namespace QDMS
 
         }
 
+        /// <summary>
+        /// The request that is being filled.
+        /// </summary>
         public HistoricalDataRequest Request;
+
+        /// <summary>
+        /// The data.
+        /// </summary>
         public List<OHLCBar> Data;
     }
 }

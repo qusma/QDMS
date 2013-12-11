@@ -145,6 +145,9 @@ namespace QDMS
             return result;
         }
 
+        /// <summary>
+        /// Converts a BarSize to its corresponding timespan.
+        /// </summary>
         public static TimeSpan ToTimeSpan(this BarSize size)
         {
             switch (size)

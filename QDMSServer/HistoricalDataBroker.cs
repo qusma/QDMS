@@ -536,9 +536,9 @@ namespace QDMSServer
                 socket.SendMore(MyUtils.ProtoBufSerialize(instrument, ms));
 
                 socket.SendMore(BitConverter.GetBytes(storageInfo.Count));
-                for (int i = 0; i < storageInfo.Count; i++)
+                foreach (StoredDataInfo sdi in storageInfo)
                 {
-                    socket.SendMore(MyUtils.ProtoBufSerialize(storageInfo[i], ms));
+                    socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
                 }
                 socket.Send("END", Encoding.UTF8);
             }

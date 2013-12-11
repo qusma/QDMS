@@ -230,6 +230,8 @@ namespace QDMSClient
             
         }
 
+        //process replies on the request socket
+        //heartbeats, errors, and subscribing to real time data streams
         private void RequestRepliesThread()
         {
             var timeout = TimeSpan.FromMilliseconds(10);
@@ -299,26 +301,23 @@ namespace QDMSClient
                 var ms = new MemoryStream();
                 while (_running)
                 {
-                        if (!_historicalDataRequests.IsEmpty)
+                    //send any pending historical data requests
+                    if (!_historicalDataRequests.IsEmpty)
+                    {
+                        lock (_dealerSocketLock)
                         {
-                            lock (_dealerSocketLock)
+                            HistoricalDataRequest request;
+                            bool success = _historicalDataRequests.TryDequeue(out request);
+                            if (success)
                             {
+                                byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
                                 _dealerSocket.SendMore("HISTREQ", Encoding.UTF8);
-
-                                HistoricalDataRequest request;
-                                bool success = _historicalDataRequests.TryDequeue(out request);
-                                if (success)
-                                {
-                                    byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
-                                    _dealerSocket.Send(buffer);
-                                }
-                                else
-                                {
-                                    _dealerSocket.Send(new byte[0]);
-                                }
+                                _dealerSocket.Send(buffer);
                             }
                         }
+                    }
 
+                    //poller raises event when there's data coming in
                     poller.Poll(timeout);
                 }
             }
@@ -343,7 +342,7 @@ namespace QDMSClient
             }
         }
 
-        //we are ready to receive the historical data and raise the HistoricalDataReceived event
+        //handling replies to a data push, a historical data request, or an available data request
         private void _dealerSocket_ReceiveReady(object sender, SocketEventArgs e)
         {
             lock (_dealerSocketLock)

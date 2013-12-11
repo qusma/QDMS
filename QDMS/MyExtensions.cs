@@ -13,6 +13,9 @@ namespace QDMS
 {
     public static class MyExtensions
     {
+        /// <summary>
+        /// Save a collection of OHLCBars to a file, in CSV format.
+        /// </summary>
         public static void ToCSVFile(this IEnumerable<OHLCBar> data, string filePath)
         {
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath))
@@ -71,6 +74,9 @@ namespace QDMS
             return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
         }
 
+        /// <summary>
+        /// Gets the "ending" session's closing time, one for each day of the week.
+        /// </summary>
         public static Dictionary<int, TimeSpan> SessionEndTimesByDay(this Instrument instrument)
         {
             Dictionary<int, TimeSpan> sessionEndTimes = new Dictionary<int, TimeSpan>();
