@@ -10,7 +10,7 @@ If you wish to contribute, fork the repo and send a pull request with your chang
 
 Screenshots:
 ------------------------
-* [Instrument metadata](http://i.imgur.com/QACkNxI.png).
+* [Instrument metadata](http://i.imgur.com/GXw8amN.png).
 * [The main server interface](http://i.imgur.com/i985ZUW.png).
 * [Adding a new instrument from IB](http://i.imgur.com/HGPsoK5.png).
 * [Importing CSV data](http://i.imgur.com/en6kDo1.png).
