@@ -33,6 +33,14 @@ namespace QDMSServer
             return res;
         }
 
+        public bool TryRemove(TKey key, out TValue value)
+        {
+            bool res = Dictionary.TryRemove(key, out value);
+            if(res)
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new KeyValuePair<TKey, TValue>(key, value)));
+            return res;
+        }
+
         public bool TryGetValue(TKey key, out TValue value)
         {
             return Dictionary.TryGetValue(key, out value);
