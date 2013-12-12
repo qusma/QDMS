@@ -29,17 +29,32 @@ namespace QDMS
         [ProtoMember(3)]
         public int UnderlyingSymbolID { get; set; }
 
+        /// <summary>
+        /// The underlying symbol that the continuous future is based on.
+        /// </summary>
         public virtual UnderlyingSymbol UnderlyingSymbol { get; set; }
 
+        /// <summary>
+        /// No idea what I was thinking with this one?
+        /// </summary>
         [ProtoMember(4)]
         public int Month { get; set; }
 
+        /// <summary>
+        /// What criteria should be used when determining whether to roll over to the next contract.
+        /// </summary>
         [ProtoMember(5)]
         public ContinuousFuturesRolloverType RolloverType { get; set; }
 
+        /// <summary>
+        /// Number of days that the criteria will use to determine rollover.
+        /// </summary>
         [ProtoMember(6)]
         public int RolloverDays { get; set; }
 
+        /// <summary>
+        /// How to adjust prices from one contract to the next
+        /// </summary>
         [ProtoMember(7)]
         public ContinuousFuturesAdjustmentMode AdjustmentMode { get; set; }
 
@@ -112,6 +127,7 @@ namespace QDMS
             }
         }
 
+        //TODO is this the appropriate place for this method? Probably not...
         public int GetContractMonth(DateTime date)
         {
             throw new NotImplementedException();
