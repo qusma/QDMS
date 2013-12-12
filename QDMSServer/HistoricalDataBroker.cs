@@ -91,7 +91,7 @@ namespace QDMSServer
         {
             _listenPort = port;
 
-            _dataStorage = new LocalStorage();
+            _dataStorage = new MySQLStorage();
             DataSources = new Dictionary<string, IHistoricalDataSource> 
             {
                 { "Interactive Brokers", new IB(3) },

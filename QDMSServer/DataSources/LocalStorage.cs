@@ -14,11 +14,11 @@ using QDMS;
 #pragma warning disable 67
 namespace QDMSServer.DataSources
 {
-    class LocalStorage : IDataStorage, IDisposable
+    class MySQLStorage : IDataStorage, IDisposable
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public LocalStorage()
+        public MySQLStorage()
         {
             Name = "Local Storage";
         }

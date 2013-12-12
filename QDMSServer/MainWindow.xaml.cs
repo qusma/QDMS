@@ -228,7 +228,7 @@ namespace QDMSServer
 
             int requestCount = 0;
 
-            using (var localStorage = new LocalStorage())
+            using (var localStorage = new MySQLStorage())
             {
                 foreach (Instrument i in selectedInstruments)
                 {
@@ -376,7 +376,7 @@ namespace QDMSServer
                     toRemove.Add(i);
                 }
 
-                using (var localStorage = new LocalStorage())
+                using (var localStorage = new MySQLStorage())
                 {
                     localStorage.Connect();
 
@@ -452,7 +452,7 @@ namespace QDMSServer
             }
 
 
-            using (var storage = new LocalStorage())
+            using (var storage = new MySQLStorage())
             {
                 foreach (Instrument i in selectedInstruments)
                 {

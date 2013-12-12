@@ -50,7 +50,7 @@ namespace QDMSServer
             if (!TheInstrument.ID.HasValue) return;
 
             //grab the data info
-            using (var localStorage = new LocalStorage())
+            using (var localStorage = new MySQLStorage())
             {
                 var storageInfo = localStorage.GetStorageInfo(TheInstrument.ID.Value);
 
@@ -77,7 +77,7 @@ namespace QDMSServer
             Data.Clear();
 
             //grab the data
-            using (var localStorage = new LocalStorage())
+            using (var localStorage = new MySQLStorage())
             {
                 var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(TheInstrument.Exchange.Timezone);
                 var bars = localStorage.GetData(TheInstrument, StartTime, EndTime, (BarSize)ResolutionComboBox.SelectedItem);
@@ -111,7 +111,7 @@ namespace QDMSServer
 
             var toDelete = rows.Cast<OHLCBar>().ToList();
 
-            using (var localStorage = new LocalStorage())
+            using (var localStorage = new MySQLStorage())
             {
                 localStorage.DeleteData(TheInstrument, _loadedFrequency, toDelete);
             }
