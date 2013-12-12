@@ -15,11 +15,11 @@ namespace QDMSServer.DataSources
     class RealTimeSim : IRealTimeDataSource, IDisposable
     {
         private Timer _timer;
-        private BlockingCollection<string> _requestedSymbols;
+        private ConcurrentDictionary<int, string> _requestedSymbols;
         private ConcurrentDictionary<string, int> _loopsPassed;
         private ConcurrentDictionary<string, int> _loopLimit;
         private Random _rand;
-        private int _requestIDs = 0;
+        private int _requestIDs;
 
         public void Dispose()
         {
@@ -28,17 +28,12 @@ namespace QDMSServer.DataSources
                 _timer.Dispose();
                 _timer = null;
             }
-            if (_requestedSymbols != null)
-            {
-                _requestedSymbols.Dispose();
-                _requestedSymbols = null;
-            }
         }
         
         public RealTimeSim()
         {
             Name = "SIM";
-            _requestedSymbols = new BlockingCollection<string>();
+            _requestedSymbols = new ConcurrentDictionary<int, string>();
             _loopsPassed = new ConcurrentDictionary<string, int>();
             _loopLimit = new ConcurrentDictionary<string, int>();
 
@@ -62,7 +57,7 @@ namespace QDMSServer.DataSources
 
         public int RequestRealTimeData(RealTimeDataRequest request)
         {
-            _requestedSymbols.TryAdd(request.Instrument.Symbol, 1000);
+            bool success = _requestedSymbols.TryAdd(_requestIDs, request.Instrument.Symbol);
             if(request.Frequency == BarSize.Tick)
                 _loopLimit.TryAdd(request.Instrument.Symbol, 1);
             else
@@ -74,12 +69,13 @@ namespace QDMSServer.DataSources
 
         public void CancelRealTimeData(int requestID)
         {
-            throw new NotImplementedException();
+            string symbol;
+            _requestedSymbols.TryRemove(requestID, out symbol);
         }
 
         private void SimulateData(object sender, ElapsedEventArgs e)
         {
-            foreach (string s in _requestedSymbols)
+            foreach (string s in _requestedSymbols.Values)
             {
                 _loopsPassed[s]++;
                 if (_loopsPassed[s] < _loopLimit[s]) continue;
