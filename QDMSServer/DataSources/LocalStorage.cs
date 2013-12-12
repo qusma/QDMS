@@ -49,7 +49,6 @@ namespace QDMSServer.DataSources
                 using (MySqlConnection connection = DBUtils.CreateConnection("qdmsdata"))
                 {
                     bool result = connection.Ping();
-                    connection.Close();
                     return result;
                 }
             }

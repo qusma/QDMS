@@ -69,6 +69,11 @@ namespace QDMSServer
 
         public void Dispose()
         {
+            if (_ms != null)
+            {
+                _ms.Dispose();
+                _ms = null;
+            }
             if (_pubSocket != null)
             {
                 _pubSocket.Dispose();

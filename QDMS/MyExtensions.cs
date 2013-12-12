@@ -59,8 +59,6 @@ namespace QDMS
                         bar.AdjLow,
                         bar.AdjClose);
                 }
-
-                file.Close();
             }
         }
 

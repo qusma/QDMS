@@ -108,18 +108,18 @@ namespace QDMSServer
 
         public static bool CheckDBExists()
         {
-            var connection = CreateConnection(noDB: true);
-            connection.Open();
-            var cmd = new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qdms'", connection);
-            using (var reader = cmd.ExecuteReader())
+            using (var connection = CreateConnection(noDB: true))
             {
-                if (!reader.Read()) //database does not exist!
+                connection.Open();
+                var cmd = new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qdms'", connection);
+                using (var reader = cmd.ExecuteReader())
                 {
-                    connection.Close();
-                    return false;
+                    if (!reader.Read()) //database does not exist!
+                    {
+                        return false;
+                    }
                 }
             }
-            connection.Close();
             return true;
         }
     }

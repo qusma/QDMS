@@ -268,7 +268,7 @@ namespace QDMSServer
             }
 
             TheInstrument.SessionTemplateID = template.ID;
-            foreach (TemplateSession s in template.Sessions)
+            foreach (TemplateSession s in template.Sessions.OrderBy(x => x.OpeningDay))
             {
                 TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
             }
