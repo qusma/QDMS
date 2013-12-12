@@ -40,10 +40,16 @@ namespace QDMSServer
         public Dictionary<string, IRealTimeDataSource> DataSources { get; private set; }
 
         /// <summary>
-        /// Holds the active data streams. They key KVP consists of key: request ID, value: data source name
+        /// Holds the active data streams. They KVP consists of key: request ID, value: data source name
         /// </summary>
-        public ConcurrentNotifierDictionary<KeyValuePair<int, string>, RealTimeDataRequest> ActiveStreams { get; private set; }
-        //todo keep track of the requests for data streams and stop receiving them when all clients have canceled
+        public ConcurrentNotifierBlockingList<RealTimeStreamInfo> ActiveStreams { get; private set; }
+
+        /// <summary>
+        /// Here we keep track of what clients are subscribed to what data streams.
+        /// KVP consists of key: request ID, value: data source name.
+        /// The int is simply the number of clients subscribed to that stream.
+        /// </summary>
+        private Dictionary<RealTimeStreamInfo, int> _streamSubscribersCount { get; set; }
 
         /// <summary>
         /// Is true if the server is running
@@ -66,6 +72,7 @@ namespace QDMSServer
         private Timer _connectionTimer; //tries to reconnect every once in a while
         private MemoryStream _ms;
         private object _pubSocketLock = new object();
+        private object _subscriberCountLock = new object();
 
         public void Dispose()
         {
@@ -130,8 +137,9 @@ namespace QDMSServer
                 s.Error += s_Error;
             }
 
-            ActiveStreams = new ConcurrentNotifierDictionary<KeyValuePair<int, string>, RealTimeDataRequest>();
+            ActiveStreams = new ConcurrentNotifierBlockingList<RealTimeStreamInfo>();
             _arrivedBars = new BlockingCollection<RealTimeDataEventArgs>();
+            _streamSubscribersCount = new Dictionary<RealTimeStreamInfo, int>();
 
             _ms = new MemoryStream();
 
@@ -232,7 +240,7 @@ namespace QDMSServer
         private void RequestServer()
         {
             TimeSpan timeout = new TimeSpan(50000);
-            int receivedBytes;
+            
             MemoryStream ms = new MemoryStream();
             while (_runServer)
             {
@@ -249,58 +257,14 @@ namespace QDMSServer
                 //Handle real time data requests
                 if (requestType == "RTD") //Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
                 {
-                    byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
-                    if (receivedBytes > 0)
-                    {
-                        ms.Write(buffer, 0, receivedBytes);
-                        ms.Position = 0;
-                        var request = Serializer.Deserialize<RealTimeDataRequest>(ms);
-
-                        //with the current approach we can't handle multiple real time data streams from
-                        //the same symbol and data source, but at different frequencies
-
-                        //if there is already an active stream of this instrument
-                        if (ActiveStreams.Dictionary.All(x => x.Value.Instrument != request.Instrument) &&
-                            DataSources.ContainsKey(request.Instrument.Datasource.Name) &&
-                            DataSources[request.Instrument.Datasource.Name].Connected)
-                        {
-                            //send the request to the correct data source
-                            int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
-
-                            //log the request
-                            Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
-                                string.Format("RTD Request: {0} from {1} @ {2} ID:{3}",
-                                request.Instrument.Symbol,
-                                request.Instrument.Datasource.Name,
-                                Enum.GetName(typeof(BarSize), request.Frequency),
-                                reqID)));
-
-                            //add the request to the active streams, though it's not necessarily active yet
-                            ActiveStreams.TryAdd(new KeyValuePair<int, string>(reqID, request.Instrument.Datasource.Name), request);
-
-                            //and report success back to the requesting client
-                            _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
-                            //along with the symbol of the instrument
-                            _reqSocket.Send(request.Instrument.Symbol, Encoding.UTF8);
-                        }
-                        else //no new request was made, send the client the reason why
-                        {
-                            _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                            if (!DataSources.ContainsKey(request.Instrument.Datasource.Name))
-                                _reqSocket.Send("No such data source", Encoding.UTF8);
-                            else if (!DataSources[request.Instrument.Datasource.Name].Connected)
-                                _reqSocket.Send("Data source not connected", Encoding.UTF8);
-                            else
-                                _reqSocket.Send("Stream already exists for this instrument", Encoding.UTF8);
-                        }
-                    }
-                    continue;
+                    HandleRTDataRequest(timeout, ms);
                 }
 
                 //manage cancellation requests
+                //two part message: first: "CANCEL". Second: the instrument
                 if (requestType == "CANCEL")
                 {
-                    //todo write
+                    HandleRTDataCancelRequest(timeout);
                 }
             }
 
@@ -309,6 +273,142 @@ namespace QDMSServer
 
             ms.Dispose();
             ServerRunning = false;
+        }
+
+        // Accept a request to cancel a real time data stream
+        // Obviously we only actually cancel it if 
+        private void HandleRTDataCancelRequest(TimeSpan timeout)
+        {
+            int receivedBytes;
+            byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
+            if (receivedBytes <= 0) return;
+
+
+            //receive the instrument
+            var ms = new MemoryStream();
+            ms.Write(buffer, 0, receivedBytes);
+            ms.Position = 0;
+            var instrument = Serializer.Deserialize<Instrument>(ms);
+
+            //log the request
+            Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                string.Format("RTD Cancelation request: {0} from {1}",
+                    instrument.Symbol,
+                    instrument.Datasource.Name)));
+
+            //make sure there is a data stream for this instrument
+            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrument.ID))
+            {
+                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrument.ID);
+                lock(_subscriberCountLock)
+                {
+                    _streamSubscribersCount[streamInfo]--;
+                    if (_streamSubscribersCount[streamInfo] == 0)
+                    {
+                        //there are no clients subscribed to this stream anymore
+                        //cancel it and remove it from all the places
+                        _streamSubscribersCount.Remove(streamInfo);
+
+                        ActiveStreams.TryRemove(streamInfo);
+
+                        DataSources[streamInfo.Datasource].CancelRealTimeData(streamInfo.RequestID);
+
+                        //two part message: "CANCELED", then the symbol
+                        _reqSocket.SendMore("CANCELED", Encoding.UTF8);
+                        _reqSocket.Send(streamInfo.Instrument.Symbol, Encoding.UTF8);
+                    }
+                }
+            }
+
+            //TODO perhaps we need to keep track of client identities...
+            //as it is now, you can cancel a stream that you're not actually receiving!
+        }
+
+        // Accept a real time data request
+        private void HandleRTDataRequest(TimeSpan timeout, MemoryStream ms)
+        {
+            int receivedBytes;
+            byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
+            if (receivedBytes <= 0) return;
+
+            ms.Write(buffer, 0, receivedBytes);
+            ms.Position = 0;
+            var request = Serializer.Deserialize<RealTimeDataRequest>(ms);
+
+            //with the current approach we can't handle multiple real time data streams from
+            //the same symbol and data source, but at different frequencies
+
+            //if there is already an active stream of this instrument
+            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID))
+            {
+                //Find the KeyValuePair<string, int> from the dictionary that corresponds to this instrument
+                //The KVP consists of key: request ID, value: data source name
+                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == request.Instrument.ID);
+                    
+                //increment the subsriber count
+                lock (_subscriberCountLock)
+                {
+                    _streamSubscribersCount[streamInfo]++;
+                }
+
+                //log the request
+                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                    string.Format("RTD Request for existing stream: {0} from {1} @ {2} ID:{3}",
+                        request.Instrument.Symbol,
+                        request.Instrument.Datasource.Name,
+                        Enum.GetName(typeof(BarSize), request.Frequency),
+                        streamInfo.RequestID)));
+
+                //and report success back to the requesting client
+                _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
+                //along with the symbol of the instrument
+                _reqSocket.Send(request.Instrument.Symbol, Encoding.UTF8);
+            }
+            else if (DataSources.ContainsKey(request.Instrument.Datasource.Name) && //make sure the datasource is present & connected
+                     DataSources[request.Instrument.Datasource.Name].Connected)
+            {
+                //send the request to the correct data source
+                int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
+
+                //log the request
+                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                    string.Format("RTD Request: {0} from {1} @ {2} ID:{3}",
+                        request.Instrument.Symbol,
+                        request.Instrument.Datasource.Name,
+                        Enum.GetName(typeof(BarSize), request.Frequency),
+                        reqID)));
+
+                //add the request to the active streams, though it's not necessarily active yet
+                var streamInfo = new RealTimeStreamInfo(
+                    request.Instrument, 
+                    reqID, 
+                    request.Instrument.Datasource.Name,
+                    request.Frequency,
+                    request.RTHOnly);
+                ActiveStreams.TryAdd(streamInfo);
+
+                lock (_subscriberCountLock)
+                {
+                    _streamSubscribersCount.Add(streamInfo, 1);
+                }
+
+                //and report success back to the requesting client
+                _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
+                //along with the symbol of the instrument
+                _reqSocket.Send(request.Instrument.Symbol, Encoding.UTF8);
+            }
+            else //no new request was made, send the client the reason why
+            {
+                _reqSocket.SendMore("ERROR", Encoding.UTF8);
+                if (!DataSources.ContainsKey(request.Instrument.Datasource.Name))
+                {
+                    _reqSocket.Send("No such data source", Encoding.UTF8);
+                }
+                else if (!DataSources[request.Instrument.Datasource.Name].Connected)
+                {
+                    _reqSocket.Send("Data source not connected", Encoding.UTF8);
+                }
+            }
         }
 
 

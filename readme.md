@@ -29,7 +29,6 @@ Requirements:
 Planned features/improvements:
 ------------------------
 * Continuous futures.
-* Canceling real time data streams.
 * Constructing low-frequency bars from higher frequency data.
 * Support for more data sources.
 * Support for fundamental data.

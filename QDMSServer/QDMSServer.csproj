@@ -146,9 +146,10 @@
     <Compile Include="InstrumentsServer.cs" />
     <Compile Include="HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
-    <Compile Include="ConcurrentNotifierDictionary.cs" />
+    <Compile Include="ConcurrentNotifierBlockingList.cs" />
     <Compile Include="ListBoxExt.cs" />
     <Compile Include="RealTimeDataBroker.cs" />
+    <Compile Include="RealTimeStreamInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />

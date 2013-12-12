@@ -166,10 +166,11 @@
                     <DataGrid IsReadOnly="True" x:Name="ActiveStreamGrid" AutoGenerateColumns="False" Margin="10,0,10,0"  Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                     >
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Value.Instrument.Symbol}" />
-                            <DataGridTextColumn Header="Source" Binding="{Binding Path=Value.Instrument.Datasource.Name}" />
-                            <DataGridTextColumn Header="Frequency" Binding="{Binding Path=Value.Frequency}" />
-                            <DataGridTextColumn Header="RTH Only" Binding="{Binding Path=Value.RTHOnly}" />
+                            <DataGridTextColumn Header="Req. ID" Binding="{Binding Path=RequestID}" />
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Instrument.Symbol}" />
+                            <DataGridTextColumn Header="Source" Binding="{Binding Path=Datasource}" />
+                            <DataGridTextColumn Header="Frequency" Binding="{Binding Path=Frequency}" />
+                            <DataGridTextColumn Header="RTH Only" Binding="{Binding Path=RTHOnly}" />
                         </DataGrid.Columns>
                     </DataGrid>
                     <Label Grid.Row="0" Grid.Column="0" Content="Active Real Time Data Streams:" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" Width="208"/>

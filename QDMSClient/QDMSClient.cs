@@ -269,6 +269,14 @@ namespace QDMSClient
                         //request worked, so we subscribe to the stream
                         _subSocket.Subscribe(Encoding.UTF8.GetBytes(symbol));
                     }
+
+                    if (reply == "CANCELED")
+                    {
+                        //also receive the symbol
+                        string symbol = _reqSocket.Receive(Encoding.UTF8);
+
+                        //nothing to do?
+                    }
                 }
             }
         }
@@ -524,11 +532,23 @@ namespace QDMSClient
         /// <summary>
         /// Cancel a live real time data stream.
         /// </summary>
-        /// <param name="request"></param>
-        public void CancelRealTimeData(RealTimeDataRequest request)
+        public void CancelRealTimeData(Instrument instrument)
         {
-            throw new NotImplementedException();
-            //todo write this
+            if (!Connected)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not cancel real time data - not connected."));
+                return;
+            }
+
+            lock (_reqSocketLock)
+            {
+                var ms = new MemoryStream();
+                _reqSocket.SendMore("", Encoding.UTF8);
+                _reqSocket.SendMore("CANCEL", Encoding.UTF8);
+                _reqSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+            }
+
+            _subSocket.Unsubscribe(Encoding.UTF8.GetBytes(instrument.Symbol));
         }
 
         /// <summary>
