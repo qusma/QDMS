@@ -38,7 +38,7 @@ namespace SampleApp
             if (!client.Connected)
             {
                 Console.WriteLine("Could not connect.");
-                Console.WriteLine("Press enter to close.");
+                Console.WriteLine("Press enter to exit.");
                 Console.ReadLine();
                 return;
             }
@@ -85,9 +85,17 @@ namespace SampleApp
                 spy.Datasource.Name = "SIM";
                 var rtReq = new RealTimeDataRequest(spy, BarSize.OneSecond);
                 client.RequestRealTimeData(rtReq);
+
+                Thread.Sleep(3000);
+
+                //And then cancel the real time data stream
+                client.CancelRealTimeData(spy);
             }
 
+            Console.WriteLine("Press enter to exit.");
             Console.ReadLine();
+            client.Disconnect();
+            client.Dispose();
         }
 
         static void client_LocallyAvailableDataInfoReceived(object sender, LocallyAvailableDataInfoReceivedEventArgs e)
