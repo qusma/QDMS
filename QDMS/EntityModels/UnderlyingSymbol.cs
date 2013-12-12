@@ -41,12 +41,12 @@ namespace QDMS
         [ProtoMember(3)]
         public ExpirationRule Rule { get; set; }
 
-        public DateTime ExpirationDate(int year, int month, string calendarType = "US")
+        public DateTime ExpirationDate(int year, int month, string countryCode = "US")
         {
             DateTime referenceDay = new DateTime(year, month, 1);
             referenceDay = referenceDay.AddMonths((int)Rule.ReferenceRelativeMonth);
 
-            Calendar calendar = new UnitedStates(UnitedStates.Market.NYSE); //todo add functionality to allow changing this to other countries
+            Calendar calendar = MyUtils.GetCalendarFromCountryCode(countryCode);
 
             int day;
             if (Rule.ReferenceDayIsLastBusinessDayOfMonth)

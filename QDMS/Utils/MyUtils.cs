@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ProtoBuf;
+using QLNet;
 
 namespace QDMS
 {
@@ -63,6 +64,83 @@ namespace QDMS
                     
             }
             return "";
+        }
+
+        /// <summary>
+        /// Gets a calendar from a 2-letter country code.
+        /// </summary>
+        public static Calendar GetCalendarFromCountryCode(string country)
+        {
+            if (country == "CH")
+            {
+                return new Switzerland();
+            }
+            else if (country == "US")
+            {
+                return new UnitedStates(UnitedStates.Market.NYSE);
+            }
+            else if (country == "SG")
+            {
+                return new Singapore();
+            }
+            else if (country == "UK")
+            {
+                return new UnitedKingdom(UnitedKingdom.Market.Exchange);
+            }
+            else if (country == "DE")
+            {
+                return new Germany(Germany.Market.FrankfurtStockExchange);
+            }
+            else if (country == "HK")
+            {
+                return new HongKong();
+            }
+            else if (country == "JP")
+            {
+                return new Japan();
+            }
+            else if (country == "SK")
+            {
+                return new SouthKorea(SouthKorea.Market.KRX);
+            }
+            else if (country == "BR")
+            {
+                return new Brazil(Brazil.Market.Exchange);
+            }
+            else if (country == "AU")
+            {
+                return new Australia();
+            }
+            else if (country == "IN")
+            {
+                return new India();
+            }
+            else if (country == "CN")
+            {
+                return new China();
+            }
+            else if (country == "TW")
+            {
+                return new Taiwan();
+            }
+            else if (country == "IT")
+            {
+                return new Italy(Italy.Market.Exchange);
+            }
+            else if (country == "CA")
+            {
+                return new Canada(Canada.Market.TSX);
+            }
+            else if (country == "ID")
+            {
+                return new Indonesia(Indonesia.Market.JSX);
+            }
+            else if (country == "SE")
+            {
+                return new Sweden();
+            }
+
+            return new UnitedStates();
         }
 
         public static long ConvertToTimestamp(DateTime value)
