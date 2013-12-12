@@ -119,6 +119,7 @@ namespace QDMSServer
             _client.HistoricalDataReceived -= _client_HistoricalDataReceived;
             _client.Error -= _client_Error;
             _client.Disconnect();
+            _client.Dispose();
         }
     }
 }

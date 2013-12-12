@@ -60,6 +60,8 @@ namespace QDMSClient
 
         public void Dispose()
         {
+            if (Connected) Disconnect();
+
             if (_reqSocket != null)
             {
                 _reqSocket.Dispose();
