@@ -143,6 +143,7 @@
     <Compile Include="CheckBoxItem.cs" />
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ContinuousFuturesBroker.cs" />
+    <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="InstrumentsServer.cs" />
     <Compile Include="HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
@@ -206,7 +207,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataSources\LocalStorage.cs" />
+    <Compile Include="DataSources\MySQLStorage.cs" />
     <Compile Include="DataSources\RealTimeSim.cs" />
     <Compile Include="DataSources\IB.cs" />
     <Compile Include="DataSources\Yahoo.cs" />

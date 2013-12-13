@@ -66,8 +66,11 @@ namespace QDMSServer
                 lock (lockObj)
                 {
                     index = Collection.IndexOf(value);
-                    Collection.RemoveAt(index);
-                    res = true;
+                    if (index >= 0)
+                    {
+                        Collection.RemoveAt(index);
+                        res = true;
+                    }
                 }
             }
             else
@@ -77,8 +80,11 @@ namespace QDMSServer
                     try
                     {
                         index = Collection.IndexOf(value);
-                        Collection.RemoveAt(index);
-                        res = true;
+                        if (index >= 0)
+                        {
+                            Collection.RemoveAt(index);
+                            res = true;
+                        }
                     }
                     finally
                     {

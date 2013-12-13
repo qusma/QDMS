@@ -69,8 +69,10 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConcurrentNotifierBlockingListTest.cs" />
     <Compile Include="ContinuousFutureTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -81,10 +83,21 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\QDMSClient\QDMSClient.csproj">
+      <Project>{28833ee8-5a50-4772-9071-3d16fbf21134}</Project>
+      <Name>QDMSClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMSServer\QDMSServer.csproj">
+      <Project>{1ad82972-fd44-4ed2-b909-a0738f6c03fe}</Project>
+      <Name>QDMSServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS\QDMS.csproj">
       <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
       <Name>QDMS</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
