@@ -136,7 +136,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        ///this function is here because events may execute on other threads, and therefore can't use the logger on this one and must call the dispatcher
+        /// Add a message to the log.
         ///</summary>
         private void Log(LogLevel level, string message)
         {
@@ -144,7 +144,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        /// This one handles data arrivals from historical data sources other than local storage
+        /// This method handles data arrivals from the local database
         ///</summary>
         private void LocalStorageHistoricalDataArrived(object sender, HistoricalDataEventArgs e)
         {
@@ -170,7 +170,7 @@ namespace QDMSServer
             if (!gotOriginalRequest)
                 throw new Exception("Something went wrong: original request disappeared");
 
-            if (e.Request.SaveDataToStorage)
+            if (e.Request.SaveDataToStorage) //the request asked to save newly arrived data in local storage
             {
                 lock (_localStorageLock)
                 {
@@ -268,6 +268,9 @@ namespace QDMSServer
             }
         }
 
+        /// <summary>
+        /// Start the server.
+        /// </summary>
         public void StartServer()
         {
             //check that it's not already running
@@ -281,6 +284,9 @@ namespace QDMSServer
             ServerRunning = true;
         }
 
+        /// <summary>
+        /// Stop the server.
+        /// </summary>
         public void StopServer()
         {
             if (!ServerRunning) return;
@@ -344,6 +350,9 @@ namespace QDMSServer
             ServerRunning = false;
         }
 
+        /// <summary>
+        /// Processes incoming historical data requests.
+        /// </summary>
         private void AcceptHistoricalDataRequest(string requesterIdentity, ZmqSocket socket)
         {
             //third: a serialized HistoricalDataRequest object which contains the details of the request
@@ -473,6 +482,9 @@ namespace QDMSServer
             }
         }
 
+        /// <summary>
+        /// Handles incoming data "push" requests: the client sends data for us to add to local storage.
+        /// </summary>
         private void AcceptDataAdditionRequest(string requesterIdentity, ZmqSocket socket)
         {
             //final message part: receive the DataAdditionRequest object
@@ -506,7 +518,9 @@ namespace QDMSServer
             }
         }
 
-        //client wants to know what sort of data we have available stored locally
+        /// <summary>
+        /// Handles requests for information on data that is available in local storage
+        /// </summary>
         private void AcceptAvailableDataRequest(string requesterIdentity, ZmqSocket socket)
         {
             //get the instrument

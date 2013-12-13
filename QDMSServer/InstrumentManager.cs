@@ -21,6 +21,10 @@ namespace QDMSServer
             return true;
         }
 
+        /// <summary>
+        /// Tries to add multiple instruments to the database.
+        /// </summary>
+        /// <returns>The number of instruments that were successfully added.</returns>
         public static int AddInstruments(IList<Instrument> instruments, bool updateIfExists = false)
         {
             int count =  instruments.Count(s => AddInstrument(s, updateIfExists, false));
@@ -43,9 +47,13 @@ namespace QDMSServer
 
             using (var context = new MyDBContext())
             {
+                //check if the instrument already exists in the database or not
                 var existingInstrument = context.Instruments.SingleOrDefault(x =>
                     (x.ID == instrument.ID) ||
-                    (x.Symbol == instrument.Symbol && x.DatasourceID == instrument.DatasourceID && x.ExchangeID == instrument.ExchangeID));
+                    (x.Symbol == instrument.Symbol && 
+                    x.DatasourceID == instrument.DatasourceID && 
+                    x.ExchangeID == instrument.ExchangeID &&
+                    x.Expiration == instrument.Expiration));
 
                 if (existingInstrument == null) //object doesn't exist, so we add it
                 {
@@ -84,6 +92,13 @@ namespace QDMSServer
             return false; //object exists and we don't update it
         }
 
+        /// <summary>
+        /// Search for instruments.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="search">Any properties set on this instrument are used as search parameters.
+        /// If null, all instruments are returned.</param>
+        /// <returns>A list of instruments matching the criteria.</returns>
         public static List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null)
         {
             if (context == null) context = new MyDBContext();
@@ -106,10 +121,6 @@ namespace QDMSServer
             {
                 var allExchanges = context.Exchanges.Include(x => x.Sessions).ToList();
                 var allInstruments = query.ToList();
-                //foreach (Instrument i in allInstruments)
-                //{
-                //    i.Exchange.Sessions.ToList();
-                //}
                 return allInstruments;
             }
             else
@@ -182,13 +193,19 @@ namespace QDMSServer
                 }
             }
             var instrumentList =  query.ToList();
-            foreach (Instrument i in instrumentList)
+            //see comment above, we can't include these in the original query due to a bug
+            //and we can't allow lazy loading of the sessions
+            //so we force them to be loaded right now
+            foreach (Instrument i in instrumentList) 
             {
                 i.Exchange.Sessions.ToList();
             }
             return instrumentList;
         }
 
+        /// <summary>
+        /// Updates the instrument with new values. Instrument must have an ID.
+        /// </summary>
         public static void UpdateInstrument(Instrument instrument)
         {
             if(!instrument.ID.HasValue) return;
@@ -216,7 +233,8 @@ namespace QDMSServer
 
         public static void RemoveInstrument(Instrument instrument)
         {
-            
+            throw new NotImplementedException();
+            //todo write
         }
 
     }
