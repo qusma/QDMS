@@ -57,6 +57,14 @@ namespace QDMSServer
 
                 if (existingInstrument == null) //object doesn't exist, so we add it
                 {
+                    //attach the datasource, exchanges, etc. so it doesn't try to add them
+                    context.Datasources.Attach(instrument.Datasource);
+                    context.Exchanges.Attach(instrument.PrimaryExchange);
+                    if (instrument.PrimaryExchangeID != instrument.ExchangeID && context.Exchanges.Local.All(x => x.ID != instrument.Exchange.ID))
+                    {
+                        context.Exchanges.Attach(instrument.Exchange);
+                    }
+
                     //if necessary, load sessions from teplate or exchange
                     if (instrument.SessionsSource == SessionsSource.Exchange)
                     {
@@ -77,6 +85,7 @@ namespace QDMSServer
                         }
                     }
 
+                    
                     context.Instruments.Add(instrument);
                     context.Database.Connection.Open();
                     if (saveChanges) context.SaveChanges();
