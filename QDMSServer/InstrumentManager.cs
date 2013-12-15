@@ -59,8 +59,11 @@ namespace QDMSServer
                 {
                     //attach the datasource, exchanges, etc. so it doesn't try to add them
                     context.Datasources.Attach(instrument.Datasource);
-                    context.Exchanges.Attach(instrument.PrimaryExchange);
-                    if (instrument.PrimaryExchangeID != instrument.ExchangeID && context.Exchanges.Local.All(x => x.ID != instrument.Exchange.ID))
+                    if (instrument.PrimaryExchange != null)
+                    {
+                        context.Exchanges.Attach(instrument.PrimaryExchange);
+                    }
+                    if (instrument.PrimaryExchangeID != instrument.ExchangeID && instrument.Exchange != null)
                     {
                         context.Exchanges.Attach(instrument.Exchange);
                     }
