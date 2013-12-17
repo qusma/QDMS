@@ -14,6 +14,25 @@ namespace QDMS
     public static class MyExtensions
     {
         /// <summary>
+        /// Finds the index of the first occurence of an item matching the provided predicate
+        /// </summary>
+        /// <returns>The index if found, -1 if not found.</returns>
+        public static int IndexOf<T>(this IEnumerable<T> data, Predicate<T> predicate)
+        {
+            if (data == null) throw new ArgumentNullException("data");
+            if (predicate == null) throw new ArgumentNullException("predicate");
+
+            int count = 0;
+            foreach (var i in data)
+            {
+                if (predicate(i)) return count;
+                count++;
+            }
+            return -1;
+        }
+
+
+        /// <summary>
         /// Save a collection of OHLCBars to a file, in CSV format.
         /// </summary>
         public static void ToCSVFile(this IEnumerable<OHLCBar> data, string filePath)

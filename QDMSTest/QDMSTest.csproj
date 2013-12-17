@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="ConcurrentNotifierBlockingListTest.cs" />
     <Compile Include="ContinuousFutureTest.cs" />
+    <Compile Include="MyExtensionsTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnderlyingSymbolTest.cs" />
