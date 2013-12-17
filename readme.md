@@ -8,6 +8,8 @@ QDMS uses MySQL for storage, ZeroMQ and Protocol Buffers for client/server commu
 
 If you wish to contribute, fork the repo and send a pull request with your changes.
 
+For bug reports, feature requests, and general discussion there is a google group: https://groups.google.com/forum/#!forum/qusma-data-management-system
+
 Screenshots:
 ------------------------
 * [Instrument metadata](http://i.imgur.com/GXw8amN.png).
