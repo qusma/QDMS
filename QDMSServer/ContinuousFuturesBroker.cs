@@ -4,6 +4,16 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// The idea here then is the following:
+// Receive a request for data in RequestHistoricalData().
+// In there, figure out which actual futures contracts we need, and request their data.
+// Keep track of that stuff in _requestIDs.
+// When all the data has arrived, figure out how to stich it together in CalcContFutData()
+// Finally send it out using the HistoricalDataArrived event
+
+//TODO It's a bit of a mess right now, refactor into something smarter
+//TODO if a request for contract data fails we need to take care of that somehow
+
 using System.Collections.Generic;
 using System.Linq;
 using QDMS;
@@ -15,17 +25,24 @@ namespace QDMSServer
     {
         private QDMSClient.QDMSClient _client;
 
+        // Keeps track of how many historical data requests remain until we can calculate the continuous prices
+        // Key: request ID, Value: number of requests outstanding
+        private readonly Dictionary<int, int> _requestCounts;
+
+        // This keeps track of which futures contract requests belong to which continuous future request
+        // Key: contract request ID, Value: continuous future request ID
+        private readonly Dictionary<int, int> _histReqIDMap;
+
+        // Key: request ID, Value: the list of contracts used to fulfill this request
+        private readonly Dictionary<int, List<Instrument>> _contracts;
+
+        // Keeps track of the requests. Key: request ID, Value: the request
+        private readonly Dictionary<int, HistoricalDataRequest> _requests;
+
+        private readonly object _reqCountLock = new object();
+
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
         private Dictionary<int, List<OHLCBar>> _data;
-
-        public void Dispose()
-        {
-            if (_client != null)
-            {
-                _client.Dispose();
-                _client = null;
-            }
-        }
 
         public ContinuousFuturesBroker()
         {
@@ -38,9 +55,29 @@ namespace QDMSServer
                 Properties.Settings.Default.hDBPort);
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
+            _client.Error += _client_Error;
+            
             _data = new Dictionary<int, List<OHLCBar>>();
+            _contracts = new Dictionary<int, List<Instrument>>();
+            _requestCounts = new Dictionary<int, int>();
+            _requests = new Dictionary<int, HistoricalDataRequest>();
+            _histReqIDMap = new Dictionary<int, int>();
 
             Name = "ContinuousFutures";
+        }
+
+        void _client_Error(object sender, ErrorArgs e)
+        {
+            
+        }
+
+        public void Dispose()
+        {
+            if (_client != null)
+            {
+                _client.Dispose();
+                _client = null;
+            }
         }
 
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
@@ -52,6 +89,28 @@ namespace QDMSServer
                 _data.Remove(id);
             }
             _data.Add(id, e.Data);
+
+
+            lock (_reqCountLock)
+            {
+                //get the request id of the continuous futures request that caused this contract request
+                int cfReqID = _histReqIDMap[e.Request.RequestID];
+                _histReqIDMap.Remove(e.Request.RequestID);
+                _requestCounts[cfReqID]--;
+
+                if (_requestCounts[cfReqID] == 0) 
+                {
+                    //we have received all the data we asked for
+                    //so now we want to generate the continuous prices
+                    _requestCounts.Remove(e.Request.RequestID);
+                    CalcContFutData(_requests[cfReqID]);
+                }
+            }
+            //TODO need to check: if all data requests for a particular
+            //continuous futures request have been fulfilled, then call CalcContFutData()
+            
+            //TODO if we call it from here though, then that locks up the client thread while we do the calcs
+            //not sure what the best approach is
         }
 
         /// <summary>
@@ -88,6 +147,9 @@ namespace QDMSServer
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
+            // add it to the collection of requests so we can access it later
+            _requests.Add(request.AssignedID, request);
+
             var cf = request.Instrument.ContinuousFuture;
             var searchInstrument = new Instrument 
                 { 
@@ -108,24 +170,62 @@ namespace QDMSServer
                 }
             }
 
+            //TODO not 100% certain about this, but I think that the first contract we need
+            //is the first one expiring before the start of the request period
+            var firstExpiration = futures
+                .Where(x => x.Expiration != null && x.Expiration.Value < request.StartingDate)
+                .Select(x => x.Expiration.Value).Max();
+
+            futures = futures.Where(x => x.Expiration != null && x.Expiration.Value < firstExpiration).ToList();
+
             //order them by ascending expiration date
             futures = futures.OrderBy(x => x.Expiration).ToList();
 
-            //TODO so somewhere around here we need to just wait until all the data has arrived
+            //save the number of requests we're gonna make
+            lock(_reqCountLock)
+            {
+                _requestCounts.Add(request.AssignedID, futures.Count);
+            }
+            
+            //save the contracts used, we need them later
+            _contracts.Add(request.AssignedID, futures);
 
+            //request the data for all futures left
+            foreach (Instrument i in futures)
+            {
+                //grab the entire data series for every contract
+                var req = new HistoricalDataRequest(
+                    i,
+                    request.Frequency,
+                    new DateTime(1, 1, 1),
+                    i.Expiration.Value,
+                    rthOnly: request.RTHOnly);
+                int requestID = _client.RequestHistoricalData(req);
+                _histReqIDMap.Add(requestID, req.AssignedID);
+
+            }
+        }
+
+        private void CalcContFutData(HistoricalDataRequest request)
+        {
             //TODO these two are the "candidates"...at each bar we check if it's time to 
             Instrument frontFuture = new Instrument();
             Instrument backFuture = new Instrument();
 
             List<OHLCBar> frontData = new List<OHLCBar>();
             List<OHLCBar> backData = new List<OHLCBar>();
-            
+
             //TODO starting point...we need to find the switchover point BEFORE the request's starting date
             DateTime currentDate = DateTime.Now;
             //TODO final date is either the last date of data available, or the request's endingdate
             DateTime finalDate = DateTime.Now;
 
             List<OHLCBar> cfData = new List<OHLCBar>();
+
+            var cf = request.Instrument.ContinuousFuture;
+
+            //copy over the list of contracts that we're gonna be using
+            List<Instrument> futures = new List<Instrument>(_contracts[request.AssignedID]);
 
             bool switchContract = false;
             //is it possible that it might be better to start at "now" and calculate backwards instead?
@@ -170,6 +270,10 @@ namespace QDMSServer
                     switchContract = false;
                 }
             }
+
+            //clean up
+            _contracts.Remove(request.AssignedID);
+            
 
             //we're done, so just raise the event
             HistoricalDataArrived(this, new HistoricalDataEventArgs(request, cfData));
