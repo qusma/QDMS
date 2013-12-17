@@ -53,6 +53,8 @@ namespace QDMSClient
         private readonly int _historicalDataPort;
         private readonly ConcurrentQueue<HistoricalDataRequest> _historicalDataRequests;
 
+        private int _historicalRequestCount;
+
         private readonly object _reqSocketLock = new object();
         private readonly object _dealerSocketLock = new object();
 
@@ -166,9 +168,13 @@ namespace QDMSClient
         /// <summary>
         /// Request historical data. Data will be delivered through the HistoricalDataReceived event.
         /// </summary>
-        public void RequestHistoricalData(HistoricalDataRequest request)
+        /// <returns>An ID uniquely identifying this historical data request.</returns>
+        public int RequestHistoricalData(HistoricalDataRequest request)
         {
+            _historicalRequestCount++;
+            request.RequestID = _historicalRequestCount;
             _historicalDataRequests.Enqueue(request);
+            return _historicalRequestCount;
         }
 
         /// <summary>

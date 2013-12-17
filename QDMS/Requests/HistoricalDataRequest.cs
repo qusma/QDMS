@@ -86,6 +86,12 @@ namespace QDMS
         public bool RTHOnly { get; set; }
 
         /// <summary>
+        /// This value is used on the client side to uniquely identify historical data requests.
+        /// </summary>
+        [ProtoMember(9)]
+        public int RequestID { get; set; }
+
+        /// <summary>
         /// The historical data broker gives the request an ID, which is then used to identify it when the data is returned.
         /// </summary>
         public int AssignedID { get; set; }
@@ -94,7 +100,7 @@ namespace QDMS
         {
         }
 
-        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, bool forceFreshData = false, bool localStorageOnly = false, bool saveToLocalStorage = true, bool rthOnly = false)
+        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, int requestID, bool forceFreshData = false, bool localStorageOnly = false, bool saveToLocalStorage = true, bool rthOnly = false)
         {
             Frequency = frequency;
             Instrument = instrument;
@@ -104,6 +110,7 @@ namespace QDMS
             LocalStorageOnly = localStorageOnly;
             SaveDataToStorage = saveToLocalStorage;
             RTHOnly = rthOnly;
+            RequestID = requestID;
         }
 
         /// <summary>
@@ -114,7 +121,7 @@ namespace QDMS
         /// </returns>
         public object Clone()
         {
-            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly);
+            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, RequestID, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly);
             clone.AssignedID = AssignedID;
             return clone;
         }
