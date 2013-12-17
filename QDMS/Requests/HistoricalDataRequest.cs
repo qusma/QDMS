@@ -100,7 +100,7 @@ namespace QDMS
         {
         }
 
-        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, int requestID, bool forceFreshData = false, bool localStorageOnly = false, bool saveToLocalStorage = true, bool rthOnly = false)
+        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, bool forceFreshData = false, bool localStorageOnly = false, bool saveToLocalStorage = true, bool rthOnly = false, int requestID = 0)
         {
             Frequency = frequency;
             Instrument = instrument;
@@ -121,7 +121,7 @@ namespace QDMS
         /// </returns>
         public object Clone()
         {
-            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, RequestID, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly);
+            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly, RequestID);
             clone.AssignedID = AssignedID;
             return clone;
         }
