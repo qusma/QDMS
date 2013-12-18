@@ -7,6 +7,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using ProtoBuf;
 using QLNet;
 
@@ -14,7 +15,7 @@ namespace QDMS
 {
     [ProtoContract]
     [Serializable]
-    public class UnderlyingSymbol
+    public class UnderlyingSymbol : ICloneable
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -29,11 +30,11 @@ namespace QDMS
         {
             get
             {
-                return MyUtils.ProtoBufSerialize(Rule, new System.IO.MemoryStream());
+                return MyUtils.ProtoBufSerialize(Rule, new MemoryStream());
             }
             set
             {
-                Rule = MyUtils.ProtoBufDeserialize<ExpirationRule>(value, new System.IO.MemoryStream());
+                Rule = MyUtils.ProtoBufDeserialize<ExpirationRule>(value, new MemoryStream());
             }
         }
 
@@ -113,5 +114,22 @@ namespace QDMS
             return referenceDay;
         }
 
+        /// <summary>
+        /// Creates a new object that is a copy of the current instance.
+        /// </summary>
+        /// <returns>
+        /// A new object that is a copy of this instance.
+        /// </returns>
+        public object Clone()
+        {
+            var clone = new UnderlyingSymbol
+            {
+                ID = ID,
+                ExpirationRule = ExpirationRule,
+                Symbol = Symbol
+            };
+
+            return clone;
+        }
     }
 }
