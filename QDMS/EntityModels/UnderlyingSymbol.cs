@@ -94,7 +94,7 @@ namespace QDMS
             referenceDay = new DateTime(year, month, day);
             referenceDay = referenceDay.AddMonths((int)Rule.ReferenceRelativeMonth);
 
-            if (Rule.DayType == DayType.BusinessDay)
+            if (Rule.DayType == DayType.Business)
             {
                 int daysLeft = Rule.DaysBefore;
                 int daysBack = 0;
@@ -107,7 +107,7 @@ namespace QDMS
                 }
                 return referenceDay.AddDays(-daysBack);
             }
-            else if (Rule.DayType == DayType.CalendarDay)
+            else if (Rule.DayType == DayType.Calendar)
             {
                 return referenceDay.AddDays(-Rule.DaysBefore);
             }

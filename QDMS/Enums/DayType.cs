@@ -16,11 +16,11 @@ namespace QDMS
         /// Calendar Day
         /// </summary>
         [Description("Calendar Day")]
-        CalendarDay = 0,
+        Calendar = 0,
         /// <summary>
         /// Business Day
         /// </summary>
         [Description("Business Day")]
-        BusinessDay = 1,
+        Business = 1,
     }
 }
