@@ -3,7 +3,6 @@
     x:Class="QDMSServer.SessionTemplatesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
     Title="Session Templates" Height="558" Width="445.906"
     BorderBrush="Black"
     BorderThickness="1"
