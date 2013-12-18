@@ -19,7 +19,7 @@ using Timer = System.Timers.Timer;
 
 namespace QDMSClient
 {
-    public class QDMSClient : IDisposable
+    public class QDMSClient : IDisposable, IDataClient
     {
         public event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;

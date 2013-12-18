@@ -61,6 +61,7 @@
     <Compile Include="Enums\DayType.cs" />
     <Compile Include="Enums\RelativeMonth.cs" />
     <Compile Include="Enums\WeekDayCount.cs" />
+    <Compile Include="Interfaces\IDataClient.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />
     <Compile Include="EntityModels\ContinuousFuture.cs" />
     <Compile Include="EntityModels\Datasource.cs" />
