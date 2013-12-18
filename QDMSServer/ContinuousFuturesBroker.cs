@@ -23,7 +23,7 @@ namespace QDMSServer
 {
     public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource
     {
-        private QDMSClient.QDMSClient _client;
+        private IDataClient _client;
 
         // Keeps track of how many historical data requests remain until we can calculate the continuous prices
         // Key: request ID, Value: number of requests outstanding
@@ -46,7 +46,8 @@ namespace QDMSServer
 
         public ContinuousFuturesBroker(IDataClient client = null)
         {
-            if(client == null)
+            if (client == null)
+            {
                 _client = new QDMSClient.QDMSClient(
                     "CONTFUTCLIENT",
                     "localhost",
@@ -54,6 +55,11 @@ namespace QDMSServer
                     Properties.Settings.Default.rtDBPubPort,
                     Properties.Settings.Default.instrumentServerPort,
                     Properties.Settings.Default.hDBPort);
+            }
+            else
+            {
+                _client = client;
+            }
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
@@ -115,38 +121,6 @@ namespace QDMSServer
             //TODO if we call it from here though, then that locks up the client thread while we do the calcs
             //not sure what the best approach is
         }
-
-        /// <summary>
-        /// Connect to the data source.
-        /// </summary>
-        public void Connect()
-        {
-            
-        }
-
-        /// <summary>
-        /// Disconnect from the data source.
-        /// </summary>
-        public void Disconnect()
-        {
-            
-        }
-
-        /// <summary>
-        /// Whether the connection to the data source is up or not.
-        /// </summary>
-        public bool Connected
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// The name of the data source.
-        /// </summary>
-        public string Name { get; private set; }
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
@@ -351,6 +325,38 @@ namespace QDMSServer
             if (futures.Count == 0) return null;
 
             return new Instrument();
+        }
+
+        /// <summary>
+        /// The name of the data source.
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
+        /// Connect to the data source.
+        /// </summary>
+        public void Connect()
+        {
+
+        }
+
+        /// <summary>
+        /// Disconnect from the data source.
+        /// </summary>
+        public void Disconnect()
+        {
+
+        }
+
+        /// <summary>
+        /// Whether the connection to the data source is up or not.
+        /// </summary>
+        public bool Connected
+        {
+            get
+            {
+                return true;
+            }
         }
     }
 }

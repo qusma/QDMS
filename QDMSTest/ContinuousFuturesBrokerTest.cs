@@ -4,6 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+//todo these tests depend on the InstrumentManager so we'll need to mock that too..
+//need to rewrite that a bit because it's a static class
+
+using System.Collections.Generic;
 using Moq;
 using NUnit.Framework;
 using QDMS;
@@ -17,15 +21,6 @@ namespace QDMSTest
     {
         private ContinuousFuturesBroker _broker;
         private Mock<IDataClient> _clientMock;
-
-        public void Dispose()
-        {
-            if (_broker != null)
-            {
-                _broker.Dispose();
-                _broker = null;
-            }
-        }
 
         [SetUp]
         public void SetUp()
@@ -43,8 +38,6 @@ namespace QDMSTest
             inst.ContinuousFuture = cf;
 
             var underlying = new UnderlyingSymbol();
-            var expirationRule = new ExpirationRule();
-            underlying.Rule = expirationRule;
             underlying.Symbol = "ES";
 
             inst.ContinuousFuture.UnderlyingSymbol = underlying;
@@ -55,14 +48,15 @@ namespace QDMSTest
                 new DateTime(2012, 1, 1),
                 new DateTime(2013, 1, 1));
 
-            _broker.RequestHistoricalData(req);
-
+            //_broker.RequestHistoricalData(req);
+            
             
         }
 
         [Test]
         public void CorrectTimeBasedSwitchover()
         {
+            _clientMock.Raise(x => x.HistoricalDataReceived += null, new HistoricalDataEventArgs(new HistoricalDataRequest(), new List<OHLCBar>()));
         }
 
         [Test]
@@ -99,6 +93,15 @@ namespace QDMSTest
         [Test]
         public void CorrectContinuousPricesWithNoAdjustment()
         {
+        }
+
+        public void Dispose()
+        {
+            if (_broker != null)
+            {
+                _broker.Dispose();
+                _broker = null;
+            }
         }
     }
 }
