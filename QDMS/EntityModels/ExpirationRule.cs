@@ -66,7 +66,7 @@ namespace QDMS
         /// <summary>
         /// If this is true, the reference day is set to the last business day of the relevant month.
         /// </summary>
-        [ProtoMember(9)]
+        [ProtoMember(10)]
         public bool ReferenceDayIsLastBusinessDayOfMonth { get; set; }
     }
 }
