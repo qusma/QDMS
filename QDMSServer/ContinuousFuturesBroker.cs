@@ -44,18 +44,21 @@ namespace QDMSServer
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
         private Dictionary<int, List<OHLCBar>> _data;
 
-        public ContinuousFuturesBroker()
+        public ContinuousFuturesBroker(IDataClient client = null)
         {
-            _client = new QDMSClient.QDMSClient(
-                "CONTFUTCLIENT",
-                "localhost",
-                Properties.Settings.Default.rtDBReqPort,
-                Properties.Settings.Default.rtDBPubPort,
-                Properties.Settings.Default.instrumentServerPort,
-                Properties.Settings.Default.hDBPort);
+            if(client == null)
+                _client = new QDMSClient.QDMSClient(
+                    "CONTFUTCLIENT",
+                    "localhost",
+                    Properties.Settings.Default.rtDBReqPort,
+                    Properties.Settings.Default.rtDBPubPort,
+                    Properties.Settings.Default.instrumentServerPort,
+                    Properties.Settings.Default.hDBPort);
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
+
+            _client.Connect();
             
             _data = new Dictionary<int, List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();
@@ -219,7 +222,7 @@ namespace QDMSServer
 
             //sometimes the contract will be based on the Xth month
             //this is where we keep track of the actual contract currently being used
-            Instrument selectedFuture = futures.ElementAt(cf.Month);
+            Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
 
             List<OHLCBar> frontData = _data[frontFuture.ID.Value];
             List<OHLCBar> backData = _data[backFuture.ID.Value];
@@ -324,8 +327,8 @@ namespace QDMSServer
             //clean up
             _contracts.Remove(request.AssignedID);
             
-            //throw out any data before the start of the request
-
+            //throw out any data from before the start of the request
+            cfData = cfData.Where(x => x.DT >= request.StartingDate && x.DT <= request.EndingDate).ToList();
 
             //we're done, so just raise the event
             HistoricalDataArrived(this, new HistoricalDataEventArgs(request, cfData));
