@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
-    public interface IDataClient
+    public interface IDataClient : IDisposable
     {
         event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
         event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
