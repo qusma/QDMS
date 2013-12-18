@@ -208,64 +208,114 @@ namespace QDMSServer
 
         private void CalcContFutData(HistoricalDataRequest request)
         {
-            //TODO these two are the "candidates"...at each bar we check if it's time to 
-            Instrument frontFuture = new Instrument();
-            Instrument backFuture = new Instrument();
-
-            List<OHLCBar> frontData = new List<OHLCBar>();
-            List<OHLCBar> backData = new List<OHLCBar>();
-
-            //TODO starting point...we need to find the switchover point BEFORE the request's starting date
-            DateTime currentDate = DateTime.Now;
-            //TODO final date is either the last date of data available, or the request's endingdate
-            DateTime finalDate = DateTime.Now;
-
-            List<OHLCBar> cfData = new List<OHLCBar>();
-
-            var cf = request.Instrument.ContinuousFuture;
-
+            //TODO perhaps start by cleaning up the data, it is possible that some of the futures may not have had ANY data returned!
             //copy over the list of contracts that we're gonna be using
             List<Instrument> futures = new List<Instrument>(_contracts[request.AssignedID]);
 
+            var cf = request.Instrument.ContinuousFuture;
+
+            Instrument frontFuture = futures.First();
+            Instrument backFuture = futures.ElementAt(1);
+
+            //sometimes the contract will be based on the Xth month
+            //this is where we keep track of the actual contract currently being used
+            Instrument selectedFuture = futures.ElementAt(cf.Month);
+
+            List<OHLCBar> frontData = _data[frontFuture.ID.Value];
+            List<OHLCBar> backData = _data[backFuture.ID.Value];
+            List<OHLCBar> selectedData = _data[selectedFuture.ID.Value];
+
+            DateTime currentDate = frontData[0].DT;
+            //TODO final date is either the last date of data available, or the request's endingdate
+            DateTime finalDate = request.EndingDate;
+
+            List<OHLCBar> cfData = new List<OHLCBar>();
+
+            //these ints keep track of the index of the "current" date in the contract data
+            DateTime tmpDate = currentDate;
+            int frontIndex = frontData.IndexOf(x => x.DT >= tmpDate);
+            int backIndex = backData.IndexOf(x => x.DT >= tmpDate);
+            int selectedIndex = selectedData.IndexOf(x => x.DT >= tmpDate);
+            
+
             bool switchContract = false;
+            int counter = 0; //some rollover rules require multiple consecutive days of greater vol/OI...this keeps track of that
+
             //is it possible that it might be better to start at "now" and calculate backwards instead?
             while (currentDate < finalDate)
             {
+                cfData.Add(selectedData[selectedIndex]);
 
                 //do we need to switch contracts?
-                if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
+                switch (cf.RolloverType)
                 {
-                    if ((frontFuture.Expiration.Value - currentDate).TotalDays <= cf.RolloverDays)
-                    {
-                        switchContract = true;
-                    }
+                    case ContinuousFuturesRolloverType.Time:
+                        if ((frontFuture.Expiration.Value - currentDate).TotalDays <= cf.RolloverDays)
+                        {
+                            switchContract = true;
+                        }
+                        break;
+                    case ContinuousFuturesRolloverType.Volume:
+                        if (backData[backIndex].Volume > frontData[frontIndex].Volume)
+                            counter++;
+                        else
+                            counter = 0;
+                        switchContract = counter >= cf.RolloverDays;
+                        break;
+                    case ContinuousFuturesRolloverType.OpenInterest:
+                        if (backData[backIndex].OpenInterest > frontData[frontIndex].OpenInterest)
+                            counter++;
+                        else
+                            counter = 0;
+                        switchContract = counter >= cf.RolloverDays;
+                        break;
+                    case ContinuousFuturesRolloverType.VolumeAndOpenInterest:
+                        if (backData[backIndex].OpenInterest > frontData[frontIndex].OpenInterest &&
+                            backData[backIndex].Volume > frontData[frontIndex].Volume)
+                            counter++;
+                        else
+                            counter = 0;
+                        switchContract = counter >= cf.RolloverDays;
+                        break;
+                    case ContinuousFuturesRolloverType.VolumeOrOpenInterest:
+                        if (backData[backIndex].OpenInterest > frontData[frontIndex].OpenInterest ||
+                            backData[backIndex].Volume > frontData[frontIndex].Volume)
+                            counter++;
+                        else
+                            counter = 0;
+                        switchContract = counter >= cf.RolloverDays;
+                        break;
                 }
-                else if (cf.RolloverType == ContinuousFuturesRolloverType.Volume)
+                
+                if (frontFuture.Expiration.Value <= currentDate) 
                 {
-
-                }
-                else if (cf.RolloverType == ContinuousFuturesRolloverType.OpenInterest)
-                {
-
-                }
-                else if (cf.RolloverType == ContinuousFuturesRolloverType.VolumeAndOpenInterest)
-                {
-
-                }
-                else if (cf.RolloverType == ContinuousFuturesRolloverType.VolumeOrOpenInterest)
-                {
-
+                    //no matter what, obviously we need to switch if the contract expires
+                    switchContract = true;
                 }
 
+                //finally advance the time and indices
+                currentDate = currentDate.Add(request.Frequency.ToTimeSpan());
+                frontIndex++;
+                backIndex++;
+                selectedIndex++;
 
                 //we switch to the next contract
                 if (switchContract)
                 {
+                    //update the contracts
                     frontFuture = backFuture;
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
+                    selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAt(cf.Month - 1);
 
                     frontData = _data[frontFuture.ID.Value];
                     backData = _data[backFuture.ID.Value];
+                    selectedData = _data[selectedFuture.ID.Value];
+
+                    //find the indices of the "current" time in the data series
+                    DateTime date = currentDate;
+                    frontIndex = frontData.IndexOf(x => x.DT >= date);
+                    backIndex = backData.IndexOf(x => x.DT >= date);
+                    selectedIndex = selectedData.IndexOf(x => x.DT >= date);
 
                     switchContract = false;
                 }
@@ -274,6 +324,8 @@ namespace QDMSServer
             //clean up
             _contracts.Remove(request.AssignedID);
             
+            //throw out any data before the start of the request
+
 
             //we're done, so just raise the event
             HistoricalDataArrived(this, new HistoricalDataEventArgs(request, cfData));

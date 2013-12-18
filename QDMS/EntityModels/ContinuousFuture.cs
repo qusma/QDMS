@@ -35,7 +35,8 @@ namespace QDMS
         public virtual UnderlyingSymbol UnderlyingSymbol { get; set; }
 
         /// <summary>
-        /// No idea what I was thinking with this one?
+        /// Which contract month to use to construct the continuous prices.
+        /// For example, Month = 1 uses the "front" future, Month = 2 uses the next one and so forth.
         /// </summary>
         [ProtoMember(4)]
         public int Month { get; set; }
