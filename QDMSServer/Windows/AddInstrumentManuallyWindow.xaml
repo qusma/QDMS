@@ -233,6 +233,92 @@
                     <Button IsEnabled="{Binding ElementName=CustomRadioBtn,Path=IsChecked}" Click="DeleteSessionItemBtn_Click"  Name="DeleteSessionItemBtn" Content="Delete" HorizontalAlignment="Left" Margin="88,445,0,0" VerticalAlignment="Top" Width="75" Grid.Row="1" Grid.RowSpan="2"/>
                 </Grid>
             </TabItem>
+            <TabItem Name="ContFutTabItem" Header="Cont. Fut." HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid Background="Transparent">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45"/>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="125"/>
+                        <RowDefinition Height="87*"/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Content="Name:" Margin="10,13,386,0" VerticalAlignment="Top" Height="23"/>
+
+                    <Label Grid.Row="0"  Content="Root Symbol:" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Height="23" Width="75"/>
+                    <ComboBox Grid.Row="0"  Name="RootSymbolComboBox" HorizontalAlignment="Left" Margin="89,10,0,0" VerticalAlignment="Top" Width="120" Height="26"/>
+
+
+                    <GroupBox Grid.Row="1" Header="Months" Margin="5,0,5,0" VerticalAlignment="Top" Height="85" HorizontalAlignment="Stretch">
+                        <Grid>
+                            <CheckBox x:Name="MonthsJan" Content="Jan (F)" IsChecked="True" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" />
+                            <CheckBox x:Name="MonthsFeb" Content="Feb (G)" IsChecked="True" HorizontalAlignment="Left" Margin="60,0,0,0" VerticalAlignment="Top" />
+                            <CheckBox x:Name="MonthsMar" Content="Mar (H)" IsChecked="True" HorizontalAlignment="Left" Margin="125,0,0,0" VerticalAlignment="Top"/>
+                            <CheckBox x:Name="MonthsApr" Content="Apr (J)" IsChecked="True" HorizontalAlignment="Left" Margin="190,0,0,0" VerticalAlignment="Top"/>
+                            <CheckBox x:Name="MonthsMay" Content="May (K)" IsChecked="True" HorizontalAlignment="Left" Margin="251,0,0,0" VerticalAlignment="Top"/>
+                            <CheckBox x:Name="MonthsJun" Content="Jun (M)" IsChecked="True" HorizontalAlignment="Left" Margin="316,0,0,0" VerticalAlignment="Top"/>
+                            <CheckBox x:Name="MonthsJul" Content="Jul (N)" IsChecked="True" HorizontalAlignment="Left" Margin="0,22,0,0" VerticalAlignment="Top"/>
+                            <CheckBox x:Name="MonthsAug" Content="Aug (Q)" IsChecked="True" HorizontalAlignment="Left" Margin="60,22,0,0" VerticalAlignment="Top"/>
+                            <CheckBox x:Name="MonthsSep" Content="Sep (U)" IsChecked="True" HorizontalAlignment="Left" Margin="125,22,0,0" VerticalAlignment="Top" />
+                            <CheckBox x:Name="MonthsOct" Content="Oct (V)" IsChecked="True" HorizontalAlignment="Left" Margin="190,22,0,0" VerticalAlignment="Top" />
+                            <CheckBox x:Name="MonthsNov" Content="Nov (X)" IsChecked="True" HorizontalAlignment="Left" Margin="251,22,0,0" VerticalAlignment="Top" />
+                            <CheckBox x:Name="MonthsDec" Content="Dec (Z)" IsChecked="True" HorizontalAlignment="Left" Margin="316,22,0,0" VerticalAlignment="Top" />
+                        </Grid>
+                    </GroupBox>
+
+
+
+
+
+
+
+
+
+                    <GroupBox Header="Rollover" Margin="5,10,5,0" Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="100">
+                        <Grid>
+                            <StackPanel Margin="0,5,0,0">
+                                <RadioButton Name="RolloverRule" IsChecked="True" Content="Rule-Based" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="100"/>
+                                <RadioButton x:Name="RolloverTime" Content="Time-Based" HorizontalAlignment="Left" Margin="0,10,0,0" Height="20" VerticalAlignment="Top" Width="100"/>
+                            </StackPanel>
+                            <TextBox Grid.Row="0" Text="1" x:Name="RolloverRuleDays" HorizontalAlignment="Left" Height="16" Margin="95,7,0,0" 
+                                IsEnabled="{Binding IsChecked, ElementName=RolloverRule}" TextWrapping="Wrap" VerticalAlignment="Top" Width="21"/>
+                            <TextBox Grid.Row="0" Text="1" x:Name="RolloverTimeDays" HorizontalAlignment="Left" Height="16" Margin="95,34,0,0" 
+                                IsEnabled="{Binding IsChecked, ElementName=RolloverTime}" TextWrapping="Wrap" VerticalAlignment="Top" Width="21"/>
+
+                            <Label Content="Trading days prior to expiration" HorizontalAlignment="Left" Margin="120,37,0,0" VerticalAlignment="Top" Width="204"/>
+                            <Label Content="Days of higher" HorizontalAlignment="Left" Margin="120,10,0,0" VerticalAlignment="Top"/>
+                            <ComboBox Name="RolloverRuleType" HorizontalAlignment="Left" Margin="206,7,0,0" VerticalAlignment="Top" Width="150" SelectedIndex="0"
+                                      IsEnabled="{Binding IsChecked, ElementName=RolloverRule}">
+                                <ComboBoxItem>Volume</ComboBoxItem>
+                                <ComboBoxItem>Open Interest</ComboBoxItem>
+                                <ComboBoxItem>Volume Or Open Interest</ComboBoxItem>
+                                <ComboBoxItem>Volume And Open Interest</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+                    </GroupBox>
+                    <Label Grid.Row="3"  Content="Contract Month:" HorizontalAlignment="Left" Margin="5,14,0,0" VerticalAlignment="Top" Height="23" Width="89"/>
+                    <ComboBox Grid.Row="3"  x:Name="ContractMonthComboBox" HorizontalAlignment="Left" SelectedIndex="0"
+                                Margin="125,10,0,0" VerticalAlignment="Top" Width="176" Height="26">
+                        <ComboBoxItem Tag="1">Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="2">2nd Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="3">3rd Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="4">4th Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="5">5th Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="6">6th Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="7">7th Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="8">8th Nearest Contract</ComboBoxItem>
+                        <ComboBoxItem Tag="9">9th Nearest Contract</ComboBoxItem>
+                    </ComboBox>
+                    <Label Grid.Row="3"  Content="Adjustment Method:" HorizontalAlignment="Left" Margin="5,42,0,0" VerticalAlignment="Top" Height="23" Width="109"/>
+                    <ComboBox Grid.Row="3"  x:Name="AdjustmentMethodComboBox" HorizontalAlignment="Left" SelectedIndex="0"
+                Margin="125,40,0,0" VerticalAlignment="Top" Width="176" Height="26">
+                        <ComboBoxItem Tag="0" Content="No Adjustment"/>
+                        <ComboBoxItem Tag="1" Content="Ratio"/>
+                        <ComboBoxItem Tag="2" Content="Difference"/>
+                    </ComboBox>
+
+
+
+                </Grid>
+            </TabItem>
         </TabControl>
         <Button x:Name="AddBtn" Click="AddBtn_Click" Content="Add" Margin="184,0,0,0" Grid.Row="1" VerticalAlignment="Top" Height="20"  HorizontalAlignment="Left" Width="75" />
         <Button x:Name="CancelBtn" Click="CancelBtn_Click" Content="Cancel" Margin="0,0,5,0" Grid.Row="1" VerticalAlignment="Top" Height="20"  HorizontalAlignment="Right" Width="75"/>

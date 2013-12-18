@@ -30,9 +30,16 @@ namespace QDMSServer
         /// </summary>
         /// <param name="instrument">If we're updating or cloning an instrument, pass it here.</param>
         /// <param name="addingNew">True if adding a new instrument. False if we're updating an instrument.</param>
-        public AddInstrumentManuallyWindow(Instrument instrument = null, bool addingNew = true)
+        public AddInstrumentManuallyWindow(Instrument instrument = null, bool addingNew = true, bool addingContFut = false)
         {
             InitializeComponent();
+
+            //If it's a continuous future, make the continuous future tab visible
+            if ((instrument != null && instrument.IsContinuousFuture) ||
+                addingContFut)
+            {
+                ContFutTabItem.Visibility = Visibility.Visible;
+            }
 
             DataContext = this;
             _addingNew = addingNew;
