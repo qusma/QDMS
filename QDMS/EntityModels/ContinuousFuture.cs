@@ -15,6 +15,22 @@ namespace QDMS
     [Serializable]
     public class ContinuousFuture
     {
+        public ContinuousFuture()
+        {
+            UseJan = true;
+            UseFeb = true;
+            UseMar = true;
+            UseApr = true;
+            UseMay = true;
+            UseJun = true;
+            UseJul = true;
+            UseAug = true;
+            UseSep = true;
+            UseOct = true;
+            UseNov = true;
+            UseDec = true;
+        }
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
