@@ -80,6 +80,10 @@ namespace QDMSServer
             {
                 ((IB)DataSources["Interactive Brokers"]).Dispose();
             }
+            if (DataSources.ContainsKey("ContinuousFuturesBroker"))
+            {
+                ((ContinuousFuturesBroker)DataSources["ContinuousFuturesBroker"]).Dispose();
+            }
             if (_context != null)
             {
                 _context.Dispose();
@@ -95,7 +99,8 @@ namespace QDMSServer
             DataSources = new Dictionary<string, IHistoricalDataSource> 
             {
                 { "Interactive Brokers", new IB(3) },
-                { "Yahoo", new Yahoo() }
+                { "Yahoo", new Yahoo() },
+                { "ContinuousFuturesBroker", new ContinuousFuturesBroker() }
             };
 
             foreach (IHistoricalDataSource ds in DataSources.Values)
@@ -394,8 +399,7 @@ namespace QDMSServer
             //request is for fresh data ONLY -- send the request directly to the external data source
             if (request.ForceFreshData)
             {
-                DataSources[request.Instrument.Datasource.Name].RequestHistoricalData(request);
-
+                ForwardHistoricalRequest(request);
                 return;
             }
 
@@ -446,7 +450,7 @@ namespace QDMSServer
                 //we have no data available at all, send off the request as it is
                 if (localDataInfo == null)
                 {
-                    DataSources[request.Instrument.Datasource.Name].RequestHistoricalData(request);
+                    ForwardHistoricalRequest(request);
                 }
                 else //we have SOME data available, check how it holds up
                 {
@@ -475,10 +479,23 @@ namespace QDMSServer
 
                     //we send these together, because too large of a delay between the two requests can cause problems
                     if(newBackRequest != null)
-                        DataSources[request.Instrument.Datasource.Name].RequestHistoricalData(newBackRequest);
+                        ForwardHistoricalRequest(newBackRequest);
                     if (newForwardRequest != null)
-                        DataSources[request.Instrument.Datasource.Name].RequestHistoricalData(newForwardRequest);
+                        ForwardHistoricalRequest(newForwardRequest);
                 }
+            }
+        }
+        
+        //Sends off a historical data reques to the datasource that needs to fulfill it
+        private void ForwardHistoricalRequest(HistoricalDataRequest request)
+        {
+            if (request.Instrument.IsContinuousFuture)
+            {
+                DataSources["ContinuousFuturesBroker"].RequestHistoricalData(request);
+            }
+            else
+            {
+                DataSources[request.Instrument.Datasource.Name].RequestHistoricalData(request);
             }
         }
 
