@@ -65,6 +65,12 @@ namespace QDMSServer
                     Tags = new List<Tag>(), 
                     Sessions = new List<InstrumentSession>()
                 };
+
+                //need to do some extra stuff if it's a continuous future
+                if (addingContFut)
+                {
+                    TheInstrument.ContinuousFuture = new ContinuousFuture();
+                }
             }
 
             Tags = new ObservableCollection<CheckBoxTag>();
@@ -135,6 +141,21 @@ namespace QDMSServer
             //sort the sessions so they're ordered properly...
             SessionsGrid.Items.SortDescriptions.Add(new System.ComponentModel.SortDescription("OpeningDay", System.ComponentModel.ListSortDirection.Ascending));
 
+            //fill the RolloverRuleType combobox
+            var rolloverTypes = MyUtils.GetEnumValues<ContinuousFuturesRolloverType>();
+            foreach (ContinuousFuturesRolloverType t in rolloverTypes)
+            {
+                if(t != ContinuousFuturesRolloverType.Time)
+                    RolloverRuleType.Items.Add(t);
+            }
+
+            //fill the RootSymbolComboBox
+            foreach (UnderlyingSymbol s in context.UnderlyingSymbols)
+            {
+                RootSymbolComboBox.Items.Add(s);
+            }
+
+
             context.Dispose();
         }
 
@@ -169,6 +190,13 @@ namespace QDMSServer
                 {
                     context.Tags.Attach(t);
                     TheInstrument.Tags.Add(t);
+                }
+
+                //continuous futures stuff
+                if (TheInstrument.IsContinuousFuture)
+                {
+                    var cf = TheInstrument.ContinuousFuture;
+                    cf.Month = (int)((ComboBoxItem)ContractMonthComboBox.SelectedItem).Tag;
                 }
 
 
