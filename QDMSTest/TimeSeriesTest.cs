@@ -1,8 +1,11 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="TimeSeriesTest.cs" company="">
+// Copyright 2013 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using QDMS;
 
