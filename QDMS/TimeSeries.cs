@@ -29,6 +29,17 @@ namespace QDMS
         protected int PreviousBar;
 
         /// <summary>
+        /// Returns true if CurrentBar at the end of the timeseries.
+        /// </summary>
+        public bool ReachedEndOfSeries
+        {
+            get
+            {
+                return CurrentBar == Series.Count - 1;
+            }
+        }
+
+        /// <summary>
         /// Length of the variable series.
         /// </summary>
         public int Count
