@@ -77,6 +77,7 @@ namespace QDMSServer
             _socket.Bind("tcp://*:" + _socketPort);
             var ms = new MemoryStream();
             List<Instrument> instruments;
+            var mgr = new InstrumentManager();
 
             while (_runServer)
             {
@@ -90,11 +91,11 @@ namespace QDMSServer
                     byte[] buffer = _socket.Receive(null, timeout, out size);
                     var searchInstrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
-                    instruments = InstrumentManager.FindInstruments(null, searchInstrument);
+                    instruments = mgr.FindInstruments(null, searchInstrument);
                 }
                 else if (request == "ALL") //if the request is for all the instruments, we don't need to receive anything else
                 {
-                    instruments = InstrumentManager.FindInstruments();
+                    instruments = mgr.FindInstruments();
                 }
                 else if (request == "ADD") //request to add instrument
                 {

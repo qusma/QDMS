@@ -14,7 +14,7 @@ using QDMS;
 
 namespace QDMSServer
 {
-    public static class InstrumentManager
+    public class InstrumentManager : IInstrumentSource
     {
         public static bool AddContinuousFuture()
         {
@@ -111,7 +111,7 @@ namespace QDMSServer
         /// <param name="search">Any properties set on this instrument are used as search parameters.
         /// If null, all instruments are returned.</param>
         /// <returns>A list of instruments matching the criteria.</returns>
-        public static List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null)
+        public List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null)
         {
             if (context == null) context = new MyDBContext();
 

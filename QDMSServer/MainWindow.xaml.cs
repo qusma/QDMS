@@ -88,7 +88,8 @@ namespace QDMSServer
 
             Instruments = new ObservableCollection<Instrument>();
 
-            var instrumentList = InstrumentManager.FindInstruments(entityContext);
+            var mgr = new InstrumentManager();
+            var instrumentList = mgr.FindInstruments(entityContext);
 
             foreach (Instrument i in instrumentList)
             {

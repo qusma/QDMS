@@ -27,6 +27,7 @@ namespace QDMSServer
     public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource
     {
         private IDataClient _client;
+        private IInstrumentSource _instrumentMgr;
 
         // Keeps track of how many historical data requests remain until we can calculate the continuous prices
         // Key: request ID, Value: number of requests outstanding
@@ -49,7 +50,7 @@ namespace QDMSServer
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
         private Dictionary<int, List<OHLCBar>> _data;
 
-        public ContinuousFuturesBroker(IDataClient client = null)
+        public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null)
         {
             if (client == null)
             {
@@ -65,6 +66,8 @@ namespace QDMSServer
             {
                 _client = client;
             }
+
+            _instrumentMgr = instrumentMgr ?? new InstrumentManager();
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
@@ -139,7 +142,7 @@ namespace QDMSServer
                     Datasource = request.Instrument.Datasource
                 };
 
-            var futures = InstrumentManager.FindInstruments(search: searchInstrument);
+            var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
 
             //filter the futures months, we may not want all of them.
             for (int i = 1; i <= 12; i++)
@@ -375,10 +378,10 @@ namespace QDMSServer
         public Instrument GetCurrentFrontFuture(Instrument continuousFuture)
         {
             var searchInstrument = new Instrument { UnderlyingSymbol = continuousFuture.UnderlyingSymbol, Type = InstrumentType.Future };
-            var futures = InstrumentManager.FindInstruments(search: searchInstrument);
+            var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
 
             if (futures.Count == 0) return null;
-
+            //TODO write this
             return new Instrument();
         }
 
