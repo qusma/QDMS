@@ -16,9 +16,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using NLog;
 using QDMS;
 using System;
 
+#pragma warning disable 67
 namespace QDMSServer
 {
     public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource
@@ -38,6 +41,8 @@ namespace QDMSServer
 
         // Keeps track of the requests. Key: request ID, Value: the request
         private readonly Dictionary<int, HistoricalDataRequest> _requests;
+
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly object _reqCountLock = new object();
 
@@ -115,9 +120,7 @@ namespace QDMSServer
                     CalcContFutData(_requests[cfReqID]);
                 }
             }
-            //TODO need to check: if all data requests for a particular
-            //continuous futures request have been fulfilled, then call CalcContFutData()
-            
+         
             //TODO if we call it from here though, then that locks up the client thread while we do the calcs
             //not sure what the best approach is
         }
@@ -203,8 +206,9 @@ namespace QDMSServer
             List<OHLCBar> selectedData = _data[selectedFuture.ID.Value];
 
             DateTime currentDate = frontData[0].DT;
-            //TODO final date is either the last date of data available, or the request's endingdate
-            DateTime finalDate = request.EndingDate;
+            //final date is the earliest of: the last date of data available, or the request's endingdate
+            DateTime lastDateAvailable = futures.Last().Expiration.Value;
+            DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
 
             List<OHLCBar> cfData = new List<OHLCBar>();
 
@@ -213,6 +217,12 @@ namespace QDMSServer
             int frontIndex = frontData.IndexOf(x => x.DT >= tmpDate);
             int backIndex = backData.IndexOf(x => x.DT >= tmpDate);
             int selectedIndex = selectedData.IndexOf(x => x.DT >= tmpDate);
+
+            decimal adjustmentFactor = 0;
+            if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
+            {
+                adjustmentFactor = 1;
+            }
             
 
             bool switchContract = false;
@@ -279,6 +289,25 @@ namespace QDMSServer
                 //we switch to the next contract
                 if (switchContract)
                 {
+                    //make any required price adjustments
+                    if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Difference)
+                    {
+                        adjustmentFactor = frontData[frontIndex].Close - backData[backIndex].Close;
+                        foreach (OHLCBar bar in cfData)
+                        {
+                            AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
+                        }
+                    }
+                    else if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
+                    {
+                        adjustmentFactor = frontData[frontIndex].Close / backData[backIndex].Close;
+                        foreach (OHLCBar bar in cfData)
+                        {
+                            AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
+                        }
+                    }
+
+
                     //update the contracts
                     frontFuture = backFuture;
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
@@ -289,10 +318,36 @@ namespace QDMSServer
                     selectedData = _data[selectedFuture.ID.Value];
 
                     //find the indices of the "current" time in the data series
-                    DateTime date = currentDate;
-                    frontIndex = frontData.IndexOf(x => x.DT >= date);
-                    backIndex = backData.IndexOf(x => x.DT >= date);
-                    selectedIndex = selectedData.IndexOf(x => x.DT >= date);
+                    frontIndex = frontData.IndexOf(x => x.DT >= currentDate);
+                    backIndex = backData.IndexOf(x => x.DT >= currentDate);
+                    selectedIndex = selectedData.IndexOf(x => x.DT >= currentDate);
+
+                    //there's some sort of problem with the data and the date we want isn't found in the series
+                    if (frontIndex < 0)
+                    {
+                        Log(LogLevel.Error, string.Format("Error constructing continuous future ID {0}, no data on contract id {1}",
+                            request.Instrument.ContinuousFutureID,
+                            frontFuture.ID.Value));
+                        break;
+                    }
+
+                    if (backIndex < 0)
+                    {
+                        Log(LogLevel.Error, string.Format("Error constructing continuous future ID {0}, no data on contract id {1}",
+                            request.Instrument.ContinuousFutureID,
+                            backFuture.ID.Value));
+                        break;
+                    }
+
+                    if (selectedIndex < 0)
+                    {
+                        Log(LogLevel.Error, string.Format("Error constructing continuous future ID {0}, no data on contract id {1}",
+                            request.Instrument.ContinuousFutureID,
+                            selectedFuture.ID.Value));
+                        break;
+                    }
+
+
 
                     switchContract = false;
                 }
@@ -325,6 +380,31 @@ namespace QDMSServer
             if (futures.Count == 0) return null;
 
             return new Instrument();
+        }
+
+        private void Log(LogLevel level, string message)
+        {
+            Application.Current.Dispatcher.Invoke( () =>
+                _logger.Log(level, message));
+        }
+
+        private void AdjustBar(OHLCBar bar, decimal adjustmentFactor, ContinuousFuturesAdjustmentMode mode)
+        {
+            if (mode == ContinuousFuturesAdjustmentMode.NoAdjustment) return;
+            if (mode == ContinuousFuturesAdjustmentMode.Difference)
+            {
+                bar.Open += adjustmentFactor;
+                bar.High += adjustmentFactor;
+                bar.Low += adjustmentFactor;
+                bar.Close += adjustmentFactor;
+            }
+            else if (mode == ContinuousFuturesAdjustmentMode.Ratio)
+            {
+                bar.Open *= adjustmentFactor;
+                bar.High *= adjustmentFactor;
+                bar.Low *= adjustmentFactor;
+                bar.Close *= adjustmentFactor;
+            }
         }
 
         /// <summary>
@@ -360,3 +440,4 @@ namespace QDMSServer
         }
     }
 }
+#pragma warning restore 67
