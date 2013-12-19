@@ -28,7 +28,7 @@ namespace QDMSTest
             vix.Rule = new ExpirationRule
             {
                 DaysBefore = 30,
-                DayType = DayType.CalendarDay,
+                DayType = DayType.Calendar,
                 ReferenceRelativeMonth = RelativeMonth.NextMonth,
                 ReferenceUsesDays = false,
                 ReferenceWeekDay = DayOfTheWeek.Friday,
@@ -59,7 +59,7 @@ namespace QDMSTest
             es.Rule = new ExpirationRule
             {
                 DaysBefore = 0,
-                DayType = DayType.CalendarDay,
+                DayType = DayType.Calendar,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = false,
                 ReferenceWeekDay = DayOfTheWeek.Friday,
@@ -90,7 +90,7 @@ namespace QDMSTest
             zw.Rule = new ExpirationRule
             {
                 DaysBefore = 1,
-                DayType = DayType.BusinessDay,
+                DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = true,
                 ReferenceDays = 15
@@ -126,7 +126,7 @@ namespace QDMSTest
             cl.Rule = new ExpirationRule
             {
                 DaysBefore = 3,
-                DayType = DayType.BusinessDay,
+                DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.PreviousMonth,
                 ReferenceUsesDays = true,
                 ReferenceDays = 25
@@ -157,7 +157,7 @@ namespace QDMSTest
             ub.Rule = new ExpirationRule
             {
                 DaysBefore = 7,
-                DayType = DayType.BusinessDay,
+                DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = false,
                 ReferenceDayIsLastBusinessDayOfMonth = true
@@ -184,7 +184,7 @@ namespace QDMSTest
             ub.Rule = new ExpirationRule
             {
                 DaysBefore = 2,
-                DayType = DayType.BusinessDay,
+                DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = false,
                 ReferenceDayIsLastBusinessDayOfMonth = true
@@ -215,7 +215,7 @@ namespace QDMSTest
             eur.Rule = new ExpirationRule
             {
                 DaysBefore = 2,
-                DayType = DayType.BusinessDay,
+                DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
                 ReferenceUsesDays = false,
                 ReferenceWeekDay = DayOfTheWeek.Wednesday,
