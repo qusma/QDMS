@@ -155,6 +155,7 @@
     <Compile Include="HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
     <Compile Include="ConcurrentNotifierBlockingList.cs" />
+    <Compile Include="Interfaces\IInstrumentSource.cs" />
     <Compile Include="ListBoxExt.cs" />
     <Compile Include="RealTimeDataBroker.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
