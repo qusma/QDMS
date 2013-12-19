@@ -136,7 +136,7 @@ namespace QDMSServer
             var cf = request.Instrument.ContinuousFuture;
             var searchInstrument = new Instrument 
                 { 
-                    UnderlyingSymbol = request.Instrument.UnderlyingSymbol, 
+                    UnderlyingSymbol = request.Instrument.ContinuousFuture.UnderlyingSymbol.Symbol, 
                     Type = InstrumentType.Future,
                     DatasourceID = request.Instrument.DatasourceID,
                     Datasource = request.Instrument.Datasource
@@ -147,10 +147,17 @@ namespace QDMSServer
             //filter the futures months, we may not want all of them.
             for (int i = 1; i <= 12; i++)
             {
-                if (cf.MonthIsUsed(i))
+                if (!cf.MonthIsUsed(i))
                 {
                     futures = futures.Where(x => x.Expiration != null && x.Expiration.Value.Month != i).ToList();
                 }
+            }
+
+            //nothing found, return with empty hands
+            if (futures.Count == 0)
+            {
+                RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, new List<OHLCBar>()));
+                return;
             }
 
             //TODO not 100% certain about this, but I think that the first contract we need
@@ -159,7 +166,7 @@ namespace QDMSServer
                 .Where(x => x.Expiration != null && x.Expiration.Value < request.StartingDate)
                 .Select(x => x.Expiration.Value).Max();
 
-            futures = futures.Where(x => x.Expiration != null && x.Expiration.Value < firstExpiration).ToList();
+            futures = futures.Where(x => x.Expiration != null && x.Expiration.Value >= firstExpiration).ToList();
 
             //order them by ascending expiration date
             futures = futures.OrderBy(x => x.Expiration).ToList();
@@ -204,9 +211,9 @@ namespace QDMSServer
             //this is where we keep track of the actual contract currently being used
             Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
 
-            List<OHLCBar> frontData = _data[frontFuture.ID.Value];
-            List<OHLCBar> backData = _data[backFuture.ID.Value];
-            List<OHLCBar> selectedData = _data[selectedFuture.ID.Value];
+            TimeSeries frontData = new TimeSeries(_data[frontFuture.ID.Value]);
+            TimeSeries backData = new TimeSeries(_data[backFuture.ID.Value]);
+            TimeSeries selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
 
             DateTime currentDate = frontData[0].DT;
             //final date is the earliest of: the last date of data available, or the request's endingdate
@@ -215,11 +222,6 @@ namespace QDMSServer
 
             List<OHLCBar> cfData = new List<OHLCBar>();
 
-            //these ints keep track of the index of the "current" date in the contract data
-            DateTime tmpDate = currentDate;
-            int frontIndex = frontData.IndexOf(x => x.DT >= tmpDate);
-            int backIndex = backData.IndexOf(x => x.DT >= tmpDate);
-            int selectedIndex = selectedData.IndexOf(x => x.DT >= tmpDate);
 
             decimal adjustmentFactor = 0;
             if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
@@ -231,11 +233,11 @@ namespace QDMSServer
             bool switchContract = false;
             int counter = 0; //some rollover rules require multiple consecutive days of greater vol/OI...this keeps track of that
 
-            //is it possible that it might be better to start at "now" and calculate backwards instead?
+            //add the first piece of data we have available, and start looping
+            cfData.Add(selectedData[0]);
+
             while (currentDate < finalDate)
             {
-                cfData.Add(selectedData[selectedIndex]);
-
                 //do we need to switch contracts?
                 switch (cf.RolloverType)
                 {
@@ -246,30 +248,30 @@ namespace QDMSServer
                         }
                         break;
                     case ContinuousFuturesRolloverType.Volume:
-                        if (backData[backIndex].Volume > frontData[frontIndex].Volume)
+                        if (backData[0].Volume > frontData[0].Volume)
                             counter++;
                         else
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
                     case ContinuousFuturesRolloverType.OpenInterest:
-                        if (backData[backIndex].OpenInterest > frontData[frontIndex].OpenInterest)
+                        if (backData[0].OpenInterest > frontData[0].OpenInterest)
                             counter++;
                         else
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
                     case ContinuousFuturesRolloverType.VolumeAndOpenInterest:
-                        if (backData[backIndex].OpenInterest > frontData[frontIndex].OpenInterest &&
-                            backData[backIndex].Volume > frontData[frontIndex].Volume)
+                        if (backData[0].OpenInterest > frontData[0].OpenInterest &&
+                            backData[0].Volume > frontData[0].Volume)
                             counter++;
                         else
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
                     case ContinuousFuturesRolloverType.VolumeOrOpenInterest:
-                        if (backData[backIndex].OpenInterest > frontData[frontIndex].OpenInterest ||
-                            backData[backIndex].Volume > frontData[frontIndex].Volume)
+                        if (backData[0].OpenInterest > frontData[0].OpenInterest ||
+                            backData[0].Volume > frontData[0].Volume)
                             counter++;
                         else
                             counter = 0;
@@ -283,11 +285,17 @@ namespace QDMSServer
                     switchContract = true;
                 }
 
-                //finally advance the time and indices
-                currentDate = currentDate.Add(request.Frequency.ToTimeSpan());
-                frontIndex++;
-                backIndex++;
-                selectedIndex++;
+                //finally advance the time and indices...keep moving forward until the selected series has moved
+                bool selectedSeriesProgressed = false;
+                do
+                {
+                    currentDate = currentDate.Add(request.Frequency.ToTimeSpan());
+                    selectedSeriesProgressed = selectedData.AdvanceTo(currentDate);
+                    frontData.AdvanceTo(currentDate);
+                    backData.AdvanceTo(currentDate);
+                }
+                while (!selectedSeriesProgressed && !switchContract && !selectedData.ReachedEndOfSeries);
+
 
                 //we switch to the next contract
                 if (switchContract)
@@ -295,7 +303,7 @@ namespace QDMSServer
                     //make any required price adjustments
                     if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Difference)
                     {
-                        adjustmentFactor = frontData[frontIndex].Close - backData[backIndex].Close;
+                        adjustmentFactor = frontData[0].Close - backData[0].Close;
                         foreach (OHLCBar bar in cfData)
                         {
                             AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
@@ -303,7 +311,7 @@ namespace QDMSServer
                     }
                     else if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
                     {
-                        adjustmentFactor = frontData[frontIndex].Close / backData[backIndex].Close;
+                        adjustmentFactor = frontData[0].Close / backData[0].Close;
                         foreach (OHLCBar bar in cfData)
                         {
                             AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
@@ -316,44 +324,21 @@ namespace QDMSServer
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
                     selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAt(cf.Month - 1);
 
-                    frontData = _data[frontFuture.ID.Value];
-                    backData = _data[backFuture.ID.Value];
-                    selectedData = _data[selectedFuture.ID.Value];
+                    frontData = new TimeSeries(_data[frontFuture.ID.Value]);
+                    backData = new TimeSeries(_data[backFuture.ID.Value]);
+                    selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
 
-                    //find the indices of the "current" time in the data series
-                    frontIndex = frontData.IndexOf(x => x.DT >= currentDate);
-                    backIndex = backData.IndexOf(x => x.DT >= currentDate);
-                    selectedIndex = selectedData.IndexOf(x => x.DT >= currentDate);
+                    frontData.AdvanceTo(currentDate);
+                    backData.AdvanceTo(currentDate);
+                    selectedData.AdvanceTo(currentDate);
 
-                    //there's some sort of problem with the data and the date we want isn't found in the series
-                    if (frontIndex < 0)
-                    {
-                        Log(LogLevel.Error, string.Format("Error constructing continuous future ID {0}, no data on contract id {1}",
-                            request.Instrument.ContinuousFutureID,
-                            frontFuture.ID.Value));
-                        break;
-                    }
-
-                    if (backIndex < 0)
-                    {
-                        Log(LogLevel.Error, string.Format("Error constructing continuous future ID {0}, no data on contract id {1}",
-                            request.Instrument.ContinuousFutureID,
-                            backFuture.ID.Value));
-                        break;
-                    }
-
-                    if (selectedIndex < 0)
-                    {
-                        Log(LogLevel.Error, string.Format("Error constructing continuous future ID {0}, no data on contract id {1}",
-                            request.Instrument.ContinuousFutureID,
-                            selectedFuture.ID.Value));
-                        break;
-                    }
-
+                    //TODO add a bit of error checking here, it's not guaranteed that the data fits perfectly here
 
 
                     switchContract = false;
                 }
+
+                cfData.Add(selectedData[0]);
             }
 
             //clean up
@@ -363,7 +348,7 @@ namespace QDMSServer
             cfData = cfData.Where(x => x.DT >= request.StartingDate && x.DT <= request.EndingDate).ToList();
 
             //we're done, so just raise the event
-            HistoricalDataArrived(this, new HistoricalDataEventArgs(request, cfData));
+            RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, cfData));
         }
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
@@ -440,6 +425,14 @@ namespace QDMSServer
             {
                 return true;
             }
+        }
+
+        static private void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
+            where T : EventArgs
+        {
+            EventHandler<T> handler = @event;
+            if (handler == null) return;
+            handler(sender, e);
         }
     }
 }
