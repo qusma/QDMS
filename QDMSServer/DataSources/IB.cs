@@ -152,6 +152,9 @@ namespace QDMSServer.DataSources
             }
             else if ((int)e.ErrorCode == 162) //a historical data pacing violation
             {
+                //TODO turns out that more than one error uses the same error code! What were they thinking?
+                //check the message, too. 
+                //If no data is returned, then we get a 162 error "HMDS query returned no data: ...."
                 lock (_queueLock)
                 {
                     if (!_historicalRequestQueue.Contains(e.TickerId))
