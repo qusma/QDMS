@@ -1,0 +1,38 @@
+﻿<controls:MetroWindow
+    xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    x:Class="QDMSServer.RootSymbolsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Root Symbols" Height="558" Width="445.906"
+    BorderBrush="Black"
+    BorderThickness="1"
+    >
+    <controls:MetroWindow.Resources>
+
+    </controls:MetroWindow.Resources>
+    
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="97*"/>
+            <ColumnDefinition Width="95"/>
+        </Grid.ColumnDefinitions>
+        <Button Click="AddBtn_Click" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+        <Button Click="ModifyBtn_Click" x:Name="ModifyBtn" Content="Modify" HorizontalAlignment="Right" Margin="0,34,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+        <Button Click="DeleteBtn_Click" x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,58,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+
+        <DataGrid Name="SymbolsGrid" Grid.Column="0" AutoGenerateColumns="False" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" ItemsSource="{Binding Symbols}" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Symbol}"  Width="250" />
+            </DataGrid.Columns>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource MetroDataGridRow}" >
+                    <EventSetter Event="MouseDoubleClick" Handler="TableView_RowDoubleClick"/>
+                    <Setter Property="MinHeight" Value="20"/>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+
+    </Grid>
+</controls:MetroWindow>

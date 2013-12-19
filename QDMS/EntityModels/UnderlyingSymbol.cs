@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+//In the future this class can hold stuff like margin requirements as well.
+
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

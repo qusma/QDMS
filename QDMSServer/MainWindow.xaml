@@ -85,12 +85,14 @@
                 <MenuItem Header="Add Instrument">
                     <MenuItem Header="Manual" x:Name="AddInstrumentManuallyBtn" Click="AddInstrumentManuallyBtn_ItemClick"/>
                     <MenuItem Header="Interactive Brokers" x:Name="AddInstrumentIBBtn" Click="AddInstrumentIBBtn_ItemClick"/>
-                    <MenuItem IsEnabled="False" Header="Custom Futures" x:Name="BtnAddCustomFutures" Click="BtnAddCustomFutures_ItemClick"/>
+                    <MenuItem Header="Custom Futures" x:Name="BtnAddCustomFutures" Click="BtnAddCustomFutures_ItemClick"/>
                 </MenuItem>
                 <Separator/>
                 <MenuItem Header="Exchanges" x:Name="ExchangesBtn" Click="ExchangesBtn_OnItemClick"/>
                 <Separator/>
                 <MenuItem Header="Session Templates" x:Name="SessionTemplateBtn" Click="SessionTemplateBtn_OnItemClick"/>
+                <Separator/>
+                <MenuItem Header="Root Symbols" x:Name="RootSymbolsBtn" Click="RootSymbolsBtn_OnClick"/>
                 <Separator/>
                 <MenuItem Header="Settings" x:Name="BtnSettings" Click="BtnSettings_OnItemClick" />
             </MenuItem>

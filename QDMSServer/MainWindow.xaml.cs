@@ -316,8 +316,12 @@ namespace QDMSServer
         //show the window to add a new custom futures contract
         private void BtnAddCustomFutures_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var window = new CustomFuturesWindow();
+            var window = new AddInstrumentManuallyWindow(addingContFut: true);
             window.ShowDialog();
+            if (window.InstrumentAdded)
+            {
+                Instruments.Add(window.TheInstrument);
+            }
             window.Close();
         }
 
@@ -423,6 +427,12 @@ namespace QDMSServer
         private void SessionTemplateBtn_OnItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
             var window = new SessionTemplatesWindow();
+            window.ShowDialog();
+        }
+
+        private void RootSymbolsBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            var window = new RootSymbolsWindow();
             window.ShowDialog();
         }
 
@@ -602,5 +612,7 @@ namespace QDMSServer
             ((MenuItem)menu.Items[5]).IsEnabled = !multipleSelected; //import data
             ((MenuItem)menu.Items[6]).IsEnabled = !multipleSelected; //edit data
         }
+
+
     }
 }
