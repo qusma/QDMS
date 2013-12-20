@@ -176,5 +176,16 @@ namespace QDMSServer.Properties {
                 this["dbPassword"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public string quandlAuthCode {
+            get {
+                return ((string)(this["quandlAuthCode"]));
+            }
+            set {
+                this["quandlAuthCode"] = value;
+            }
+        }
     }
 }

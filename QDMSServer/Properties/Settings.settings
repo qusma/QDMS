@@ -41,5 +41,8 @@
     <Setting Name="dbPassword" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
       <Value Profile="(Default)">password</Value>
     </Setting>
+    <Setting Name="quandlAuthCode" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>
