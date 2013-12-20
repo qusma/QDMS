@@ -138,9 +138,6 @@ namespace QDMSServer
                     bars.Add(bar);
             }
 
-            //they are in descending date order, so reverse the list
-            bars.Reverse();
-
             return bars;
         }
     }

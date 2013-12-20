@@ -20,9 +20,9 @@ namespace QDMSTest
         {
             var targetBars = new List<OHLCBar>
             {
-                new OHLCBar {DT = new DateTime(2013,12,10), Open = 97.25m, High = 98.74m, Low = 97.24m, Close = 98.51m, Volume = 218380},
-                new OHLCBar {DT = new DateTime(2013,12,11), Open = 98.65m, High = 98.75m, Low = 97.2m, Close = 97.44m, Volume = 189430},
                 new OHLCBar {DT = new DateTime(2013,12,12), Open = 97.55m, High = 98.18m, Low = 97.31m, Close = 97.50m, Volume = 153787},
+                new OHLCBar {DT = new DateTime(2013,12,11), Open = 98.65m, High = 98.75m, Low = 97.2m, Close = 97.44m, Volume = 189430},
+                new OHLCBar {DT = new DateTime(2013,12,10), Open = 97.25m, High = 98.74m, Low = 97.24m, Close = 98.51m, Volume = 218380},
             };
 
 
