@@ -138,7 +138,8 @@ namespace QDMSServer.DataSources
                         {
                             //in the case of low frequency data
                             //we adjust the closing time to use the proper session time
-                            bar.DT = bar.DT.Date + sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  
+                            if(sessionEndTimes.ContainsKey(bar.DT.DayOfWeek.ToInt()))
+                                bar.DT = bar.DT.Date + sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  
                         }
                         data.Add(bar);
                     }

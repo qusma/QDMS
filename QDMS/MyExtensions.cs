@@ -97,6 +97,8 @@ namespace QDMS
         public static Dictionary<int, TimeSpan> SessionEndTimesByDay(this Instrument instrument)
         {
             Dictionary<int, TimeSpan> sessionEndTimes = new Dictionary<int, TimeSpan>();
+            if (instrument.Sessions == null) return sessionEndTimes;
+
             var dotwValues = MyUtils.GetEnumValues<DayOfTheWeek>();
 
             foreach (DayOfTheWeek d in dotwValues)
