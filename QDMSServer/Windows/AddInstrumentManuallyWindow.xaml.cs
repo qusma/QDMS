@@ -41,6 +41,10 @@ namespace QDMSServer
                 ContFutTabItem.Visibility = Visibility.Visible;
                 TypeComboBox.IsEnabled = false;
             }
+            else
+            {
+                ContFutTabItem.Visibility = Visibility.Hidden;
+            }
 
             DataContext = this;
             _addingNew = addingNew;
