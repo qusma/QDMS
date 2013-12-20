@@ -41,5 +41,18 @@ namespace QDMSTest
                 Assert.AreEqual(targetBars[i].Volume, bars[i].Volume);
             }
         }
+
+        [Test]
+        public void InstrumentParsingWorksProperly()
+        {
+            string xml = "<datasets> <total-count type=\"integer\">232701</total-count> <current-page type=\"integer\">2</current-page> <per-page type=\"integer\">20</per-page> <docs type=\"array\"> <doc> <id type=\"integer\">2316351</id> <source-code>DOE</source-code> <code>EIA_TOTALOILSUPPLY_A_OMAN127</code> <name>Total Oil Supply: Oman</name> <urlize-name>Total-Oil-Supply-Oman</urlize-name> <description> Units=Thousand Barrels Per Day. The U.S. Energy Information Administration (EIA) collects, analyzes, and disseminates independent and impartial energy information to promote sound policymaking, efficient markets, and public understanding of energy and its interaction with the economy and the environment. EIA provides a wide range of information and data products covering energy production, stocks, demand, imports, exports, and prices; and prepares analyses and special reports on topics of current interest. </description> <updated-at>2013-11-29T15:49:08Z</updated-at> <frequency>annual</frequency> <from-date>2007-12-31</from-date> <to-date>2011-12-31</to-date> <column-names type=\"array\"> <column-name>Year</column-name> <column-name>Thousand Barrels Per Day</column-name> </column-names> <private type=\"boolean\">false</private> <type nil=\"true\" /> <display-url>http://www.eia.gov/cfapps/ipdbproject/XMLinclude_3.cfm?tid=5&amp;pid=53&amp;pdid=53,55,57,58,59,56,54,62,63,64,65,66,67,68&amp;aid=1&amp;cid=regions&amp;titleStr=Total%20Oil%20Supply%20(Thousand%20Barrels%20Per%20Day)&amp;syid=2007&amp;eyid=2011&amp;form=&amp;defaultid=3&amp;typeOfUnit=STDUNIT&amp;unit=TBPD&amp;products= </display-url> </doc> </docs> </datasets>";
+            int count;
+            var instrument = QuandlUtils.ParseInstrumentXML(xml, out count)[0];
+
+            Assert.AreEqual(1, count);
+            Assert.AreEqual("DOE/EIA_TOTALOILSUPPLY_A_OMAN127", instrument.DatasourceSymbol);
+            Assert.AreEqual("EIA_TOTALOILSUPPLY_A_OMAN127", instrument.Symbol);
+            Assert.AreEqual("Total Oil Supply: Oman", instrument.Name);
+        }
     }
 }
