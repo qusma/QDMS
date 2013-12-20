@@ -448,11 +448,16 @@ namespace QDMSServer
                 }
 
                 //we have no data available at all, send off the request as it is
-                if (localDataInfo == null)
+                if (localDataInfo == null || 
+                    (request.Instrument.IsContinuousFuture && 
+                        request.Instrument.ContinuousFuture.AdjustmentMode != ContinuousFuturesAdjustmentMode.NoAdjustment))
                 {
+                    //if the instruemnt is a continuous future and it has ratio or difference adjustment mode
+                    //then we can't load data from local storage, because it would screw up the adjustment calcs
+                    //therefore in that case we send the entire request, without splitting it up
                     ForwardHistoricalRequest(request);
                 }
-                else //we have SOME data available, check how it holds up
+                else //we have SOME data available, check how it holds up, possibly split up into subrequests
                 {
                     _subRequests.TryAdd(request.AssignedID, new List<HistoricalDataRequest>());
 
