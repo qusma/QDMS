@@ -69,7 +69,7 @@ namespace QDMSServer
                     }
 
                     //if necessary, load sessions from teplate or exchange
-                    if (instrument.SessionsSource == SessionsSource.Exchange)
+                    if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange != null)
                     {
                         instrument.Sessions = new List<InstrumentSession>();
                         var exchange = context.Exchanges.Include("Sessions").First(x => x.ID == instrument.ExchangeID);
@@ -81,13 +81,20 @@ namespace QDMSServer
                     else if (instrument.SessionsSource == SessionsSource.Template)
                     {
                         instrument.Sessions = new List<InstrumentSession>();
-                        var template = context.SessionTemplates.Include("Sessions").First(x => x.ID == instrument.SessionTemplateID);
-                        foreach (TemplateSession s in template.Sessions)
+                        var template = context.SessionTemplates.Include("Sessions").FirstOrDefault(x => x.ID == instrument.SessionTemplateID);
+                        if (template != null)
                         {
-                            instrument.Sessions.Add(MyUtils.SessionConverter(s));
+                            foreach (TemplateSession s in template.Sessions)
+                            {
+                                instrument.Sessions.Add(MyUtils.SessionConverter(s));
+                            }
                         }
                     }
-
+                    else if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange == null)
+                    {
+                        instrument.SessionsSource = SessionsSource.Custom;
+                        instrument.Sessions = new List<InstrumentSession>();
+                    }
                     
                     context.Instruments.Add(instrument);
                     context.Database.Connection.Open();
