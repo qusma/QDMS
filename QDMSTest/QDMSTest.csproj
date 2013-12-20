@@ -91,6 +91,7 @@
     <Compile Include="MyExtensionsTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QuandlUtilsTest.cs" />
     <Compile Include="TimeSeriesTest.cs" />
     <Compile Include="UnderlyingSymbolTest.cs" />
   </ItemGroup>

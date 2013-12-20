@@ -138,6 +138,7 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
@@ -155,6 +156,7 @@
     <Compile Include="CheckBoxItem.cs" />
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ContinuousFuturesBroker.cs" />
+    <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="InstrumentsServer.cs" />
     <Compile Include="HistoricalDataBroker.cs" />
@@ -166,6 +168,7 @@
     <Compile Include="RealTimeStreamInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\QuandlUtils.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
     <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
     <Compile Include="ValueConverters\ExchangeMultiValueConverter.cs" />
@@ -181,6 +184,9 @@
     </Compile>
     <Compile Include="Windows\AddInstrumentManuallyWindow.xaml.cs">
       <DependentUpon>AddInstrumentManuallyWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentQuandlWindow.xaml.cs">
+      <DependentUpon>AddInstrumentQuandlWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\EditRootSymbolWindow.xaml.cs">
       <DependentUpon>EditRootSymbolWindow.xaml</DependentUpon>
@@ -240,6 +246,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\AddInstrumentManuallyWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\AddInstrumentQuandlWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
