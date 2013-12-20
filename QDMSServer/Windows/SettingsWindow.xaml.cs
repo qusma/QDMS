@@ -35,6 +35,9 @@ namespace QDMSServer
             IBHostTextBox.Text = Properties.Settings.Default.ibClientHost;
             IBPortTextBox.Text = Properties.Settings.Default.ibClientPort.ToString();
             IBClientIDTextBox.Text = Properties.Settings.Default.ibClientID.ToString();
+
+            //Quandl
+            QuandlAPITokenTextBox.Text = Properties.Settings.Default.quandlAuthCode;
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
@@ -98,6 +101,9 @@ namespace QDMSServer
             {
                 Properties.Settings.Default.ibClientID = ibClientID;
             }
+
+            //Quandl
+            Properties.Settings.Default.quandlAuthCode = QuandlAPITokenTextBox.Text;
 
             Properties.Settings.Default.Save();
 
