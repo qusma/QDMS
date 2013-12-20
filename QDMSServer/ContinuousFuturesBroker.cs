@@ -215,7 +215,18 @@ namespace QDMSServer
             TimeSeries backData = new TimeSeries(_data[backFuture.ID.Value]);
             TimeSeries selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
 
+            //starting date: I think it's enough to start a few days before the expiration of the first future
+            //as long as it's before the starting date?
             DateTime currentDate = frontData[0].DT;
+
+            //This is a super dirty hack to make non-time based rollovers actually work.
+            //The reason is that the starting point will otherwise be a LONG time before the date we're interested in.
+            //And at that time both the front and back futures are really far from expiration.
+            //As such volumes can be wonky, and thus result in a rollover far before we ACTUALLY would
+            //want to roll over if we had access to even earlier data.
+            if (frontFuture.Expiration.Value < request.StartingDate)
+                currentDate = frontFuture.Expiration.Value.AddDays(-10);
+            
             //final date is the earliest of: the last date of data available, or the request's endingdate
             DateTime lastDateAvailable = futures.Last().Expiration.Value;
             DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
@@ -248,21 +259,21 @@ namespace QDMSServer
                         }
                         break;
                     case ContinuousFuturesRolloverType.Volume:
-                        if (backData[0].Volume > frontData[0].Volume)
+                        if (backData != null && backData[0].Volume > frontData[0].Volume)
                             counter++;
                         else
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
                     case ContinuousFuturesRolloverType.OpenInterest:
-                        if (backData[0].OpenInterest > frontData[0].OpenInterest)
+                        if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest)
                             counter++;
                         else
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
                     case ContinuousFuturesRolloverType.VolumeAndOpenInterest:
-                        if (backData[0].OpenInterest > frontData[0].OpenInterest &&
+                        if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest &&
                             backData[0].Volume > frontData[0].Volume)
                             counter++;
                         else
@@ -270,7 +281,7 @@ namespace QDMSServer
                         switchContract = counter >= cf.RolloverDays;
                         break;
                     case ContinuousFuturesRolloverType.VolumeOrOpenInterest:
-                        if (backData[0].OpenInterest > frontData[0].OpenInterest ||
+                        if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest ||
                             backData[0].Volume > frontData[0].Volume)
                             counter++;
                         else
@@ -292,7 +303,8 @@ namespace QDMSServer
                     currentDate = currentDate.Add(request.Frequency.ToTimeSpan());
                     selectedSeriesProgressed = selectedData.AdvanceTo(currentDate);
                     frontData.AdvanceTo(currentDate);
-                    backData.AdvanceTo(currentDate);
+                    if(backData != null)
+                        backData.AdvanceTo(currentDate);
                 }
                 while (!selectedSeriesProgressed && !switchContract && !selectedData.ReachedEndOfSeries);
 
@@ -303,7 +315,7 @@ namespace QDMSServer
                     //make any required price adjustments
                     if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Difference)
                     {
-                        adjustmentFactor = frontData[0].Close - backData[0].Close;
+                        adjustmentFactor = backData[0].Close - frontData[0].Close;
                         foreach (OHLCBar bar in cfData)
                         {
                             AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
@@ -324,12 +336,15 @@ namespace QDMSServer
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
                     selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAt(cf.Month - 1);
 
+                    if (frontFuture == null) break; //no other futures left, get out
+
                     frontData = new TimeSeries(_data[frontFuture.ID.Value]);
-                    backData = new TimeSeries(_data[backFuture.ID.Value]);
+                    backData = backFuture != null ? new TimeSeries(_data[backFuture.ID.Value]) : null;
                     selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
 
                     frontData.AdvanceTo(currentDate);
-                    backData.AdvanceTo(currentDate);
+                    if(backData != null)
+                        backData.AdvanceTo(currentDate);
                     selectedData.AdvanceTo(currentDate);
 
                     //TODO add a bit of error checking here, it's not guaranteed that the data fits perfectly here
