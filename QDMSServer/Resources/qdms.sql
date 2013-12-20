@@ -82,7 +82,7 @@ CREATE TABLE `datasources` (
 
 LOCK TABLES `datasources` WRITE;
 /*!40000 ALTER TABLE `datasources` DISABLE KEYS */;
-INSERT INTO `datasources` VALUES (1,'Interactive Brokers'),(2,'Yahoo');
+INSERT INTO `datasources` VALUES (1,'Interactive Brokers'),(2,'Yahoo'),(3,'Quandl');
 /*!40000 ALTER TABLE `datasources` ENABLE KEYS */;
 UNLOCK TABLES;
 
