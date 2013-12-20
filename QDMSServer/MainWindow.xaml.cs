@@ -302,6 +302,21 @@ namespace QDMSServer
             }
         }
 
+        //show the Quandl add instrument window
+        private void AddInstrumentQuandlBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            var window = new AddInstrumentQuandlWindow();
+
+            if (window.AddedInstruments != null)
+            {
+                foreach (Instrument i in window.AddedInstruments)
+                {
+                    Instruments.Add(i);
+                }
+                window.Close();
+            }
+        }
+
         //show a window to modify the selected instrument
         private void TableView_RowDoubleClick(object sender, MouseButtonEventArgs mouseButtonEventArgs)
         {
@@ -613,6 +628,7 @@ namespace QDMSServer
             ((MenuItem)menu.Items[5]).IsEnabled = !multipleSelected; //import data
             ((MenuItem)menu.Items[6]).IsEnabled = !multipleSelected; //edit data
         }
+
 
 
     }
