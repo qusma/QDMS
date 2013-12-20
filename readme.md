@@ -1,6 +1,6 @@
 The QUSMA Data Management System (QDMS) is an application for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
-QDMS uses a client/server model. The server acts as a broker between clients and external data sources. It also manages metadata on instruments, and local storage of historical data. Finally it also functions as a UI for managing the metadata & data, as well as importing/exporting data from and to CSV files. 
+QDMS uses a client/server model. The server acts as a broker between clients and external data sources. It also manages metadata on instruments, and local storage of historical data. Finally it also functions as a UI for managing the metadata & data, as well as importing/exporting data from and to CSV files. [Here's a rough view of how the systems are connected to each other](http://i.imgur.com/qUWlpj7.png).
 
 A simple sample application showing usage of the client can be found in the SampleApp project.
 
@@ -18,12 +18,12 @@ Screenshots:
 * [Importing CSV data](http://i.imgur.com/en6kDo1.png).
 * [Editing futures expiration rules](http://i.imgur.com/WvKkb4x.png).
 * [Continuous futures options](http://i.imgur.com/47VuXmH.png).
-* [A rough view of how the systems are connected to each other](http://i.imgur.com/qUWlpj7.png).
 
 Currently Supported Data Sources:
 ------------------------
 * Yahoo
 * Interactive Brokers
+* Quandl
 
 Requirements:
 ------------------------
