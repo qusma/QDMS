@@ -16,40 +16,41 @@ namespace QDMSServer
     public static class QuandlUtils
     {
         /// <summary>
-        /// Takes XML formated data from Quandl and turns it into OHLCBars.
+        /// Takes XML formated data from Quandl and turns it into a List of OHLCBars.
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
         public static List<OHLCBar> ParseXML(string data)
         {
             var doc = XDocument.Parse(data);
-            var columns = new List<string>();
             var bars = new List<OHLCBar>();
 
+            //standard checks that the XML is what it should be
             if (doc.Root == null)
             {
                 throw new Exception("XML Parse error: no root.");
             }
 
-            //start by checking what columns are included in the data...
-            //in case of insufficient columns we might get out right here
             if (doc.Root.Element("column-names") == null)
             {
                 throw new Exception("Quandl: Column names element not found.");
             }
 
+            //this simply gives us a list of column names, needed to parse the data correctly later on
+            List<string> columns = doc.Root.Element("column-names").Elements("column-name").Select(x => x.Value).ToList();
 
-            columns = doc.Root.Element("column-names").Elements("column-name").Select(x => x.Value).ToList();
-
-
-            bool skipBar, dateSet;
+            //some columns are required..
+            if (!columns.Contains("Date"))
+            {
+                throw new Exception("Quandl: no date column, cannot parse data.");
+            }
 
             var dataElement = doc.Root.Element("data");
             if (dataElement == null)
             {
-                throw new Exception("No data.");
+                throw new Exception("Quandl: No data present in XML file.");
             }
 
+            bool skipBar, dateSet;
+            //finally loop through each bar and try to parse it
             foreach (var barElements in dataElement.Elements("datum"))
             {
                 skipBar = false;
@@ -60,7 +61,7 @@ namespace QDMSServer
                 int counter = 0;
                 foreach (var price in barElements.Elements("datum"))
                 {
-                    bool isNull = price.Attribute("nil") != null; //if the attribute "nil" exists, then the value is null
+                    bool isNull = price.Attribute("nil") != null; //if the attribute "nil" exists, then the value of this field is null
 
                     switch (columns[counter])
                     {
