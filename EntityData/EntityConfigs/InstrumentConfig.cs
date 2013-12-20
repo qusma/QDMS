@@ -13,7 +13,7 @@ namespace EntityData
     {
         public InstrumentConfig()
         {
-            this.HasRequired(t => t.Exchange)
+            this.HasOptional(t => t.Exchange)
                 .WithMany()
                 .HasForeignKey(x => x.ExchangeID)
                 .WillCascadeOnDelete(false);
