@@ -39,6 +39,7 @@ namespace QDMSServer
                 addingContFut)
             {
                 ContFutTabItem.Visibility = Visibility.Visible;
+                TypeComboBox.IsEnabled = false;
             }
 
             DataContext = this;
@@ -52,7 +53,9 @@ namespace QDMSServer
             {
                 context.Instruments.Attach(instrument);
                 context.Entry(instrument).Reload();
-                context.Entry(instrument.Exchange).Reload();
+                if(instrument.Exchange != null)
+                    context.Entry(instrument.Exchange).Reload();
+
                 TheInstrument = (Instrument)instrument.Clone();
                 if (TheInstrument.Tags == null) TheInstrument.Tags = new List<Tag>();
                 if (TheInstrument.Sessions == null) TheInstrument.Sessions = new List<InstrumentSession>();
@@ -70,6 +73,8 @@ namespace QDMSServer
                 if (addingContFut)
                 {
                     TheInstrument.ContinuousFuture = new ContinuousFuture();
+                    TheInstrument.Type = InstrumentType.Future;
+                    TheInstrument.IsContinuousFuture = true;
                 }
             }
 
@@ -181,6 +186,12 @@ namespace QDMSServer
                 if (TheInstrument.SessionsSource == SessionsSource.Template && TheInstrument.SessionTemplateID == -1)
                 {
                     MessageBox.Show("You must pick a session template.");
+                    return;
+                }
+
+                if (TheInstrument.IsContinuousFuture && TheInstrument.Type != InstrumentType.Future)
+                {
+                    MessageBox.Show("Continuous futures type must be Future.");
                     return;
                 }
 
