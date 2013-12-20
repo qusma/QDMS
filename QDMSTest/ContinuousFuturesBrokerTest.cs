@@ -76,7 +76,28 @@ namespace QDMSTest
         [Test]
         public void RequestsDataOnCorrectContracts()
         {
-            Assert.IsTrue(false);
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+
+            var requests = new List<HistoricalDataRequest>();
+
+            _cfInst.ContinuousFuture.RolloverDays = 1;
+
+            //handle the requests for historical data
+            int counter = 0;
+            _clientMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Returns(() => counter)
+                .Callback<HistoricalDataRequest>(req =>
+                {
+                    req.RequestID = counter;
+                    requests.Add(req);
+                    counter++;
+                });
+
+            //make the request
+            _broker.RequestHistoricalData(_req);
+
+            Assert.IsTrue(requests.Any(x => x.Instrument.ID == 1));
         }
 
         [Test]
@@ -562,13 +583,305 @@ namespace QDMSTest
         [Test]
         public void CorrectOpenInterestAndVolumeBasedSwitchover()
         {
-            Assert.IsTrue(false);
+            var expectedPrices = new Dictionary<DateTime, decimal>
+            {
+                { new DateTime(2012, 10,19), 17.6m },
+                { new DateTime(2012, 10,22), 17.36m },
+                { new DateTime(2012, 10,23), 19.21m },
+                { new DateTime(2012, 10,24), 18.75m },
+                { new DateTime(2012, 10,25), 18.28m },
+                { new DateTime(2012, 10,26), 18.27m },
+                { new DateTime(2012, 10,31), 18.96m },
+                { new DateTime(2012, 11,1), 16.9m },
+                { new DateTime(2012, 11,2), 17.8m },
+                { new DateTime(2012, 11,5), 18.1m },
+                { new DateTime(2012, 11,6), 17.05m },
+                { new DateTime(2012, 11,7), 18.86m },
+                { new DateTime(2012, 11,8), 18.5m },
+                { new DateTime(2012, 11,9), 18.59m },
+                { new DateTime(2012, 11,12), 17.08m },
+                { new DateTime(2012, 11,13), 18.16m },
+                { new DateTime(2012, 11,14), 18.96m },
+                { new DateTime(2012, 11,15), 19.11m },
+                { new DateTime(2012, 11,16), 18.16m },
+                { new DateTime(2012, 11,19), 16.58m },
+                { new DateTime(2012, 11,20), 16.38m },
+                { new DateTime(2012, 11,21), 16.44m },
+                { new DateTime(2012, 11,23), 16.1m },
+                { new DateTime(2012, 11,26), 15.6m },
+                { new DateTime(2012, 11,27), 16.15m },
+                { new DateTime(2012, 11,28), 15.48m },
+                { new DateTime(2012, 11,29), 15.24m },
+                { new DateTime(2012, 11,30), 15.54m },
+                { new DateTime(2012, 12,3), 16.4m },
+                { new DateTime(2012, 12,4), 16.49m },
+                { new DateTime(2012, 12,5), 16.1m },
+                { new DateTime(2012, 12,6), 16.39m },
+                { new DateTime(2012, 12,7), 16.01m },
+                { new DateTime(2012, 12,10), 16m },
+                { new DateTime(2012, 12,11), 15.56m },
+                { new DateTime(2012, 12,12), 16.11m },
+                { new DateTime(2012, 12,13), 16.61m },
+                { new DateTime(2012, 12,14), 16.86m },
+                { new DateTime(2012, 12,17), 16.19m },
+                { new DateTime(2012, 12,18), 15.55m },
+                { new DateTime(2012, 12,19), 17.1m },
+                { new DateTime(2012, 12,20), 17.51m },
+                { new DateTime(2012, 12,21), 18.24m },
+                { new DateTime(2012, 12,24), 18.64m },
+                { new DateTime(2012, 12,26), 19.49m },
+                { new DateTime(2012, 12,27), 19.09m },
+                { new DateTime(2012, 12,28), 22.35m },
+                { new DateTime(2012, 12,31), 17.68m },
+                { new DateTime(2013, 1,2), 15.6m },
+                { new DateTime(2013, 1,3), 15.9m },
+                { new DateTime(2013, 1,4), 15.3m },
+                { new DateTime(2013, 1,7), 14.75m },
+                { new DateTime(2013, 1,8), 14.65m },
+                { new DateTime(2013, 1,9), 16.37m },
+                { new DateTime(2013, 1,10), 16.08m },
+                { new DateTime(2013, 1,11), 15.98m },
+                { new DateTime(2013, 1,14), 15.94m },
+                { new DateTime(2013, 1,15), 15.76m },
+                { new DateTime(2013, 1,16), 15.5m },
+                { new DateTime(2013, 1,17), 15.69m },
+                { new DateTime(2013, 1,18), 14.65m },
+                { new DateTime(2013, 1,22), 14.05m },
+                { new DateTime(2013, 1,23), 13.69m },
+                { new DateTime(2013, 1,24), 13.94m },
+                { new DateTime(2013, 1,25), 14.09m },
+                { new DateTime(2013, 1,28), 14.59m },
+                { new DateTime(2013, 1,29), 14.04m },
+                { new DateTime(2013, 1,30), 15.15m },
+                { new DateTime(2013, 1,31), 14.9m },
+                { new DateTime(2013, 2,1), 14.29m },
+                { new DateTime(2013, 2,4), 15.29m },
+                { new DateTime(2013, 2,5), 14.39m },
+                { new DateTime(2013, 2,6), 14.15m },
+                { new DateTime(2013, 2,7), 14.09m },
+                { new DateTime(2013, 2,8), 15.01m },
+                { new DateTime(2013, 2,11), 14.93m },
+                { new DateTime(2013, 2,12), 14.78m },
+                { new DateTime(2013, 2,13), 14.75m },
+                { new DateTime(2013, 2,14), 14.55m },
+                { new DateTime(2013, 2,15), 14.5m },
+                { new DateTime(2013, 2,19), 13.89m },
+                { new DateTime(2013, 2,20), 15.39m },
+                { new DateTime(2013, 2,21), 15.5m },
+                { new DateTime(2013, 2,22), 14.84m },
+                { new DateTime(2013, 2,25), 17.65m },
+                { new DateTime(2013, 2,26), 17.06m },
+                { new DateTime(2013, 2,27), 15.43m },
+                { new DateTime(2013, 2,28), 16.14m },
+                { new DateTime(2013, 3,1), 16.39m },
+                { new DateTime(2013, 3,4), 14.99m },
+                { new DateTime(2013, 3,5), 14.54m },
+                { new DateTime(2013, 3,6), 14.7m },
+                { new DateTime(2013, 3,7), 14.19m },
+                { new DateTime(2013, 3,8), 13.8m },
+                { new DateTime(2013, 3,11), 13m },
+                { new DateTime(2013, 3,12), 13.24m },
+                { new DateTime(2013, 3,13), 12.94m },
+                { new DateTime(2013, 3,14), 12.54m },
+                { new DateTime(2013, 3,15), 12.54m },
+                { new DateTime(2013, 3,18), 13.68m },
+                { new DateTime(2013, 3,19), 14.79m }
+            };
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+
+            var requests = new List<HistoricalDataRequest>();
+            var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
+
+            _cfInst.ContinuousFuture.RolloverDays = 1;
+            _cfInst.ContinuousFuture.RolloverType = ContinuousFuturesRolloverType.VolumeAndOpenInterest;
+
+            //handle the requests for historical data
+            int counter = 0;
+            _clientMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Returns(() => counter)
+                .Callback<HistoricalDataRequest>(req =>
+                {
+                    req.RequestID = counter;
+                    requests.Add(req);
+                    counter++;
+                });
+
+            //hook up the event to receive the data
+            var resultingData = new List<OHLCBar>();
+            _broker.HistoricalDataArrived += (sender, e) =>
+            {
+                resultingData = e.Data;
+            };
+
+            //make the request
+            _broker.RequestHistoricalData(_req);
+
+            //give back the contract data
+            foreach (HistoricalDataRequest r in requests)
+            {
+                _clientMock.Raise(x => x.HistoricalDataReceived += null, new HistoricalDataEventArgs(r, futuresData[r.Instrument.ID.Value]));
+            }
+
+            //finally make sure we have correct continuous future prices
+            foreach (OHLCBar bar in resultingData)
+            {
+                if (expectedPrices.ContainsKey(bar.DT))
+                    Assert.AreEqual(expectedPrices[bar.DT], bar.Close, string.Format("At time: {0}", bar.DT));
+            }
         }
 
         [Test]
         public void CorrectOpenInterestOrVolumeBasedSwitchover()
         {
-            Assert.IsTrue(false);
+            var expectedPrices = new Dictionary<DateTime, decimal>
+            {
+                { new DateTime(2012, 10,19), 17.6m },
+                { new DateTime(2012, 10,22), 17.36m },
+                { new DateTime(2012, 10,23), 19.21m },
+                { new DateTime(2012, 10,24), 18.75m },
+                { new DateTime(2012, 10,25), 18.28m },
+                { new DateTime(2012, 10,26), 18.27m },
+                { new DateTime(2012, 10,31), 18.96m },
+                { new DateTime(2012, 11,1), 16.9m },
+                { new DateTime(2012, 11,2), 17.8m },
+                { new DateTime(2012, 11,5), 18.1m },
+                { new DateTime(2012, 11,6), 17.05m },
+                { new DateTime(2012, 11,7), 18.86m },
+                { new DateTime(2012, 11,8), 19.26m },
+                { new DateTime(2012, 11,9), 19.57m },
+                { new DateTime(2012, 11,12), 18.31m },
+                { new DateTime(2012, 11,13), 18.16m },
+                { new DateTime(2012, 11,14), 18.96m },
+                { new DateTime(2012, 11,15), 19.11m },
+                { new DateTime(2012, 11,16), 18.16m },
+                { new DateTime(2012, 11,19), 16.58m },
+                { new DateTime(2012, 11,20), 16.38m },
+                { new DateTime(2012, 11,21), 16.44m },
+                { new DateTime(2012, 11,23), 16.1m },
+                { new DateTime(2012, 11,26), 15.6m },
+                { new DateTime(2012, 11,27), 16.15m },
+                { new DateTime(2012, 11,28), 15.48m },
+                { new DateTime(2012, 11,29), 15.24m },
+                { new DateTime(2012, 11,30), 15.54m },
+                { new DateTime(2012, 12,3), 16.4m },
+                { new DateTime(2012, 12,4), 16.49m },
+                { new DateTime(2012, 12,5), 16.1m },
+                { new DateTime(2012, 12,6), 16.39m },
+                { new DateTime(2012, 12,7), 16.01m },
+                { new DateTime(2012, 12,10), 16m },
+                { new DateTime(2012, 12,11), 15.56m },
+                { new DateTime(2012, 12,12), 17.11m },
+                { new DateTime(2012, 12,13), 17.31m },
+                { new DateTime(2012, 12,14), 17.17m },
+                { new DateTime(2012, 12,17), 16.46m },
+                { new DateTime(2012, 12,18), 16.13m },
+                { new DateTime(2012, 12,19), 17.1m },
+                { new DateTime(2012, 12,20), 17.51m },
+                { new DateTime(2012, 12,21), 18.24m },
+                { new DateTime(2012, 12,24), 18.64m },
+                { new DateTime(2012, 12,26), 19.49m },
+                { new DateTime(2012, 12,27), 19.09m },
+                { new DateTime(2012, 12,28), 22.35m },
+                { new DateTime(2012, 12,31), 17.68m },
+                { new DateTime(2013, 1,2), 15.6m },
+                { new DateTime(2013, 1,3), 15.9m },
+                { new DateTime(2013, 1,4), 15.3m },
+                { new DateTime(2013, 1,7), 14.75m },
+                { new DateTime(2013, 1,8), 14.65m },
+                { new DateTime(2013, 1,9), 16.37m },
+                { new DateTime(2013, 1,10), 16.08m },
+                { new DateTime(2013, 1,11), 15.98m },
+                { new DateTime(2013, 1,14), 15.94m },
+                { new DateTime(2013, 1,15), 15.76m },
+                { new DateTime(2013, 1,16), 15.5m },
+                { new DateTime(2013, 1,17), 15.69m },
+                { new DateTime(2013, 1,18), 14.65m },
+                { new DateTime(2013, 1,22), 14.05m },
+                { new DateTime(2013, 1,23), 13.69m },
+                { new DateTime(2013, 1,24), 13.94m },
+                { new DateTime(2013, 1,25), 14.09m },
+                { new DateTime(2013, 1,28), 14.59m },
+                { new DateTime(2013, 1,29), 14.04m },
+                { new DateTime(2013, 1,30), 15.15m },
+                { new DateTime(2013, 1,31), 14.9m },
+                { new DateTime(2013, 2,1), 14.29m },
+                { new DateTime(2013, 2,4), 15.29m },
+                { new DateTime(2013, 2,5), 15.57m },
+                { new DateTime(2013, 2,6), 15.33m },
+                { new DateTime(2013, 2,7), 15.31m },
+                { new DateTime(2013, 2,8), 15.01m },
+                { new DateTime(2013, 2,11), 14.93m },
+                { new DateTime(2013, 2,12), 14.78m },
+                { new DateTime(2013, 2,13), 14.75m },
+                { new DateTime(2013, 2,14), 14.55m },
+                { new DateTime(2013, 2,15), 14.5m },
+                { new DateTime(2013, 2,19), 13.89m },
+                { new DateTime(2013, 2,20), 15.39m },
+                { new DateTime(2013, 2,21), 15.5m },
+                { new DateTime(2013, 2,22), 14.84m },
+                { new DateTime(2013, 2,25), 17.65m },
+                { new DateTime(2013, 2,26), 17.06m },
+                { new DateTime(2013, 2,27), 15.43m },
+                { new DateTime(2013, 2,28), 16.14m },
+                { new DateTime(2013, 3,1), 16.39m },
+                { new DateTime(2013, 3,4), 14.99m },
+                { new DateTime(2013, 3,5), 14.54m },
+                { new DateTime(2013, 3,6), 14.7m },
+                { new DateTime(2013, 3,7), 14.19m },
+                { new DateTime(2013, 3,8), 13.8m },
+                { new DateTime(2013, 3,11), 13m },
+                { new DateTime(2013, 3,12), 13.24m },
+                { new DateTime(2013, 3,13), 12.94m },
+                { new DateTime(2013, 3,14), 12.54m },
+                { new DateTime(2013, 3,15), 12.54m },
+                { new DateTime(2013, 3,18), 13.68m },
+                { new DateTime(2013, 3,19), 14.79m }
+            };
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+
+            var requests = new List<HistoricalDataRequest>();
+            var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
+
+            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.RolloverType = ContinuousFuturesRolloverType.VolumeOrOpenInterest;
+
+            //handle the requests for historical data
+            int counter = 0;
+            _clientMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Returns(() => counter)
+                .Callback<HistoricalDataRequest>(req =>
+                {
+                    req.RequestID = counter;
+                    requests.Add(req);
+                    counter++;
+                });
+
+            //hook up the event to receive the data
+            var resultingData = new List<OHLCBar>();
+            _broker.HistoricalDataArrived += (sender, e) =>
+            {
+                resultingData = e.Data;
+            };
+
+            //make the request
+            _broker.RequestHistoricalData(_req);
+
+            //give back the contract data
+            foreach (HistoricalDataRequest r in requests)
+            {
+                _clientMock.Raise(x => x.HistoricalDataReceived += null, new HistoricalDataEventArgs(r, futuresData[r.Instrument.ID.Value]));
+            }
+
+            //finally make sure we have correct continuous future prices
+            foreach (OHLCBar bar in resultingData)
+            {
+                if (expectedPrices.ContainsKey(bar.DT))
+                    Assert.AreEqual(expectedPrices[bar.DT], bar.Close, string.Format("At time: {0}", bar.DT));
+            }
         }
 
         [Test]
