@@ -100,7 +100,8 @@ namespace QDMSServer
             {
                 { "Interactive Brokers", new IB(3) },
                 { "Yahoo", new Yahoo() },
-                { "ContinuousFuturesBroker", new ContinuousFuturesBroker() }
+                { "ContinuousFuturesBroker", new ContinuousFuturesBroker() },
+                { "Quandl", new Quandl() }
             };
 
             foreach (IHistoricalDataSource ds in DataSources.Values)
