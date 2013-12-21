@@ -52,6 +52,15 @@ namespace QDMSServer
         private Dictionary<RealTimeStreamInfo, int> _streamSubscribersCount { get; set; }
 
         /// <summary>
+        /// When there's a request for real time data of a continuous future,
+        /// obviously the symbol received from the external source is not the
+        /// continuous future itself, but the actual futures contract.
+        /// So we use aliases: the key is the underlying contract
+        /// and the value is a list of aliases that are also sent out.
+        /// </summary>
+        private Dictionary<string, List<string>> _aliases;
+
+        /// <summary>
         /// Is true if the server is running
         /// </summary>
         public bool ServerRunning { get; private set; }
@@ -73,6 +82,7 @@ namespace QDMSServer
         private MemoryStream _ms;
         private object _pubSocketLock = new object();
         private object _subscriberCountLock = new object();
+        private object _aliasLock = new object();
 
         public void Dispose()
         {
@@ -140,6 +150,7 @@ namespace QDMSServer
             ActiveStreams = new ConcurrentNotifierBlockingList<RealTimeStreamInfo>();
             _arrivedBars = new BlockingCollection<RealTimeDataEventArgs>();
             _streamSubscribersCount = new Dictionary<RealTimeStreamInfo, int>();
+            _aliases = new Dictionary<string, List<string>>();
 
             _ms = new MemoryStream();
 
@@ -172,6 +183,22 @@ namespace QDMSServer
                 _pubSocket.SendMore(Encoding.UTF8.GetBytes(e.Symbol)); //start by sending the ticker before the data
                 Serializer.Serialize(_ms, e);
                 _pubSocket.Send(_ms.ToArray()); //then send the serialized bar
+            }
+
+            //continuous futures aliases
+            lock (_aliasLock)
+            {
+                if (_aliases.ContainsKey(e.Symbol))
+                {
+                    foreach (string alias in _aliases[e.Symbol])
+                    {
+                        _ms.SetLength(0);
+                        _pubSocket.SendMore(Encoding.UTF8.GetBytes(alias)); //start by sending the ticker before the data
+                        e.Symbol = alias; //change to the symbol to the alias
+                        Serializer.Serialize(_ms, e);
+                        _pubSocket.Send(_ms.ToArray()); //then send the serialized bar
+                    }
+                }
             }
 
 #if DEBUG
@@ -322,6 +349,9 @@ namespace QDMSServer
 
             //TODO perhaps we need to keep track of client identities...
             //as it is now, you can cancel a stream that you're not actually receiving!
+
+            //TODO need extra handling for continuous futures: clear alias list. 
+            //TODO Cont futures should add to the counter for the actual contracts
         }
 
         // Accept a real time data request
@@ -367,6 +397,23 @@ namespace QDMSServer
             else if (DataSources.ContainsKey(request.Instrument.Datasource.Name) && //make sure the datasource is present & connected
                      DataSources[request.Instrument.Datasource.Name].Connected)
             {
+                if (request.Instrument.IsContinuousFuture)
+                {
+                    //todo if it's a CF, we need to find which contract is currently "used"
+                    //and request that one
+                    //then add this symbol to its aliases.
+                    string contract = "";
+                    lock (_aliasLock)
+                    {
+                        if (!_aliases.ContainsKey(contract))
+                        {
+                            _aliases.Add(contract, new List<string>());
+                        }
+                        _aliases[contract].Add(request.Instrument.Symbol);
+                    }
+                }
+
+
                 //send the request to the correct data source
                 int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
 
