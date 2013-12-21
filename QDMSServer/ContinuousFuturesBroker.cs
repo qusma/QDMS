@@ -144,6 +144,9 @@ namespace QDMSServer
 
             var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
 
+            //order them by ascending expiration date
+            futures = futures.OrderBy(x => x.Expiration).ToList();
+
             //filter the futures months, we may not want all of them.
             for (int i = 1; i <= 12; i++)
             {
@@ -160,16 +163,22 @@ namespace QDMSServer
                 return;
             }
 
-            //TODO not 100% certain about this, but I think that the first contract we need
-            //is the first one expiring before the start of the request period
+            //the first contract we need is the first one expiring before the start of the request period
             var firstExpiration = futures
                 .Where(x => x.Expiration != null && x.Expiration.Value < request.StartingDate)
                 .Select(x => x.Expiration.Value).Max();
 
             futures = futures.Where(x => x.Expiration != null && x.Expiration.Value >= firstExpiration).ToList();
 
-            //order them by ascending expiration date
-            futures = futures.OrderBy(x => x.Expiration).ToList();
+            //I think the last contract we need is the one that is N months after the second contract that expires after the request period end
+            //where N is the number of months away from the front contract that the CF uses
+            var firstExpAfterEnd = futures.Where(x => x.Expiration > request.EndingDate).ElementAtOrDefault(1);
+            if (firstExpAfterEnd != null)
+            {
+                DateTime limitDate = firstExpAfterEnd.Expiration.Value.AddMonths(request.Instrument.ContinuousFuture.Month - 1);
+                futures = futures.Where(x => x.Expiration.Value.Year < limitDate.Year || 
+                    (x.Expiration.Value.Year == limitDate.Year && x.Expiration.Value.Month <= limitDate.Month)).ToList();
+            }
 
             //save the number of requests we're gonna make
             lock(_reqCountLock)
