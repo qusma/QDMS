@@ -232,6 +232,114 @@ namespace QDMSTest
         }
 
         [Test]
+        public void CorrectCalculationOfPricesBasedOnContractsNMonthsBack()
+        {
+            var expectedPrices = new Dictionary<DateTime, decimal>
+            {
+                { new DateTime(2012, 11,20), 18.02m },
+                { new DateTime(2012, 11,21), 18.32m },
+                { new DateTime(2012, 11,23), 17.87m },
+                { new DateTime(2012, 11,26), 17.41m },
+                { new DateTime(2012, 11,27), 17.77m },
+                { new DateTime(2012, 11,28), 17.27m },
+                { new DateTime(2012, 11,29), 16.97m },
+                { new DateTime(2012, 11,30), 17.11m },
+                { new DateTime(2012, 12,3), 17.66m },
+                { new DateTime(2012, 12,4), 17.86m },
+                { new DateTime(2012, 12,5), 17.32m },
+                { new DateTime(2012, 12,6), 17.61m },
+                { new DateTime(2012, 12,7), 17.22m },
+                { new DateTime(2012, 12,10), 17.01m },
+                { new DateTime(2012, 12,11), 16.46m },
+                { new DateTime(2012, 12,12), 17.11m },
+                { new DateTime(2012, 12,13), 17.31m },
+                { new DateTime(2012, 12,14), 17.17m },
+                { new DateTime(2012, 12,17), 16.46m },
+                { new DateTime(2012, 12,18), 17.07m },
+                { new DateTime(2012, 12,19), 17.86m },
+                { new DateTime(2012, 12,20), 18.11m },
+                { new DateTime(2012, 12,21), 18.51m },
+                { new DateTime(2012, 12,24), 18.91m },
+                { new DateTime(2012, 12,26), 19.52m },
+                { new DateTime(2012, 12,27), 19.36m },
+                { new DateTime(2012, 12,28), 21.92m },
+                { new DateTime(2012, 12,31), 18.47m },
+                { new DateTime(2013, 1,2), 16.72m },
+                { new DateTime(2013, 1,3), 16.92m },
+                { new DateTime(2013, 1,4), 16.67m },
+                { new DateTime(2013, 1,7), 16.42m },
+                { new DateTime(2013, 1,8), 16.43m },
+                { new DateTime(2013, 1,9), 16.37m },
+                { new DateTime(2013, 1,10), 16.08m },
+                { new DateTime(2013, 1,11), 15.98m },
+                { new DateTime(2013, 1,14), 15.94m },
+                { new DateTime(2013, 1,15), 17.24m },
+                { new DateTime(2013, 1,16), 17.07m },
+                { new DateTime(2013, 1,17), 16.98m },
+                { new DateTime(2013, 1,18), 16.28m },
+                { new DateTime(2013, 1,22), 15.37m },
+                { new DateTime(2013, 1,23), 15.03m },
+                { new DateTime(2013, 1,24), 15.08m },
+                { new DateTime(2013, 1,25), 15.13m },
+                { new DateTime(2013, 1,28), 15.32m },
+                { new DateTime(2013, 1,29), 14.92m },
+                { new DateTime(2013, 1,30), 15.76m },
+                { new DateTime(2013, 1,31), 15.71m },
+                { new DateTime(2013, 2,1), 15.38m },
+                { new DateTime(2013, 2,4), 15.86m },
+                { new DateTime(2013, 2,5), 15.57m },
+                { new DateTime(2013, 2,6), 15.33m },
+                { new DateTime(2013, 2,7), 15.31m },
+                { new DateTime(2013, 2,8), 15.01m },
+                { new DateTime(2013, 2,11), 14.93m },
+                { new DateTime(2013, 2,12), 14.78m }
+            };
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+
+            var requests = new List<HistoricalDataRequest>();
+            var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
+
+            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.Month = 2;
+
+            //handle the requests for historical data
+            int counter = 0;
+            _clientMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Returns(() => counter)
+                .Callback<HistoricalDataRequest>(req =>
+                {
+                    req.RequestID = counter;
+                    requests.Add(req);
+                    counter++;
+                });
+
+            //hook up the event to receive the data
+            var resultingData = new List<OHLCBar>();
+            _broker.HistoricalDataArrived += (sender, e) =>
+            {
+                resultingData = e.Data;
+            };
+
+            //make the request
+            _broker.RequestHistoricalData(_req);
+
+            //give back the contract data
+            foreach (HistoricalDataRequest r in requests)
+            {
+                _clientMock.Raise(x => x.HistoricalDataReceived += null, new HistoricalDataEventArgs(r, futuresData[r.Instrument.ID.Value]));
+            }
+
+            //finally make sure we have correct continuous future prices
+            foreach (OHLCBar bar in resultingData)
+            {
+                if (expectedPrices.ContainsKey(bar.DT))
+                    Assert.AreEqual(expectedPrices[bar.DT], bar.Close, string.Format("At time: {0}", bar.DT));
+            }
+        }
+
+        [Test]
         public void CorrectVolumeBasedSwitchover()
         {
             var expectedPrices = new Dictionary<DateTime, decimal>
