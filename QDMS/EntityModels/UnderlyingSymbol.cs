@@ -112,7 +112,7 @@ namespace QDMS
                 {
                     daysBack++;
 
-                    if (calendar.isBusinessDay(referenceDay.AddDays(-daysBack))) //todo fix here...
+                    if (calendar.isBusinessDay(referenceDay.AddDays(-daysBack)))
                         daysLeft--;
                 }
                 return referenceDay.AddDays(-daysBack);
