@@ -20,6 +20,8 @@ using System.Windows;
 using NLog;
 using QDMS;
 using System;
+using QLNet;
+using Instrument = QDMS.Instrument;
 
 #pragma warning disable 67
 namespace QDMSServer
@@ -50,12 +52,15 @@ namespace QDMSServer
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
         private Dictionary<int, List<OHLCBar>> _data;
 
-        public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null)
+        public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null, string clientName = "")
         {
             if (client == null)
             {
+                if(string.IsNullOrEmpty(clientName))
+                    clientName = "CONTFUTCLIENT";
+
                 _client = new QDMSClient.QDMSClient(
-                    "CONTFUTCLIENT",
+                    clientName,
                     "localhost",
                     Properties.Settings.Default.rtDBReqPort,
                     Properties.Settings.Default.rtDBPubPort,
@@ -343,9 +348,11 @@ namespace QDMSServer
                     //update the contracts
                     frontFuture = backFuture;
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
-                    selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAt(cf.Month - 1);
+                    selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAtOrDefault(cf.Month - 1);
+                    
 
                     if (frontFuture == null) break; //no other futures left, get out
+                    if (selectedFuture == null) break;
 
                     frontData = new TimeSeries(_data[frontFuture.ID.Value]);
                     backData = backFuture != null ? new TimeSeries(_data[backFuture.ID.Value]) : null;
@@ -373,25 +380,6 @@ namespace QDMSServer
 
             //we're done, so just raise the event
             RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, cfData));
-        }
-
-        public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
-        public event EventHandler<ErrorArgs> Error;
-        public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="continuousFuture"></param>
-        /// <returns>The current front future for this continuous futures contract. Null if it is not found.</returns>
-        public Instrument GetCurrentFrontFuture(Instrument continuousFuture)
-        {
-            var searchInstrument = new Instrument { UnderlyingSymbol = continuousFuture.UnderlyingSymbol, Type = InstrumentType.Future };
-            var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
-
-            if (futures.Count == 0) return null;
-            //TODO write this
-            return new Instrument();
         }
 
         private void Log(LogLevel level, string message)
@@ -458,6 +446,94 @@ namespace QDMSServer
             if (handler == null) return;
             handler(sender, e);
         }
+
+        /// <summary>
+        /// Finds the currently active futures contract for a continuous futures instrument.
+        /// Returns an ID uniquely identifying this request.
+        /// The contract is returned asynchronously through the FoundFrontContract event.
+        /// </summary>
+        public int FindFrontContract(Instrument cfInstrument, int requestID, DateTime? date = null)
+        {
+            if (!cfInstrument.IsContinuousFuture) throw new Exception("Not a continuous future instrument.");
+
+            DateTime currentDate = DateTime.Now;
+            if (date != null)
+            {
+                currentDate = date.Value;
+            }
+
+            var cf = cfInstrument.ContinuousFuture;
+            if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
+            {
+                //if the roll-over is time based, we can find the appropriate contract programmatically
+                DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(currentDate.Year, currentDate.Month);
+                DateTime switchOverDate = currentMonthsExpirationDate;
+                DateTime selectedDate = currentDate;
+
+                Calendar calendar = MyUtils.GetCalendarFromCountryCode("US"); //TODO make this dynamic
+
+                //this month's contract
+                //find the switchover date
+                int daysBack = cf.RolloverDays;
+                while (daysBack > 0)
+                {
+                    switchOverDate = switchOverDate.AddDays(-1);
+                    if (calendar.isBusinessDay(switchOverDate))
+                        daysBack--;
+                }
+
+                //this month's contract has already been switched to the next one
+                int monthsLeft = 1;
+                int count = 0;
+                if (selectedDate >= switchOverDate)
+                {
+                    while (monthsLeft > 0)
+                    {
+                        if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
+                            monthsLeft--;
+                        count++;
+                    }
+                    selectedDate = selectedDate.AddMonths(count);
+                }
+
+                //we found the "front" month, no go back the required number of months
+                //while skipping unused months
+                monthsLeft = cf.Month - 1;
+                count = 0;
+                while (monthsLeft > 0)
+                {
+                    if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
+                        monthsLeft--;
+                    count++;
+                }
+                selectedDate = selectedDate.AddMonths(count);
+
+                //we got the month we want! find the contract
+                var searchFunc = new Func<Instrument, bool>(
+                    x => 
+                        x.Expiration.HasValue && 
+                        x.Expiration.Value.Month == selectedDate.Month &&
+                        x.Expiration.Value.Year == selectedDate.Year &&
+                        x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol);
+
+                var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
+
+                RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(requestID, contract));
+            }
+            else //otherwise, we have to actually look at the historical data to figure out which contract is selected
+            {
+                //TODO this is a tough one, because it needs to be asynchronous (historical
+                //data can take a long time to download). Not sure where it fits in, either...
+                //move it to the ContinuousFuturesBroker?
+            }
+
+            return 0;
+        }
+
+        public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
+        public event EventHandler<ErrorArgs> Error;
+        public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+        public event EventHandler<FoundFrontContractEventArgs> FoundFrontContract;
     }
 }
 #pragma warning restore 67
