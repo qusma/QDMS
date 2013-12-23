@@ -68,5 +68,11 @@ namespace QDMS
         /// </summary>
         [ProtoMember(10)]
         public bool ReferenceDayIsLastBusinessDayOfMonth { get; set; }
+
+        /// <summary>
+        /// If this is true, if the reference day happens to be a holiday, it is moved back until it falls on a business day.
+        /// </summary>
+        [ProtoMember(11)]
+        public bool ReferenceDayMustBeBusinessDay { get; set; }
     }
 }
