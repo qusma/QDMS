@@ -40,13 +40,24 @@ namespace QDMSTest
 
             var cf = new ContinuousFuture();
             cf.Month = 1;
+            _cfInst.IsContinuousFuture = true;
             _cfInst.ContinuousFuture = cf;
             _cfInst.ContinuousFuture.AdjustmentMode = ContinuousFuturesAdjustmentMode.NoAdjustment;
 
-            var underlying = new UnderlyingSymbol();
-            underlying.Symbol = "VIX";
+            var vix = new UnderlyingSymbol();
+            vix.Rule = new ExpirationRule
+            {
+                DaysBefore = 30,
+                DayType = DayType.Calendar,
+                ReferenceRelativeMonth = RelativeMonth.NextMonth,
+                ReferenceUsesDays = false,
+                ReferenceWeekDay = DayOfTheWeek.Friday,
+                ReferenceWeekDayCount = WeekDayCount.Third,
+                ReferenceDayMustBeBusinessDay = true
+            };
+            vix.Symbol = "VIX";
 
-            _cfInst.ContinuousFuture.UnderlyingSymbol = underlying;
+            _cfInst.ContinuousFuture.UnderlyingSymbol = vix;
 
             _req = new HistoricalDataRequest(
                 _cfInst,
@@ -59,7 +70,7 @@ namespace QDMSTest
         [Test]
         public void SearchesForCorrectContracts()
         {
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(new List<Instrument>());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(new List<Instrument>());
 
             _broker.RequestHistoricalData(_req);
 
@@ -69,7 +80,7 @@ namespace QDMSTest
                     i.Type == InstrumentType.Future &&
                     i.DatasourceID == _cfInst.DatasourceID &&
                     i.Datasource == _cfInst.Datasource
-                )));
+                ), null));
         }
 
         //This tests the request to the client for historical data, ensuring that the right contracts are requested
@@ -77,7 +88,7 @@ namespace QDMSTest
         public void RequestsDataOnCorrectContracts()
         {
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
 
@@ -98,6 +109,7 @@ namespace QDMSTest
             _broker.RequestHistoricalData(_req);
 
             Assert.IsTrue(requests.Any(x => x.Instrument.ID == 1));
+            //todo write
         }
 
         [Test]
@@ -189,7 +201,7 @@ namespace QDMSTest
             };
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -296,7 +308,7 @@ namespace QDMSTest
             };
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -448,7 +460,7 @@ namespace QDMSTest
             };
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -497,7 +509,7 @@ namespace QDMSTest
         public void BrokerReturnsCorrectDateRange()
         {
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -645,7 +657,7 @@ namespace QDMSTest
             };
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -797,7 +809,7 @@ namespace QDMSTest
             };
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -949,7 +961,7 @@ namespace QDMSTest
             };
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -1088,7 +1100,7 @@ namespace QDMSTest
             _req.EndingDate = new DateTime(2013, 3, 1);
 
             //return the contracts requested
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -1138,9 +1150,131 @@ namespace QDMSTest
         }
 
         [Test]
-        public void CorrectContinuousPricesOfNthMonthContract()
+        public void FindFrontContractFindsCorrectContractTimeBased()
         {
-            _cfInst.ContinuousFuture.Month = 2;
+            List<Instrument> contracts = ContinuousFuturesBrokerTestData.GetVIXFutures();
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x
+                .FindInstruments(null, null, It.IsAny<Func<Instrument,bool>>()))
+                .Returns(
+                    (MyDBContext a, Instrument b, Func<Instrument,bool> y) => contracts.Where(y).ToList()
+                );
+            
+            _cfInst.ContinuousFuture.RolloverDays = 1;
+
+            var expectedExpirationMonths = new Dictionary<DateTime, int>
+            {
+                { new DateTime(2012, 11,20), 12 },
+                { new DateTime(2012, 11,21), 12 },
+                { new DateTime(2012, 11,23), 12 },
+                { new DateTime(2012, 11,26), 12 },
+                { new DateTime(2012, 11,27), 12 },
+                { new DateTime(2012, 11,28), 12 },
+                { new DateTime(2012, 11,29), 12 },
+                { new DateTime(2012, 11,30), 12 },
+                { new DateTime(2012, 12,3), 12 },
+                { new DateTime(2012, 12,4), 12 },
+                { new DateTime(2012, 12,5), 12 },
+                { new DateTime(2012, 12,6), 12 },
+                { new DateTime(2012, 12,7), 12 },
+                { new DateTime(2012, 12,10), 12 },
+                { new DateTime(2012, 12,11), 12 },
+                { new DateTime(2012, 12,12), 12 },
+                { new DateTime(2012, 12,13), 12 },
+                { new DateTime(2012, 12,14), 12 },
+                { new DateTime(2012, 12,17), 12 },
+                { new DateTime(2012, 12,18), 1 },
+                { new DateTime(2012, 12,19), 1 },
+                { new DateTime(2012, 12,20), 1 },
+                { new DateTime(2012, 12,21), 1 },
+                { new DateTime(2012, 12,24), 1 },
+                { new DateTime(2012, 12,26), 1 },
+                { new DateTime(2012, 12,27), 1 },
+                { new DateTime(2012, 12,28), 1 },
+                { new DateTime(2012, 12,31), 1 },
+                { new DateTime(2013, 1,2), 1 },
+                { new DateTime(2013, 1,3), 1 },
+                { new DateTime(2013, 1,4), 1 },
+                { new DateTime(2013, 1,7), 1 },
+                { new DateTime(2013, 1,8), 1 },
+                { new DateTime(2013, 1,9), 1 },
+                { new DateTime(2013, 1,10), 1 },
+                { new DateTime(2013, 1,11), 1 },
+                { new DateTime(2013, 1,14), 1 },
+                { new DateTime(2013, 1,15), 2 },
+                { new DateTime(2013, 1,16), 2 },
+                { new DateTime(2013, 1,17), 2 },
+                { new DateTime(2013, 1,18), 2 },
+                { new DateTime(2013, 1,22), 2 },
+                { new DateTime(2013, 1,23), 2 },
+                { new DateTime(2013, 1,24), 2 },
+                { new DateTime(2013, 1,25), 2 },
+                { new DateTime(2013, 1,28), 2 },
+                { new DateTime(2013, 1,29), 2 },
+                { new DateTime(2013, 1,30), 2 },
+                { new DateTime(2013, 1,31), 2 },
+                { new DateTime(2013, 2,1), 2 },
+                { new DateTime(2013, 2,4), 2 },
+                { new DateTime(2013, 2,5), 2 },
+                { new DateTime(2013, 2,6), 2 },
+                { new DateTime(2013, 2,7), 2 },
+                { new DateTime(2013, 2,8), 2 },
+                { new DateTime(2013, 2,11), 2 },
+                { new DateTime(2013, 2,12), 3 },
+                { new DateTime(2013, 2,13), 3 },
+                { new DateTime(2013, 2,14), 3 },
+                { new DateTime(2013, 2,15), 3 },
+                { new DateTime(2013, 2,19), 3 },
+                { new DateTime(2013, 2,20), 3 },
+                { new DateTime(2013, 2,21), 3 },
+                { new DateTime(2013, 2,22), 3 },
+                { new DateTime(2013, 2,25), 3 },
+                { new DateTime(2013, 2,26), 3 },
+                { new DateTime(2013, 2,27), 3 },
+                { new DateTime(2013, 2,28), 3 },
+                { new DateTime(2013, 3,1), 3 },
+                { new DateTime(2013, 3,4), 3 },
+                { new DateTime(2013, 3,5), 3 },
+                { new DateTime(2013, 3,6), 3 },
+                { new DateTime(2013, 3,7), 3 },
+                { new DateTime(2013, 3,8), 3 },
+                { new DateTime(2013, 3,11), 3 },
+                { new DateTime(2013, 3,12), 3 },
+                { new DateTime(2013, 3,13), 3 }
+            };
+
+            List<int> returnedExpirationMonths = expectedExpirationMonths.Select(kvp => -1).ToList();
+
+            //hook up the event to add the expiration month
+            _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths[e.ID] = e.Instrument.Expiration.Value.Month;
+
+            //make the request
+            int counter = 0;
+            foreach (DateTime dt in expectedExpirationMonths.Keys)
+            {
+                _broker.FindFrontContract(_cfInst, counter++, dt);
+            }
+
+            counter = 0;
+            foreach (var kvp in expectedExpirationMonths)
+            {
+                var month = kvp.Value;
+                Assert.AreEqual(month, returnedExpirationMonths[counter], kvp.Key.ToString());
+                counter++;
+            }
+        }
+
+        [Test]
+        public void FindFrontContractFindsCorrectContractVolumeBased()
+        {
+            Assert.IsTrue(false);
+        }
+
+        [Test]
+        public void FindFrontContractFindsCorrectContractOpenInterestBased()
+        {
+            Assert.IsTrue(false);
         }
 
         public void Dispose()
