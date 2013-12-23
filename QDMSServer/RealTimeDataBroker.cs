@@ -399,8 +399,16 @@ namespace QDMSServer
             {
                 if (request.Instrument.IsContinuousFuture)
                 {
-                    //todo if it's a CF, we need to find which contract is currently "used"
+                    //if it's a CF, we need to find which contract is currently "used"
                     //and request that one
+                    
+
+                    //TODO the asynchronous nature of the request for the front month creates a lot of problems
+                    //TODO we either have to abandon the REP socket and use something asynchronous there
+                    //TODO which creates a ton of problems (we need unique IDs for every request and so forth)
+                    //TODO or we send back "success" without actually knowing if the request for the
+                    //TODO continuous futures real time data was successful or not!
+
                     //then add this symbol to its aliases.
                     string contract = "";
                     lock (_aliasLock)
