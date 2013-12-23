@@ -117,8 +117,9 @@ namespace QDMSServer
         /// <param name="context"></param>
         /// <param name="search">Any properties set on this instrument are used as search parameters.
         /// If null, all instruments are returned.</param>
+        /// <param name="pred">A predicate to use directly in the instrument search.</param>
         /// <returns>A list of instruments matching the criteria.</returns>
-        public List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null)
+        public List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null, Func<Instrument, bool> pred = null)
         {
             if (context == null) context = new MyDBContext();
 
@@ -136,7 +137,16 @@ namespace QDMSServer
             //it just crashes if you do. Devart connector works perfectly fine.
             //We just hack around it by loading up the session collections separately.
 
-            if (search == null)
+            if (pred != null)
+            {
+                var instruments = context.Instruments.Where(pred).ToList();
+                foreach (Instrument i in instruments)
+                {
+                    i.Exchange.Sessions.ToList();
+                }
+                return instruments;
+            }
+            else if (search == null)
             {
                 var allExchanges = context.Exchanges.Include(x => x.Sessions).ToList();
                 var allInstruments = query.ToList();
