@@ -22,8 +22,6 @@ namespace QDMSTest
             //contract is a CBOE holiday, the Final Settlement Date for the contract shall be thirty days 
             //prior to the CBOE business day immediately preceding that Friday.
 
-            //todo for this to stop failing:
-            //move back by a day if the reference day is a holiday? probably not appropriate for all markets
             var vix = new UnderlyingSymbol();
             vix.Rule = new ExpirationRule
             {
@@ -32,11 +30,12 @@ namespace QDMSTest
                 ReferenceRelativeMonth = RelativeMonth.NextMonth,
                 ReferenceUsesDays = false,
                 ReferenceWeekDay = DayOfTheWeek.Friday,
-                ReferenceWeekDayCount = WeekDayCount.Third
+                ReferenceWeekDayCount = WeekDayCount.Third,
+                ReferenceDayMustBeBusinessDay = true
             };
 
             DateTime dec13Expiration = vix.ExpirationDate(2013, 12);
-            Assert.AreEqual(new DateTime(2013, 12, 17), dec13Expiration);
+            Assert.AreEqual(new DateTime(2013, 12, 18), dec13Expiration);
 
             DateTime jan14Expiration = vix.ExpirationDate(2014, 1);
             Assert.AreEqual(new DateTime(2014, 1, 22), jan14Expiration);
@@ -129,14 +128,15 @@ namespace QDMSTest
                 DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.PreviousMonth,
                 ReferenceUsesDays = true,
-                ReferenceDays = 25
+                ReferenceDays = 25,
+                ReferenceDayMustBeBusinessDay = true
             };
 
             DateTime jan14Expiration = cl.ExpirationDate(2014, 1);
             Assert.AreEqual(new DateTime(2013, 12, 19), jan14Expiration);
 
             DateTime feb14Expiration = cl.ExpirationDate(2014, 2);
-            Assert.AreEqual(new DateTime(2014, 1, 20), feb14Expiration);
+            Assert.AreEqual(new DateTime(2014, 1, 21), feb14Expiration);
 
             DateTime mar14Expiration = cl.ExpirationDate(2014, 3);
             Assert.AreEqual(new DateTime(2014, 2, 20), mar14Expiration);
@@ -237,11 +237,5 @@ namespace QDMSTest
             DateTime dec14Expiration = eur.ExpirationDate(2014, 12);
             Assert.AreEqual(new DateTime(2014, 12, 15), dec14Expiration);
         }
-
-
-
-
-        //TODO add more contracts
-        //for wheat, cl to work we need an option for a business day offset from the reference day
     }
 }
