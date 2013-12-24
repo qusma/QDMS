@@ -42,6 +42,20 @@ namespace QDMSServer
                 TheSymbol = (UnderlyingSymbol)symbol.Clone();
                 ModifyBtn.Content = "Modify";
             }
+
+            //set the corrent radio box check
+            if (TheSymbol.Rule.ReferenceDayIsLastBusinessDayOfMonth)
+            {
+                LastBusinessDayRadioBtn.IsChecked = true;
+            }
+            else if (TheSymbol.Rule.ReferenceUsesDays)
+            {
+                DaysBasedRefCheckBox.IsChecked = true;
+            }
+            else
+            {
+                WeeksBasedRefCheckBox.IsChecked = true;
+            }
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
@@ -86,6 +100,23 @@ namespace QDMSServer
 
             SymbolAdded = true;
             Hide();
+        }
+
+        private void DaysBasedRefCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            TheSymbol.Rule.ReferenceUsesDays = true;
+            TheSymbol.Rule.ReferenceDayIsLastBusinessDayOfMonth = false;
+        }
+
+        private void WeeksBasedRefCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            TheSymbol.Rule.ReferenceUsesDays = false;
+            TheSymbol.Rule.ReferenceDayIsLastBusinessDayOfMonth = false;
+        }
+
+        private void LastBusinessDayRadioBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            TheSymbol.Rule.ReferenceDayIsLastBusinessDayOfMonth = true;
         }
     }
 }

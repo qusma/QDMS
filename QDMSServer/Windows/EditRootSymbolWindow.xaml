@@ -68,7 +68,7 @@
 
                 <RadioButton Name="DaysBasedRefCheckBox"
                     ToolTip="The reference day is set at a specified number of calendar days of a specified month." 
-                             IsChecked="{Binding TheSymbol.Rule.ReferenceUsesDays}"
+                             Checked="DaysBasedRefCheckBox_Checked"
                              Content="Nth day of the month:" HorizontalAlignment="Left" Margin="11,13,0,0" Grid.Row="1" VerticalAlignment="Top"/>
 
                 <TextBox HorizontalAlignment="Left" Height="23" Margin="176,10,0,0" Grid.Row="1" 
@@ -82,7 +82,7 @@
                 <RadioButton Name="WeeksBasedRefCheckBox"
                     ToolTip="The reference day is set at a particular day of the week of the nth week of the month."
                     Content="The" HorizontalAlignment="Left" Margin="11,57,0,0" Grid.Row="1" VerticalAlignment="Top"
-                             IsChecked="{Binding TheSymbol.Rule.ReferenceUsesDays,Converter={StaticResource InvertBooleanConverter}}"
+                             Checked="WeeksBasedRefCheckBox_Checked"
                              />
                 <ComboBox HorizontalAlignment="Left" Margin="76,54,0,0" Grid.Row="1" VerticalAlignment="Top" Width="76"
                           IsEnabled="{Binding IsChecked, ElementName=WeeksBasedRefCheckBox}"
@@ -95,7 +95,7 @@
                           SelectedItem="{Binding TheSymbol.Rule.ReferenceWeekDay}"/>
 
                 <RadioButton Content="Last business day of the month." ToolTip="The reference day is the last business day of the month."
-                             IsChecked="{Binding TheSymbol.Rule.ReferenceDayIsLastBusinessDayOfMonth}" 
+                             Checked="LastBusinessDayRadioBtn_Checked" Name="LastBusinessDayRadioBtn"
                              HorizontalAlignment="Left" Margin="11,101,0,0" Grid.Row="1" VerticalAlignment="Top"/>
 
                 <CheckBox Grid.Row="2" Name="ForceRefDayBusinessDay" IsChecked="{Binding TheSymbol.Rule.ReferenceDayMustBeBusinessDay}"
