@@ -337,7 +337,7 @@ namespace QDMSServer
                     }
                     else if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
                     {
-                        adjustmentFactor = frontData[0].Close / backData[0].Close;
+                        adjustmentFactor = backData[0].Close / frontData[0].Close;
                         foreach (OHLCBar bar in cfData)
                         {
                             AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
@@ -456,11 +456,7 @@ namespace QDMSServer
         {
             if (!cfInstrument.IsContinuousFuture) throw new Exception("Not a continuous future instrument.");
 
-            DateTime currentDate = DateTime.Now;
-            if (date != null)
-            {
-                currentDate = date.Value;
-            }
+            DateTime currentDate = date ?? DateTime.Now;
 
             var cf = cfInstrument.ContinuousFuture;
             if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
@@ -519,6 +515,7 @@ namespace QDMSServer
                 var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
 
                 RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(requestID, contract));
+                //TODO problem: we should be returning the ID before raising the event...
             }
             else //otherwise, we have to actually look at the historical data to figure out which contract is selected
             {

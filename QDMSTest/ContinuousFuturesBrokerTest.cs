@@ -1007,7 +1007,138 @@ namespace QDMSTest
         [Test]
         public void CorrectContinuousPricesWithRatioAdjustment()
         {
-            Assert.IsTrue(false);
+            var expectedPrices = new Dictionary<DateTime, decimal>
+            {
+                { new DateTime(2012, 11,21), 21.5181404452m },
+                { new DateTime(2012, 11,23), 21.0731180758954m },
+                { new DateTime(2012, 11,26), 20.4186734151533m },
+                { new DateTime(2012, 11,27), 21.1385625419696m },
+                { new DateTime(2012, 11,28), 20.2616066965752m },
+                { new DateTime(2012, 11,29), 19.947473259419m },
+                { new DateTime(2012, 11,30), 20.3401400558642m },
+                { new DateTime(2012, 12,3), 21.4657848723406m },
+                { new DateTime(2012, 12,4), 21.5835849112742m },
+                { new DateTime(2012, 12,5), 21.0731180758954m },
+                { new DateTime(2012, 12,6), 21.4526959791258m },
+                { new DateTime(2012, 12,7), 20.9553180369618m },
+                { new DateTime(2012, 12,10), 20.942229143747m },
+                { new DateTime(2012, 12,11), 20.3663178422939m },
+                { new DateTime(2012, 12,12), 21.0862069691102m },
+                { new DateTime(2012, 12,13), 21.7406516298523m },
+                { new DateTime(2012, 12,14), 22.0678739602234m },
+                { new DateTime(2012, 12,17), 21.190918114829m },
+                { new DateTime(2012, 12,18), 20.3532289490791m },
+                { new DateTime(2012, 12,19), 21.5771986998917m },
+                { new DateTime(2012, 12,20), 22.0945467388949m },
+                { new DateTime(2012, 12,21), 23.0156786132178m },
+                { new DateTime(2012, 12,24), 23.5204084073673m },
+                { new DateTime(2012, 12,26), 24.592959219935m },
+                { new DateTime(2012, 12,27), 24.0882294257855m },
+                { new DateTime(2012, 12,28), 28.201777248104m },
+                { new DateTime(2012, 12,31), 22.3090569014085m },
+                { new DateTime(2013, 1,2), 19.684461971831m },
+                { new DateTime(2013, 1,3), 20.0630093174431m },
+                { new DateTime(2013, 1,4), 19.3059146262189m },
+                { new DateTime(2013, 1,7), 18.6119111592633m },
+                { new DateTime(2013, 1,8), 18.4857287107259m },
+                { new DateTime(2013, 1,9), 18.5488199349946m },
+                { new DateTime(2013, 1,10), 17.9179076923077m },
+                { new DateTime(2013, 1,11), 17.8421982231853m },
+                { new DateTime(2013, 1,14), 17.7791069989166m },
+                { new DateTime(2013, 1,15), 17.9179076923077m },
+                { new DateTime(2013, 1,16), 17.6223076923077m },
+                { new DateTime(2013, 1,17), 17.8383230769231m },
+                { new DateTime(2013, 1,18), 16.6559230769231m },
+                { new DateTime(2013, 1,22), 15.9737692307692m },
+                { new DateTime(2013, 1,23), 15.5644769230769m },
+                { new DateTime(2013, 1,24), 15.8487076923077m },
+                { new DateTime(2013, 1,25), 16.0192461538462m },
+                { new DateTime(2013, 1,28), 16.5877076923077m },
+                { new DateTime(2013, 1,29), 15.9624m },
+                { new DateTime(2013, 1,30), 17.2243846153846m },
+                { new DateTime(2013, 1,31), 16.9401538461538m },
+                { new DateTime(2013, 2,1), 16.2466307692308m },
+                { new DateTime(2013, 2,4), 17.3835538461538m },
+                { new DateTime(2013, 2,5), 16.3603230769231m },
+                { new DateTime(2013, 2,6), 16.0874615384615m },
+                { new DateTime(2013, 2,7), 16.0192461538462m },
+                { new DateTime(2013, 2,8), 15.6895384615385m },
+                { new DateTime(2013, 2,11), 15.3484615384615m },
+                { new DateTime(2013, 2,12), 14.78m },
+                { new DateTime(2013, 2,13), 14.75m },
+                { new DateTime(2013, 2,14), 14.55m },
+                { new DateTime(2013, 2,15), 14.5m },
+                { new DateTime(2013, 2,19), 13.89m },
+                { new DateTime(2013, 2,20), 15.39m },
+                { new DateTime(2013, 2,21), 15.5m },
+                { new DateTime(2013, 2,22), 14.84m },
+                { new DateTime(2013, 2,25), 17.65m },
+                { new DateTime(2013, 2,26), 17.06m },
+                { new DateTime(2013, 2,27), 15.43m },
+                { new DateTime(2013, 2,28), 16.14m },
+                { new DateTime(2013, 3,1), 16.39m },
+                { new DateTime(2013, 3,4), 14.99m },
+                { new DateTime(2013, 3,5), 14.54m },
+                { new DateTime(2013, 3,6), 14.7m },
+                { new DateTime(2013, 3,7), 14.19m },
+                { new DateTime(2013, 3,8), 13.8m },
+                { new DateTime(2013, 3,11), 13m },
+                { new DateTime(2013, 3,12), 13.24m },
+                { new DateTime(2013, 3,13), 12.94m },
+                { new DateTime(2013, 3,14), 12.54m },
+                { new DateTime(2013, 3,15), 12.54m },
+                { new DateTime(2013, 3,18), 13.68m },
+                { new DateTime(2013, 3,19), 14.79m }
+            };
+
+            _req.EndingDate = new DateTime(2013, 3, 1);
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+
+            var requests = new List<HistoricalDataRequest>();
+            var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
+
+            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.AdjustmentMode = ContinuousFuturesAdjustmentMode.Ratio;
+
+            //handle the requests for historical data
+            int counter = 0;
+            _clientMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Returns(() => counter)
+                .Callback<HistoricalDataRequest>(req =>
+                {
+                    req.RequestID = counter;
+                    requests.Add(req);
+                    counter++;
+                });
+
+            //hook up the event to receive the data
+            var resultingData = new List<OHLCBar>();
+            _broker.HistoricalDataArrived += (sender, e) =>
+            {
+                resultingData = e.Data;
+            };
+
+            //make the request
+            _broker.RequestHistoricalData(_req);
+
+            //give back the contract data
+            foreach (HistoricalDataRequest r in requests)
+            {
+                _clientMock.Raise(x => x.HistoricalDataReceived += null, new HistoricalDataEventArgs(r, futuresData[r.Instrument.ID.Value]));
+            }
+
+            //finally make sure we have correct continuous future prices
+            foreach (OHLCBar bar in resultingData)
+            {
+                if (expectedPrices.ContainsKey(bar.DT))
+                    Assert.IsTrue(Math.Abs(expectedPrices[bar.DT] - bar.Close) < 0.0001m, 
+                        string.Format("Exp: {0} Was: {1} At time: {2}", 
+                        expectedPrices[bar.DT],
+                        bar.Close,
+                        bar.DT));
+            }
         }
 
         [Test]
