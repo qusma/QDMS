@@ -17,6 +17,30 @@ namespace QDMS
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+        public static string Ordinal(int num)
+        {
+            switch (num % 100)
+            {
+                case 11:
+                case 12:
+                case 13:
+                    return num + "th";
+            }
+
+            switch (num % 10)
+            {
+                case 1:
+                    return num + "st";
+                case 2:
+                    return num + "nd";
+                case 3:
+                    return num + "rd";
+                default:
+                    return num + "th";
+            }
+
+        }
+
         public static string GetFuturesContractSymbol(string baseSymbol, int month, int year)
         {
             return string.Format("{0}{1}{2}", baseSymbol, GetFuturesMonthSymbol(month), year % 10);
