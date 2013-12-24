@@ -57,6 +57,7 @@ namespace QDMSServer
             }
             FrequencyComboBox.SelectedItem = BarSize.OneDay;
 
+            MinDT.Value = new DateTime(1950, 1, 1);
             MaxDT.Value = DateTime.Now;
         }
 
@@ -208,8 +209,12 @@ namespace QDMSServer
             header.Content = newName;
 
             //the column is still bound to the old name, so we have to re-bind it
-            var gridColumn = (DataGridTextColumn)TheDataGrid.Columns.First(x => (string) x.Header == oldName);
-            gridColumn.Binding = new Binding(newName);
+            var gridColumn = (DataGridTextColumn)TheDataGrid.Columns.FirstOrDefault(x => (string) x.Header == oldName);
+            if (gridColumn != null)
+            {
+                gridColumn.Binding = new Binding(newName);
+                gridColumn.Header = newName;
+            }
 
             DoFormatColoring();
         }
