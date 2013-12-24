@@ -143,11 +143,5 @@ namespace QDMS
                     return false;
             }
         }
-
-        //TODO is this the appropriate place for this method? Probably not...
-        public int GetContractMonth(DateTime date)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
