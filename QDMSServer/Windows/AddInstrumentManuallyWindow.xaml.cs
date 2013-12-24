@@ -225,8 +225,11 @@ namespace QDMSServer
                 }
                 else //simply manipulating an existing instrument
                 {
-                    context.Exchanges.Attach(TheInstrument.Exchange);
-                    context.Exchanges.Attach(TheInstrument.PrimaryExchange);
+                    if (TheInstrument.Exchange != null)
+                        context.Exchanges.Attach(TheInstrument.Exchange);
+                    if(TheInstrument.PrimaryExchange != null)
+                        context.Exchanges.Attach(TheInstrument.PrimaryExchange);
+
                     context.Datasources.Attach(TheInstrument.Datasource);
 
                     context.Instruments.Attach(_originalInstrument);
