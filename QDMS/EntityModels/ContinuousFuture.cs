@@ -29,6 +29,8 @@ namespace QDMS
             UseOct = true;
             UseNov = true;
             UseDec = true;
+
+            Month = 1;
         }
 
         [Key]
