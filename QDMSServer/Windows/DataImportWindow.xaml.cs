@@ -115,6 +115,8 @@ namespace QDMSServer
             string[] lines = Regex.Split(FileContentsTextBox.Text, @"(?:\r\n){1,}");
             if (startLine >= lines.Length) return;
 
+            int colCount = 0;
+
             for (int i = startLine; i < lines.Length; i++)
             {
                 if (string.IsNullOrEmpty(lines[i])) continue;
@@ -127,10 +129,11 @@ namespace QDMSServer
                         //if it's the first line, we have to create the appropriate columns in the datatable
                         Data.Columns.Add("col" + j);
                     }
+                    colCount = items.Length;
                 }
 
                 var dr = Data.NewRow();
-                for (int j = 0; j < items.Length; j++)
+                for (int j = 0; j < colCount; j++)
                 {
                     dr["col" + j] = items[j].Trim();
                 }
