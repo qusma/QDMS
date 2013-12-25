@@ -50,6 +50,7 @@ namespace QDMS
         /// <summary>
         /// The underlying symbol that the continuous future is based on.
         /// </summary>
+        [ProtoMember(20)]
         public virtual UnderlyingSymbol UnderlyingSymbol { get; set; }
 
         /// <summary>
