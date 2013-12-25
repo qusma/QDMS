@@ -49,7 +49,7 @@ namespace QDMSServer
         /// KVP consists of key: request ID, value: data source name.
         /// The int is simply the number of clients subscribed to that stream.
         /// </summary>
-        private Dictionary<RealTimeStreamInfo, int> _streamSubscribersCount { get; set; }
+        private Dictionary<RealTimeStreamInfo, int> StreamSubscribersCount { get; set; }
 
         /// <summary>
         /// When there's a request for real time data of a continuous future,
@@ -58,7 +58,7 @@ namespace QDMSServer
         /// So we use aliases: the key is the underlying contract
         /// and the value is a list of aliases that are also sent out.
         /// </summary>
-        private Dictionary<string, List<string>> _aliases;
+        private readonly Dictionary<string, List<string>> _aliases;
 
         /// <summary>
         /// Is true if the server is running
@@ -80,9 +80,9 @@ namespace QDMSServer
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private Timer _connectionTimer; //tries to reconnect every once in a while
         private MemoryStream _ms;
-        private object _pubSocketLock = new object();
-        private object _subscriberCountLock = new object();
-        private object _aliasLock = new object();
+        private readonly object _pubSocketLock = new object();
+        private readonly object _subscriberCountLock = new object();
+        private readonly object _aliasLock = new object();
 
         public void Dispose()
         {
@@ -149,7 +149,7 @@ namespace QDMSServer
 
             ActiveStreams = new ConcurrentNotifierBlockingList<RealTimeStreamInfo>();
             _arrivedBars = new BlockingCollection<RealTimeDataEventArgs>();
-            _streamSubscribersCount = new Dictionary<RealTimeStreamInfo, int>();
+            StreamSubscribersCount = new Dictionary<RealTimeStreamInfo, int>();
             _aliases = new Dictionary<string, List<string>>();
 
             _ms = new MemoryStream();
@@ -329,18 +329,20 @@ namespace QDMSServer
                 var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrument.ID);
                 lock(_subscriberCountLock)
                 {
-                    _streamSubscribersCount[streamInfo]--;
-                    if (_streamSubscribersCount[streamInfo] == 0)
+                    StreamSubscribersCount[streamInfo]--;
+                    if (StreamSubscribersCount[streamInfo] == 0)
                     {
                         //there are no clients subscribed to this stream anymore
                         //cancel it and remove it from all the places
-                        _streamSubscribersCount.Remove(streamInfo);
+                        StreamSubscribersCount.Remove(streamInfo);
 
                         ActiveStreams.TryRemove(streamInfo);
 
                         DataSources[streamInfo.Datasource].CancelRealTimeData(streamInfo.RequestID);
 
-                        //two part message: "CANCELED", then the symbol
+                        //two part message: 
+                        //1: "CANCELED"
+                        //2: the symbol
                         _reqSocket.SendMore("CANCELED", Encoding.UTF8);
                         _reqSocket.Send(streamInfo.Instrument.Symbol, Encoding.UTF8);
                     }
@@ -378,7 +380,7 @@ namespace QDMSServer
                 //increment the subsriber count
                 lock (_subscriberCountLock)
                 {
-                    _streamSubscribersCount[streamInfo]++;
+                    StreamSubscribersCount[streamInfo]++;
                 }
 
                 //log the request
@@ -444,7 +446,7 @@ namespace QDMSServer
 
                 lock (_subscriberCountLock)
                 {
-                    _streamSubscribersCount.Add(streamInfo, 1);
+                    StreamSubscribersCount.Add(streamInfo, 1);
                 }
 
                 //and report success back to the requesting client
