@@ -185,6 +185,7 @@ namespace QDMSServer
                     (x.Expiration.Value.Year == limitDate.Year && x.Expiration.Value.Month <= limitDate.Month)).ToList();
             }
 
+
             //save the number of requests we're gonna make
             lock(_reqCountLock)
             {
@@ -194,27 +195,45 @@ namespace QDMSServer
             //save the contracts used, we need them later
             _contracts.Add(request.AssignedID, futures);
 
+            Instrument prevInst = null;
             //request the data for all futures left
             foreach (Instrument i in futures)
             {
-                //grab the entire data series for every contract
+                //the question of how much data, exactly, to ask for is complicated...
+                //I'm going with: difference of expiration dates (unless it's the first one, in which case 30 days)
+                //plus a month
+                //plus the CF selected month
+                int daysBack = 30;
+                if (prevInst == null)
+                {
+                    daysBack += 30;
+                }
+                else
+                {
+                    daysBack += (int) (i.Expiration.Value - prevInst.Expiration.Value).TotalDays;
+                }
+                daysBack += 30 * cf.Month;
+
                 var req = new HistoricalDataRequest(
                     i,
                     request.Frequency,
-                    new DateTime(1, 1, 1),
+                    i.Expiration.Value.AddDays(-daysBack),
                     i.Expiration.Value,
                     rthOnly: request.RTHOnly);
                 int requestID = _client.RequestHistoricalData(req);
-                _histReqIDMap.Add(requestID, req.AssignedID);
+                _histReqIDMap.Add(requestID, request.AssignedID);
 
+                prevInst = i;
             }
         }
 
         private void CalcContFutData(HistoricalDataRequest request)
         {
-            //TODO perhaps start by cleaning up the data, it is possible that some of the futures may not have had ANY data returned!
             //copy over the list of contracts that we're gonna be using
             List<Instrument> futures = new List<Instrument>(_contracts[request.AssignedID]);
+
+            //start by cleaning up the data, it is possible that some of the futures may not have had ANY data returned!
+            futures = futures.Where(x => _data[x.ID.Value].Count > 0).ToList();
 
             var cf = request.Instrument.ContinuousFuture;
 
