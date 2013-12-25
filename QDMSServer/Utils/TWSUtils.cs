@@ -27,7 +27,7 @@ namespace QDMSServer
                 High = e.High,
                 Low = e.Low,
                 Close = e.Close,
-                Volume = e.Volume * 100,
+                Volume = e.Volume,
                 AdjOpen = e.Open,
                 AdjHigh = e.High,
                 AdjLow = e.Low,

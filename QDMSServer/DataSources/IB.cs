@@ -98,6 +98,11 @@ namespace QDMSServer.DataSources
                 var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
                 bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
             }
+
+            //stocks need to have their volumes multiplied by 100, I think all other instrument types do not
+            if (request.Instrument.Type == InstrumentType.Stock)
+                bar.Volume *= 100;
+
             _arrivedHistoricalData[e.RequestId].Add(bar);
 
             if (e.RecordNumber >= e.RecordTotal - 1) //this was the last item to receive for this request, send it to the broker
