@@ -234,7 +234,7 @@ namespace QDMSServer.DataSources
             (
                 _requestCounter,
                 TWSUtils.InstrumentToContract(request.Instrument),
-                request.EndingDate,
+                endDate,
                 TWSUtils.TimespanToDurationString((endDate - request.StartingDate), request.Frequency),
                 TWSUtils.BarSizeConverter(request.Frequency),
                 HistoricalDataType.Trades,
