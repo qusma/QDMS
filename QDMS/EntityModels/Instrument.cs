@@ -173,7 +173,7 @@ namespace QDMS
         /// </returns>
         public object Clone()
         {
-            var clone = new Instrument()
+            var clone = new Instrument
             {
                 ID = ID,
                 Symbol = Symbol,
@@ -197,6 +197,7 @@ namespace QDMS
                 Exchange = Exchange,
                 PrimaryExchange = PrimaryExchange,
                 Datasource = Datasource,
+                ContinuousFuture = ContinuousFuture,
                 ContinuousFutureID = ContinuousFutureID,
                 Tags = Tags == null ? null : Tags.Select(x => (Tag)x.Clone()).ToList(),
                 Sessions = Sessions == null ? null : Sessions.Select(x => (InstrumentSession)x.Clone()).ToList(),

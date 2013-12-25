@@ -389,9 +389,25 @@ namespace QDMSServer
 
                 List<Instrument> toRemove = new List<Instrument>();
 
+                //hacking around the circular reference issue
                 foreach (Instrument i in InstrumentsGrid.SelectedItems)
                 {
-                    entityContext.Instruments.Attach(i);
+                    if (i.IsContinuousFuture)
+                    {
+                        entityContext.Instruments.Attach(i);
+                        var tmpCF = i.ContinuousFuture;
+                        i.ContinuousFuture = null;
+                        i.ContinuousFutureID = null;
+                        entityContext.SaveChanges();
+
+                        entityContext.ContinuousFutures.Attach(tmpCF);
+                        entityContext.ContinuousFutures.Remove(tmpCF);
+                        entityContext.SaveChanges();
+                    }
+                }
+
+                foreach (Instrument i in InstrumentsGrid.SelectedItems)
+                {
                     entityContext.Instruments.Remove(i);
                     toRemove.Add(i);
                 }

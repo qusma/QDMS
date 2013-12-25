@@ -22,6 +22,7 @@ namespace QDMSServer
         public ObservableCollection<CheckBoxTag> Tags { get; set; }
         private readonly Instrument _originalInstrument;
         public ObservableCollection<Exchange> Exchanges { get; set; }
+        public ObservableCollection<KeyValuePair<int, string>> ContractMonths { get; set; }
         public bool InstrumentAdded = false;
         private readonly bool _addingNew;
 
@@ -80,6 +81,8 @@ namespace QDMSServer
                     TheInstrument.Type = InstrumentType.Future;
                     TheInstrument.IsContinuousFuture = true;
                 }
+
+                CustomRadioBtn.IsChecked = true;
             }
 
             Tags = new ObservableCollection<CheckBoxTag>();
@@ -164,7 +167,26 @@ namespace QDMSServer
                 RootSymbolComboBox.Items.Add(s);
             }
 
+            ContractMonths = new ObservableCollection<KeyValuePair<int, string>>();
+            //fill the continuous futures contrat month combobox
+            for (int i = 1; i < 10; i++)
+            {
+                ContractMonths.Add(new KeyValuePair<int, string>(i, MyUtils.Ordinal(i) + " Contract"));
+            }
 
+            //time or rule-based rollover, set the radio button check
+            if (TheInstrument.ContinuousFuture != null)
+            {
+                if (TheInstrument.ContinuousFuture.RolloverType == ContinuousFuturesRolloverType.Time)
+                {
+                    RolloverTime.IsChecked = true;
+                }
+                else
+                {
+                    RolloverRule.IsChecked = true;
+                }
+            }
+            
             context.Dispose();
         }
 
@@ -199,6 +221,18 @@ namespace QDMSServer
                     return;
                 }
 
+                if (TheInstrument.Datasource == null)
+                {
+                    MessageBox.Show("You must select a data source.");
+                    return;
+                }
+
+                if (TheInstrument.Multiplier == null)
+                {
+                    MessageBox.Show("Must have a multiplier value.");
+                    return;
+                }
+
                 TheInstrument.Tags.Clear();
             
                 foreach (Tag t in Tags.Where(x=> x.IsChecked).Select(x => x.Item))
@@ -207,13 +241,7 @@ namespace QDMSServer
                     TheInstrument.Tags.Add(t);
                 }
 
-                //continuous futures stuff
-                if (TheInstrument.IsContinuousFuture)
-                {
-                    var cf = TheInstrument.ContinuousFuture;
-                    cf.Month = (int)((ComboBoxItem)ContractMonthComboBox.SelectedItem).Tag;
-                }
-
+                ContinuousFuture tmpCF = null;
 
                 if (_addingNew)
                 {
@@ -221,6 +249,11 @@ namespace QDMSServer
                     if (TheInstrument.PrimaryExchange != null) context.Exchanges.Attach(TheInstrument.PrimaryExchange);
                     context.Datasources.Attach(TheInstrument.Datasource);
 
+                    if (TheInstrument.IsContinuousFuture)
+                    {
+                        tmpCF = TheInstrument.ContinuousFuture; //EF can't handle circular references, so we hack around it
+                        TheInstrument.ContinuousFuture = null;
+                    }
                     context.Instruments.Add(TheInstrument);
                 }
                 else //simply manipulating an existing instrument
@@ -234,6 +267,13 @@ namespace QDMSServer
 
                     context.Instruments.Attach(_originalInstrument);
                     context.Entry(_originalInstrument).CurrentValues.SetValues(TheInstrument);
+
+                    if (TheInstrument.IsContinuousFuture)
+                    {
+                        //TheInstrument.ContinuousFuture.InstrumentID
+                        context.ContinuousFutures.Attach(TheInstrument.ContinuousFuture);
+                    }
+
                     _originalInstrument.Tags.Clear();
                     foreach (Tag t in TheInstrument.Tags)
                     {
@@ -256,6 +296,13 @@ namespace QDMSServer
 
                 context.Database.Connection.Open();
                 context.SaveChanges();
+
+                if (tmpCF != null)
+                {
+                    TheInstrument.ContinuousFuture = tmpCF;
+                    TheInstrument.ContinuousFuture.InstrumentID = TheInstrument.ID.Value;
+                    context.SaveChanges();
+                }
             }
             InstrumentAdded = true;
             Hide();
@@ -285,6 +332,14 @@ namespace QDMSServer
 
             TheInstrument.Sessions.Clear();
             TheInstrument.SessionsSource = SessionsSource.Exchange;
+
+            //if we're changing exchanges, the sessions will not have been loaded, so we need to grab them
+            using (var context = new MyDBContext())
+            {
+                context.Exchanges.Attach(TheInstrument.Exchange);
+                var sessions = context.Exchanges.Include("Sessions").Where(x => x.ID == TheInstrument.Exchange.ID).ToList();
+            }
+
             foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
             {
                 TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
@@ -373,6 +428,16 @@ namespace QDMSServer
                     SessionsGrid.ItemsSource = TheInstrument.Sessions;
                 }
             }
+        }
+
+        private void RolloverRule_Checked(object sender, RoutedEventArgs e)
+        {
+            TheInstrument.ContinuousFuture.RolloverType = (ContinuousFuturesRolloverType) RolloverRuleType.SelectedItem;
+        }
+
+        private void RolloverTime_Checked(object sender, RoutedEventArgs e)
+        {
+            TheInstrument.ContinuousFuture.RolloverType = ContinuousFuturesRolloverType.Time;
         }
     }
 }
