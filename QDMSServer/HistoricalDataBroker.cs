@@ -182,7 +182,7 @@ namespace QDMSServer
                 bool doAdjustment = e.Data.Any(x => x.Split.HasValue || x.Dividend.HasValue);
                 lock (_localStorageLock)
                 {
-                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, doAdjustment);
+                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, adjust: doAdjustment);
                 }
 
                 //check if there is a list in the subrequests for this request...
