@@ -26,12 +26,12 @@ namespace QDMSClient
         public event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
         public event EventHandler<ErrorArgs> Error;
         
-        private DateTime _lastHeartBeat;
+        
         public bool Connected 
         {
             get
             {
-                return (DateTime.Now - _lastHeartBeat).Seconds < 5;
+                return (DateTime.Now - _lastHeartBeat).TotalSeconds < 5;
             }
         }
 
@@ -39,7 +39,8 @@ namespace QDMSClient
         private ZmqSocket _reqSocket; //this socket sends requests for real time data
         private ZmqSocket _subSocket; //this socket receives real time data
         private ZmqSocket _dealerSocket; //this socket sends requests for and receives historical data
-        private Timer _heartBeatTimer;
+        private Timer _heartBeatTimer; //periodically sends heartbeat messages to server to ensure the connection is up
+        private DateTime _lastHeartBeat;
 
         private Thread _dealerLoopThread;
         private Thread _realTimeDataReceiveLoopThread;
@@ -148,7 +149,6 @@ namespace QDMSClient
         /// <summary>
         /// Requests information on what historical data is available in local storage for this instrument.
         /// </summary>
-        /// <param name="instrument"></param>
         public void GetLocallyAvailableDataInfo(Instrument instrument)
         {
             var ms = new MemoryStream();
@@ -190,6 +190,9 @@ namespace QDMSClient
 
             lock (_reqSocketLock)
             {
+                //two part message:
+                //1: "RTD"
+                //2: serialized RealTimeDataRequest
                 var ms = new MemoryStream();
                 _reqSocket.SendMore("", Encoding.UTF8);
                 _reqSocket.SendMore("RTD", Encoding.UTF8);
@@ -203,6 +206,8 @@ namespace QDMSClient
         public void Connect()
         {
             _reqSocket.Connect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
+
+            //start off by sending a ping to make sure everything is regular
             _reqSocket.SendMore("", Encoding.UTF8);
             _reqSocket.Send("PING", Encoding.UTF8);
 
@@ -216,6 +221,7 @@ namespace QDMSClient
                     return;
                 }
             }
+
             _lastHeartBeat = DateTime.Now;
             _subSocket.Connect(string.Format("tcp://{0}:{1}", _host, _realTimePublishPort));
             _dealerSocket.Connect(string.Format("tcp://{0}:{1}", _host, _historicalDataPort));
@@ -238,8 +244,10 @@ namespace QDMSClient
             
         }
 
-        //process replies on the request socket
-        //heartbeats, errors, and subscribing to real time data streams
+        /// <summary>
+        /// Process replies on the request socket.
+        /// Heartbeats, errors, and subscribing to real time data streams.
+        /// </summary>
         private void RequestRepliesThread()
         {
             var timeout = TimeSpan.FromMilliseconds(10);
@@ -261,29 +269,33 @@ namespace QDMSClient
                     reply = _reqSocket.Receive(Encoding.UTF8, timeout);
 
 
-                    if (reply == "PONG") _lastHeartBeat = DateTime.Now;
-
-                    if (reply == "ERROR")
+                    switch (reply)
                     {
-                        string error = _reqSocket.Receive(Encoding.UTF8);
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error));
-                        return;
-                    }
+                        case "PONG": //reply to heartbeat message
+                            _lastHeartBeat = DateTime.Now;
+                            break;
+                        case "ERROR": //something went wrong
+                        {
+                            string error = _reqSocket.Receive(Encoding.UTF8);
+                            RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error));
+                            return;
+                        }
+                        case "SUCCESS": //successful request to start a new real time data stream
+                        {
+                            //also receive the symbol
+                            string symbol = _reqSocket.Receive(Encoding.UTF8);
+                            //request worked, so we subscribe to the stream
+                            _subSocket.Subscribe(Encoding.UTF8.GetBytes(symbol));
+                        }
+                            break;
+                        case "CANCELED": //successful cancelation of a real time data stream
+                        {
+                            //also receive the symbol
+                            string symbol = _reqSocket.Receive(Encoding.UTF8);
 
-                    if (reply == "SUCCESS")
-                    {
-                        //also receive the symbol
-                        string symbol = _reqSocket.Receive(Encoding.UTF8);
-                        //request worked, so we subscribe to the stream
-                        _subSocket.Subscribe(Encoding.UTF8.GetBytes(symbol));
-                    }
-
-                    if (reply == "CANCELED")
-                    {
-                        //also receive the symbol
-                        string symbol = _reqSocket.Receive(Encoding.UTF8);
-
-                        //nothing to do?
+                            //nothing to do?
+                        }
+                            break;
                     }
                 }
             }
@@ -306,7 +318,9 @@ namespace QDMSClient
             _dealerSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _historicalDataPort));
         }
 
-        //dealer socket sends out requests for historical data and raises an event when it's received
+        /// <summary>
+        /// Dealer socket sends out requests for historical data and raises an event when it's received
+        /// </summary>
         private void DealerLoop()
         {
             var timeout = TimeSpan.FromMilliseconds(5);
@@ -333,13 +347,15 @@ namespace QDMSClient
                         }
                     }
 
-                    //poller raises event when there's data coming in
+                    //poller raises event when there's data coming in. See _dealerSocket_ReceiveReady()
                     poller.Poll(timeout);
                 }
             }
         }
 
-        //This loop waits for real time data to be received on the subscription socket, then raises the RealTimeDataReceived event with it.
+        /// <summary>
+        /// This loop waits for real time data to be received on the subscription socket, then raises the RealTimeDataReceived event with it.
+        /// </summary>
         private void RealTimeDataReceiveLoop()
         {
             var timeout = TimeSpan.FromMilliseconds(1);
@@ -358,29 +374,33 @@ namespace QDMSClient
             }
         }
 
-        //handling replies to a data push, a historical data request, or an available data request
+        /// <summary>
+        /// Handling replies to a data push, a historical data request, or an available data request
+        /// </summary>
         private void _dealerSocket_ReceiveReady(object sender, SocketEventArgs e)
         {
             lock (_dealerSocketLock)
             {
                 //1st message part: what kind of stuff we're receiving
                 string type = _dealerSocket.Receive(Encoding.UTF8);
-                if (type == "PUSHREP") //a reply to a data push request
+                switch (type)
                 {
-                    HandleDataPushReply();
-                }
-                else if (type == "HISTREQREP") //a reply to a request for historical data
-                {
-                    HandleHistoricalDataRequestReply();
-                }
-                else if (type == "AVAILABLEDATAREP") //a reply to a request for info on available locally stored data
-                {
-                    HandleAvailabledataReply();
+                    case "PUSHREP":
+                        HandleDataPushReply();
+                        break;
+                    case "HISTREQREP":
+                        HandleHistoricalDataRequestReply();
+                        break;
+                    case "AVAILABLEDATAREP":
+                        HandleAvailabledataReply();
+                        break;
                 }
             }
         }
 
-        //this is called when we get a reply on a request for available data in local storage
+        /// <summary>
+        /// Called when we get a reply on a request for available data in local storage.
+        /// </summary>
         private void HandleAvailabledataReply()
         {
             //first the instrument
@@ -414,7 +434,9 @@ namespace QDMSClient
             }
         }
 
-        //this is called on a reply to a data push
+        /// <summary>
+        /// Called on a reply to a data push
+        /// </summary>
         private void HandleDataPushReply()
         {
             string result = _dealerSocket.Receive(Encoding.UTF8);
@@ -430,7 +452,9 @@ namespace QDMSClient
             }
         }
 
-        //this is called ona reply to a historical data request
+        /// <summary>
+        /// Called ona reply to a historical data request
+        /// </summary>
         private void HandleHistoricalDataRequestReply()
         {
             var ms = new MemoryStream();
@@ -550,6 +574,9 @@ namespace QDMSClient
 
             lock (_reqSocketLock)
             {
+                //two part message:
+                //1: "CANCEL"
+                //2: serialized Instrument object
                 var ms = new MemoryStream();
                 _reqSocket.SendMore("", Encoding.UTF8);
                 _reqSocket.SendMore("CANCEL", Encoding.UTF8);
