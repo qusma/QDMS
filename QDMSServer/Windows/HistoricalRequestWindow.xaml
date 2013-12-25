@@ -35,12 +35,12 @@
 
 
         <Label Grid.Column="0" Content="Start: " HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Grid.Row="1"/>
-        <DatePicker Name="StartDateEdit" SelectedDate="{Binding StartTime}" Grid.Column="0" HorizontalAlignment="Left" Margin="56,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150"/>
+        <DatePicker Name="StartDateEdit" SelectedDate="{Binding StartDate}" Grid.Column="0" HorizontalAlignment="Left" Margin="56,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150"/>
         <xctk:MaskedTextBox Text="{Binding StartTime}" Name="StartTimeEdit" Mask="00:00:00.000"  Grid.Column="0" HorizontalAlignment="Left" Margin="220,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="118"/>
 
 
         <Label Grid.Column="0" Content="End: " HorizontalAlignment="Left" Margin="370,6,0,0" VerticalAlignment="Top" Grid.Row="1"/>
-        <DatePicker Name="EndDateEdit" SelectedDate="{Binding EndTime}" Grid.Column="0" HorizontalAlignment="Left" Margin="406,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150"/>
+        <DatePicker Name="EndDateEdit" SelectedDate="{Binding EndDate}" Grid.Column="0" HorizontalAlignment="Left" Margin="406,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="150"/>
         <xctk:MaskedTextBox Text="{Binding EndTime}" Name="EndTimeEdit" Mask="00:00:00.000"  Grid.Column="0" HorizontalAlignment="Left" Margin="561,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="118"/>
 
         <Button x:Name="LoadDataBtn" Click="LoadDataBtn_Click" Content="Request Data" FontSize="9" Grid.Column="1" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>

@@ -21,6 +21,9 @@ namespace QDMSServer
         public Instrument TheInstrument { get; set; }
         public ObservableCollection<OHLCBar> Data { get; set; }
 
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
@@ -53,6 +56,8 @@ namespace QDMSServer
 
             StartTime = new DateTime(1950, 1, 1, 0, 0, 0, 0);
             EndTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0, 0);
+            StartDate = new DateTime(1950, 1, 1, 0, 0, 0, 0);
+            EndDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0, 0);
 
             if (!TheInstrument.ID.HasValue) return;
 
@@ -83,11 +88,14 @@ namespace QDMSServer
         {
             Data.Clear();
 
+            DateTime start = StartDate + StartTime.TimeOfDay;
+            DateTime end = EndDate + EndTime.TimeOfDay;
+
             _client.RequestHistoricalData(new HistoricalDataRequest(
                 TheInstrument,
                 (BarSize)ResolutionComboBox.SelectedItem,
-                StartTime,
-                EndTime,
+                start,
+                end,
                 ForceFreshDataCheckBox.IsChecked ?? false,
                 LocalStorageOnlyCheckBox.IsChecked ?? false,
                 SaveToLocalStorageCheckBox.IsChecked ?? true,
