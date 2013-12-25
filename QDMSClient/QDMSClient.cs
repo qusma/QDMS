@@ -174,7 +174,7 @@ namespace QDMSClient
             _historicalRequestCount++;
             request.RequestID = _historicalRequestCount;
             _historicalDataRequests.Enqueue(request);
-            return _historicalRequestCount;
+            return request.RequestID;
         }
 
         /// <summary>
