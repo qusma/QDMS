@@ -162,15 +162,24 @@ namespace QDMSServer.DataSources
             }
             else if ((int)e.ErrorCode == 162) //a historical data pacing violation
             {
-                //TODO turns out that more than one error uses the same error code! What were they thinking?
-                //TODO check the message, too. 
-                //TODO If no data is returned, then we get a 162 error "HMDS query returned no data: ...."
-                lock (_queueLock)
+                //turns out that more than one error uses the same error code! What were they thinking?
+                if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:HMDS query returned no data"))
                 {
-                    if (!_historicalRequestQueue.Contains(e.TickerId))
+                    //no data returned = we return an empty data set
+                    RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
+                        _historicalDataRequests[e.TickerId],
+                        new List<OHLCBar>()));
+                }
+                else
+                {
+                    //simply a data pacing violation
+                    lock (_queueLock)
                     {
-                        //same as above
-                        _historicalRequestQueue.Enqueue(e.TickerId);
+                        if (!_historicalRequestQueue.Contains(e.TickerId))
+                        {
+                            //same as above
+                            _historicalRequestQueue.Enqueue(e.TickerId);
+                        }
                     }
                 }
             }
@@ -181,7 +190,31 @@ namespace QDMSServer.DataSources
                 HistoricalDataRequestComplete(e.TickerId);
             }
 
-            RaiseEvent(Error, this, TWSUtils.ConvertErrorArguments(e));
+
+            //different messages depending on the type of request
+            var errorArgs = TWSUtils.ConvertErrorArguments(e);
+            HistoricalDataRequest histReq;
+            RealTimeDataRequest rtReq;
+            var isHistorical = _historicalDataRequests.TryGetValue(e.TickerId, out histReq);
+            if(isHistorical)
+            {
+                errorArgs.ErrorMessage += string.Format(" Historical Req: {0} @ {1} From {2} To {3} - ID {4}",
+                    histReq.Instrument.Symbol,
+                    histReq.Frequency,
+                    histReq.StartingDate,
+                    histReq.EndingDate,
+                    histReq.RequestID);
+            }
+            else if (_realTimeDataRequests.TryGetValue(e.TickerId, out rtReq)) //it's a real time request
+            {
+                errorArgs.ErrorMessage += string.Format(" RT Req: {0} @ {1}",
+                    rtReq.Instrument.Symbol,
+                    rtReq.Frequency);
+            }
+            
+            
+
+            RaiseEvent(Error, this, errorArgs);
         }
 
         //historical data request
@@ -193,12 +226,16 @@ namespace QDMSServer.DataSources
             _historicalDataRequests.TryAdd(++_requestCounter, request);
             _arrivedHistoricalData.TryAdd(_requestCounter, new List<OHLCBar>());
 
+            //TODO need time zone handling here?
+            //limit the ending date to the present
+            DateTime endDate = request.EndingDate > DateTime.Now ? DateTime.Now : request.EndingDate;
+
             _client.RequestHistoricalData
             (
                 _requestCounter,
                 TWSUtils.InstrumentToContract(request.Instrument),
                 request.EndingDate,
-                TWSUtils.TimespanToDurationString((request.EndingDate - request.StartingDate), request.Frequency),
+                TWSUtils.TimespanToDurationString((endDate - request.StartingDate), request.Frequency),
                 TWSUtils.BarSizeConverter(request.Frequency),
                 HistoricalDataType.Trades,
                 request.RTHOnly ? 1 : 0
