@@ -130,7 +130,14 @@ namespace QDMSServer
                 SecurityIdType.None,
                 string.Empty);
 
-            if (instrument.Strike.HasValue)
+            //if it's a future, the symbol isn't actually the symbol but the underlying
+            //TODO pretty sure this needs to be done for other contract types as well?
+            if (instrument.Type == InstrumentType.Future)
+            {
+                contract.Symbol = instrument.UnderlyingSymbol;
+            }
+
+            if (instrument.Strike.HasValue && instrument.Strike.Value != 0)
                 contract.Strike = (double)instrument.Strike.Value;
 
             if (instrument.Exchange != null)
