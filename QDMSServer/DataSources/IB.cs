@@ -114,9 +114,14 @@ namespace QDMSServer.DataSources
             //here we throw it away
             var cutoffDate = _historicalDataRequests[requestID].StartingDate.Date;
 
+            List<OHLCBar> bars;
+            var removed = _arrivedHistoricalData.TryRemove(requestID, out bars);
+            if (!removed) return;
+
+
             RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
                 _historicalDataRequests[requestID],
-                _arrivedHistoricalData[requestID].Where(x => x.DT.Date >= cutoffDate).ToList()));
+                bars.Where(x => x.DT.Date >= cutoffDate).ToList()));
         }
 
         //This event is raised when real time data arrives
@@ -153,8 +158,8 @@ namespace QDMSServer.DataSources
             else if ((int)e.ErrorCode == 162) //a historical data pacing violation
             {
                 //TODO turns out that more than one error uses the same error code! What were they thinking?
-                //check the message, too. 
-                //If no data is returned, then we get a 162 error "HMDS query returned no data: ...."
+                //TODO check the message, too. 
+                //TODO If no data is returned, then we get a 162 error "HMDS query returned no data: ...."
                 lock (_queueLock)
                 {
                     if (!_historicalRequestQueue.Contains(e.TickerId))
@@ -164,6 +169,13 @@ namespace QDMSServer.DataSources
                     }
                 }
             }
+            else if ((int)e.ErrorCode == 200) //No security definition has been found for the request.
+            {
+                //this will happen for example when asking for data on expired futures
+                //return an empty data list
+                HistoricalDataRequestComplete(e.TickerId);
+            }
+
             RaiseEvent(Error, this, TWSUtils.ConvertErrorArguments(e));
         }
 
