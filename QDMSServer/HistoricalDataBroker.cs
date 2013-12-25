@@ -373,7 +373,7 @@ namespace QDMSServer
 
             //give the request an ID that we can use to track it
             var rand = new Random();
-            request.AssignedID = rand.Next(1, int.MaxValue);
+            
 
             //log the request
             Application.Current.Dispatcher.Invoke(() =>
@@ -392,6 +392,12 @@ namespace QDMSServer
             //we have the identity of the sender and their request, now we add them to our request id -> identity map
             lock (_identityMapLock)
             {
+                //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
+                do
+                {
+                    request.AssignedID = rand.Next(1, int.MaxValue);
+                } while (_requestToIdentityMap.ContainsKey(request.AssignedID));
+
                 _requestToIdentityMap.Add(request.AssignedID, requesterIdentity);
             }
 
