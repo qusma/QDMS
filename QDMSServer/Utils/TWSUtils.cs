@@ -28,10 +28,6 @@ namespace QDMSServer
                 Low = e.Low,
                 Close = e.Close,
                 Volume = e.Volume,
-                AdjOpen = e.Open,
-                AdjHigh = e.High,
-                AdjLow = e.Low,
-                AdjClose = e.Close
             };
             return bar;
         }
@@ -126,28 +122,33 @@ namespace QDMSServer
 
         public static Contract InstrumentToContract(Instrument instrument)
         {
-            string symbol = string.IsNullOrEmpty(instrument.DatasourceSymbol) ? instrument.Symbol : instrument.DatasourceSymbol;
+            string symbol = string.IsNullOrEmpty(instrument.DatasourceSymbol) ? instrument.UnderlyingSymbol : instrument.DatasourceSymbol;
+            string expirationString = "";
+
+            //multiple options expire each month so the string needs to be more specific there
+            if(instrument.Type == InstrumentType.Option && instrument.Expiration.HasValue)
+            {
+                expirationString = instrument.Expiration.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            }
+            else if (instrument.Expiration.HasValue)
+            {
+                expirationString = instrument.Expiration.Value.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            }
+
             var contract = new Contract(
                 0,
                 symbol,
                 SecurityTypeConverter(instrument.Type),
-                instrument.Expiration.HasValue ? instrument.Expiration.Value.ToString("yyyyMM", CultureInfo.InvariantCulture) : "",
+                expirationString,
                 0,
                 OptionTypeToRightType(instrument.OptionType),
                 instrument.Multiplier.ToString(),
                 "",
                 instrument.Currency,
                 null,
-                null,
+                instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
                 SecurityIdType.None,
                 string.Empty);
-
-            //if it's a future, the symbol isn't actually the symbol but the underlying
-            //TODO pretty sure this needs to be done for other contract types as well?
-            if (instrument.Type == InstrumentType.Future)
-            {
-                contract.Symbol = instrument.UnderlyingSymbol;
-            }
 
             if (instrument.Strike.HasValue && instrument.Strike.Value != 0)
                 contract.Strike = (double)instrument.Strike.Value;
