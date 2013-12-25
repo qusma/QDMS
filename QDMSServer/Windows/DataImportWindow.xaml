@@ -26,7 +26,7 @@
         <Label Content="File:" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top"/>
         <TextBox IsEnabled="False" Name="FilePathTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="20" Margin="47,5,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="426"/>
         <Button x:Name="SelectFileBtn" Click="SelectFileBtn_Click" Grid.Row="0" Height="20" Content="Select File" HorizontalAlignment="Left" Margin="495,6,0,0" VerticalAlignment="Top" Width="75"/>
-        <TextBox Name="FileContentsTextBox" AcceptsReturn="True" HorizontalAlignment="Stretch" Margin="10,28,10,4" Grid.Row="1" TextWrapping="NoWrap" VerticalAlignment="Stretch" Text="Shit ain't workin captain \r\n how do i into newline"/>
+        <TextBox Name="FileContentsTextBox" AcceptsReturn="True" HorizontalAlignment="Stretch" Margin="10,28,10,4" Grid.Row="1" TextWrapping="NoWrap" VerticalAlignment="Stretch" Text="" />
         <Label Content="Contents:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Grid.Row="1"/>
 
 
