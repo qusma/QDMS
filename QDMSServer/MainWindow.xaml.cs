@@ -408,6 +408,7 @@ namespace QDMSServer
 
                 foreach (Instrument i in InstrumentsGrid.SelectedItems)
                 {
+                    entityContext.Instruments.Attach(i);
                     entityContext.Instruments.Remove(i);
                     toRemove.Add(i);
                 }
