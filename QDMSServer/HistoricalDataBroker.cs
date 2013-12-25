@@ -172,27 +172,29 @@ namespace QDMSServer
         {
             //save the data to local storage, then (maybe) send the original request to be fulfilled by local storage, which now has all the data available
             HistoricalDataRequest originalRequest;
-            bool gotOriginalRequest = _originalRequests.TryGetValue(e.Request.AssignedID, out originalRequest);
+            int assignedID = e.Request.IsSubrequestFor.HasValue ? e.Request.IsSubrequestFor.Value : e.Request.AssignedID;
+            bool gotOriginalRequest = _originalRequests.TryGetValue(assignedID, out originalRequest);
             if (!gotOriginalRequest)
                 throw new Exception("Something went wrong: original request disappeared");
 
             if (e.Request.SaveDataToStorage) //the request asked to save newly arrived data in local storage
             {
+                bool doAdjustment = e.Data.Any(x => x.Split.HasValue || x.Dividend.HasValue);
                 lock (_localStorageLock)
                 {
-                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, true);
+                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, doAdjustment);
                 }
 
                 //check if there is a list in the subrequests for this request...
-                if (_subRequests.ContainsKey(e.Request.AssignedID))
+                if (e.Request.IsSubrequestFor.HasValue && _subRequests.ContainsKey(e.Request.IsSubrequestFor.Value))
                 {
                     //remove this item...if the list is empty, remove it and send the original request to the
                     //local storage, because all the requests to external data sources have now arrived
-                    _subRequests[e.Request.AssignedID].Remove(e.Request);
-                    if (_subRequests[e.Request.AssignedID].Count == 0)
+                    _subRequests[e.Request.IsSubrequestFor.Value].Remove(e.Request);
+                    if (_subRequests[e.Request.IsSubrequestFor.Value].Count == 0)
                     {
                         List<HistoricalDataRequest> tmpList;
-                        _subRequests.TryRemove(e.Request.AssignedID, out tmpList); //remove the list for this ID
+                        _subRequests.TryRemove(e.Request.IsSubrequestFor.Value, out tmpList); //remove the list for this ID
 
                         _dataStorage.RequestHistoricalData(originalRequest); //and finally send the original request to the local db
                     }
@@ -392,13 +394,7 @@ namespace QDMSServer
             //we have the identity of the sender and their request, now we add them to our request id -> identity map
             lock (_identityMapLock)
             {
-                //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
-                do
-                {
-                    request.AssignedID = rand.Next(1, int.MaxValue);
-                } while (_requestToIdentityMap.ContainsKey(request.AssignedID));
-
-                _requestToIdentityMap.Add(request.AssignedID, requesterIdentity);
+                request.AssignedID = GetUniqueRequestID(requesterIdentity);
             }
 
             _originalRequests.TryAdd(request.AssignedID, request);
@@ -474,8 +470,9 @@ namespace QDMSServer
                     {
                         newBackRequest = (HistoricalDataRequest)request.Clone();
                         newBackRequest.EndingDate = localDataInfo.EarliestDate.AddMilliseconds(-request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
-                        _subRequests[request.AssignedID].Add(newBackRequest);
-                        
+                        newBackRequest.IsSubrequestFor = request.AssignedID;
+                        newBackRequest.AssignedID = GetUniqueRequestID(requesterIdentity);
+                        _subRequests[newBackRequest.IsSubrequestFor.Value].Add(newBackRequest);
                     }
 
                     //later data that may be needed
@@ -486,14 +483,20 @@ namespace QDMSServer
                         //modify it, and pass it to the external data source
                         newForwardRequest = (HistoricalDataRequest)request.Clone();
                         newForwardRequest.StartingDate = localDataInfo.LatestDate.AddMilliseconds(request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
-                        _subRequests[request.AssignedID].Add(newForwardRequest);
+                        newForwardRequest.IsSubrequestFor = request.AssignedID;
+                        newForwardRequest.AssignedID = GetUniqueRequestID(requesterIdentity);
+                        _subRequests[newForwardRequest.IsSubrequestFor.Value].Add(newForwardRequest);
                     }
 
                     //we send these together, because too large of a delay between the two requests can cause problems
-                    if(newBackRequest != null)
+                    if (newBackRequest != null)
+                    {
                         ForwardHistoricalRequest(newBackRequest);
+                    }
                     if (newForwardRequest != null)
+                    {
                         ForwardHistoricalRequest(newForwardRequest);
+                    }
                 }
             }
         }
@@ -509,6 +512,23 @@ namespace QDMSServer
             {
                 DataSources[request.Instrument.Datasource.Name].RequestHistoricalData(request);
             }
+        }
+
+        /// <summary>
+        /// Gets a new unique AssignedID to identify requests with.
+        /// </summary>
+        private int GetUniqueRequestID(string requesterIdentity)
+        {
+            //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
+            var rand = new Random();
+            int id;
+            do
+            {
+                id = rand.Next(1, int.MaxValue);
+            } while (_requestToIdentityMap.ContainsKey(id));
+
+            _requestToIdentityMap.Add(id, requesterIdentity);
+            return id;
         }
 
         /// <summary>

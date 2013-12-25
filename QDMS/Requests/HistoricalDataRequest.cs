@@ -94,7 +94,14 @@ namespace QDMS
         /// <summary>
         /// The historical data broker gives the request an ID, which is then used to identify it when the data is returned.
         /// </summary>
+        [ProtoMember(10)]
         public int AssignedID { get; set; }
+
+        /// <summary>
+        /// This property references the "parent" request's AssignedID
+        /// </summary>
+        [ProtoMember(11)]
+        public int? IsSubrequestFor { get; set; }
 
         public HistoricalDataRequest()
         {
@@ -123,6 +130,7 @@ namespace QDMS
         {
             var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly, RequestID);
             clone.AssignedID = AssignedID;
+            clone.IsSubrequestFor = IsSubrequestFor;
             return clone;
         }
     }
