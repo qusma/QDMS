@@ -272,7 +272,8 @@ namespace QDMSServer
             {
                 adjustmentFactor = 1;
             }
-            
+
+            Calendar calendar = MyUtils.GetCalendarFromCountryCode("US"); //TODO make this dynamic
 
             bool switchContract = false;
             int counter = 0; //some rollover rules require multiple consecutive days of greater vol/OI...this keeps track of that
@@ -286,7 +287,7 @@ namespace QDMSServer
                 switch (cf.RolloverType)
                 {
                     case ContinuousFuturesRolloverType.Time:
-                        if ((frontFuture.Expiration.Value - currentDate).TotalDays <= cf.RolloverDays)
+                        if (MyUtils.BusinessDaysBetween(currentDate, frontFuture.Expiration.Value, calendar) <= cf.RolloverDays)
                         {
                             switchContract = true;
                         }
@@ -480,6 +481,8 @@ namespace QDMSServer
             var cf = cfInstrument.ContinuousFuture;
             if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
             {
+                //TODO the cf might not be using all months...
+
                 //if the roll-over is time based, we can find the appropriate contract programmatically
                 DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(currentDate.Year, currentDate.Month);
                 DateTime switchOverDate = currentMonthsExpirationDate;
