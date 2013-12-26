@@ -219,6 +219,10 @@ namespace QDMSServer
             //save the contracts used, we need them later
             _contracts.Add(request.AssignedID, futures);
 
+            Log(LogLevel.Info, string.Format("CFB: fulfilling historical request ID {0}, requested data on contracts: {1}",
+                request.AssignedID,
+                string.Join(", ", futures.Select(x => x.Symbol))));
+
             Instrument prevInst = null;
             //request the data for all futures left
             foreach (Instrument i in futures)
@@ -505,6 +509,9 @@ namespace QDMSServer
         public int RequestFrontContract(Instrument cfInstrument, DateTime? date = null)
         {
             if (!cfInstrument.IsContinuousFuture) throw new Exception("Not a continuous future instrument.");
+
+            Log(LogLevel.Info, "CFB: Received request for front contract of CF: " + cfInstrument.Symbol);
+
             _lastFrontDontractRequestID++;
             var req = new FrontContractRequest
             {
