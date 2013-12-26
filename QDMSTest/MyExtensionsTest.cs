@@ -34,21 +34,21 @@ namespace QDMSTest
 
         [Test]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void CorrectlyThrowNullException()
+        public void IndexOfCorrectlyThrowsNullException()
         {
-            var list= new List<double>();
+            var list = new List<double>();
             list.IndexOf(null);
         }
 
         [Test]
-        public void ReturnsMinusOneIfNotFound()
+        public void RIndexOfeturnsMinusOneIfNotFound()
         {
             int index = _data.IndexOf(x => x.DT > new DateTime(2001, 1, 1));
             Assert.AreEqual(-1, index);
         }
 
         [Test]
-        public void ReturnsCorrectIndex()
+        public void IndexOfReturnsCorrectIndex()
         {
             int index = _data.IndexOf(x => x.Open == 100);
             Assert.AreEqual(0, index);
