@@ -206,7 +206,7 @@ namespace QDMSTest
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
 
-            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.RolloverDays = 1;
 
             //handle the requests for historical data
             int counter = 0;
@@ -313,7 +313,7 @@ namespace QDMSTest
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
 
-            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.RolloverDays = 1;
             _cfInst.ContinuousFuture.Month = 2;
 
             //handle the requests for historical data
@@ -1099,7 +1099,7 @@ namespace QDMSTest
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
 
-            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.RolloverDays = 1;
             _cfInst.ContinuousFuture.AdjustmentMode = ContinuousFuturesAdjustmentMode.Ratio;
 
             //handle the requests for historical data
@@ -1236,7 +1236,7 @@ namespace QDMSTest
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
 
-            _cfInst.ContinuousFuture.RolloverDays = 2;
+            _cfInst.ContinuousFuture.RolloverDays = 1;
             _cfInst.ContinuousFuture.AdjustmentMode = ContinuousFuturesAdjustmentMode.Difference;
 
             //handle the requests for historical data
