@@ -303,5 +303,20 @@ namespace QDMS
                     return TimeSpan.FromDays(1);
             }
         }
+
+        public static int BusinessDaysBetween(DateTime start, DateTime end, Calendar cal)
+        {
+            if (start > end) throw new Exception("Ending date must be later than starting date");
+            if (start == end) return 0;
+            int count = 0;
+            while (start < end)
+            {
+                if (cal.isBusinessDay(start))
+                    count++;
+                start = start.AddDays(1);
+            }
+
+            return count;
+        }
     }
 }
