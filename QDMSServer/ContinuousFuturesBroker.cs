@@ -14,8 +14,10 @@
 //TODO It's a bit of a mess right now, refactor into something smarter
 //TODO if a request for contract data fails we need to take care of that somehow
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
@@ -48,6 +50,15 @@ namespace QDMSServer
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly object _reqCountLock = new object();
+
+        // Holds requests for the front contract of a CF, before they get processed
+        private readonly BlockingCollection<FrontContractRequest> _frontContractRequests;
+
+        // Used to give unique IDs to front contract requests
+        private int _lastFrontDontractRequestID;
+
+        // Periodically checks if there are any FrontContractRequests outstanding and begins their processing procedure
+        private readonly Timer _fcTimer;
 
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
         private Dictionary<int, List<OHLCBar>> _data;
@@ -84,9 +95,15 @@ namespace QDMSServer
             _requestCounts = new Dictionary<int, int>();
             _requests = new Dictionary<int, HistoricalDataRequest>();
             _histReqIDMap = new Dictionary<int, int>();
+            _frontContractRequests = new BlockingCollection<FrontContractRequest>();
+
+            _fcTimer = new Timer(50);
+            _fcTimer.Elapsed += _fcTimer_Elapsed;
+            _fcTimer.Start();
 
             Name = "ContinuousFutures";
         }
+
 
         void _client_Error(object sender, ErrorArgs e)
         {
@@ -100,6 +117,8 @@ namespace QDMSServer
                 _client.Dispose();
                 _client = null;
             }
+            if (_frontContractRequests != null)
+                _frontContractRequests.Dispose();
         }
 
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
@@ -340,7 +359,7 @@ namespace QDMSServer
                     if(backData != null)
                         backData.AdvanceTo(currentDate);
                 }
-                while (!selectedSeriesProgressed && !switchContract && !selectedData.ReachedEndOfSeries);
+                while (!selectedSeriesProgressed && !selectedData.ReachedEndOfSeries);
 
                 //this next check here is necessary for the time-based switchover to work after weekends or holidays
                 if (cf.RolloverType == ContinuousFuturesRolloverType.Time &&
@@ -475,16 +494,44 @@ namespace QDMSServer
 
         /// <summary>
         /// Finds the currently active futures contract for a continuous futures instrument.
-        /// Returns an ID uniquely identifying this request.
         /// The contract is returned asynchronously through the FoundFrontContract event.
         /// </summary>
-        public int FindFrontContract(Instrument cfInstrument, int requestID, DateTime? date = null)
+        /// <returns>Returns an ID uniquely identifying this request.</returns>
+        public int RequestFrontContract(Instrument cfInstrument, DateTime? date = null)
         {
             if (!cfInstrument.IsContinuousFuture) throw new Exception("Not a continuous future instrument.");
+            _lastFrontDontractRequestID++;
+            var req = new FrontContractRequest
+            {
+                ID = _lastFrontDontractRequestID,
+                Instrument = cfInstrument,
+                Date = date
+            };
+            _frontContractRequests.TryAdd(req, 1000);
+            
+            return _lastFrontDontractRequestID;
+        }
 
-            DateTime currentDate = date ?? DateTime.Now;
+        /// <summary>
+        /// Periodically called by the timer. Look for unfilled requests and begin processing them.
+        /// </summary>
+        void _fcTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            FrontContractRequest req;
+            while (_frontContractRequests.TryTake(out req, 10))
+            {
+                ProcessFrontContractRequests(req);
+            }
+        }
 
-            var cf = cfInstrument.ContinuousFuture;
+        //process a FrontContractRequest
+        //CFs with a time-based switchover are calculated on the spot
+        //CFs with other types of switchover require data, so we send off the appropriate data requests here
+        private void ProcessFrontContractRequests(FrontContractRequest req)
+        {
+            DateTime currentDate = req.Date ?? DateTime.Now;
+
+            var cf = req.Instrument.ContinuousFuture;
             if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
             {
                 //TODO the cf might not be using all months...
@@ -534,16 +581,15 @@ namespace QDMSServer
 
                 //we got the month we want! find the contract
                 var searchFunc = new Func<Instrument, bool>(
-                    x => 
-                        x.Expiration.HasValue && 
+                    x =>
+                        x.Expiration.HasValue &&
                         x.Expiration.Value.Month == selectedDate.Month &&
                         x.Expiration.Value.Year == selectedDate.Year &&
                         x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol);
 
                 var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
 
-                RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(requestID, contract));
-                //TODO problem: we should be returning the ID before raising the event...
+                RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(req.ID, contract, currentDate));
             }
             else //otherwise, we have to actually look at the historical data to figure out which contract is selected
             {
@@ -551,8 +597,6 @@ namespace QDMSServer
                 //data can take a long time to download). Not sure where it fits in, either...
                 //move it to the ContinuousFuturesBroker?
             }
-
-            return 0;
         }
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;

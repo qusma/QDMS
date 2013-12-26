@@ -12,11 +12,13 @@ namespace QDMS
     {
         public int ID { get; private set; }
         public Instrument Instrument { get; private set; }
+        public DateTime Date { get; private set; }
 
-        public FoundFrontContractEventArgs(int id, Instrument instrument)
+        public FoundFrontContractEventArgs(int id, Instrument instrument, DateTime date)
         {
             ID = id;
             Instrument = instrument;
+            Date = date;
         }
     }
 }
