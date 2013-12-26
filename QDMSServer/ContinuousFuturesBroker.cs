@@ -11,7 +11,6 @@
 // When all the data has arrived, figure out how to stich it together in CalcContFutData()
 // Finally send it out using the HistoricalDataArrived event
 
-//TODO It's a bit of a mess right now, refactor into something smarter
 //TODO if a request for contract data fails we need to take care of that somehow
 
 using System.Collections.Concurrent;
@@ -147,13 +146,19 @@ namespace QDMSServer
                     CalcContFutData(_requests[cfReqID]);
                 }
             }
-         
-            //TODO if we call it from here though, then that locks up the client thread while we do the calcs
-            //not sure what the best approach is
         }
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
+            Log(LogLevel.Info,
+                string.Format("CFB: Received historical data request: {0} @ {1} ({2}) from {3} to {4} - ID: {5}",
+                request.Instrument.Symbol,
+                request.Frequency,
+                request.Instrument.Datasource.Name,
+                request.StartingDate,
+                request.EndingDate,
+                request.AssignedID));
+
             // add it to the collection of requests so we can access it later
             _requests.Add(request.AssignedID, request);
 
@@ -292,7 +297,7 @@ namespace QDMSServer
                 adjustmentFactor = 1;
             }
 
-            Calendar calendar = MyUtils.GetCalendarFromCountryCode("US"); //TODO make this dynamic
+            Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
 
             bool switchContract = false;
             int counter = 0; //some rollover rules require multiple consecutive days of greater vol/OI...this keeps track of that
@@ -534,16 +539,20 @@ namespace QDMSServer
             var cf = req.Instrument.ContinuousFuture;
             if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
             {
-                //TODO the cf might not be using all months...
+                while (!cf.MonthIsUsed(currentDate.Month))
+                {
+                    currentDate = currentDate.AddMonths(1);
+                }
 
                 //if the roll-over is time based, we can find the appropriate contract programmatically
                 DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(currentDate.Year, currentDate.Month);
+                
                 DateTime switchOverDate = currentMonthsExpirationDate;
                 DateTime selectedDate = currentDate;
 
-                Calendar calendar = MyUtils.GetCalendarFromCountryCode("US"); //TODO make this dynamic
+                Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
 
-                //this month's contract
+                //the front contract
                 //find the switchover date
                 int daysBack = cf.RolloverDays;
                 while (daysBack > 0)

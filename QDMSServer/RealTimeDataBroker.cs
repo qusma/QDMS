@@ -478,7 +478,6 @@ namespace QDMSServer
             Application.Current.Dispatcher.Invoke(() =>
                 Log(LogLevel.Info, string.Format("Real Time Data Broker: Data source {0} disconnected", e.SourceName))
             );
-            //TODO start fallback real time stream here, if it exists
         }
 
         /// <summary>

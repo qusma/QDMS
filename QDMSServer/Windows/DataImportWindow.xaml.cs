@@ -353,10 +353,7 @@ namespace QDMSServer
                 MessageBox.Show("Instrument's exchange has no set timezone, can't import.");
                 return;
             }
-
-            //todo make sure the user has picked the right frequency
-
-
+            
             var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(_instrument.Exchange.Timezone);
 
 

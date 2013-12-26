@@ -264,7 +264,6 @@ namespace QDMSServer
         public static void RemoveInstrument(Instrument instrument)
         {
             throw new NotImplementedException();
-            //todo write
         }
 
     }

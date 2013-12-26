@@ -110,7 +110,7 @@ namespace QDMSTest
             _broker.RequestHistoricalData(_req);
 
             Assert.IsTrue(requests.Any(x => x.Instrument.ID == 1));
-            //todo write
+            Assert.IsTrue(false); //WRITE THIS
         }
 
         [Test]
@@ -1525,6 +1525,18 @@ namespace QDMSTest
 
         [Test]
         public void FindFrontContractFindsCorrectContractVolumeBased()
+        {
+            Assert.IsTrue(false);
+        }
+
+        [Test]
+        public void FindFrontContractFindsCorrectContractWhenNotAllMonthsAreEnabled()
+        {
+            Assert.IsTrue(false);
+        }
+
+        [Test]
+        public void FindFrontContractFindsCorrectContractNMonthsBack()
         {
             Assert.IsTrue(false);
         }
