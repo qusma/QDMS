@@ -136,9 +136,7 @@ namespace QDMSServer
         /// </summary>
         private void SourceDisconnects(object sender, DataSourceDisconnectEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-                Log(LogLevel.Info, string.Format("Real Time Data Broker: Data source {0} disconnected", e.SourceName))
-            );
+            Log(LogLevel.Info, string.Format("Real Time Data Broker: Data source {0} disconnected", e.SourceName));
         }
 
         /// <summary>
@@ -146,7 +144,8 @@ namespace QDMSServer
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            _logger.Log(level, message);
+            Application.Current.Dispatcher.InvokeAsync(() =>
+                _logger.Log(level, message));
         }
 
         /// <summary>
@@ -154,12 +153,9 @@ namespace QDMSServer
         ///</summary>
         private void LocalStorageHistoricalDataArrived(object sender, HistoricalDataEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-                Log(LogLevel.Info, string.Format("Pulled {0} data points from local storage on instrument {1}.",
+            Log(LogLevel.Info, string.Format("Pulled {0} data points from local storage on instrument {1}.",
                 e.Data.Count,
-                e.Request.Instrument.Symbol))
-            );
-
+                e.Request.Instrument.Symbol));
 
             //then add the data to the queue to be sent out over the network
             _dataQueue.Enqueue(new KeyValuePair<int, List<OHLCBar>>(e.Request.AssignedID, e.Data));
@@ -205,12 +201,10 @@ namespace QDMSServer
                 }
 
 
-                Application.Current.Dispatcher.Invoke(() =>
                     Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2}.",
-                    e.Data.Count,
-                    e.Request.Instrument.Datasource.Name,
-                    e.Request.Instrument.Symbol))
-                );
+                        e.Data.Count,
+                        e.Request.Instrument.Datasource.Name,
+                        e.Request.Instrument.Symbol));
             }
             else //the data does NOT go to local storage, so we have to load that stuff and combine it right here
             {
@@ -229,13 +223,11 @@ namespace QDMSServer
                     //then add the data to the queue to be sent out over the network
                     _dataQueue.Enqueue(new KeyValuePair<int, List<OHLCBar>>(e.Request.AssignedID, storageData.Concat(e.Data).ToList()));
 
-                    Application.Current.Dispatcher.Invoke(() =>
-                        Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2} and {3} points from local storage.",
+                    Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2} and {3} points from local storage.",
                         e.Data.Count,
                         e.Request.Instrument.Datasource.Name,
                         e.Request.Instrument.Symbol,
-                        storageData.Count))
-                    );
+                        storageData.Count));
                 }
             }
         }
@@ -245,9 +237,7 @@ namespace QDMSServer
         /// </summary>
         private void DatasourceError(object sender, ErrorArgs e)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
-                Log(LogLevel.Error, string.Format("HDB: {0} - {1}", e.ErrorCode, e.ErrorMessage))
-            );
+            Log(LogLevel.Error, string.Format("HDB: {0} - {1}", e.ErrorCode, e.ErrorMessage));
         }
 
         /// <summary>
@@ -270,7 +260,7 @@ namespace QDMSServer
             {
                 if (!s.Value.Connected)
                 {
-                    _logger.Log(LogLevel.Info, string.Format("Historical Data Broker: Trying to connect to data source {0}", s.Key));
+                    Log(LogLevel.Info, string.Format("Historical Data Broker: Trying to connect to data source {0}", s.Key));
                     s.Value.Connect();
                 }
             }
@@ -378,18 +368,16 @@ namespace QDMSServer
             
 
             //log the request
-            Application.Current.Dispatcher.Invoke(() =>
                 Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
-                requesterIdentity,
-                request.Instrument.Symbol,
-                Enum.GetName(typeof(BarSize), request.Frequency),
-                request.StartingDate,
-                request.EndingDate,
-                request.ForceFreshData ? 0 : 1,
-                request.LocalStorageOnly ? 0 : 1,
-                request.SaveDataToStorage ? 0 : 1,
-                request.Instrument.Datasource.Name))
-            );
+                    requesterIdentity,
+                    request.Instrument.Symbol,
+                    Enum.GetName(typeof(BarSize), request.Frequency),
+                    request.StartingDate,
+                    request.EndingDate,
+                    request.ForceFreshData ? 0 : 1,
+                    request.LocalStorageOnly ? 0 : 1,
+                    request.SaveDataToStorage ? 0 : 1,
+                    request.Instrument.Datasource.Name));
 
             //we have the identity of the sender and their request, now we add them to our request id -> identity map
             lock (_identityMapLock)
@@ -545,9 +533,8 @@ namespace QDMSServer
             var request = MyUtils.ProtoBufDeserialize<DataAdditionRequest>(buffer, ms);
 
             //log the request
-            Application.Current.Dispatcher.Invoke(() =>
-                _logger.Log(LogLevel.Info, string.Format("Received data push request for {0}.",
-                request.Instrument.Symbol)));
+            Log(LogLevel.Info, string.Format("Received data push request for {0}.",
+                request.Instrument.Symbol));
 
             //start building the reply
             socket.SendMore(requesterIdentity, Encoding.UTF8);
@@ -581,9 +568,8 @@ namespace QDMSServer
             var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
             //log the request
-            Application.Current.Dispatcher.Invoke(() =>
-                _logger.Log(LogLevel.Info, string.Format("Received local data storage info request for {0}.",
-                instrument.Symbol)));
+            Log(LogLevel.Info, string.Format("Received local data storage info request for {0}.",
+                instrument.Symbol));
 
 
             //and send the reply
@@ -631,8 +617,7 @@ namespace QDMSServer
             }
             else
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                    _logger.Log(LogLevel.Info, "Unrecognized request to historical data broker: " + text));
+                Log(LogLevel.Info, "Unrecognized request to historical data broker: " + text);
             }
         }
     }
