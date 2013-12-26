@@ -8,6 +8,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Moq;
 using NUnit.Framework;
 using QDMS;
@@ -1500,24 +1501,25 @@ namespace QDMSTest
                 { new DateTime(2013, 3,13), 3 }
             };
 
-            List<int> returnedExpirationMonths = expectedExpirationMonths.Select(kvp => -1).ToList();
+            Dictionary<DateTime, int> returnedExpirationMonths = new Dictionary<DateTime, int>();
 
             //hook up the event to add the expiration month
-            _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths[e.ID] = e.Instrument.Expiration.Value.Month;
+            _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths.Add(e.Date, e.Instrument.Expiration.Value.Month);
 
             //make the request
-            int counter = 0;
             foreach (DateTime dt in expectedExpirationMonths.Keys)
             {
-                _broker.FindFrontContract(_cfInst, counter++, dt);
+                _broker.RequestFrontContract(_cfInst, dt);
             }
 
-            counter = 0;
+            Thread.Sleep(1000);
+
+            Assert.AreEqual(expectedExpirationMonths.Count, returnedExpirationMonths.Count);
+
             foreach (var kvp in expectedExpirationMonths)
             {
                 var month = kvp.Value;
-                Assert.AreEqual(month, returnedExpirationMonths[counter], kvp.Key.ToString());
-                counter++;
+                Assert.AreEqual(month, returnedExpirationMonths[kvp.Key], kvp.Key.ToString());
             }
         }
 
