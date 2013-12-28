@@ -95,73 +95,42 @@ namespace QDMS
         /// </summary>
         public static Calendar GetCalendarFromCountryCode(string country)
         {
-            if (country == "CH")
+            switch (country)
             {
-                return new Switzerland();
-            }
-            else if (country == "US")
-            {
-                return new UnitedStates(UnitedStates.Market.NYSE);
-            }
-            else if (country == "SG")
-            {
-                return new Singapore();
-            }
-            else if (country == "UK")
-            {
-                return new UnitedKingdom(UnitedKingdom.Market.Exchange);
-            }
-            else if (country == "DE")
-            {
-                return new Germany(Germany.Market.FrankfurtStockExchange);
-            }
-            else if (country == "HK")
-            {
-                return new HongKong();
-            }
-            else if (country == "JP")
-            {
-                return new Japan();
-            }
-            else if (country == "SK")
-            {
-                return new SouthKorea(SouthKorea.Market.KRX);
-            }
-            else if (country == "BR")
-            {
-                return new Brazil(Brazil.Market.Exchange);
-            }
-            else if (country == "AU")
-            {
-                return new Australia();
-            }
-            else if (country == "IN")
-            {
-                return new India();
-            }
-            else if (country == "CN")
-            {
-                return new China();
-            }
-            else if (country == "TW")
-            {
-                return new Taiwan();
-            }
-            else if (country == "IT")
-            {
-                return new Italy(Italy.Market.Exchange);
-            }
-            else if (country == "CA")
-            {
-                return new Canada(Canada.Market.TSX);
-            }
-            else if (country == "ID")
-            {
-                return new Indonesia(Indonesia.Market.JSX);
-            }
-            else if (country == "SE")
-            {
-                return new Sweden();
+                case "CH":
+                    return new Switzerland();
+                case "US":
+                    return new UnitedStates(UnitedStates.Market.NYSE);
+                case "SG":
+                    return new Singapore();
+                case "UK":
+                    return new UnitedKingdom(UnitedKingdom.Market.Exchange);
+                case "DE":
+                    return new Germany(Germany.Market.FrankfurtStockExchange);
+                case "HK":
+                    return new HongKong();
+                case "JP":
+                    return new Japan();
+                case "SK":
+                    return new SouthKorea(SouthKorea.Market.KRX);
+                case "BR":
+                    return new Brazil(Brazil.Market.Exchange);
+                case "AU":
+                    return new Australia();
+                case "IN":
+                    return new India();
+                case "CN":
+                    return new China();
+                case "TW":
+                    return new Taiwan();
+                case "IT":
+                    return new Italy(Italy.Market.Exchange);
+                case "CA":
+                    return new Canada(Canada.Market.TSX);
+                case "ID":
+                    return new Indonesia(Indonesia.Market.JSX);
+                case "SE":
+                    return new Sweden();
             }
 
             return new UnitedStates();
