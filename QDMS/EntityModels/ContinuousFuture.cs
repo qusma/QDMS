@@ -13,7 +13,7 @@ namespace QDMS
 {
     [ProtoContract]
     [Serializable]
-    public class ContinuousFuture
+    public class ContinuousFuture : ICloneable
     {
         public ContinuousFuture()
         {
@@ -145,6 +145,41 @@ namespace QDMS
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// Creates a new object that is a copy of the current instance.
+        /// </summary>
+        /// <returns>
+        /// A new object that is a copy of this instance.
+        /// </returns>
+        public object Clone()
+        {
+            var clone = new ContinuousFuture
+            {
+                InstrumentID = InstrumentID,
+                Instrument = Instrument,
+                UnderlyingSymbol = UnderlyingSymbol,
+                UnderlyingSymbolID = UnderlyingSymbolID,
+                Month = Month,
+                RolloverType = RolloverType,
+                RolloverDays = RolloverDays,
+                AdjustmentMode = AdjustmentMode,
+                UseJan = UseJan,
+                UseFeb = UseFeb,
+                UseMar = UseMar,
+                UseApr = UseApr,
+                UseMay = UseMay,
+                UseJun = UseJun,
+                UseJul = UseJul,
+                UseAug = UseAug,
+                UseSep = UseSep,
+                UseOct = UseOct,
+                UseNov = UseNov,
+                UseDec = UseDec
+            };
+
+            return clone;
         }
     }
 }
