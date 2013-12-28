@@ -65,6 +65,11 @@ namespace QDMSServer
                 if (TheInstrument.Tags == null) TheInstrument.Tags = new List<Tag>();
                 if (TheInstrument.Sessions == null) TheInstrument.Sessions = new List<InstrumentSession>();
                 TheInstrument.Sessions = TheInstrument.Sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
+
+                if (TheInstrument.IsContinuousFuture)
+                {
+                    TheInstrument.ContinuousFuture = (ContinuousFuture) instrument.ContinuousFuture.Clone();
+                }
             }
             else
             {
@@ -253,6 +258,7 @@ namespace QDMSServer
                     {
                         tmpCF = TheInstrument.ContinuousFuture; //EF can't handle circular references, so we hack around it
                         TheInstrument.ContinuousFuture = null;
+                        TheInstrument.ContinuousFutureID = null;
                     }
                     context.Instruments.Add(TheInstrument);
                 }
@@ -300,6 +306,7 @@ namespace QDMSServer
                 if (tmpCF != null)
                 {
                     TheInstrument.ContinuousFuture = tmpCF;
+                    TheInstrument.ContinuousFuture.Instrument = TheInstrument;
                     TheInstrument.ContinuousFuture.InstrumentID = TheInstrument.ID.Value;
                     context.SaveChanges();
                 }
@@ -329,6 +336,7 @@ namespace QDMSServer
         private void ExchangeRadioBtn_Checked(object sender, RoutedEventArgs e)
         {
             if (TheInstrument.Exchange == null) return;
+            if (TheInstrument.SessionsSource == SessionsSource.Exchange) return; //we don't want to re-load them if it's already set
 
             TheInstrument.Sessions.Clear();
             TheInstrument.SessionsSource = SessionsSource.Exchange;
