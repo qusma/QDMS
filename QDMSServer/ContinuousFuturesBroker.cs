@@ -27,7 +27,7 @@ using Instrument = QDMS.Instrument;
 #pragma warning disable 67
 namespace QDMSServer
 {
-    public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource
+    public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource, IContinuousFuturesBroker
     {
         private IDataClient _client;
         private IInstrumentSource _instrumentMgr;
@@ -118,6 +118,8 @@ namespace QDMSServer
             }
             if (_frontContractRequests != null)
                 _frontContractRequests.Dispose();
+            if (_fcTimer != null)
+                _fcTimer.Dispose();
         }
 
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
