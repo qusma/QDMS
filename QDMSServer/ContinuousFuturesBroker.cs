@@ -286,7 +286,7 @@ namespace QDMSServer
             //As such volumes can be wonky, and thus result in a rollover far before we ACTUALLY would
             //want to roll over if we had access to even earlier data.
             if (frontFuture.Expiration.Value < request.StartingDate)
-                currentDate = frontFuture.Expiration.Value.AddDays(-10);
+                currentDate = frontFuture.Expiration.Value.AddDays(-20);
             
             //final date is the earliest of: the last date of data available, or the request's endingdate
             DateTime lastDateAvailable = futures.Last().Expiration.Value;
