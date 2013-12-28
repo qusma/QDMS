@@ -4,12 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using ProtoBuf;
 
 namespace QDMS
 {
     [ProtoContract]
-    public class RealTimeDataRequest
+    public class RealTimeDataRequest : ICloneable
     {
         [ProtoMember(1)]
         public BarSize Frequency { get; set; }
@@ -45,6 +46,19 @@ namespace QDMS
             Frequency = frequency;
             RTHOnly = rthOnly;
             SaveToLocalStorage = savetoLocalStorage;
+        }
+
+        /// <summary>
+        /// Creates a new object that is a copy of the current instance.
+        /// </summary>
+        /// <returns>
+        /// A new object that is a copy of this instance.
+        /// </returns>
+        public object Clone()
+        {
+            var clone = new RealTimeDataRequest(Instrument, Frequency, RTHOnly, SaveToLocalStorage);
+            clone.FallBack = FallBack;
+            return clone;
         }
     }
 }
