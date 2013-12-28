@@ -514,10 +514,7 @@ namespace QDMSClient
                         s.SendMore("SEARCH", Encoding.UTF8); //first we send a search request
 
                         //then we need to serialize and send the instrument
-                        Serializer.Serialize(ms, instrument);
-                        byte[] serializedInstrument = new byte[ms.Length];
-                        ms.Read(serializedInstrument, 0, (int)ms.Length);
-                        s.Send(serializedInstrument);
+                        s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
                     }
 
 
