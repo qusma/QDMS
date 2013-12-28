@@ -72,7 +72,21 @@ namespace QDMSServer
         ///</summary>
         private readonly BlockingCollection<RealTimeDataEventArgs> _arrivedBars;
 
+        /// <summary>
+        /// When a real time data request for a continuous future comes in, we have to
+        /// make an asynchronous request to find which actual futures contract we need to request.
+        /// This dictionary holds the IDs from the front contract requests and their corresponding RealTimeDataRequests.
+        /// </summary>
+        private readonly Dictionary<int, RealTimeDataRequest> _pendingCFRealTimeRequests;
+
+        /// <summary>
+        /// Maps continuous futures instrument IDs to the front contract instrument ID.
+        /// Key: CF ID, Value: front contract ID
+        /// </summary>
+        private readonly Dictionary<int, int> _continuousFuturesIDMap;
+
         private Thread _requestThread;
+        private ContinuousFuturesBroker _cfBroker;
         private bool _runServer = true;
         private ZmqContext _context;
         private ZmqSocket _pubSocket;
@@ -83,6 +97,7 @@ namespace QDMSServer
         private readonly object _pubSocketLock = new object();
         private readonly object _subscriberCountLock = new object();
         private readonly object _aliasLock = new object();
+        private readonly object _cfRequestLock = new object();
 
         public void Dispose()
         {
@@ -90,6 +105,11 @@ namespace QDMSServer
             {
                 _ms.Dispose();
                 _ms = null;
+            }
+            if (_cfBroker != null)
+            {
+                _cfBroker.Dispose();
+                _cfBroker = null;
             }
             if (_pubSocket != null)
             {
@@ -124,7 +144,9 @@ namespace QDMSServer
         /// </summary>
         /// <param name="pubPort">The port to use for the publishing server.</param>
         /// <param name="reqPort">The port to use for the request server.</param>
-        public RealTimeDataBroker(int pubPort, int reqPort)
+        /// <param name="additionalDataSources">Optional. Pass any additional data sources (for testing purposes).</param>
+        /// <param name="cfBroker">Optional. IContinuousFuturesBroker (for testing purposes).</param>
+        public RealTimeDataBroker(int pubPort, int reqPort, IEnumerable<IRealTimeDataSource> additionalDataSources = null, IContinuousFuturesBroker cfBroker = null)
         {
             if (pubPort == reqPort) throw new Exception("Publish and request ports must be different");
             PublisherPort = pubPort;
@@ -139,6 +161,14 @@ namespace QDMSServer
                 {"Interactive Brokers", new IB()}
             };
 
+            if (additionalDataSources != null)
+            {
+                foreach (IRealTimeDataSource ds in additionalDataSources)
+                {
+                    DataSources.Add(ds.Name, ds);
+                }
+            }
+
             //we need to set the appropriate event methods for every data source
             foreach (IRealTimeDataSource s in DataSources.Values)
             {
@@ -151,6 +181,8 @@ namespace QDMSServer
             _arrivedBars = new BlockingCollection<RealTimeDataEventArgs>();
             StreamSubscribersCount = new Dictionary<RealTimeStreamInfo, int>();
             _aliases = new Dictionary<string, List<string>>();
+            _pendingCFRealTimeRequests = new Dictionary<int, RealTimeDataRequest>();
+            _continuousFuturesIDMap = new Dictionary<int, int>();
 
             _ms = new MemoryStream();
 
@@ -159,6 +191,13 @@ namespace QDMSServer
 
             //finally start listening and stuff
             StartServer();
+
+            //start up the continuous futures broker
+            if (cfBroker == null)
+            {
+                _cfBroker = new ContinuousFuturesBroker(clientName: "RTDBCFClient");
+            }
+            _cfBroker.FoundFrontContract += _cfBroker_FoundFrontContract;
         }
 
         /// <summary>
@@ -302,6 +341,68 @@ namespace QDMSServer
             ServerRunning = false;
         }
 
+        /// <summary>
+        /// Cancel a real time data stream and clean up after it.
+        /// </summary>
+        /// <returns>True if the stream was canceled, False if subsribers remain.</returns>
+        private bool CancelRTDStream(int instrumentID)
+        {
+            //make sure there is a data stream for this instrument
+            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID))
+            {
+                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrumentID);
+                var instrument = streamInfo.Instrument;
+
+                //if it's a continuous future we also need to cancel the actual contract
+                if (instrument.IsContinuousFuture)
+                {
+                    var contractID = _continuousFuturesIDMap[instrumentID];
+                    var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
+
+                    //we must also clear the alias list
+                    lock (_aliasLock)
+                    {
+                        _aliases[instrument.Symbol].Remove(contract.Symbol);
+                        if (_aliases[instrument.Symbol].Count == 0)
+                        {
+                            _aliases.Remove(instrument.Symbol);
+                        }
+                    }
+
+                    //finally cancel the contract's stream
+                    CancelRTDStream(contractID);
+                }
+
+                //log the request
+                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                    string.Format("RTD Cancelation request: {0} from {1}",
+                        instrument.Symbol,
+                        instrument.Datasource.Name)));
+
+                
+                lock (_subscriberCountLock)
+                {
+                    StreamSubscribersCount[streamInfo]--;
+                    if (StreamSubscribersCount[streamInfo] == 0)
+                    {
+                        //there are no clients subscribed to this stream anymore
+                        //cancel it and remove it from all the places
+                        StreamSubscribersCount.Remove(streamInfo);
+
+                        ActiveStreams.TryRemove(streamInfo);
+
+                        if (!instrument.IsContinuousFuture)
+                        {
+                            DataSources[streamInfo.Datasource].CancelRealTimeData(streamInfo.RequestID);
+                        }
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         // Accept a request to cancel a real time data stream
         // Obviously we only actually cancel it if 
         private void HandleRTDataCancelRequest(TimeSpan timeout)
@@ -317,43 +418,14 @@ namespace QDMSServer
             ms.Position = 0;
             var instrument = Serializer.Deserialize<Instrument>(ms);
 
-            //log the request
-            Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
-                string.Format("RTD Cancelation request: {0} from {1}",
-                    instrument.Symbol,
-                    instrument.Datasource.Name)));
+            if (instrument.ID != null) 
+                CancelRTDStream(instrument.ID.Value);
 
-            //make sure there is a data stream for this instrument
-            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrument.ID))
-            {
-                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrument.ID);
-                lock(_subscriberCountLock)
-                {
-                    StreamSubscribersCount[streamInfo]--;
-                    if (StreamSubscribersCount[streamInfo] == 0)
-                    {
-                        //there are no clients subscribed to this stream anymore
-                        //cancel it and remove it from all the places
-                        StreamSubscribersCount.Remove(streamInfo);
-
-                        ActiveStreams.TryRemove(streamInfo);
-
-                        DataSources[streamInfo.Datasource].CancelRealTimeData(streamInfo.RequestID);
-
-                        //two part message: 
-                        //1: "CANCELED"
-                        //2: the symbol
-                        _reqSocket.SendMore("CANCELED", Encoding.UTF8);
-                        _reqSocket.Send(streamInfo.Instrument.Symbol, Encoding.UTF8);
-                    }
-                }
-            }
-
-            //TODO perhaps we need to keep track of client identities...
-            //as it is now, you can cancel a stream that you're not actually receiving!
-
-            //TODO need extra handling for continuous futures: clear alias list. 
-            //TODO Cont futures should add to the counter for the actual contracts
+            //two part message: 
+            //1: "CANCELED"
+            //2: the symbol
+            _reqSocket.SendMore("CANCELED", Encoding.UTF8);
+            _reqSocket.Send(instrument.Symbol, Encoding.UTF8);
         }
 
         // Accept a real time data request
@@ -373,23 +445,14 @@ namespace QDMSServer
             //if there is already an active stream of this instrument
             if (ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID))
             {
-                //Find the KeyValuePair<string, int> from the dictionary that corresponds to this instrument
-                //The KVP consists of key: request ID, value: data source name
-                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == request.Instrument.ID);
-                    
-                //increment the subsriber count
-                lock (_subscriberCountLock)
-                {
-                    StreamSubscribersCount[streamInfo]++;
-                }
+                IncrementSubscriberCount(request.Instrument);
 
                 //log the request
                 Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
-                    string.Format("RTD Request for existing stream: {0} from {1} @ {2} ID:{3}",
+                    string.Format("RTD Request for existing stream: {0} from {1} @ {2}",
                         request.Instrument.Symbol,
                         request.Instrument.Datasource.Name,
-                        Enum.GetName(typeof(BarSize), request.Frequency),
-                        streamInfo.RequestID)));
+                        Enum.GetName(typeof(BarSize), request.Frequency))));
 
                 //and report success back to the requesting client
                 _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
@@ -403,50 +466,21 @@ namespace QDMSServer
                 {
                     //if it's a CF, we need to find which contract is currently "used"
                     //and request that one
-                    
-
-                    //TODO the asynchronous nature of the request for the front month creates a lot of problems
-                    //TODO we either have to abandon the REP socket and use something asynchronous there
-                    //TODO which creates a ton of problems (we need unique IDs for every request and so forth)
-                    //TODO or we send back "success" without actually knowing if the request for the
-                    //TODO continuous futures real time data was successful or not!
-
-                    //then add this symbol to its aliases.
-                    string contract = "";
-                    lock (_aliasLock)
+                    lock (_cfRequestLock)
                     {
-                        if (!_aliases.ContainsKey(contract))
-                        {
-                            _aliases.Add(contract, new List<string>());
-                        }
-                        _aliases[contract].Add(request.Instrument.Symbol);
+                        _pendingCFRealTimeRequests.Add(_cfBroker.RequestFrontContract(request.Instrument), request);
                     }
+
+                    //the asynchronous nature of the request for the front month creates a lot of problems
+                    //we either have to abandon the REP socket and use something asynchronous there
+                    //which creates a ton of problems (we need unique IDs for every request and so forth)
+                    //or we send back "success" without actually knowing if the request for the
+                    //continuous futures real time data was successful or not!
+                    //For now I have chosen the latter approach.
                 }
-
-
-                //send the request to the correct data source
-                int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
-
-                //log the request
-                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
-                    string.Format("RTD Request: {0} from {1} @ {2} ID:{3}",
-                        request.Instrument.Symbol,
-                        request.Instrument.Datasource.Name,
-                        Enum.GetName(typeof(BarSize), request.Frequency),
-                        reqID)));
-
-                //add the request to the active streams, though it's not necessarily active yet
-                var streamInfo = new RealTimeStreamInfo(
-                    request.Instrument, 
-                    reqID, 
-                    request.Instrument.Datasource.Name,
-                    request.Frequency,
-                    request.RTHOnly);
-                ActiveStreams.TryAdd(streamInfo);
-
-                lock (_subscriberCountLock)
+                else //NOT a continuous future, just a normal instrument: do standard request procedure
                 {
-                    StreamSubscribersCount.Add(streamInfo, 1);
+                    ForwardRTDRequest(request);
                 }
 
                 //and report success back to the requesting client
@@ -459,16 +493,149 @@ namespace QDMSServer
                 _reqSocket.SendMore("ERROR", Encoding.UTF8);
                 if (!DataSources.ContainsKey(request.Instrument.Datasource.Name))
                 {
-                    _reqSocket.Send("No such data source", Encoding.UTF8);
+                    _reqSocket.Send("No such data source.", Encoding.UTF8);
                 }
                 else if (!DataSources[request.Instrument.Datasource.Name].Connected)
                 {
-                    _reqSocket.Send("Data source not connected", Encoding.UTF8);
+                    _reqSocket.Send("Data source not connected.", Encoding.UTF8);
                 }
             }
         }
 
+        /// <summary>
+        /// Increments the number of subscribers to a real time data stream by 1.
+        /// </summary>
+        private void IncrementSubscriberCount(Instrument instrument)
+        {
+            //Find the KeyValuePair<string, int> from the dictionary that corresponds to this instrument
+            //The KVP consists of key: request ID, value: data source name
+            var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrument.ID);
 
+            //increment the subsriber count
+            lock (_subscriberCountLock)
+            {
+                StreamSubscribersCount[streamInfo]++;
+
+                //if it's a continuous future we also need to increment the counter on the actual contract
+                if (instrument.IsContinuousFuture && instrument.ID.HasValue)
+                {
+                    var contractID = _continuousFuturesIDMap[instrument.ID.Value];
+                    var contractStreamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID);
+                    StreamSubscribersCount[contractStreamInfo]++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends a real time data request to the correct data source, logs it, and updates subscriber counts
+        /// </summary>
+        /// <param name="request"></param>
+        private void ForwardRTDRequest(RealTimeDataRequest request)
+        {
+            //send the request to the correct data source
+            int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
+
+            //log the request
+            Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                string.Format("RTD Request: {0} from {1} @ {2} ID:{3}",
+                    request.Instrument.Symbol,
+                    request.Instrument.Datasource.Name,
+                    Enum.GetName(typeof(BarSize), request.Frequency),
+                    reqID)));
+
+            //add the request to the active streams, though it's not necessarily active yet
+            var streamInfo = new RealTimeStreamInfo(
+                request.Instrument,
+                reqID,
+                request.Instrument.Datasource.Name,
+                request.Frequency,
+                request.RTHOnly);
+            ActiveStreams.TryAdd(streamInfo);
+
+            lock (_subscriberCountLock)
+            {
+                StreamSubscribersCount.Add(streamInfo, 1);
+            }
+        }
+
+        /// <summary>
+        /// This method is called when the continuous futures broker returns the results of a request for the "front"
+        /// contract of a continuous futures instrument.
+        /// </summary>
+        void _cfBroker_FoundFrontContract(object sender, FoundFrontContractEventArgs e)
+        {
+            RealTimeDataRequest request;
+            
+            //grab the original request
+            lock (_cfRequestLock)
+            {
+                request = _pendingCFRealTimeRequests[e.ID];
+                _pendingCFRealTimeRequests.Remove(e.ID);
+            }
+
+            //add the contract to the ID map
+            if (request.Instrument.ID.HasValue &&
+                !_continuousFuturesIDMap.ContainsKey(request.Instrument.ID.Value) &&
+                e.Instrument.ID.HasValue)
+            {
+                _continuousFuturesIDMap.Add(request.Instrument.ID.Value, e.Instrument.ID.Value);
+            }
+
+            //add the alias
+            lock (_aliasLock)
+            {
+                string contract = e.Instrument.Symbol;
+                if (!_aliases.ContainsKey(contract))
+                {
+                    _aliases.Add(contract, new List<string>());
+                }
+                _aliases[contract].Add(request.Instrument.Symbol);
+            }
+
+            //need to check if there's already a stream of the contract....
+            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == e.Instrument.ID))
+            {
+                //all we need to do in this case is increment the number of subscribers to this stream
+                IncrementSubscriberCount(e.Instrument);
+
+                //log it
+                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                    string.Format("RTD Request for CF {0} @ {1} {2}, filled by existing stream of symbol {3}.",
+                        request.Instrument.Symbol,
+                        request.Instrument.Datasource.Name,
+                        Enum.GetName(typeof(BarSize), request.Frequency),
+                        e.Instrument.Symbol)));
+            }
+            else //no current stream of this contract, add it
+            {
+                //make the request
+                var contractRequest = (RealTimeDataRequest)request.Clone();
+                contractRequest.Instrument = e.Instrument; //we take the original request, and substitute the CF for the front contract
+                ForwardRTDRequest(contractRequest);
+
+                //add the request to the active streams, though it's not necessarily active yet
+                var streamInfo = new RealTimeStreamInfo(
+                    request.Instrument,
+                    -1,
+                    request.Instrument.Datasource.Name,
+                    request.Frequency,
+                    request.RTHOnly);
+                ActiveStreams.TryAdd(streamInfo);
+
+                lock (_subscriberCountLock)
+                {
+                    StreamSubscribersCount.Add(streamInfo, 1);
+                }
+
+                //log it
+                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                    string.Format("RTD Request for existing stream: {0} from {1} @ {2}",
+                        request.Instrument.Symbol,
+                        request.Instrument.Datasource.Name,
+                        Enum.GetName(typeof(BarSize), request.Frequency))));
+            }
+        }
+        
 
         /// <summary>
         /// This method is called when a data source disconnects
