@@ -368,65 +368,36 @@ namespace QDMSServer
         //delete one or more instruments
         private void DeleteInstrumentBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            using (var entityContext = new MyDBContext())
+            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            if (selectedInstruments.Count == 0) return;
+
+            if (selectedInstruments.Count == 1)
             {
-                var selectedInstruments = InstrumentsGrid.SelectedItems;
-                if (selectedInstruments.Count == 0) return;
+                var inst = (Instrument)selectedInstruments[0];
+                MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete {0} @ {1}?", inst.Symbol, inst.Datasource.Name),
+                    "Delete", MessageBoxButton.YesNo);
+                if (res == MessageBoxResult.No) return;
+            }
+            else
+            {
+                MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete {0} instruments?", selectedInstruments.Count),
+                    "Delete", MessageBoxButton.YesNo);
+                if (res == MessageBoxResult.No) return;
+            }
 
-                if (selectedInstruments.Count == 1)
-                {
-                    var inst = (Instrument)selectedInstruments[0];
-                    MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete {0} @ {1}?", inst.Symbol, inst.Datasource.Name),
-                        "Delete", MessageBoxButton.YesNo);
-                    if (res == MessageBoxResult.No) return;
-                }
-                else
-                {
-                    MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete {0} instruments?", selectedInstruments.Count),
-                        "Delete", MessageBoxButton.YesNo);
-                    if (res == MessageBoxResult.No) return;
-                }
+            List<Instrument> toRemove = new List<Instrument>();
 
-                List<Instrument> toRemove = new List<Instrument>();
+            foreach (Instrument i in InstrumentsGrid.SelectedItems)
+            {
+                InstrumentManager.RemoveInstrument(i);
+                toRemove.Add(i);
+            }
 
-                //hacking around the circular reference issue
-                foreach (Instrument i in InstrumentsGrid.SelectedItems)
-                {
-                    if (i.IsContinuousFuture)
-                    {
-                        entityContext.Instruments.Attach(i);
-                        var tmpCF = i.ContinuousFuture;
-                        i.ContinuousFuture = null;
-                        i.ContinuousFutureID = null;
-                        entityContext.SaveChanges();
 
-                        entityContext.ContinuousFutures.Attach(tmpCF);
-                        entityContext.ContinuousFutures.Remove(tmpCF);
-                        entityContext.SaveChanges();
-                    }
-                }
-
-                foreach (Instrument i in InstrumentsGrid.SelectedItems)
-                {
-                    entityContext.Instruments.Attach(i);
-                    entityContext.Instruments.Remove(i);
-                    toRemove.Add(i);
-                }
-
-                using (var localStorage = new MySQLStorage())
-                {
-                    localStorage.Connect();
-
-                    while (toRemove.Count > 0)
-                    {
-                        Instruments.Remove(toRemove[toRemove.Count - 1]);
-                        localStorage.DeleteAllInstrumentData(toRemove[toRemove.Count - 1]);
-                        toRemove.RemoveAt(toRemove.Count - 1);
-                    }
-                }
-
-            
-                entityContext.SaveChanges();
+            while (toRemove.Count > 0)
+            {
+                Instruments.Remove(toRemove[toRemove.Count - 1]);
+                toRemove.RemoveAt(toRemove.Count - 1);
             }
         }
 

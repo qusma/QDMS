@@ -11,6 +11,7 @@ using System.Windows;
 using System.Data.Entity;
 using EntityData;
 using QDMS;
+using QDMSServer.DataSources;
 
 namespace QDMSServer
 {
@@ -140,7 +141,7 @@ namespace QDMSServer
 
             if (pred != null)
             {
-                var instruments = context.Instruments.Where(pred).ToList();
+                var instruments = query.Where(pred).ToList();
                 foreach (Instrument i in instruments)
                 {
                     i.Exchange.Sessions.ToList();
@@ -261,9 +262,38 @@ namespace QDMSServer
             }
         }
 
+        /// <summary>
+        /// Delete an instrument and all locally stored data.
+        /// </summary>
         public static void RemoveInstrument(Instrument instrument)
         {
-            throw new NotImplementedException();
+            using (var entityContext = new MyDBContext())
+            {
+                //hacking around the circular reference issue
+                if (instrument.IsContinuousFuture)
+                {
+                    entityContext.Instruments.Attach(instrument);
+                    var tmpCF = instrument.ContinuousFuture;
+                    instrument.ContinuousFuture = null;
+                    instrument.ContinuousFutureID = null;
+                    entityContext.SaveChanges();
+
+                    entityContext.ContinuousFutures.Attach(tmpCF);
+                    entityContext.ContinuousFutures.Remove(tmpCF);
+                    entityContext.SaveChanges();
+                }
+
+                entityContext.Instruments.Attach(instrument);
+                entityContext.Instruments.Remove(instrument);
+                entityContext.SaveChanges();
+            }
+
+            using (var localStorage = new MySQLStorage())
+            {
+                localStorage.Connect();
+
+                localStorage.DeleteAllInstrumentData(instrument);
+            }
         }
 
     }
