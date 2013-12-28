@@ -221,6 +221,9 @@ namespace QDMSServer
 
                     if (!string.IsNullOrEmpty(search.ValidExchanges))
                         query = query.Where(x => x.ValidExchanges.Contains(search.ValidExchanges));
+
+                    if (search.IsContinuousFuture)
+                        query = query.Where(x => x.IsContinuousFuture);
                 }
             }
             var instrumentList =  query.ToList();
