@@ -629,10 +629,11 @@ namespace QDMSServer
 
                 //log it
                 Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
-                    string.Format("RTD Request for existing stream: {0} from {1} @ {2}",
+                    string.Format("RTD Request for CF: {0} from {1} @ {2}, filled by contract: {3}",
                         request.Instrument.Symbol,
                         request.Instrument.Datasource.Name,
-                        Enum.GetName(typeof(BarSize), request.Frequency))));
+                        Enum.GetName(typeof(BarSize), request.Frequency),
+                        e.Instrument.Symbol)));
             }
         }
         
