@@ -24,7 +24,7 @@ namespace QDMS
         void AddDataAsync(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false);
 
 
-        void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency);
+        void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool adjust = false);
         List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize barSize = BarSize.OneDay);
         void DeleteAllInstrumentData(Instrument instrument);
         void DeleteData(Instrument instrument, BarSize frequency);

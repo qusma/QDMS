@@ -77,7 +77,7 @@ namespace QDMSServer.DataSources
             throw new NotImplementedException();
         }
 
-        public void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency)
+        public void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool adjust = false)
         {
             throw new NotImplementedException();
         }

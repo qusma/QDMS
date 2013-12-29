@@ -330,9 +330,10 @@ namespace QDMSServer.DataSources
         /// <param name="data"></param>
         /// <param name="instrument"></param>
         /// <param name="frequency"></param>
-        public void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency)
+        /// <param name="adjust"></param>
+        public void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool adjust = false)
         {
-            AddData(data, instrument, frequency, true, false);
+            AddData(data, instrument, frequency, true, adjust);
         }
 
         /// <summary>
