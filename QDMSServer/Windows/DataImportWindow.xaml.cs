@@ -417,6 +417,26 @@ namespace QDMSServer
                         bars.Add(bar);
                     }
 
+                    //with 30 bars, we make a check to ensure that the user has entered the correct frequency
+                    if (bars.Count == 30)
+                    {
+                        //the reason we have to use a bunch of bars and look for the most frequent timespan between them
+                        //is that session breaks, daily breaks, weekends, etc. can have different timespans despite the
+                        //correct frequency being chosen
+                        List<int> secDiffs = new List<int>();
+                        for (int i = 1; i < bars.Count; i++)
+                        {
+                            secDiffs.Add((int)Math.Round((bars[i].DT - bars[i - 1].DT).TotalSeconds));
+                        }
+
+                        int mostFrequent = secDiffs.MostFrequent();
+                        if ((int)Math.Round(frequency.ToTimeSpan().TotalSeconds) != mostFrequent)
+                        {
+                            MessageBox.Show("You appear to have selected the wrong frequency.");
+                            return;
+                        }
+                    }
+
                     if (periodicSaving && bars.Count > 1000)
                     {
                         //convert to exchange timezone
