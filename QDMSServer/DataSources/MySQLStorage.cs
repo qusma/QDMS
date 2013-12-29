@@ -220,7 +220,7 @@ namespace QDMSServer.DataSources
                         bar.DT = bar.DT.Date; 
                     }
 
-                    cmd.CommandText += string.Format("REPLACE INTO data " +
+                    cmd.CommandText += string.Format("{15} INTO data " +
                                        "(DT, InstrumentID, Frequency, Open, High, Low, Close, AdjOpen, AdjHigh, AdjLow, AdjClose, " +
                                        "Volume, OpenInterest, Dividend, Split) VALUES (" +
                                        "'{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14});",
@@ -238,7 +238,8 @@ namespace QDMSServer.DataSources
                                        bar.Volume.HasValue ? bar.Volume.Value.ToString() : "NULL",
                                        bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
                                        bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
-                                       bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL"
+                                       bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
+                                       overwrite ? "REPLACE" : "INSERT"
                                        );
 
                     if (!needsAdjustment && (data[i].Dividend.HasValue || data[i].Split.HasValue))
@@ -256,7 +257,10 @@ namespace QDMSServer.DataSources
                         }
                         catch (Exception ex)
                         {
-                            _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message);
+                            //no need to log duplicate key errors if we're not overwriting, it's by design.
+                            if (!ex.Message.Contains("Duplicate"))
+                                Application.Current.Dispatcher.Invoke(() =>
+                                    _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
                         }
                         cmd.CommandText = "START TRANSACTION;";
                         tmpCounter = 0;
@@ -269,8 +273,10 @@ namespace QDMSServer.DataSources
                 }
                 catch (Exception ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
+                    //no need to log duplicate key errors if we're not overwriting, it's by design.
+                    if (!ex.Message.Contains("Duplicate")) 
+                        Application.Current.Dispatcher.Invoke(() =>
+                            _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
                 }
                 
                 //finally update the instrument info
@@ -321,7 +327,7 @@ namespace QDMSServer.DataSources
         /// <param name="overwrite"></param>
         public void AddDataAsync(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false)
         {
-            throw new NotImplementedException();
+            AddData(data, instrument, frequency, overwrite);
         }
 
         /// <summary>
