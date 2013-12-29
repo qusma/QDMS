@@ -144,8 +144,18 @@ namespace QDMSServer
 
         private void SaveChangesBtn_Click(object sender, RoutedEventArgs e)
         {
-            //todo write
-            throw new NotImplementedException();
+            using (var localStorage = new MySQLStorage())
+            {
+                try
+                {
+                    localStorage.UpdateData(Data.ToList(), TheInstrument, _loadedFrequency, true);
+                    MessageBox.Show("Successfully updated data.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error while updating data: " + ex.Message);
+                }
+            }
         }
     }
 }
