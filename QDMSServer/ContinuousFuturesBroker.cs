@@ -440,8 +440,9 @@ namespace QDMSServer
 
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.Invoke( () =>
-                _logger.Log(level, message));
+            if(Application.Current != null)
+                Application.Current.Dispatcher.Invoke( () =>
+                    _logger.Log(level, message));
         }
 
         private void AdjustBar(OHLCBar bar, decimal adjustmentFactor, ContinuousFuturesAdjustmentMode mode)
