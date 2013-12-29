@@ -4,34 +4,42 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// This class gets requests for the instruments we have in our metadata db: 
+// either a list of all of them, or a search for a specific instrument.
+// It also receives requests to add new instruments.
+// Works simply in a loop with a REP socket, and no asynchronous operations.
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Windows;
 using LZ4;
 using NLog;
 using QDMS;
-using QDMS.Annotations;
 using ZeroMQ;
+
 
 namespace QDMSServer
 {
-    public class InstrumentsServer : IDisposable, INotifyPropertyChanged
+    public class InstrumentsServer : IDisposable
     {
         private ZmqContext _context;
         private ZmqSocket _socket;
-        private Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private bool _runServer;
         private readonly int _socketPort;
         private Thread _serverThread;
+        private readonly IInstrumentSource _instrumentManager;
 
         public bool Running { get { return _runServer; } }
 
         public void Dispose()
         {
+            if (Running)
+                StopServer();
+
             if (_socket != null)
             {
                 _socket.Dispose();
@@ -44,32 +52,43 @@ namespace QDMSServer
             }
         }
 
-        public InstrumentsServer(int port)
+        public InstrumentsServer(int port, IInstrumentSource instrumentManager = null)
         {
             _socketPort = port;
+
+            if (instrumentManager == null)
+                _instrumentManager = new InstrumentManager();
 
             //start the server
             StartServer();
         }
 
+        /// <summary>
+        /// Starts the server.
+        /// </summary>
         public void StartServer()
         {
             if (_runServer) return;
 
             _runServer = true;
             _context = ZmqContext.Create();
-            _serverThread = new Thread(ContractServer);
-            _serverThread.Name = "Instrument Server Loop";
+            _serverThread = new Thread(ContractServer) {Name = "Instrument Server Loop"};
             _serverThread.Start();
         }
 
+        /// <summary>
+        /// Stops the server from running.
+        /// </summary>
         public void StopServer()
         {
             _runServer = false;
-            //if (_serverThread.ThreadState == ThreadState.Running)
-                _serverThread.Join();
+            _serverThread.Join();
         }
 
+        /// <summary>
+        /// The main loop. Runs on its own thread. Accepts requests on the REP socket, gets results from the InstrumentManager,
+        /// and sends them back right away.
+        /// </summary>
         private void ContractServer()
         {
             var timeout = new TimeSpan(100000);
@@ -77,7 +96,6 @@ namespace QDMSServer
             _socket.Bind("tcp://*:" + _socketPort);
             var ms = new MemoryStream();
             List<Instrument> instruments;
-            var mgr = new InstrumentManager();
 
             while (_runServer)
             {
@@ -91,11 +109,24 @@ namespace QDMSServer
                     byte[] buffer = _socket.Receive(null, timeout, out size);
                     var searchInstrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
-                    instruments = mgr.FindInstruments(null, searchInstrument);
+                    Log(LogLevel.Info, string.Format("Instruments Server: Received search request: {0}",
+                        searchInstrument));
+
+                    try
+                    {
+                        instruments = _instrumentManager.FindInstruments(null, searchInstrument);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(LogLevel.Error, string.Format("Instruments Server: Instrument search error: {0}",
+                            ex.Message));
+                        instruments = new List<Instrument>();
+                    }
                 }
                 else if (request == "ALL") //if the request is for all the instruments, we don't need to receive anything else
                 {
-                    instruments = mgr.FindInstruments();
+                    Log(LogLevel.Info, "Instruments Server: received request for list of all instruments.");
+                    instruments = _instrumentManager.FindInstruments();
                 }
                 else if (request == "ADD") //request to add instrument
                 {
@@ -103,7 +134,17 @@ namespace QDMSServer
                     byte[] buffer = _socket.Receive(null, timeout, out size);
                     var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
-                    bool addResult = InstrumentManager.AddInstrument(instrument);
+                    bool addResult;
+                    try
+                    {
+                        addResult = InstrumentManager.AddInstrument(instrument);
+                    }
+                    catch (Exception ex)
+                    {
+                        addResult = false;
+                        Log(LogLevel.Error, string.Format("Instruments Server: Instrument addition error: {0}",
+                            ex.Message));
+                    }
                     _socket.Send(addResult ? "SUCCESS" : "FAILURE", Encoding.UTF8);
 
                     continue;
@@ -127,15 +168,13 @@ namespace QDMSServer
             _socket.Dispose();
         }
 
-     
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        /// <summary>
+        /// Add a log item.
+        /// </summary>
+        private void Log(LogLevel level, string message)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            Application.Current.Dispatcher.InvokeAsync(() =>
+                _logger.Log(level, message));
         }
     }
 }
