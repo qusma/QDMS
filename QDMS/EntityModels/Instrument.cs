@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text;
 using ProtoBuf;
 
 namespace QDMS
@@ -164,10 +165,48 @@ namespace QDMS
         /// <returns>Returns TimeZoneInfo for this instrument's exchange's timezone. If it's null, it returns UTC.</returns>
         public TimeZoneInfo GetTZInfo()
         {
-            if (string.IsNullOrEmpty(Exchange.Timezone))
-                return TimeZoneInfo.FindSystemTimeZoneById("UTC");
-            else
-                return TimeZoneInfo.FindSystemTimeZoneById(Exchange.Timezone);
+            return TimeZoneInfo.FindSystemTimeZoneById(string.IsNullOrEmpty(Exchange.Timezone) 
+                ? "UTC" 
+                : Exchange.Timezone);
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("ID: " + ID);
+
+            if (!string.IsNullOrEmpty(Symbol))
+                sb.Append(" Symbol: " + Symbol);
+
+            if (!string.IsNullOrEmpty(UnderlyingSymbol))
+                sb.Append(" Underlying: " + UnderlyingSymbol);
+
+            sb.Append(" Type: " + Type);
+
+            if (OptionType.HasValue)
+                sb.Append(string.Format(" ({0})", OptionType));
+
+            if (Strike.HasValue && Strike != 0)
+                sb.Append(" Strike: " + Strike);
+
+            if (Expiration.HasValue)
+                sb.Append(" Exp: " + Expiration.Value.ToString("dd-MM-yyyy"));
+
+            if (IsContinuousFuture)
+                sb.Append(" (CF)");
+
+            if (Exchange != null)
+                sb.Append(" Exch: " + Exchange.Name);
+
+            if (Datasource != null)
+                sb.Append(" DS: " + Datasource.Name);
+
+
+            if(!string.IsNullOrEmpty(Currency))
+                sb.Append(string.Format("({0})", Currency));
+
+            return sb.ToString().Trim();
         }
 
         /// <summary>
