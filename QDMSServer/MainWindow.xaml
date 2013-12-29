@@ -196,7 +196,7 @@
         </TabControl>
         <Separator Grid.Row="2" VerticalAlignment="Top" />
         <Label Margin="10,3,0,0" Grid.Row="2" Content="Ready" Name="StatusBarLabel"/>
-        <controls:MetroProgressBar Grid.Row="2" Name="PBar" HorizontalAlignment="Right" Width="164" Height="10" Value="0" Maximum="1" Loaded="PBar_Loaded" Margin="0,10,10,10">
+        <controls:MetroProgressBar Grid.Row="2" Name="PBar" HorizontalAlignment="Right" Width="164" Height="10" Value="0" Maximum="0" Loaded="PBar_Loaded" Margin="0,10,10,10">
             <ProgressBar.Style>
                 <Style BasedOn="{StaticResource MetroProgressBar}" TargetType="ProgressBar">
                     <Setter Property="BorderThickness" Value="1"/>
