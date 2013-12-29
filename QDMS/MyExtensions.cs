@@ -31,6 +31,30 @@ namespace QDMS
             return -1;
         }
 
+        /// <summary>
+        /// Returns the element that occurs most frequently in this collection.
+        /// </summary>
+        public static T MostFrequent<T>(this IEnumerable<T> data)
+        {
+            if (data.Count() == 0) throw new Exception("Data must contain at least one element");
+            if (data.Count() == 1) return data.First();
+
+            var occurences = new Dictionary<T, int>();
+            foreach (T item in data)
+            {
+                if (occurences.ContainsKey(item))
+                {
+                    occurences[item]++;
+                }
+                else
+                {
+                    occurences.Add(item, 1);
+                }
+            }
+
+            int maxOccurences = occurences.Values.Max();
+            return occurences.Where(x => x.Value == maxOccurences).Select(x => x.Key).First();
+        }
 
         /// <summary>
         /// Save a collection of OHLCBars to a file, in CSV format.
