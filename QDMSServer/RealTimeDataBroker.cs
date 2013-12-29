@@ -207,7 +207,7 @@ namespace QDMSServer
         /// <param name="e"></param>
         void s_Error(object sender, ErrorArgs e)
         {
-            Application.Current.Dispatcher.InvokeAsync(() => _logger.Log(LogLevel.Error, string.Format("RTB: {0} - {1}", e.ErrorCode, e.ErrorMessage)));
+            Log(LogLevel.Error, string.Format("RTB: {0} - {1}", e.ErrorCode, e.ErrorMessage));
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace QDMSServer
             }
 
 #if DEBUG
-            Application.Current.Dispatcher.Invoke(() => Log(LogLevel.Trace, 
+            Log(LogLevel.Trace, 
                 string.Format("RTD Received Symbol: {0} O:{1} H:{2} L:{3} C:{4} V:{5} T:{6}",
                     e.Symbol,
                     e.Open,
@@ -249,14 +249,15 @@ namespace QDMSServer
                     e.Low,
                     e.Close,
                     e.Volume,
-                    e.Time)));
+                    e.Time));
 #endif
         }
 
         //this function is here because events may execute on other threads, and therefore can't use the logger on this one and must call the dispatcher
         private void Log(LogLevel level, string message)
         {
-            _logger.Log(level, message);
+            Application.Current.Dispatcher.InvokeAsync(() => 
+                _logger.Log(level, message));
         }
 
         //tells the servers to stop running and waits for the threads to shut down.
@@ -374,10 +375,10 @@ namespace QDMSServer
                 }
 
                 //log the request
-                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                Log(LogLevel.Info,
                     string.Format("RTD Cancelation request: {0} from {1}",
                         instrument.Symbol,
-                        instrument.Datasource.Name)));
+                        instrument.Datasource.Name));
 
                 
                 lock (_subscriberCountLock)
@@ -448,11 +449,11 @@ namespace QDMSServer
                 IncrementSubscriberCount(request.Instrument);
 
                 //log the request
-                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                Log(LogLevel.Info,
                     string.Format("RTD Request for existing stream: {0} from {1} @ {2}",
                         request.Instrument.Symbol,
                         request.Instrument.Datasource.Name,
-                        Enum.GetName(typeof(BarSize), request.Frequency))));
+                        Enum.GetName(typeof(BarSize), request.Frequency)));
 
                 //and report success back to the requesting client
                 _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
@@ -536,12 +537,12 @@ namespace QDMSServer
             int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
 
             //log the request
-            Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+            Log(LogLevel.Info,
                 string.Format("RTD Request: {0} from {1} @ {2} ID:{3}",
                     request.Instrument.Symbol,
                     request.Instrument.Datasource.Name,
                     Enum.GetName(typeof(BarSize), request.Frequency),
-                    reqID)));
+                    reqID));
 
             //add the request to the active streams, though it's not necessarily active yet
             var streamInfo = new RealTimeStreamInfo(
@@ -599,12 +600,12 @@ namespace QDMSServer
                 IncrementSubscriberCount(e.Instrument);
 
                 //log it
-                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                Log(LogLevel.Info,
                     string.Format("RTD Request for CF {0} @ {1} {2}, filled by existing stream of symbol {3}.",
                         request.Instrument.Symbol,
                         request.Instrument.Datasource.Name,
                         Enum.GetName(typeof(BarSize), request.Frequency),
-                        e.Instrument.Symbol)));
+                        e.Instrument.Symbol));
             }
             else //no current stream of this contract, add it
             {
@@ -628,12 +629,12 @@ namespace QDMSServer
                 }
 
                 //log it
-                Application.Current.Dispatcher.InvokeAsync(() => Log(LogLevel.Info,
+                Log(LogLevel.Info,
                     string.Format("RTD Request for CF: {0} from {1} @ {2}, filled by contract: {3}",
                         request.Instrument.Symbol,
                         request.Instrument.Datasource.Name,
                         Enum.GetName(typeof(BarSize), request.Frequency),
-                        e.Instrument.Symbol)));
+                        e.Instrument.Symbol));
             }
         }
         
@@ -643,9 +644,7 @@ namespace QDMSServer
         /// </summary>
         private void SourceDisconnects(object sender, DataSourceDisconnectEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-                Log(LogLevel.Info, string.Format("Real Time Data Broker: Data source {0} disconnected", e.SourceName))
-            );
+            Log(LogLevel.Info, string.Format("Real Time Data Broker: Data source {0} disconnected", e.SourceName));
         }
 
         /// <summary>
@@ -665,7 +664,7 @@ namespace QDMSServer
             {
                 if (!s.Value.Connected)
                 {
-                    _logger.Log(LogLevel.Info, string.Format("Real Time Data Broker: Trying to connect to data source {0}", s.Key));
+                    Log(LogLevel.Info, string.Format("Real Time Data Broker: Trying to connect to data source {0}", s.Key));
                     s.Value.Connect();
                 }
             }
