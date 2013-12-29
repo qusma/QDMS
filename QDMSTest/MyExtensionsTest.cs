@@ -14,12 +14,12 @@ namespace QDMSTest
     [TestFixture]
     public class MyExtensionsTest
     {
-        private List<OHLCBar> _data;
+        private List<OHLCBar> _ohlcData;
 
         [SetUp]
         public void SetUp()
         {
-            _data = new List<OHLCBar>
+            _ohlcData = new List<OHLCBar>
             {
                 new OHLCBar {DT = new DateTime(2000, 1, 1), Open = 100, High = 105, Low = 95, Close = 100},
                 new OHLCBar {DT = new DateTime(2000, 1, 2), Open = 99, High = 107, Low = 90, Close = 99},
@@ -43,18 +43,33 @@ namespace QDMSTest
         [Test]
         public void RIndexOfeturnsMinusOneIfNotFound()
         {
-            int index = _data.IndexOf(x => x.DT > new DateTime(2001, 1, 1));
+            int index = _ohlcData.IndexOf(x => x.DT > new DateTime(2001, 1, 1));
             Assert.AreEqual(-1, index);
         }
 
         [Test]
         public void IndexOfReturnsCorrectIndex()
         {
-            int index = _data.IndexOf(x => x.Open == 100);
+            int index = _ohlcData.IndexOf(x => x.Open == 100);
             Assert.AreEqual(0, index);
 
-            index = _data.IndexOf(x => x.Open >= 200);
+            index = _ohlcData.IndexOf(x => x.Open >= 200);
             Assert.AreEqual(7, index);
+        }
+
+        [Test]
+        [ExpectedException]
+        public void MostFrequentThrowsExceptionWhenCalledOnEmptyList()
+        {
+            var emptyList = new List<int>();
+            emptyList.MostFrequent();
+        }
+
+        [Test]
+        public void MostFrequentReturnsTheFirstEncounteredMostFrequentElement()
+        {
+            var data = new List<int> { 5, 6, 4, 1, 2, 5, 6, 5, 6, 9, 0, 0, 5, 6, 0, 3, 4, 7, 8 };
+            Assert.AreEqual(5, data.MostFrequent());
         }
     }
 }
