@@ -113,7 +113,7 @@ namespace QDMSServer
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
 
 
-            ActiveStreamGrid.ItemsSource = _realTimeBroker.ActiveStreams; //doesn't really work properly
+            ActiveStreamGrid.ItemsSource = _realTimeBroker.ActiveStreams;
 
             entityContext.Dispose();
         }

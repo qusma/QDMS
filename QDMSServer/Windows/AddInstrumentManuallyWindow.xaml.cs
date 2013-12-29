@@ -31,6 +31,7 @@ namespace QDMSServer
         /// </summary>
         /// <param name="instrument">If we're updating or cloning an instrument, pass it here.</param>
         /// <param name="addingNew">True if adding a new instrument. False if we're updating an instrument.</param>
+        /// <param name="addingContFut">True if adding a continuous futures instrument.</param>
         public AddInstrumentManuallyWindow(Instrument instrument = null, bool addingNew = true, bool addingContFut = false)
         {
             InitializeComponent();

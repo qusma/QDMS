@@ -226,7 +226,6 @@ namespace QDMSServer.DataSources
             _historicalDataRequests.TryAdd(++_requestCounter, request);
             _arrivedHistoricalData.TryAdd(_requestCounter, new List<OHLCBar>());
 
-            //TODO need time zone handling here?
             //limit the ending date to the present
             DateTime endDate = request.EndingDate > DateTime.Now ? DateTime.Now : request.EndingDate;
 

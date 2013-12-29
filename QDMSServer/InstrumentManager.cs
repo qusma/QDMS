@@ -135,7 +135,7 @@ namespace QDMSServer
                 .Include(x => x.ContinuousFuture)
                 .Include(x => x.ContinuousFuture.UnderlyingSymbol)
                 .AsQueryable();
-            //TODO there's a bug in the mysql connector that prevents us from including those session collections right here
+            //there's a bug in the mysql connector that prevents us from including those session collections right here
             //it just crashes if you do. Devart connector works perfectly fine.
             //We just hack around it by loading up the session collections separately.
 

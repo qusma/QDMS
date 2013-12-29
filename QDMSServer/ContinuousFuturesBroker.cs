@@ -11,7 +11,6 @@
 // When all the data has arrived, figure out how to stich it together in CalcContFutData()
 // Finally send it out using the HistoricalDataArrived event
 
-//TODO if a request for contract data fails we need to take care of that somehow
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -419,7 +418,7 @@ namespace QDMSServer
                         backData.AdvanceTo(currentDate);
                     selectedData.AdvanceTo(currentDate);
 
-                    //TODO add a bit of error checking here, it's not guaranteed that the data fits perfectly here
+                    //TODO make sure that the data series actually cover the current date
 
 
                     switchContract = false;
