@@ -18,6 +18,31 @@ namespace QDMSServer
             return new ErrorArgs((int)args.ErrorCode, args.ErrorMsg);
         }
 
+        /// <summary>
+        /// Check if a request for historical data obeys the duration limits of TWS.
+        /// </summary>
+        /// <returns>True if the request obeys the limits, false otherwise.</returns>
+        public static bool RequestObeysLimits(HistoricalDataRequest request)
+        {
+            //The limitations are laid out here: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
+            TimeSpan period = (request.EndingDate - request.StartingDate);
+            double periodSeconds = period.TotalSeconds;
+            double freqSeconds = request.Frequency.ToTimeSpan().TotalSeconds;
+
+            if(periodSeconds / freqSeconds > 2000) return false;
+
+            if (request.Frequency <= QDMS.BarSize.OneSecond && periodSeconds > 1800) return false;
+            if (request.Frequency <= QDMS.BarSize.FiveSeconds && periodSeconds > 7200) return false;
+            if (request.Frequency <= QDMS.BarSize.FifteenSeconds && periodSeconds > 14400) return false;
+            if (request.Frequency <= QDMS.BarSize.ThirtySeconds && periodSeconds > 24 * 3600) return false;
+            if (request.Frequency <= QDMS.BarSize.OneMinute && periodSeconds > 2 * 24 * 3600) return false;
+            if (request.Frequency <= QDMS.BarSize.ThirtyMinutes && periodSeconds > 7 * 24 * 3600) return false;
+            if (request.Frequency <= QDMS.BarSize.OneHour && periodSeconds > 29 * 24 * 3600) return false;
+            if (periodSeconds > 365 * 24 * 3600) return false;
+
+            return true;
+        }
+
         public static OHLCBar HistoricalDataEventArgsToOHLCBar(Krs.Ats.IBNet.HistoricalDataEventArgs e)
         {
             var bar = new OHLCBar
