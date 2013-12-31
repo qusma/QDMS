@@ -18,11 +18,6 @@ namespace QDMS
     [Serializable]
     public class Instrument : ICloneable
     {
-        public Instrument()
-        {
-            Type = InstrumentType.Undefined;
-        }
-
         [ProtoMember(1)]
         public string Symbol { get; set; }
 
