@@ -73,6 +73,10 @@
       <HintPath>..\packages\NUnitTestAdapter.1.0\lib\NUnit.VisualStudio.TestAdapter.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="QLNet, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\QLNet\QLNet.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -88,6 +92,7 @@
     <Compile Include="ContinuousFuturesBrokerTest.cs" />
     <Compile Include="ContinuousFuturesBrokerTestData.cs" />
     <Compile Include="MyExtensionsTest.cs" />
+    <Compile Include="MyUtilsTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RealTimeDataBrokerTest.cs" />
