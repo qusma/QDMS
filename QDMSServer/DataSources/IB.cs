@@ -6,8 +6,8 @@
 
 // The IB system is a bit weird, with limitations both on the amount of data
 // that can be requested in a single request, and on the frequency of requests.
-// The system keeps track of requests, and if they fail, resends them using the
-// _requestRepeatTimer Elapsed event.
+// The system keeps track of requests, and if they fail due to pacing constraints
+// resends them using the _requestRepeatTimer Elapsed event.
 
 using System;
 using System.Collections.Concurrent;
@@ -59,7 +59,7 @@ namespace QDMSServer.DataSources
             _requestRepeatTimer = new Timer(20000); //we wait 20 seconds to repeat failed requests
             _requestRepeatTimer.Elapsed += ReSendRequests;
             
-            _requestCounter = 1; // Properties.Settings.Default.ibClientRequestCounter;
+            _requestCounter = 1;
 
             _client = new IBClient();
             _client.Error += _client_Error;
@@ -68,7 +68,9 @@ namespace QDMSServer.DataSources
             _client.HistoricalData += _client_HistoricalData;
         }
 
-        //This event is raised when historical data arrives from TWS
+        /// <summary>
+        /// This event is raised when historical data arrives from TWS
+        /// </summary>
         void _client_HistoricalData(object sender, Krs.Ats.IBNet.HistoricalDataEventArgs e)
         {
             //convert the bar and add it to the Dictionary of arrived data
@@ -111,7 +113,10 @@ namespace QDMSServer.DataSources
             }
         }
 
-        //This method is called when a historical data request has delivered all its bars
+        /// <summary>
+        /// This method is called when a historical data request has delivered all its bars
+        /// </summary>
+        /// <param name="requestID"></param>
         private void HistoricalDataRequestComplete(int requestID)
         {
             //IB doesn't actually allow us to provide a deterministic starting point for our historical data query
@@ -144,8 +149,10 @@ namespace QDMSServer.DataSources
             RaiseEvent(Disconnected, this, new DataSourceDisconnectEventArgs(Name, ""));
         }
 
-        //This event is raised in the case of some error
-        //This includes pacing violations, in which case we re-enqueue the request.
+        /// <summary>
+        /// This event is raised in the case of some error
+        /// This includes pacing violations, in which case we re-enqueue the request.
+        /// </summary>
         void _client_Error(object sender, ErrorEventArgs e)
         {
             //if we asked for too much real time data at once, we need to re-queue the failed request
@@ -217,7 +224,9 @@ namespace QDMSServer.DataSources
             RaiseEvent(Error, this, errorArgs);
         }
 
-        //historical data request
+        /// <summary>
+        /// historical data request
+        /// </summary>
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
             //Historical data limitations: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
@@ -260,7 +269,9 @@ namespace QDMSServer.DataSources
             _requestRepeatTimer.Stop();
         }
 
-        //real time data request
+        /// <summary>
+        /// real time data request
+        /// </summary>
         public int RequestRealTimeData(RealTimeDataRequest request)
         {
             _realTimeDataRequests.Add(++_requestCounter, request);
@@ -279,8 +290,11 @@ namespace QDMSServer.DataSources
             _client.CancelRealTimeBars(requestID);
         }
 
-        //This event is raised when the _requestRepeatTimer period elapses.
-        //It repeats failed requests for historical or real time data
+        
+        /// <summary>
+        /// This event is raised when the _requestRepeatTimer period elapses.
+        /// It repeats failed requests for historical or real time data
+        /// </summary>
         private void ReSendRequests(object sender, ElapsedEventArgs e)
         {
             if (!_client.Connected) return;
