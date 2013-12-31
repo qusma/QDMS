@@ -17,6 +17,9 @@ namespace QDMS
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+        /// <summary>
+        /// Returns a string with the ordinal suffix of a number, i.e. 1 -> "1st"
+        /// </summary>
         public static string Ordinal(int num)
         {
             switch (num % 100)
@@ -41,12 +44,16 @@ namespace QDMS
 
         }
 
+        /// <summary>
+        /// Given the root symbol, year, and month, returns a string of the future contract symbol
+        /// based on the US letter-based month system.
+        /// </summary>
         public static string GetFuturesContractSymbol(string baseSymbol, int month, int year)
         {
             return string.Format("{0}{1}{2}", baseSymbol, GetFuturesMonthSymbol(month), year % 10);
         }
 
-        public static string GetFuturesMonthSymbol(int month)
+        private static string GetFuturesMonthSymbol(int month)
         {
             switch (month)
             {
@@ -136,6 +143,9 @@ namespace QDMS
             return new UnitedStates();
         }
 
+        /// <summary>
+        /// Converts a datetime to a UNIX epoch-based timestamp.
+        /// </summary>
         public static long ConvertToTimestamp(DateTime value)
         {
             TimeSpan elapsedTime = value - Epoch;
@@ -143,11 +153,15 @@ namespace QDMS
         }
 
 
+
         public static IEnumerable<T> GetEnumValues<T>()
         {
             return Enum.GetValues(typeof(T)).Cast<T>();
         }
 
+        /// <summary>
+        /// Serialize object using protocol buffers.
+        /// </summary>
         public static byte[] ProtoBufSerialize(object input, MemoryStream ms)
         {
             ms.SetLength(0);
@@ -158,6 +172,9 @@ namespace QDMS
             return buffer;
         }
 
+        /// <summary>
+        /// Deserialize object of type T using protocol buffers.
+        /// </summary>
         public static T ProtoBufDeserialize<T>(byte[] input, MemoryStream ms)
         {
             ms.SetLength(0);
@@ -245,6 +262,9 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// Returns the unmber of business days between two dates, not including the final day.
+        /// </summary>
         public static int BusinessDaysBetween(DateTime start, DateTime end, Calendar cal)
         {
             if (start > end) throw new Exception("Ending date must be later than starting date");
