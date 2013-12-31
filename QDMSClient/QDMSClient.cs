@@ -544,7 +544,6 @@ namespace QDMSClient
                         byte[] decoded = LZ4Codec.Decode(buffer, 0, buffer.Length, outputSize);
                         ms.Write(decoded, 0, decoded.Length);
                         ms.Position = 0;
-                        s.Close();
 
                         //and finally deserializing
                         return Serializer.Deserialize<List<Instrument>>(ms); 
