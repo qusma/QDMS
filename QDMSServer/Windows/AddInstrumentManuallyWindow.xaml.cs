@@ -306,6 +306,8 @@ namespace QDMSServer
 
                 if (tmpCF != null)
                 {
+                    context.UnderlyingSymbols.Attach(tmpCF.UnderlyingSymbol);
+
                     TheInstrument.ContinuousFuture = tmpCF;
                     TheInstrument.ContinuousFuture.Instrument = TheInstrument;
                     TheInstrument.ContinuousFuture.InstrumentID = TheInstrument.ID.Value;
