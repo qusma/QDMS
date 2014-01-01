@@ -334,6 +334,24 @@ CREATE TABLE `underlyingsymbols` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `underlyingsymbols`
+--
+
+LOCK TABLES `underlyingsymbols` WRITE;
+/*!40000 ALTER TABLE `underlyingsymbols` DISABLE KEYS */;
+INSERT INTO `underlyingsymbols` (`ID`, `Symbol`, `ExpirationRule`) VALUES
+(2, 'ES', 0x40024804),
+(3, 'VIX', 0x081e3801400248045801),
+(4, 'ZW', 0x080110012801300f),
+(5, 'CL', 0x080310012801301938ffffffffffffffffff015801),
+(6, 'UB', 0x080710015001),
+(7, 'GC', 0x0802100128015001),
+(8, '6E', 0x0802100140024802);
+/*!40000 ALTER TABLE `templatesessions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+--
 -- Dumping events for database 'qdms'
 --
 
