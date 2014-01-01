@@ -571,9 +571,11 @@ namespace QDMSServer
         {
             if (e.Key != Key.Enter) return;
 
+            var newTagTextBox = (TextBox)sender;
+
             using (var context = new MyDBContext())
             {
-                string newTagName = ((TextBox)sender).Text;
+                string newTagName = newTagTextBox.Text;
                 if (context.Tags.Any(x => x.Name == newTagName)) return; //tag already exists
 
                 //add the tag
@@ -589,12 +591,14 @@ namespace QDMSServer
                     i.Tags.Add(newTag);
                 }
 
+                context.SaveChanges();
+
                 //update the tag menu
                 var allTags = context.Tags.ToList();
                 BuildTagContextMenu(allTags);
-
-                context.SaveChanges();
             }
+
+            newTagTextBox.Text = "";
 
             CollectionViewSource.GetDefaultView(InstrumentsGrid.ItemsSource).Refresh();
         }
