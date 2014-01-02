@@ -42,12 +42,24 @@ namespace QDMSServer
         // Key: request ID, Value: the list of contracts used to fulfill this request
         private readonly Dictionary<int, List<Instrument>> _contracts;
 
-        // Keeps track of the requests. Key: request ID, Value: the request
+        /// <summary>
+        ///  Keeps track of the requests. Key: request ID, Value: the request
+        /// </summary>
         private readonly Dictionary<int, HistoricalDataRequest> _requests;
+
+        /// <summary>
+        /// Front contract requests that need data to be downloaded, receive a HistoricalDataRequest
+        /// that is held in _requests. The same AssignedID also corresponds to a FrontContractRequest held here.
+        /// </summary>
+        private readonly Dictionary<int, FrontContractRequest> _frontContractRequestMap;
+
+        //keeps track of whether requests are for data, or for the front contract. True = data.
+        private readonly Dictionary<int, bool> _requestTypes;
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly object _reqCountLock = new object();
+        private readonly object _requestsLock = new object();
 
         // Holds requests for the front contract of a CF, before they get processed
         private readonly BlockingCollection<FrontContractRequest> _frontContractRequests;
@@ -133,9 +145,29 @@ namespace QDMSServer
                 if (_requestCounts[cfReqID] == 0)
                 {
                     //we have received all the data we asked for
-                    //so now we want to generate the continuous prices
                     _requestCounts.Remove(e.Request.RequestID);
-                    GetContFutData(_requests[cfReqID]);
+                    HistoricalDataRequest req;
+                    lock (_requestsLock)
+                    {
+                        req = _requests[cfReqID];
+                        _requests.Remove(cfReqID);
+                    }
+
+                    if (_requestTypes[cfReqID])
+                    {
+                        //This request originates from a CF data request
+                        //so now we want to generate the continuous prices
+                        GetContFutData(req);
+                    }
+                    else
+                    {
+                        //This request originates from a front contract request
+                        Instrument frontContract = GetContFutData(req);
+                        FrontContractRequest originalReq = _frontContractRequestMap[cfReqID];
+                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(originalReq.ID, frontContract, originalReq.Date.Value));
+                    }
+                    
+                    _requestTypes.Remove(e.Request.AssignedID);
                 }
             }
         }
@@ -153,11 +185,16 @@ namespace QDMSServer
             {
                 UnderlyingSymbol = request.Instrument.ContinuousFuture.UnderlyingSymbol.Symbol,
                 Type = InstrumentType.Future,
-                DatasourceID = request.Instrument.DatasourceID,
-                Datasource = request.Instrument.Datasource
+                DatasourceID = request.Instrument.DatasourceID
             };
 
             var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
+
+            if (futures == null)
+            {
+                Log(LogLevel.Error, "CFB: Error in GetRequiredRequests, failed to return any contracts to historical request ID: " + request.AssignedID);
+                return requests;
+            }
 
             //order them by ascending expiration date
             futures = futures.OrderBy(x => x.Expiration).ToList();
@@ -178,9 +215,14 @@ namespace QDMSServer
             }
 
             //the first contract we need is the first one expiring before the start of the request period
-            var firstExpiration = futures
+            var expiringBeforeStart = futures
                 .Where(x => x.Expiration != null && x.Expiration.Value < request.StartingDate)
-                .Select(x => x.Expiration.Value).Max();
+                .Select(x => x.Expiration.Value).ToList();
+            DateTime firstExpiration;
+            if (expiringBeforeStart.Count > 0)
+                firstExpiration = expiringBeforeStart.Max();
+            else
+                firstExpiration = futures.Select(x => x.Expiration.Value).Min();
 
             futures = futures.Where(x => x.Expiration != null && x.Expiration.Value >= firstExpiration).ToList();
 
@@ -257,7 +299,11 @@ namespace QDMSServer
                 request.AssignedID));
 
             // add it to the collection of requests so we can access it later
-            _requests.Add(request.AssignedID, request);
+            lock (_requestsLock)
+            {
+                _requests.Add(request.AssignedID, request);
+            }
+            _requestTypes.Add(request.AssignedID, true);
 
             //find what contracts we need
             var reqs = GetRequiredRequests(request);
@@ -312,8 +358,7 @@ namespace QDMSServer
             //And at that time both the front and back futures are really far from expiration.
             //As such volumes can be wonky, and thus result in a rollover far before we ACTUALLY would
             //want to roll over if we had access to even earlier data.
-            if (frontFuture.Expiration.Value < request.StartingDate)
-                currentDate = frontFuture.Expiration.Value.AddDays(-20);
+            currentDate = frontFuture.Expiration.Value.AddDays(-20 - cf.RolloverDays);
 
             //final date is the earliest of: the last date of data available, or the request's endingdate
             DateTime lastDateAvailable = futures.Last().Expiration.Value;
@@ -559,11 +604,11 @@ namespace QDMSServer
         /// CFs with a time-based switchover are calculated on the spot
         /// CFs with other types of switchover require data, so we send off the appropriate data requests here
         /// </summary>
-        private void ProcessFrontContractRequests(FrontContractRequest req)
+        private void ProcessFrontContractRequest(FrontContractRequest request)
         {
-            DateTime currentDate = req.Date ?? DateTime.Now;
+            DateTime currentDate = request.Date ?? DateTime.Now;
 
-            var cf = req.Instrument.ContinuousFuture;
+            var cf = request.Instrument.ContinuousFuture;
             if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
             {
                 //if the roll-over is time based, we can find the appropriate contract programmatically
@@ -625,16 +670,60 @@ namespace QDMSServer
 
                 var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
 
-                RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(req.ID, contract, currentDate));
+                RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
             }
             else //otherwise, we have to actually look at the historical data to figure out which contract is selected
             {
                 //this is a tough one, because it needs to be asynchronous (historical
                 //data can take a long time to download).
+                var r = new Random();
 
-                //we use RequestHistoricalData to download the data,
-                //then when it's here we use GetContFutData to get the contract
-                //We keep track of it using the ID of the historical data request.....?
+                //we use GetRequiredRequests to get the historical requests we need to make
+                var tmpReq = new HistoricalDataRequest()
+                {
+                    Instrument = request.Instrument,
+                    StartingDate = currentDate.AddDays(-1),
+                    EndingDate = currentDate,
+                    Frequency = BarSize.OneDay
+                };
+
+                //give the request a unique id
+                lock (_requestsLock)
+                {
+                    int id;
+                    do
+                    {
+                        id = r.Next();
+                    } while (_requests.ContainsKey(id));
+                    tmpReq.AssignedID = id;
+                    _requests.Add(tmpReq.AssignedID, tmpReq);
+                }
+
+                var reqs = GetRequiredRequests(tmpReq);
+                //make sure the request is fulfillable with the available contracts, otherwise return empty-handed
+                if (reqs.Count == 0 || reqs.Count(x => x.Instrument.Expiration.HasValue && x.Instrument.Expiration.Value >= request.Date) == 0)
+                {
+                    RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, null, currentDate));
+                    lock (_requestsLock)
+                    {
+                        _requests.Remove(tmpReq.AssignedID);
+                    }
+                    return;
+                }
+
+                // add it to the collection of requests so we can access it later
+                _requestTypes.Add(tmpReq.AssignedID, false);
+
+                //add it to the front contract requests map
+                _frontContractRequestMap.Add(tmpReq.AssignedID, request);
+
+                //finally send out a request for all the data...when it arrives, 
+                //we process it and return the required front future
+                foreach (HistoricalDataRequest req in reqs)
+                {
+                    int requestID = _client.RequestHistoricalData(req);
+                    _histReqIDMap.Add(requestID, tmpReq.AssignedID);
+                }
             }
         }
 
