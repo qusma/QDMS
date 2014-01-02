@@ -6,15 +6,15 @@
 
 //TODO upload excel file used to generate target prices somewhere and add a link to it here.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using EntityData;
 using Moq;
 using NUnit.Framework;
 using QDMS;
 using QDMSServer;
-using System;
-using EntityData;
 
 namespace QDMSTest
 {
@@ -76,7 +76,7 @@ namespace QDMSTest
             _broker.RequestHistoricalData(_req);
 
             _instrumentMgrMock.Verify(x => x.FindInstruments(null, It.Is<Instrument>(
-                i => 
+                i =>
                     i.UnderlyingSymbol == _cfInst.ContinuousFuture.UnderlyingSymbol.Symbol &&
                     i.Type == InstrumentType.Future &&
                     i.DatasourceID == _cfInst.DatasourceID
@@ -238,7 +238,7 @@ namespace QDMSTest
             //finally make sure we have correct continuous future prices
             foreach (OHLCBar bar in resultingData)
             {
-                if(expectedPrices.ContainsKey(bar.DT))
+                if (expectedPrices.ContainsKey(bar.DT))
                     Assert.AreEqual(expectedPrices[bar.DT], bar.Close, string.Format("At time: {0}", bar.DT));
             }
         }
@@ -501,8 +501,6 @@ namespace QDMSTest
                 if (expectedPrices.ContainsKey(bar.DT))
                     Assert.AreEqual(expectedPrices[bar.DT], bar.Close, string.Format("At time: {0}", bar.DT));
             }
-
-
         }
 
         [Test]
@@ -1133,8 +1131,8 @@ namespace QDMSTest
             foreach (OHLCBar bar in resultingData)
             {
                 if (expectedPrices.ContainsKey(bar.DT))
-                    Assert.IsTrue(Math.Abs(expectedPrices[bar.DT] - bar.Close) < 0.0001m, 
-                        string.Format("Exp: {0} Was: {1} At time: {2}", 
+                    Assert.IsTrue(Math.Abs(expectedPrices[bar.DT] - bar.Close) < 0.0001m,
+                        string.Format("Exp: {0} Was: {1} At time: {2}",
                         expectedPrices[bar.DT],
                         bar.Close,
                         bar.DT));
@@ -1412,11 +1410,11 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x
-                .FindInstruments(null, null, It.IsAny<Func<Instrument,bool>>()))
+                .FindInstruments(null, null, It.IsAny<Func<Instrument, bool>>()))
                 .Returns(
-                    (MyDBContext a, Instrument b, Func<Instrument,bool> y) => contracts.Where(y).ToList()
+                    (MyDBContext a, Instrument b, Func<Instrument, bool> y) => contracts.Where(y).ToList()
                 );
-            
+
             _cfInst.ContinuousFuture.RolloverDays = 1;
 
             var expectedExpirationMonths = new Dictionary<DateTime, int>
@@ -1525,12 +1523,8 @@ namespace QDMSTest
         [Test]
         public void FindFrontContractFindsCorrectContractVolumeBased()
         {
-            List<Instrument> contracts = ContinuousFuturesBrokerTestData.GetVIXFutures();
-
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
-
-            _cfInst.ContinuousFuture.RolloverDays = 1;
 
             var expectedExpirationMonths = new Dictionary<DateTime, int>
             {
@@ -1628,7 +1622,6 @@ namespace QDMSTest
                 { new DateTime(2013, 3,15), 3 },
                 { new DateTime(2013, 3,18), 3 },
                 { new DateTime(2013, 3,19), 3 }
-
             };
 
             Dictionary<DateTime, int> returnedExpirationMonths = new Dictionary<DateTime, int>();
@@ -1642,6 +1635,7 @@ namespace QDMSTest
                     if (e.Instrument != null) returnedExpirationMonths.Add(e.Date, e.Instrument.Expiration.Value.Month);
                 };
 
+            _cfInst.ContinuousFuture.RolloverDays = 1;
             _cfInst.ContinuousFuture.RolloverType = ContinuousFuturesRolloverType.Volume;
 
             //handle the requests for historical data
@@ -1814,8 +1808,6 @@ namespace QDMSTest
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
-
-
             var expectedExpirationMonths = new Dictionary<DateTime, int>
             {
                 { new DateTime(2012, 10,19), 11 },
@@ -1919,7 +1911,6 @@ namespace QDMSTest
                 { new DateTime(2013, 3,15), 3 },
                 { new DateTime(2013, 3,18), 3 },
                 { new DateTime(2013, 3,19), 3 }
-
             };
 
             Dictionary<DateTime, int> returnedExpirationMonths = new Dictionary<DateTime, int>();
@@ -1983,8 +1974,5 @@ namespace QDMSTest
                 _broker = null;
             }
         }
-
-
-        
     }
 }
