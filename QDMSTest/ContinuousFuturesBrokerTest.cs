@@ -1631,9 +1631,6 @@ namespace QDMSTest
             //hook up the event to add the expiration month
             _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths.Add(e.Date, e.Instrument.Expiration.Value.Month);
 
-            //_broker.RequestFrontContract(_cfInst, new DateTime(2013, 2, 19));
-            //return;
-
             //make the request
             foreach (DateTime dt in expectedExpirationMonths.Keys)
             {
