@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NodaTime;
 
@@ -93,7 +94,7 @@ namespace QDMS
         /// </summary>
         public static void ToCSVFile(this IEnumerable<OHLCBar> data, string filePath)
         {
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath))
+            using (StreamWriter file = new StreamWriter(filePath))
             {
                 //write header first
                 var headerFields = new List<string>
@@ -113,7 +114,7 @@ namespace QDMS
                     "AdjLow",
                     "AdjClose"
                 };
-                string header = string.Join(",", headerFields);
+                string header = String.Join(",", headerFields);
                 file.WriteLine(header);
 
                 foreach (OHLCBar bar in data)
