@@ -17,7 +17,8 @@ namespace QDMSTest
                 Type = InstrumentType.Future,
                 Expiration = new DateTime(2012, 11, 21),
                 UnderlyingSymbol = "VIX",
-                Symbol = "VIXX12"
+                Symbol = "VIXX12",
+                DatasourceID = 1
             };
 
             var dec12 = new Instrument
@@ -26,7 +27,8 @@ namespace QDMSTest
                 Type = InstrumentType.Future,
                 Expiration = new DateTime(2012, 12, 19),
                 UnderlyingSymbol = "VIX",
-                Symbol = "VIXZ12"
+                Symbol = "VIXZ12",
+                DatasourceID = 1
             };
 
             var jan13 = new Instrument
@@ -35,7 +37,8 @@ namespace QDMSTest
                 Type = InstrumentType.Future,
                 Expiration = new DateTime(2013, 1, 16),
                 UnderlyingSymbol = "VIX",
-                Symbol = "VIXF13"
+                Symbol = "VIXF13",
+                DatasourceID = 1
             };
 
             var feb13 = new Instrument
@@ -44,7 +47,8 @@ namespace QDMSTest
                 Type = InstrumentType.Future,
                 Expiration = new DateTime(2013, 2, 13),
                 UnderlyingSymbol = "VIX",
-                Symbol = "VIXG13"
+                Symbol = "VIXG13",
+                DatasourceID = 1
             };
 
             var mar13 = new Instrument
@@ -53,7 +57,8 @@ namespace QDMSTest
                 Type = InstrumentType.Future,
                 Expiration = new DateTime(2013, 3, 20),
                 UnderlyingSymbol = "VIX",
-                Symbol = "VIXH13"
+                Symbol = "VIXH13",
+                DatasourceID = 1
             };
 
             var futures = new List<Instrument>
