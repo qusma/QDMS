@@ -149,28 +149,22 @@ namespace QDMSServer
             }
         }
 
-        public void RequestHistoricalData(HistoricalDataRequest request)
+        /// <summary>
+        /// Taking a historical data request for a continuous futures instrument,
+        /// it returns a list of requests for the underlying contracts that are needed to fulfill it.
+        /// </summary>
+        private List<HistoricalDataRequest> GetRequiredRequests(HistoricalDataRequest request)
         {
-            Log(LogLevel.Info,
-                string.Format("CFB: Received historical data request: {0} @ {1} ({2}) from {3} to {4} - ID: {5}",
-                request.Instrument.Symbol,
-                request.Frequency,
-                request.Instrument.Datasource.Name,
-                request.StartingDate,
-                request.EndingDate,
-                request.AssignedID));
-
-            // add it to the collection of requests so we can access it later
-            _requests.Add(request.AssignedID, request);
+            var requests = new List<HistoricalDataRequest>();
 
             var cf = request.Instrument.ContinuousFuture;
-            var searchInstrument = new Instrument 
-                { 
-                    UnderlyingSymbol = request.Instrument.ContinuousFuture.UnderlyingSymbol.Symbol, 
-                    Type = InstrumentType.Future,
-                    DatasourceID = request.Instrument.DatasourceID,
-                    Datasource = request.Instrument.Datasource
-                };
+            var searchInstrument = new Instrument
+            {
+                UnderlyingSymbol = request.Instrument.ContinuousFuture.UnderlyingSymbol.Symbol,
+                Type = InstrumentType.Future,
+                DatasourceID = request.Instrument.DatasourceID,
+                Datasource = request.Instrument.Datasource
+            };
 
             var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
 
@@ -189,8 +183,7 @@ namespace QDMSServer
             //nothing found, return with empty hands
             if (futures.Count == 0)
             {
-                RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, new List<OHLCBar>()));
-                return;
+                return requests;
             }
 
             //the first contract we need is the first one expiring before the start of the request period
@@ -206,17 +199,17 @@ namespace QDMSServer
             if (firstExpAfterEnd != null)
             {
                 DateTime limitDate = firstExpAfterEnd.Expiration.Value.AddMonths(request.Instrument.ContinuousFuture.Month - 1);
-                futures = futures.Where(x => x.Expiration.Value.Year < limitDate.Year || 
+                futures = futures.Where(x => x.Expiration.Value.Year < limitDate.Year ||
                     (x.Expiration.Value.Year == limitDate.Year && x.Expiration.Value.Month <= limitDate.Month)).ToList();
             }
 
 
             //save the number of requests we're gonna make
-            lock(_reqCountLock)
+            lock (_reqCountLock)
             {
                 _requestCounts.Add(request.AssignedID, futures.Count);
             }
-            
+
             //save the contracts used, we need them later
             _contracts.Add(request.AssignedID, futures);
 
@@ -239,7 +232,7 @@ namespace QDMSServer
                 }
                 else
                 {
-                    daysBack += (int) (i.Expiration.Value - prevInst.Expiration.Value).TotalDays;
+                    daysBack += (int)(i.Expiration.Value - prevInst.Expiration.Value).TotalDays;
                 }
                 daysBack += 30 * cf.Month;
 
@@ -249,10 +242,48 @@ namespace QDMSServer
                     i.Expiration.Value.AddDays(-daysBack),
                     i.Expiration.Value,
                     rthOnly: request.RTHOnly);
-                int requestID = _client.RequestHistoricalData(req);
-                _histReqIDMap.Add(requestID, request.AssignedID);
+
+                requests.Add(req);
 
                 prevInst = i;
+            }
+
+            return requests;
+        }
+
+        /// <summary>
+        /// Make a request for historical continuous futures data. 
+        /// The data is returned through the HistoricalDataArrived event.
+        /// </summary>
+        public void RequestHistoricalData(HistoricalDataRequest request)
+        {
+            Log(LogLevel.Info,
+                string.Format("CFB: Received historical data request: {0} @ {1} ({2}) from {3} to {4} - ID: {5}",
+                request.Instrument.Symbol,
+                request.Frequency,
+                request.Instrument.Datasource.Name,
+                request.StartingDate,
+                request.EndingDate,
+                request.AssignedID));
+
+            // add it to the collection of requests so we can access it later
+            _requests.Add(request.AssignedID, request);
+
+            //find what contracts we need
+            var reqs = GetRequiredRequests(request);
+
+            //if nothing is found, return right now with no data
+            if (reqs.Count == 0)
+            {
+                RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, new List<OHLCBar>()));
+                return;
+            }
+
+            //send out the requests
+            foreach (HistoricalDataRequest req in reqs)
+            {
+                int requestID = _client.RequestHistoricalData(req);
+                _histReqIDMap.Add(requestID, request.AssignedID);
             }
         }
 
@@ -616,18 +647,17 @@ namespace QDMSServer
 
                 var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
 
-                if (contract == null)
-                {
-                    int asdf = 0;
-                }
-
                 RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(req.ID, contract, currentDate));
             }
             else //otherwise, we have to actually look at the historical data to figure out which contract is selected
             {
-                //TODO this is a tough one, because it needs to be asynchronous (historical
-                //data can take a long time to download). Not sure where it fits in, either...
-                //move it to the ContinuousFuturesBroker?
+                //this is a tough one, because it needs to be asynchronous (historical
+                //data can take a long time to download).
+
+                //we use RequestHistoricalData to download the data, 
+                //then when it's here we use GetContFutData to get the contract
+                //We keep track of it using the ID of the historical data request.....?
+                
             }
         }
 
