@@ -105,7 +105,7 @@ namespace QDMSServer
 
         void _client_Error(object sender, ErrorArgs e)
         {
-            
+            Log(LogLevel.Error, "Continuous futures broker client error: " + e.ErrorMessage);
         }
 
         public void Dispose()
@@ -144,7 +144,7 @@ namespace QDMSServer
                     //we have received all the data we asked for
                     //so now we want to generate the continuous prices
                     _requestCounts.Remove(e.Request.RequestID);
-                    CalcContFutData(_requests[cfReqID]);
+                    GetContFutData(_requests[cfReqID]);
                 }
             }
         }
@@ -256,7 +256,11 @@ namespace QDMSServer
             }
         }
 
-        private void CalcContFutData(HistoricalDataRequest request)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>The last contract used in the construction of this continuous futures instrument.</returns>
+        private Instrument GetContFutData(HistoricalDataRequest request, bool raiseDataEvent = true)
         {
             //copy over the list of contracts that we're gonna be using
             List<Instrument> futures = new List<Instrument>(_contracts[request.AssignedID]);
@@ -272,6 +276,7 @@ namespace QDMSServer
             //sometimes the contract will be based on the Xth month
             //this is where we keep track of the actual contract currently being used
             Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
+            Instrument lastUsedSelectedFuture = selectedFuture;
 
             TimeSeries frontData = new TimeSeries(_data[frontFuture.ID.Value]);
             TimeSeries backData = new TimeSeries(_data[backFuture.ID.Value]);
@@ -422,6 +427,7 @@ namespace QDMSServer
 
 
                     switchContract = false;
+                    lastUsedSelectedFuture = selectedFuture;
                 }
 
                 cfData.Add(selectedData[0]);
@@ -434,7 +440,10 @@ namespace QDMSServer
             cfData = cfData.Where(x => x.DT >= request.StartingDate && x.DT <= request.EndingDate).ToList();
 
             //we're done, so just raise the event
-            RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, cfData));
+            if(raiseDataEvent)
+                RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, cfData));
+
+            return lastUsedSelectedFuture;
         }
 
         private void Log(LogLevel level, string message)
@@ -548,16 +557,16 @@ namespace QDMSServer
             var cf = req.Instrument.ContinuousFuture;
             if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
             {
-                while (!cf.MonthIsUsed(currentDate.Month))
+                //if the roll-over is time based, we can find the appropriate contract programmatically
+                DateTime selectedDate = currentDate;
+
+                while (!cf.MonthIsUsed(selectedDate.Month))
                 {
-                    currentDate = currentDate.AddMonths(1);
+                    selectedDate = selectedDate.AddMonths(1);
                 }
 
-                //if the roll-over is time based, we can find the appropriate contract programmatically
-                DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(currentDate.Year, currentDate.Month);
-                
+                DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(selectedDate.Year, selectedDate.Month);
                 DateTime switchOverDate = currentMonthsExpirationDate;
-                DateTime selectedDate = currentDate;
 
                 Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
 
@@ -574,13 +583,13 @@ namespace QDMSServer
                 //this month's contract has already been switched to the next one
                 int monthsLeft = 1;
                 int count = 0;
-                if (selectedDate >= switchOverDate)
+                if (currentDate >= switchOverDate)
                 {
                     while (monthsLeft > 0)
                     {
+                        count++;
                         if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
                             monthsLeft--;
-                        count++;
                     }
                     selectedDate = selectedDate.AddMonths(count);
                 }
@@ -606,6 +615,11 @@ namespace QDMSServer
                         x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol);
 
                 var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
+
+                if (contract == null)
+                {
+                    int asdf = 0;
+                }
 
                 RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(req.ID, contract, currentDate));
             }
