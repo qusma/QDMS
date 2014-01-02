@@ -1532,7 +1532,123 @@ namespace QDMSTest
         [Test]
         public void FindFrontContractFindsCorrectContractWhenNotAllMonthsAreEnabled()
         {
-            Assert.IsTrue(false);
+            List<Instrument> contracts = ContinuousFuturesBrokerTestData.GetVIXFutures();
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x
+                .FindInstruments(null, null, It.IsAny<Func<Instrument, bool>>()))
+                .Returns(
+                    (MyDBContext a, Instrument b, Func<Instrument, bool> y) => contracts.Where(y).ToList()
+                );
+
+            _cfInst.ContinuousFuture.RolloverDays = 1;
+
+            var expectedExpirationMonths = new Dictionary<DateTime, int>
+            {
+                { new DateTime(2012, 11,20), 12 },
+                { new DateTime(2012, 11,21), 12 },
+                { new DateTime(2012, 11,23), 12 },
+                { new DateTime(2012, 11,26), 12 },
+                { new DateTime(2012, 11,27), 12 },
+                { new DateTime(2012, 11,28), 12 },
+                { new DateTime(2012, 11,29), 12 },
+                { new DateTime(2012, 11,30), 12 },
+                { new DateTime(2012, 12,3), 12 },
+                { new DateTime(2012, 12,4), 12 },
+                { new DateTime(2012, 12,5), 12 },
+                { new DateTime(2012, 12,6), 12 },
+                { new DateTime(2012, 12,7), 12 },
+                { new DateTime(2012, 12,10), 12 },
+                { new DateTime(2012, 12,11), 12 },
+                { new DateTime(2012, 12,12), 12 },
+                { new DateTime(2012, 12,13), 12 },
+                { new DateTime(2012, 12,14), 12 },
+                { new DateTime(2012, 12,17), 12 },
+                { new DateTime(2012, 12,18), 1 },
+                { new DateTime(2012, 12,19), 1 },
+                { new DateTime(2012, 12,20), 1 },
+                { new DateTime(2012, 12,21), 1 },
+                { new DateTime(2012, 12,24), 1 },
+                { new DateTime(2012, 12,26), 1 },
+                { new DateTime(2012, 12,27), 1 },
+                { new DateTime(2012, 12,28), 1 },
+                { new DateTime(2012, 12,31), 1 },
+                { new DateTime(2013, 1,2), 1 },
+                { new DateTime(2013, 1,3), 1 },
+                { new DateTime(2013, 1,4), 1 },
+                { new DateTime(2013, 1,7), 1 },
+                { new DateTime(2013, 1,8), 1 },
+                { new DateTime(2013, 1,9), 1 },
+                { new DateTime(2013, 1,10), 1 },
+                { new DateTime(2013, 1,11), 1 },
+                { new DateTime(2013, 1,14), 1 },
+                { new DateTime(2013, 1,15), 3 },
+                { new DateTime(2013, 1,16), 3 },
+                { new DateTime(2013, 1,17), 3 },
+                { new DateTime(2013, 1,18), 3 },
+                { new DateTime(2013, 1,22), 3 },
+                { new DateTime(2013, 1,23), 3 },
+                { new DateTime(2013, 1,24), 3 },
+                { new DateTime(2013, 1,25), 3 },
+                { new DateTime(2013, 1,28), 3 },
+                { new DateTime(2013, 1,29), 3 },
+                { new DateTime(2013, 1,30), 3 },
+                { new DateTime(2013, 1,31), 3 },
+                { new DateTime(2013, 2,1), 3 },
+                { new DateTime(2013, 2,4), 3 },
+                { new DateTime(2013, 2,5), 3 },
+                { new DateTime(2013, 2,6), 3 },
+                { new DateTime(2013, 2,7), 3 },
+                { new DateTime(2013, 2,8), 3 },
+                { new DateTime(2013, 2,11), 3 },
+                { new DateTime(2013, 2,12), 3 },
+                { new DateTime(2013, 2,13), 3 },
+                { new DateTime(2013, 2,14), 3 },
+                { new DateTime(2013, 2,15), 3 },
+                { new DateTime(2013, 2,19), 3 },
+                { new DateTime(2013, 2,20), 3 },
+                { new DateTime(2013, 2,21), 3 },
+                { new DateTime(2013, 2,22), 3 },
+                { new DateTime(2013, 2,25), 3 },
+                { new DateTime(2013, 2,26), 3 },
+                { new DateTime(2013, 2,27), 3 },
+                { new DateTime(2013, 2,28), 3 },
+                { new DateTime(2013, 3,1), 3 },
+                { new DateTime(2013, 3,4), 3 },
+                { new DateTime(2013, 3,5), 3 },
+                { new DateTime(2013, 3,6), 3 },
+                { new DateTime(2013, 3,7), 3 },
+                { new DateTime(2013, 3,8), 3 },
+                { new DateTime(2013, 3,11), 3 },
+                { new DateTime(2013, 3,12), 3 },
+                { new DateTime(2013, 3,13), 3 }
+            };
+
+            Dictionary<DateTime, int> returnedExpirationMonths = new Dictionary<DateTime, int>();
+
+            _cfInst.ContinuousFuture.UseFeb = false;
+
+            //hook up the event to add the expiration month
+            _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths.Add(e.Date, e.Instrument.Expiration.Value.Month);
+
+            //_broker.RequestFrontContract(_cfInst, new DateTime(2013, 2, 19));
+            //return;
+
+            //make the request
+            foreach (DateTime dt in expectedExpirationMonths.Keys)
+            {
+                _broker.RequestFrontContract(_cfInst, dt);
+            }
+
+            Thread.Sleep(2000);
+
+            Assert.AreEqual(expectedExpirationMonths.Count, returnedExpirationMonths.Count);
+
+            foreach (var kvp in expectedExpirationMonths)
+            {
+                var month = kvp.Value;
+                Assert.AreEqual(month, returnedExpirationMonths[kvp.Key], kvp.Key.ToString());
+            }
         }
 
         [Test]
