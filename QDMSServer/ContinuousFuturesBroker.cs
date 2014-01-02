@@ -55,9 +55,6 @@ namespace QDMSServer
         // Used to give unique IDs to front contract requests
         private int _lastFrontDontractRequestID;
 
-        // Periodically checks if there are any FrontContractRequests outstanding and begins their processing procedure
-        private readonly Timer _fcTimer;
-
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
         private Dictionary<int, List<OHLCBar>> _data;
 
@@ -94,10 +91,8 @@ namespace QDMSServer
             _requests = new Dictionary<int, HistoricalDataRequest>();
             _histReqIDMap = new Dictionary<int, int>();
             _frontContractRequests = new BlockingCollection<FrontContractRequest>();
-
-            _fcTimer = new Timer(50);
-            _fcTimer.Elapsed += _fcTimer_Elapsed;
-            _fcTimer.Start();
+            _requestTypes = new Dictionary<int, bool>();
+            _frontContractRequestMap = new Dictionary<int, FrontContractRequest>();
 
             Name = "ContinuousFutures";
         }
@@ -116,8 +111,6 @@ namespace QDMSServer
             }
             if (_frontContractRequests != null)
                 _frontContractRequests.Dispose();
-            if (_fcTimer != null)
-                _fcTimer.Dispose();
         }
 
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
@@ -556,21 +549,9 @@ namespace QDMSServer
                 Instrument = cfInstrument,
                 Date = date
             };
-            _frontContractRequests.TryAdd(req, 1000);
+            ProcessFrontContractRequest(req);
 
             return _lastFrontDontractRequestID;
-        }
-
-        /// <summary>
-        /// Periodically called by the timer. Look for unfilled requests and begin processing them.
-        /// </summary>
-        private void _fcTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            FrontContractRequest req;
-            while (_frontContractRequests.TryTake(out req, 10))
-            {
-                ProcessFrontContractRequests(req);
-            }
         }
 
         /// <summary>
