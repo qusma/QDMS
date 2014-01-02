@@ -11,7 +11,7 @@
 // When all the data has arrived, figure out how to stich it together in CalcContFutData()
 // Finally send it out using the HistoricalDataArrived event
 
-
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +19,11 @@ using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
-using System;
 using QLNet;
 using Instrument = QDMS.Instrument;
 
 #pragma warning disable 67
+
 namespace QDMSServer
 {
     public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource, IContinuousFuturesBroker
@@ -65,7 +65,7 @@ namespace QDMSServer
         {
             if (client == null)
             {
-                if(string.IsNullOrEmpty(clientName))
+                if (string.IsNullOrEmpty(clientName))
                     clientName = "CONTFUTCLIENT";
 
                 _client = new QDMSClient.QDMSClient(
@@ -87,7 +87,7 @@ namespace QDMSServer
             _client.Error += _client_Error;
 
             _client.Connect();
-            
+
             _data = new Dictionary<int, List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();
             _requestCounts = new Dictionary<int, int>();
@@ -102,8 +102,7 @@ namespace QDMSServer
             Name = "ContinuousFutures";
         }
 
-
-        void _client_Error(object sender, ErrorArgs e)
+        private void _client_Error(object sender, ErrorArgs e)
         {
             Log(LogLevel.Error, "Continuous futures broker client error: " + e.ErrorMessage);
         }
@@ -131,7 +130,6 @@ namespace QDMSServer
             }
             _data.Add(id, e.Data);
 
-
             lock (_reqCountLock)
             {
                 //get the request id of the continuous futures request that caused this contract request
@@ -139,7 +137,7 @@ namespace QDMSServer
                 _histReqIDMap.Remove(e.Request.RequestID);
                 _requestCounts[cfReqID]--;
 
-                if (_requestCounts[cfReqID] == 0) 
+                if (_requestCounts[cfReqID] == 0)
                 {
                     //we have received all the data we asked for
                     //so now we want to generate the continuous prices
@@ -203,7 +201,6 @@ namespace QDMSServer
                     (x.Expiration.Value.Year == limitDate.Year && x.Expiration.Value.Month <= limitDate.Month)).ToList();
             }
 
-
             //save the number of requests we're gonna make
             lock (_reqCountLock)
             {
@@ -252,7 +249,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        /// Make a request for historical continuous futures data. 
+        /// Make a request for historical continuous futures data.
         /// The data is returned through the HistoricalDataArrived event.
         /// </summary>
         public void RequestHistoricalData(HistoricalDataRequest request)
@@ -288,7 +285,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns>The last contract used in the construction of this continuous futures instrument.</returns>
         private Instrument GetContFutData(HistoricalDataRequest request, bool raiseDataEvent = true)
@@ -324,13 +321,12 @@ namespace QDMSServer
             //want to roll over if we had access to even earlier data.
             if (frontFuture.Expiration.Value < request.StartingDate)
                 currentDate = frontFuture.Expiration.Value.AddDays(-20);
-            
+
             //final date is the earliest of: the last date of data available, or the request's endingdate
             DateTime lastDateAvailable = futures.Last().Expiration.Value;
             DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
 
             List<OHLCBar> cfData = new List<OHLCBar>();
-
 
             decimal adjustmentFactor = 0;
             if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
@@ -357,6 +353,7 @@ namespace QDMSServer
                             switchContract = true;
                         }
                         break;
+
                     case ContinuousFuturesRolloverType.Volume:
                         if (backData != null && backData[0].Volume > frontData[0].Volume)
                             counter++;
@@ -364,6 +361,7 @@ namespace QDMSServer
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
+
                     case ContinuousFuturesRolloverType.OpenInterest:
                         if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest)
                             counter++;
@@ -371,6 +369,7 @@ namespace QDMSServer
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
+
                     case ContinuousFuturesRolloverType.VolumeAndOpenInterest:
                         if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest &&
                             backData[0].Volume > frontData[0].Volume)
@@ -379,6 +378,7 @@ namespace QDMSServer
                             counter = 0;
                         switchContract = counter >= cf.RolloverDays;
                         break;
+
                     case ContinuousFuturesRolloverType.VolumeOrOpenInterest:
                         if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest ||
                             backData[0].Volume > frontData[0].Volume)
@@ -388,8 +388,8 @@ namespace QDMSServer
                         switchContract = counter >= cf.RolloverDays;
                         break;
                 }
-                
-                if (frontFuture.Expiration.Value <= currentDate) 
+
+                if (frontFuture.Expiration.Value <= currentDate)
                 {
                     //no matter what, obviously we need to switch if the contract expires
                     switchContract = true;
@@ -402,7 +402,7 @@ namespace QDMSServer
                     currentDate = currentDate.Add(request.Frequency.ToTimeSpan());
                     selectedSeriesProgressed = selectedData.AdvanceTo(currentDate);
                     frontData.AdvanceTo(currentDate);
-                    if(backData != null)
+                    if (backData != null)
                         backData.AdvanceTo(currentDate);
                 }
                 while (!selectedSeriesProgressed && !selectedData.ReachedEndOfSeries);
@@ -435,12 +435,10 @@ namespace QDMSServer
                         }
                     }
 
-
                     //update the contracts
                     frontFuture = backFuture;
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
                     selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAtOrDefault(cf.Month - 1);
-                    
 
                     if (frontFuture == null) break; //no other futures left, get out
                     if (selectedFuture == null) break;
@@ -450,12 +448,11 @@ namespace QDMSServer
                     selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
 
                     frontData.AdvanceTo(currentDate);
-                    if(backData != null)
+                    if (backData != null)
                         backData.AdvanceTo(currentDate);
                     selectedData.AdvanceTo(currentDate);
 
                     //TODO make sure that the data series actually cover the current date
-
 
                     switchContract = false;
                     lastUsedSelectedFuture = selectedFuture;
@@ -466,12 +463,12 @@ namespace QDMSServer
 
             //clean up
             _contracts.Remove(request.AssignedID);
-            
+
             //throw out any data from before the start of the request
             cfData = cfData.Where(x => x.DT >= request.StartingDate && x.DT <= request.EndingDate).ToList();
 
             //we're done, so just raise the event
-            if(raiseDataEvent)
+            if (raiseDataEvent)
                 RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, cfData));
 
             return lastUsedSelectedFuture;
@@ -479,8 +476,8 @@ namespace QDMSServer
 
         private void Log(LogLevel level, string message)
         {
-            if(Application.Current != null)
-                Application.Current.Dispatcher.Invoke( () =>
+            if (Application.Current != null)
+                Application.Current.Dispatcher.Invoke(() =>
                     _logger.Log(level, message));
         }
 
@@ -513,7 +510,6 @@ namespace QDMSServer
         /// </summary>
         public void Connect()
         {
-
         }
 
         /// <summary>
@@ -521,7 +517,6 @@ namespace QDMSServer
         /// </summary>
         public void Disconnect()
         {
-
         }
 
         /// <summary>
@@ -562,14 +557,14 @@ namespace QDMSServer
                 Date = date
             };
             _frontContractRequests.TryAdd(req, 1000);
-            
+
             return _lastFrontDontractRequestID;
         }
 
         /// <summary>
         /// Periodically called by the timer. Look for unfilled requests and begin processing them.
         /// </summary>
-        void _fcTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void _fcTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             FrontContractRequest req;
             while (_frontContractRequests.TryTake(out req, 10))
@@ -578,9 +573,11 @@ namespace QDMSServer
             }
         }
 
-        //process a FrontContractRequest
-        //CFs with a time-based switchover are calculated on the spot
-        //CFs with other types of switchover require data, so we send off the appropriate data requests here
+        /// <summary>
+        /// Process a FrontContractRequest
+        /// CFs with a time-based switchover are calculated on the spot
+        /// CFs with other types of switchover require data, so we send off the appropriate data requests here
+        /// </summary>
         private void ProcessFrontContractRequests(FrontContractRequest req)
         {
             DateTime currentDate = req.Date ?? DateTime.Now;
@@ -654,17 +651,20 @@ namespace QDMSServer
                 //this is a tough one, because it needs to be asynchronous (historical
                 //data can take a long time to download).
 
-                //we use RequestHistoricalData to download the data, 
+                //we use RequestHistoricalData to download the data,
                 //then when it's here we use GetContFutData to get the contract
                 //We keep track of it using the ID of the historical data request.....?
-                
             }
         }
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
+
         public event EventHandler<ErrorArgs> Error;
+
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+
         public event EventHandler<FoundFrontContractEventArgs> FoundFrontContract;
     }
 }
+
 #pragma warning restore 67
