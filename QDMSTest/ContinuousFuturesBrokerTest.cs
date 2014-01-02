@@ -1649,9 +1649,6 @@ namespace QDMSTest
                     counter++;
                 });
 
-            //_broker.RequestFrontContract(_cfInst, expectedExpirationMonths.First().Key);
-            //return;
-
             //make the request
             foreach (DateTime dt in expectedExpirationMonths.Keys)
             {
@@ -1938,8 +1935,6 @@ namespace QDMSTest
                     counter++;
                 });
 
-            //_broker.RequestFrontContract(_cfInst, expectedExpirationMonths.First().Key);
-            //return;
 
             //make the request
             foreach (DateTime dt in expectedExpirationMonths.Keys)
