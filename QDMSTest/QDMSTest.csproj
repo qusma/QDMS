@@ -91,6 +91,7 @@
     <Compile Include="ConcurrentNotifierBlockingListTest.cs" />
     <Compile Include="ContinuousFuturesBrokerTest.cs" />
     <Compile Include="ContinuousFuturesBrokerTestData.cs" />
+    <Compile Include="IBTest.cs" />
     <Compile Include="MyExtensionsTest.cs" />
     <Compile Include="MyUtilsTest.cs" />
     <Compile Include="Program.cs" />
