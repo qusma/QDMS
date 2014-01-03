@@ -64,7 +64,7 @@ namespace QDMSServer
         /// Is true if the server is running
         /// </summary>
         public bool ServerRunning { get; private set; }
-        
+
         ///<summary>
         ///When bars arrive, the data source raises an event
         ///the event adds the data to the _arrivedBars
@@ -155,9 +155,9 @@ namespace QDMSServer
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
             _connectionTimer.Start();
 
-            DataSources = new Dictionary<string, IRealTimeDataSource> 
+            DataSources = new Dictionary<string, IRealTimeDataSource>
             {
-                {"SIM", new RealTimeSim()}, 
+                {"SIM", new RealTimeSim()},
                 {"Interactive Brokers", new IB()}
             };
 
@@ -205,7 +205,7 @@ namespace QDMSServer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void s_Error(object sender, ErrorArgs e)
+        private void s_Error(object sender, ErrorArgs e)
         {
             Log(LogLevel.Error, string.Format("RTB: {0} - {1}", e.ErrorCode, e.ErrorMessage));
         }
@@ -241,7 +241,7 @@ namespace QDMSServer
             }
 
 #if DEBUG
-            Log(LogLevel.Trace, 
+            Log(LogLevel.Trace,
                 string.Format("RTD Received Symbol: {0} O:{1} H:{2} L:{3} C:{4} V:{5} T:{6}",
                     e.Symbol,
                     e.Open,
@@ -256,7 +256,7 @@ namespace QDMSServer
         //this function is here because events may execute on other threads, and therefore can't use the logger on this one and must call the dispatcher
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.InvokeAsync(() => 
+            Application.Current.Dispatcher.InvokeAsync(() =>
                 _logger.Log(level, message));
         }
 
@@ -272,7 +272,6 @@ namespace QDMSServer
             _requestThread.Join();
         }
 
-
         /// <summary>
         /// Starts the publishing and request servers.
         /// </summary>
@@ -282,7 +281,7 @@ namespace QDMSServer
             {
                 _runServer = true;
                 _context = ZmqContext.Create();
-                
+
                 //the publisher socket
                 _pubSocket = _context.CreateSocket(SocketType.PUB);
                 _pubSocket.Bind("tcp://*:" + PublisherPort);
@@ -290,15 +289,14 @@ namespace QDMSServer
                 //the request socket
                 _reqSocket = _context.CreateSocket(SocketType.REP);
                 _reqSocket.Bind("tcp://*:" + RequestPort);
-                
-                _requestThread = new Thread(RequestServer) {Name = "RTDB Request Thread"};
+
+                _requestThread = new Thread(RequestServer) { Name = "RTDB Request Thread" };
 
                 //clear queue before starting?
                 _requestThread.Start();
             }
             ServerRunning = true;
         }
-
 
         /// <summary>
         /// This method runs on its own thread. The loop receives requests and sends the appropriate reply.
@@ -307,7 +305,7 @@ namespace QDMSServer
         private void RequestServer()
         {
             TimeSpan timeout = new TimeSpan(50000);
-            
+
             MemoryStream ms = new MemoryStream();
             while (_runServer)
             {
@@ -380,7 +378,6 @@ namespace QDMSServer
                         instrument.Symbol,
                         instrument.Datasource.Name));
 
-                
                 lock (_subscriberCountLock)
                 {
                     StreamSubscribersCount[streamInfo]--;
@@ -405,13 +402,12 @@ namespace QDMSServer
         }
 
         // Accept a request to cancel a real time data stream
-        // Obviously we only actually cancel it if 
+        // Obviously we only actually cancel it if
         private void HandleRTDataCancelRequest(TimeSpan timeout)
         {
             int receivedBytes;
             byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
             if (receivedBytes <= 0) return;
-
 
             //receive the instrument
             var ms = new MemoryStream();
@@ -419,10 +415,10 @@ namespace QDMSServer
             ms.Position = 0;
             var instrument = Serializer.Deserialize<Instrument>(ms);
 
-            if (instrument.ID != null) 
+            if (instrument.ID != null)
                 CancelRTDStream(instrument.ID.Value);
 
-            //two part message: 
+            //two part message:
             //1: "CANCELED"
             //2: the symbol
             _reqSocket.SendMore("CANCELED", Encoding.UTF8);
@@ -563,10 +559,10 @@ namespace QDMSServer
         /// This method is called when the continuous futures broker returns the results of a request for the "front"
         /// contract of a continuous futures instrument.
         /// </summary>
-        void _cfBroker_FoundFrontContract(object sender, FoundFrontContractEventArgs e)
+        private void _cfBroker_FoundFrontContract(object sender, FoundFrontContractEventArgs e)
         {
             RealTimeDataRequest request;
-            
+
             //grab the original request
             lock (_cfRequestLock)
             {
@@ -637,7 +633,6 @@ namespace QDMSServer
                         e.Instrument.Symbol));
             }
         }
-        
 
         /// <summary>
         /// This method is called when a data source disconnects
@@ -669,6 +664,5 @@ namespace QDMSServer
                 }
             }
         }
-
     }
 }

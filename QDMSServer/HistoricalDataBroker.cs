@@ -96,7 +96,7 @@ namespace QDMSServer
             _listenPort = port;
 
             _dataStorage = new MySQLStorage();
-            DataSources = new Dictionary<string, IHistoricalDataSource> 
+            DataSources = new Dictionary<string, IHistoricalDataSource>
             {
                 { "Interactive Brokers", new IB(3) },
                 { "Yahoo", new Yahoo() },
@@ -200,11 +200,10 @@ namespace QDMSServer
                     _dataStorage.RequestHistoricalData(originalRequest);
                 }
 
-
-                    Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2}.",
-                        e.Data.Count,
-                        e.Request.Instrument.Datasource.Name,
-                        e.Request.Instrument.Symbol));
+                Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2}.",
+                    e.Data.Count,
+                    e.Request.Instrument.Datasource.Name,
+                    e.Request.Instrument.Symbol));
             }
             else //the data does NOT go to local storage, so we have to load that stuff and combine it right here
             {
@@ -253,7 +252,7 @@ namespace QDMSServer
         /// </summary>
         private void TryConnect()
         {
-            if(!_dataStorage.Connected)
+            if (!_dataStorage.Connected)
                 _dataStorage.Connect();
 
             foreach (var s in DataSources)
@@ -291,7 +290,7 @@ namespace QDMSServer
 
             _runServer = false;
             //if(_serverThread.ThreadState == ThreadState.Running)
-                _serverThread.Join();
+            _serverThread.Join();
         }
 
         /// <summary>
@@ -365,19 +364,18 @@ namespace QDMSServer
 
             //give the request an ID that we can use to track it
             var rand = new Random();
-            
 
             //log the request
-                Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
-                    requesterIdentity,
-                    request.Instrument.Symbol,
-                    Enum.GetName(typeof(BarSize), request.Frequency),
-                    request.StartingDate,
-                    request.EndingDate,
-                    request.ForceFreshData ? 0 : 1,
-                    request.LocalStorageOnly ? 0 : 1,
-                    request.SaveDataToStorage ? 0 : 1,
-                    request.Instrument.Datasource.Name));
+            Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
+                requesterIdentity,
+                request.Instrument.Symbol,
+                Enum.GetName(typeof(BarSize), request.Frequency),
+                request.StartingDate,
+                request.EndingDate,
+                request.ForceFreshData ? 0 : 1,
+                request.LocalStorageOnly ? 0 : 1,
+                request.SaveDataToStorage ? 0 : 1,
+                request.Instrument.Datasource.Name));
 
             //we have the identity of the sender and their request, now we add them to our request id -> identity map
             lock (_identityMapLock)
@@ -423,14 +421,14 @@ namespace QDMSServer
                 }
 
                 //alternatively, we know from the expiration that there exists no new data, so go to local storage
-                if(localDataInfo != null && request.Instrument.Expiration.HasValue)
+                if (localDataInfo != null && request.Instrument.Expiration.HasValue)
                 {
                     //get the right session
                     var dotw = request.Instrument.Expiration.Value.Date.DayOfWeek.ToInt();
                     var session = request.Instrument.Sessions.First(x => (int)x.ClosingDay == dotw && x.IsSessionEnd);
 
                     //if it exists, use it to set the proper time
-                    if(session != null
+                    if (session != null
                         && localDataInfo.LatestDate >= (request.Instrument.Expiration.Value.Date + session.ClosingTime))
                     {
                         _dataStorage.RequestHistoricalData(request);
@@ -439,8 +437,8 @@ namespace QDMSServer
                 }
 
                 //we have no data available at all, send off the request as it is
-                if (localDataInfo == null || 
-                    (request.Instrument.IsContinuousFuture && 
+                if (localDataInfo == null ||
+                    (request.Instrument.IsContinuousFuture &&
                         request.Instrument.ContinuousFuture.AdjustmentMode != ContinuousFuturesAdjustmentMode.NoAdjustment))
                 {
                     //if the instruemnt is a continuous future and it has ratio or difference adjustment mode
@@ -467,7 +465,7 @@ namespace QDMSServer
                     HistoricalDataRequest newForwardRequest = null;
                     if (localDataInfo.LatestDate < request.EndingDate)
                     {
-                        //the local storage is insufficient, so we save the original request, make a copy, 
+                        //the local storage is insufficient, so we save the original request, make a copy,
                         //modify it, and pass it to the external data source
                         newForwardRequest = (HistoricalDataRequest)request.Clone();
                         newForwardRequest.StartingDate = localDataInfo.LatestDate.AddMilliseconds(request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
@@ -488,7 +486,7 @@ namespace QDMSServer
                 }
             }
         }
-        
+
         //Sends off a historical data reques to the datasource that needs to fulfill it
         private void ForwardHistoricalRequest(HistoricalDataRequest request)
         {
@@ -571,7 +569,6 @@ namespace QDMSServer
             Log(LogLevel.Info, string.Format("Received local data storage info request for {0}.",
                 instrument.Symbol));
 
-
             //and send the reply
             lock (_localStorageLock)
             {
@@ -596,7 +593,7 @@ namespace QDMSServer
         /// <summary>
         /// This is called when a new historical data request or data push request is made.
         /// </summary>
-        void socket_ReceiveReady(object sender, SocketEventArgs e)
+        private void socket_ReceiveReady(object sender, SocketEventArgs e)
         {
             //Here we process the first two message parts: first, the identity string of the client
             string requesterIdentity = e.Socket.Receive(Encoding.UTF8);

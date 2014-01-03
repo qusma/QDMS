@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-// This class gets requests for the instruments we have in our metadata db: 
+// This class gets requests for the instruments we have in our metadata db:
 // either a list of all of them, or a search for a specific instrument.
 // It also receives requests to add new instruments.
 // Works simply in a loop with a REP socket, and no asynchronous operations.
@@ -19,7 +19,6 @@ using LZ4;
 using NLog;
 using QDMS;
 using ZeroMQ;
-
 
 namespace QDMSServer
 {
@@ -72,7 +71,7 @@ namespace QDMSServer
 
             _runServer = true;
             _context = ZmqContext.Create();
-            _serverThread = new Thread(ContractServer) {Name = "Instrument Server Loop"};
+            _serverThread = new Thread(ContractServer) { Name = "Instrument Server Loop" };
             _serverThread.Start();
         }
 
@@ -100,8 +99,8 @@ namespace QDMSServer
             while (_runServer)
             {
                 string request = _socket.Receive(Encoding.UTF8, timeout);
-                if(request == null) continue;
-                
+                if (request == null) continue;
+
                 //if the request is for a search, receive the instrument w/ the search parameters and pass it to the searcher
                 if (request == "SEARCH" && _socket.ReceiveMore)
                 {
