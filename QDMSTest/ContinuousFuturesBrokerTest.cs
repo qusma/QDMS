@@ -1796,7 +1796,120 @@ namespace QDMSTest
         [Test]
         public void FindFrontContractFindsCorrectContractNMonthsBack()
         {
-            Assert.IsTrue(false);
+            List<Instrument> contracts = ContinuousFuturesBrokerTestData.GetVIXFutures();
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x
+                .FindInstruments(null, null, It.IsAny<Func<Instrument, bool>>()))
+                .Returns(
+                    (MyDBContext a, Instrument b, Func<Instrument, bool> y) => contracts.Where(y).ToList()
+                );
+
+            _cfInst.ContinuousFuture.RolloverDays = 1;
+
+            var expectedExpirationMonths = new Dictionary<DateTime, int?>
+            {
+                { new DateTime(2012, 11,20), 1 },
+                { new DateTime(2012, 11,21), 1 },
+                { new DateTime(2012, 11,23), 1 },
+                { new DateTime(2012, 11,26), 1 },
+                { new DateTime(2012, 11,27), 1 },
+                { new DateTime(2012, 11,28), 1 },
+                { new DateTime(2012, 11,29), 1 },
+                { new DateTime(2012, 11,30), 1 },
+                { new DateTime(2012, 12,3), 1 },
+                { new DateTime(2012, 12,4), 1 },
+                { new DateTime(2012, 12,5), 1 },
+                { new DateTime(2012, 12,6), 1 },
+                { new DateTime(2012, 12,7), 1 },
+                { new DateTime(2012, 12,10), 1 },
+                { new DateTime(2012, 12,11), 1 },
+                { new DateTime(2012, 12,12), 1 },
+                { new DateTime(2012, 12,13), 1 },
+                { new DateTime(2012, 12,14), 1 },
+                { new DateTime(2012, 12,17), 1 },
+                { new DateTime(2012, 12,18), 2 },
+                { new DateTime(2012, 12,19), 2 },
+                { new DateTime(2012, 12,20), 2 },
+                { new DateTime(2012, 12,21), 2 },
+                { new DateTime(2012, 12,24), 2 },
+                { new DateTime(2012, 12,26), 2 },
+                { new DateTime(2012, 12,27), 2 },
+                { new DateTime(2012, 12,28), 2 },
+                { new DateTime(2012, 12,31), 2 },
+                { new DateTime(2013, 1,2), 2 },
+                { new DateTime(2013, 1,3), 2 },
+                { new DateTime(2013, 1,4), 2 },
+                { new DateTime(2013, 1,7), 2 },
+                { new DateTime(2013, 1,8), 2 },
+                { new DateTime(2013, 1,9), 2 },
+                { new DateTime(2013, 1,10), 2 },
+                { new DateTime(2013, 1,11), 2 },
+                { new DateTime(2013, 1,14), 2 },
+                { new DateTime(2013, 1,15), 3 },
+                { new DateTime(2013, 1,16), 3 },
+                { new DateTime(2013, 1,17), 3 },
+                { new DateTime(2013, 1,18), 3 },
+                { new DateTime(2013, 1,22), 3 },
+                { new DateTime(2013, 1,23), 3 },
+                { new DateTime(2013, 1,24), 3 },
+                { new DateTime(2013, 1,25), 3 },
+                { new DateTime(2013, 1,28), 3 },
+                { new DateTime(2013, 1,29), 3 },
+                { new DateTime(2013, 1,30), 3 },
+                { new DateTime(2013, 1,31), 3 },
+                { new DateTime(2013, 2,1), 3 },
+                { new DateTime(2013, 2,4), 3 },
+                { new DateTime(2013, 2,5), 3 },
+                { new DateTime(2013, 2,6), 3 },
+                { new DateTime(2013, 2,7), 3 },
+                { new DateTime(2013, 2,8), 3 },
+                { new DateTime(2013, 2,11), 3 },
+                { new DateTime(2013, 2,12), null },
+                { new DateTime(2013, 2,13), null },
+                { new DateTime(2013, 2,14), null },
+                { new DateTime(2013, 2,15), null },
+                { new DateTime(2013, 2,19), null },
+                { new DateTime(2013, 2,20), null },
+                { new DateTime(2013, 2,21), null },
+                { new DateTime(2013, 2,22), null },
+                { new DateTime(2013, 2,25), null },
+                { new DateTime(2013, 2,26), null },
+                { new DateTime(2013, 2,27), null },
+                { new DateTime(2013, 2,28), null },
+                { new DateTime(2013, 3,1), null },
+                { new DateTime(2013, 3,4), null },
+                { new DateTime(2013, 3,5), null },
+                { new DateTime(2013, 3,6), null },
+                { new DateTime(2013, 3,7), null },
+                { new DateTime(2013, 3,8), null },
+                { new DateTime(2013, 3,11), null },
+                { new DateTime(2013, 3,12), null },
+                { new DateTime(2013, 3,13), null }
+            };
+
+            Dictionary<DateTime, int?> returnedExpirationMonths = new Dictionary<DateTime, int?>();
+
+            //hook up the event to add the expiration month
+            _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths.Add(e.Date, e.Instrument == null ? null : (int?)e.Instrument.Expiration.Value.Month);
+
+            _cfInst.ContinuousFuture.Month = 2;
+
+            //make the request
+            foreach (DateTime dt in expectedExpirationMonths.Keys)
+            {
+                _broker.RequestFrontContract(_cfInst, dt);
+            }
+
+            Thread.Sleep(1000);
+
+            Assert.AreEqual(expectedExpirationMonths.Count, returnedExpirationMonths.Count);
+
+            foreach (var kvp in expectedExpirationMonths)
+            {
+                var month = kvp.Value;
+                Assert.AreEqual(month, returnedExpirationMonths[kvp.Key], kvp.Key.ToString());
+            }
         }
 
         [Test]
