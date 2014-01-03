@@ -167,6 +167,7 @@
     <Compile Include="RealTimeDataBroker.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Tick.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
