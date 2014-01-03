@@ -21,7 +21,7 @@ using QDMS;
 
 namespace QDMSServer.DataSources
 {
-    class IB : IHistoricalDataSource, IRealTimeDataSource
+    internal class IB : IHistoricalDataSource, IRealTimeDataSource
     {
         private readonly IBClient _client;
         private readonly Dictionary<int, RealTimeDataRequest> _realTimeDataRequests;
@@ -34,9 +34,11 @@ namespace QDMSServer.DataSources
         private readonly Timer _requestRepeatTimer;
         private int _requestCounter;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        public string Name { get; private set; }
+
         private readonly int _clientID;
         private readonly object _queueLock = new object();
+
+        public string Name { get; private set; }
 
         public bool Connected { get { return _client.Connected; } }
 
@@ -58,7 +60,7 @@ namespace QDMSServer.DataSources
 
             _requestRepeatTimer = new Timer(20000); //we wait 20 seconds to repeat failed requests
             _requestRepeatTimer.Elapsed += ReSendRequests;
-            
+
             _requestCounter = 1;
 
             _client = new IBClient();
@@ -71,13 +73,13 @@ namespace QDMSServer.DataSources
         /// <summary>
         /// This event is raised when historical data arrives from TWS
         /// </summary>
-        void _client_HistoricalData(object sender, Krs.Ats.IBNet.HistoricalDataEventArgs e)
+        private void _client_HistoricalData(object sender, Krs.Ats.IBNet.HistoricalDataEventArgs e)
         {
             //convert the bar and add it to the Dictionary of arrived data
 
             var bar = TWSUtils.HistoricalDataEventArgsToOHLCBar(e);
             var request = _historicalDataRequests[e.RequestId];
-            
+
             //One day or lower frequency means we don't get time data.
             //Instead we provide our own by using that day's session end...
             //perhaps this should be moved to the HistoricalDataBroker instead?
@@ -128,7 +130,6 @@ namespace QDMSServer.DataSources
             var removed = _arrivedHistoricalData.TryRemove(requestID, out bars);
             if (!removed) return;
 
-
             RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
                 _historicalDataRequests[requestID],
                 bars.Where(x => x.DT.Date >= cutoffDate).ToList()));
@@ -136,7 +137,7 @@ namespace QDMSServer.DataSources
 
         //This event is raised when real time data arrives
         //We convert them and pass them on downstream
-        void _client_RealTimeBar(object sender, RealTimeBarEventArgs e)
+        private void _client_RealTimeBar(object sender, RealTimeBarEventArgs e)
         {
             RealTimeDataEventArgs args = TWSUtils.RealTimeDataEventArgsConverter(e);
             args.Symbol = _realTimeDataRequests[e.RequestId].Instrument.Symbol;
@@ -144,7 +145,7 @@ namespace QDMSServer.DataSources
         }
 
         //This event is raised when the connection to TWS client closed.
-        void _client_ConnectionClosed(object sender, ConnectionClosedEventArgs e)
+        private void _client_ConnectionClosed(object sender, ConnectionClosedEventArgs e)
         {
             RaiseEvent(Disconnected, this, new DataSourceDisconnectEventArgs(Name, ""));
         }
@@ -153,7 +154,7 @@ namespace QDMSServer.DataSources
         /// This event is raised in the case of some error
         /// This includes pacing violations, in which case we re-enqueue the request.
         /// </summary>
-        void _client_Error(object sender, ErrorEventArgs e)
+        private void _client_Error(object sender, ErrorEventArgs e)
         {
             //if we asked for too much real time data at once, we need to re-queue the failed request
             if ((int)e.ErrorCode == 420) //a real time pacing violation
@@ -163,7 +164,7 @@ namespace QDMSServer.DataSources
                     if (!_realTimeRequestQueue.Contains(e.TickerId))
                     {
                         //since the request did not succeed, what we do is re-queue it and it gets requested again by the timer
-                        _realTimeRequestQueue.Enqueue(e.TickerId); 
+                        _realTimeRequestQueue.Enqueue(e.TickerId);
                     }
                 }
             }
@@ -197,13 +198,12 @@ namespace QDMSServer.DataSources
                 HistoricalDataRequestComplete(e.TickerId);
             }
 
-
             //different messages depending on the type of request
             var errorArgs = TWSUtils.ConvertErrorArguments(e);
             HistoricalDataRequest histReq;
             RealTimeDataRequest rtReq;
             var isHistorical = _historicalDataRequests.TryGetValue(e.TickerId, out histReq);
-            if(isHistorical)
+            if (isHistorical)
             {
                 errorArgs.ErrorMessage += string.Format(" Historical Req: {0} @ {1} From {2} To {3} - ID {4}",
                     histReq.Instrument.Symbol,
@@ -218,8 +218,6 @@ namespace QDMSServer.DataSources
                     rtReq.Instrument.Symbol,
                     rtReq.Frequency);
             }
-            
-            
 
             RaiseEvent(Error, this, errorArgs);
         }
@@ -278,9 +276,9 @@ namespace QDMSServer.DataSources
             Contract contract = TWSUtils.InstrumentToContract(request.Instrument);
 
             _client.RequestRealTimeBars(
-                _requestCounter, 
-                contract, 
-                (int)TWSUtils.BarSizeConverter(request.Frequency), 
+                _requestCounter,
+                contract,
+                (int)TWSUtils.BarSizeConverter(request.Frequency),
                 RealTimeBarType.Trades, request.RTHOnly);
             return _requestCounter;
         }
@@ -290,7 +288,6 @@ namespace QDMSServer.DataSources
             _client.CancelRealTimeBars(requestID);
         }
 
-        
         /// <summary>
         /// This event is raised when the _requestRepeatTimer period elapses.
         /// It repeats failed requests for historical or real time data
@@ -338,7 +335,6 @@ namespace QDMSServer.DataSources
             _client.Dispose();
         }
 
-
         ///<summary>
         /// Raise the event in a threadsafe manner
         ///</summary>
@@ -355,8 +351,11 @@ namespace QDMSServer.DataSources
         }
 
         public event EventHandler<RealTimeDataEventArgs> DataReceived;
+
         public event EventHandler<ErrorArgs> Error;
+
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+
         public event EventHandler<QDMS.HistoricalDataEventArgs> HistoricalDataArrived;
     }
 }
