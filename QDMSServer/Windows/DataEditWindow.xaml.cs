@@ -90,7 +90,7 @@ namespace QDMSServer
                     }
                     else if (TimezoneComboBox.Text == "Local")
                     {
-                        b.DT = TimeZoneInfo.ConvertTime(b.DT, TimeZoneInfo.Local, tzInfo);
+                        b.DT = TimeZoneInfo.ConvertTime(b.DT, _tzInfo, TimeZoneInfo.Local);
                     }
                     Data.Add(b);
                 }
