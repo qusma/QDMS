@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using QDMS;
 
@@ -70,6 +71,21 @@ namespace QDMSTest
         {
             var data = new List<int> { 5, 6, 4, 1, 2, 5, 6, 5, 6, 9, 0, 0, 5, 6, 0, 3, 4, 7, 8 };
             Assert.AreEqual(5, data.MostFrequent());
+        }
+
+        [Test]
+        public void DistinctReturnsDistinctValues()
+        {
+            var data = new List<int> { 5, 6, 6, 5, 4, 1, 2};
+            data = data.Distinct((x, y) => x == y).ToList();
+
+            var targetData = new List<int> { 5, 6, 4, 1, 2 };
+
+            Assert.AreEqual(targetData.Count, data.Count);
+            for (int i = 0; i < targetData.Count; i++)
+            {
+                Assert.AreEqual(targetData[i], data[i]);
+            }
         }
     }
 }
