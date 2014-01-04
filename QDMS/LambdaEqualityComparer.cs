@@ -14,7 +14,13 @@ namespace QDMS
         private readonly Func<T, T, bool> _equalityFunc;
         private readonly Func<T, int> _hashFunc;
 
-        public LambdaEqualityComparer(Func<T, T, bool> equalityFunc) : this(equalityFunc, (obj) => 0)
+        public LambdaEqualityComparer(Func<T, T, bool> equalityFunc) 
+            : this(equalityFunc, (obj) => 0)
+        {
+        }
+
+        public LambdaEqualityComparer(Func<T, int> hashFunc)
+            : this((x, y) => true, hashFunc)
         {
         }
 
