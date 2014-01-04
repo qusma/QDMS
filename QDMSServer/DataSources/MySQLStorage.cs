@@ -501,7 +501,7 @@ namespace QDMSServer.DataSources
             {
                 cmd.CommandText = string.Format("SELECT * FROM instrumentinfo WHERE InstrumentID = {0} AND Frequency = {1}",
                     instrumentID,
-                    frequency);
+                    (int)frequency);
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
