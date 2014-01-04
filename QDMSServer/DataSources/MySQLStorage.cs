@@ -406,7 +406,9 @@ namespace QDMSServer.DataSources
                     cmd.CommandText += string.Format("DELETE FROM data WHERE InstrumentID = {0} AND Frequency = {1} AND DT = '{2}';", 
                         instrument.ID, 
                         (int)frequency,
-                        bars[i].DT.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                        frequency < BarSize.OneDay 
+                        ? bars[i].DT.ToString("yyyy-MM-dd HH:mm:ss.fff")
+                        : bars[i].DT.ToString("yyyy-MM-dd")); //for frequencies greater than a day, we don't care about time
                 }
                 cmd.CommandText += "COMMIT;";
                 cmd.ExecuteNonQuery();
