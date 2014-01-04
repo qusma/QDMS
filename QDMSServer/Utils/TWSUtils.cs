@@ -94,7 +94,24 @@ namespace QDMSServer
                 }
             }
 
-            return Math.Ceiling(t.TotalSeconds).ToString("0") + " S";
+            if (t.TotalSeconds > 86400)
+            {
+                if (t.TotalDays > 14)
+                {
+                    //This is a ridiculous hack made necessary by the incredibly bad TWS API
+                    //For longer periods, if we specify the period as a # of days, the request is rejected!
+                    //so instead we do it as the number of weeks and everything is A-OK
+                    return Math.Ceiling(t.TotalDays / 7).ToString("0") + " W";
+                }
+                else
+                {
+                    return Math.Ceiling(t.TotalDays).ToString("0") + " D";
+                }
+            }
+            else
+            {
+                return Math.Ceiling(t.TotalSeconds).ToString("0") + " S";
+            }
         }
 
         public static Krs.Ats.IBNet.BarSize BarSizeConverter(QDMS.BarSize freq)
