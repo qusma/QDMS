@@ -28,6 +28,8 @@ namespace QDMSServer
         public DateTime EndTime { get; set; }
 
         private BarSize _loadedFrequency;
+        private string _loadedTimeZone;
+        private TimeZoneInfo _tzInfo;
 
         public DataEditWindow(Instrument instrument)
         {
@@ -43,6 +45,8 @@ namespace QDMSServer
                 context.Entry(instrument).Reload();
                 TheInstrument = instrument;
             }
+
+            _tzInfo = TimeZoneInfo.FindSystemTimeZoneById(TheInstrument.Exchange.Timezone);
 
             StartTime = new DateTime(1950, 1, 1, 0, 0, 0, 0);
             EndTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0, 0);
@@ -79,14 +83,14 @@ namespace QDMSServer
             //grab the data
             using (var localStorage = new MySQLStorage())
             {
-                var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(TheInstrument.Exchange.Timezone);
+                
                 var bars = localStorage.GetData(TheInstrument, StartTime, EndTime, (BarSize)ResolutionComboBox.SelectedItem);
                 foreach (OHLCBar b in bars)
                 {
                     //do any required time zone coversions
                     if (TimezoneComboBox.Text == "UTC")
                     {
-                        b.DT = TimeZoneInfo.ConvertTimeToUtc(b.DT, tzInfo);
+                        b.DT = TimeZoneInfo.ConvertTimeToUtc(b.DT, _tzInfo);
                     }
                     else if (TimezoneComboBox.Text == "Local")
                     {
@@ -95,6 +99,7 @@ namespace QDMSServer
                     Data.Add(b);
                 }
                 _loadedFrequency = (BarSize)ResolutionComboBox.SelectedItem;
+                _loadedTimeZone = TimezoneComboBox.Text;
             }
 
             StatusLabel.Content = string.Format("Loaded {0} Bars", Data.Count);
@@ -110,6 +115,21 @@ namespace QDMSServer
             if (result == MessageBoxResult.No) return;
 
             var toDelete = rows.Cast<OHLCBar>().ToList();
+
+            //data is stored in the db at exchange time. But we may have loaded it at UTC or local.
+            //If so, we must convert it back.
+            foreach (OHLCBar b in toDelete)
+            {
+                if (_loadedTimeZone == "UTC")
+                {
+                    b.DT = TimeZoneInfo.ConvertTimeFromUtc(b.DT, _tzInfo);
+                }
+                else if (_loadedTimeZone == "Local")
+                {
+                    b.DT = TimeZoneInfo.ConvertTime(b.DT, TimeZoneInfo.Local, _tzInfo);
+                }
+            }
+            
 
             using (var localStorage = new MySQLStorage())
             {
