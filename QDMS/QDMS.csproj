@@ -64,6 +64,7 @@
     <Compile Include="EventArguments\FoundFrontContractEventArgs.cs" />
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
     <Compile Include="Interfaces\IDataClient.cs" />
+    <Compile Include="LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />
     <Compile Include="EntityModels\ContinuousFuture.cs" />
     <Compile Include="EntityModels\Datasource.cs" />
