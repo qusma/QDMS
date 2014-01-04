@@ -73,6 +73,14 @@ namespace QDMS
         }
 
         /// <summary>
+        /// Returns distinct values in an IEnumerable based on a lamdba expression that generates object hashes.
+        /// </summary>
+        public static IEnumerable<T> Distinct<T>(this IEnumerable<T> values, Func<T, int> lamdbaExpression)
+        {
+            return values.Distinct(new LambdaEqualityComparer<T>(lamdbaExpression));
+        }
+
+        /// <summary>
         /// Returns the element that occurs most frequently in this collection.
         /// </summary>
         public static T MostFrequent<T>(this IEnumerable<T> data)

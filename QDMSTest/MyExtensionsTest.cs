@@ -89,7 +89,7 @@ namespace QDMSTest
         }
 
         [Test]
-        public void DistinctReturnsDistinctValuesWhenUsedWithObjects()
+        public void DistinctReturnsDistinctValuesWhenUsedWithObjectsUsingComparisonExpression()
         {
             var data = new List<OHLCBar>
             {
@@ -100,6 +100,21 @@ namespace QDMSTest
             };
 
             data = data.Distinct((x, y) => x.DT == y.DT).ToList();
+            Assert.AreEqual(2, data.Count);
+        }
+
+        [Test]
+        public void DistinctReturnsDistinctValuesWhenUsedWithObjectsUsingHashExpression()
+        {
+            var data = new List<OHLCBar>
+            {
+                new OHLCBar {DT = new DateTime(2000, 1, 1), Open = 100, High = 105, Low = 95, Close = 100},
+                new OHLCBar {DT = new DateTime(2000, 1, 2), Open = 99, High = 107, Low = 90, Close = 99},
+                new OHLCBar {DT = new DateTime(2000, 1, 1), Open = 100, High = 105, Low = 95, Close = 100},
+                new OHLCBar {DT = new DateTime(2000, 1, 2), Open = 99, High = 107, Low = 90, Close = 99},
+            };
+
+            data = data.Distinct(x => x.DT.GetHashCode()).ToList();
             Assert.AreEqual(2, data.Count);
         }
     }
