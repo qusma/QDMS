@@ -41,7 +41,7 @@
 
         <Button x:Name="LoadDataBtn" Click="LoadDataBtn_Click" Content="Load" Grid.Column="1" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
         <DataGrid x:Name="DataGrid" ItemsSource="{Binding Data}" Grid.Column="0" AutoGenerateColumns="False"  IsReadOnly="False"  RowStyle="{DynamicResource DataGridRowStyle}"
-                  HorizontalAlignment="Stretch" Margin="10" Grid.Row="2" VerticalAlignment="Stretch">
+                  HorizontalAlignment="Stretch" Margin="10" Grid.Row="2" VerticalAlignment="Stretch" CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Path=DT, StringFormat={}{0:yyyy-MM-dd}}" IsReadOnly="True" />
                 <DataGridTextColumn Header="Time" Binding="{Binding Path=DT, StringFormat={}{0:HH:mm:ss.fff}}" IsReadOnly="True" />
