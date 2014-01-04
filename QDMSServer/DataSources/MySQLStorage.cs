@@ -239,7 +239,7 @@ namespace QDMSServer.DataSources
                                        bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
                                        bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
                                        bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
-                                       overwrite ? "REPLACE" : "INSERT"
+                                       overwrite ? "REPLACE" : "INSERT IGNORE"
                                        );
 
                     if (!needsAdjustment && (data[i].Dividend.HasValue || data[i].Split.HasValue))
@@ -257,10 +257,8 @@ namespace QDMSServer.DataSources
                         }
                         catch (Exception ex)
                         {
-                            //no need to log duplicate key errors if we're not overwriting, it's by design.
-                            if (!ex.Message.Contains("Duplicate"))
-                                Application.Current.Dispatcher.Invoke(() =>
-                                    _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
+                            Application.Current.Dispatcher.Invoke(() =>
+                                _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
                         }
                         cmd.CommandText = "START TRANSACTION;";
                         tmpCounter = 0;
