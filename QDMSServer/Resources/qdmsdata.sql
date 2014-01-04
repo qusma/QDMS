@@ -57,7 +57,7 @@ CREATE TABLE `instrumentinfo` (
   `SourceDataFrequency` int(11) NOT NULL,
   `EarliestAvailableDT` datetime(3) DEFAULT NULL,
   `LatestAvailableDT` datetime(3) DEFAULT NULL,
-  PRIMARY KEY (`InstrumentID`)
+  PRIMARY KEY (`InstrumentID`,`Frequency`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
