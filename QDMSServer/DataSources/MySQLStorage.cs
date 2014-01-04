@@ -487,8 +487,6 @@ namespace QDMSServer.DataSources
         /// <summary>
         /// Gets the range of dates for which data is available for the specified instrument, at the specified frequency.
         /// </summary>
-        /// <param name="instrumentID"></param>
-        /// <param name="frequency"></param>
         /// <returns>Null if no match was found. A SotredDataInfo otherwise.</returns>
         public StoredDataInfo GetStorageInfo(int instrumentID, BarSize frequency)
         {
@@ -501,7 +499,9 @@ namespace QDMSServer.DataSources
 
             using (var cmd = new MySqlCommand("", connection))
             {
-                cmd.CommandText = "SELECT * FROM instrumentinfo WHERE InstrumentID = " + instrumentID;
+                cmd.CommandText = string.Format("SELECT * FROM instrumentinfo WHERE InstrumentID = {0} AND Frequency = {1}",
+                    instrumentID,
+                    frequency);
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
