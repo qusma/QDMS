@@ -31,16 +31,25 @@ namespace QDMSServer
 
             if(periodSeconds / freqSeconds > 2000) return false;
 
-            if (request.Frequency <= QDMS.BarSize.OneSecond && periodSeconds > 1800) return false;
-            if (request.Frequency <= QDMS.BarSize.FiveSeconds && periodSeconds > 7200) return false;
-            if (request.Frequency <= QDMS.BarSize.FifteenSeconds && periodSeconds > 14400) return false;
-            if (request.Frequency <= QDMS.BarSize.ThirtySeconds && periodSeconds > 24 * 3600) return false;
-            if (request.Frequency <= QDMS.BarSize.OneMinute && periodSeconds > 2 * 24 * 3600) return false;
-            if (request.Frequency <= QDMS.BarSize.ThirtyMinutes && periodSeconds > 7 * 24 * 3600) return false;
-            if (request.Frequency <= QDMS.BarSize.OneHour && periodSeconds > 29 * 24 * 3600) return false;
-            if (periodSeconds > 365 * 24 * 3600) return false;
+            return periodSeconds < MaxRequestLength(request.Frequency);
+        }
 
-            return true;
+        /// <summary>
+        /// Returns the maximum period length of a historical data request, in seconds, depending on the data frequency.
+        /// </summary>
+        /// <param name="frequency"></param>
+        /// <returns>Maximum allowed length in </returns>
+        public static int MaxRequestLength(QDMS.BarSize frequency)
+        {
+            //The limitations are laid out here: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
+            if (frequency <= QDMS.BarSize.OneSecond)      return 1800;
+            if (frequency <= QDMS.BarSize.FiveSeconds)    return 7200;
+            if (frequency <= QDMS.BarSize.FifteenSeconds) return 14400;
+            if (frequency <= QDMS.BarSize.ThirtySeconds)  return 24 * 3600;
+            if (frequency <= QDMS.BarSize.OneMinute)      return 2 * 24 * 3600;
+            if (frequency <= QDMS.BarSize.ThirtyMinutes)  return 7 * 24 * 3600;
+            if (frequency <= QDMS.BarSize.OneHour)        return 29 * 24 * 3600;
+            return 365 * 24 * 3600;
         }
 
         public static OHLCBar HistoricalDataEventArgsToOHLCBar(Krs.Ats.IBNet.HistoricalDataEventArgs e)
