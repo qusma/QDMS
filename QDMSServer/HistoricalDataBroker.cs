@@ -136,7 +136,7 @@ namespace QDMSServer
         /// </summary>
         private void SourceDisconnects(object sender, DataSourceDisconnectEventArgs e)
         {
-            Log(LogLevel.Info, string.Format("Real Time Data Broker: Data source {0} disconnected", e.SourceName));
+            Log(LogLevel.Info, string.Format("Historical Data Broker: Data source {0} disconnected", e.SourceName));
         }
 
         /// <summary>
