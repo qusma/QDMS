@@ -16,6 +16,5 @@ namespace QDMSServer.DataSources
 {
     public class TickStorage
     {
-        //TODO need a set of interfaces for tick...historical/realtime/storage
     }
 }

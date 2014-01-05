@@ -4,7 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-//TODO upload excel file used to generate target prices somewhere and add a link to it here.
+// The spreadsheet used to generate the test values can be found here: 
+// https://docs.google.com/spreadsheet/ccc?key=0Ar6kbZGbHAQmdGZFRGR0SDV3dEdpT0dqaXhrSm10UVE&usp=sharing
 
 using System;
 using System.Collections.Generic;
