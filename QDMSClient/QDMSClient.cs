@@ -252,58 +252,68 @@ namespace QDMSClient
         }
 
         /// <summary>
-        /// Process replies on the request socket.
-        /// Heartbeats, errors, and subscribing to real time data streams.
+        /// Poll for replies on the request socket.
         /// </summary>
         private void RequestRepliesThread()
         {
             var timeout = TimeSpan.FromMilliseconds(10);
-
-            string reply;
-            while (_running)
+            _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
+            using (var poller = new Poller(new[] { _reqSocket }))
             {
-                //wait for reply to see what happened
-                lock (_reqSocketLock)
+                while (_running)
                 {
-                    reply = _reqSocket.Receive(Encoding.UTF8, timeout); //will be an empty string if there is a message
+                    poller.Poll(timeout);
+                }
+            }
+        }
 
-                    if (reply == null)
-                    {
-                        continue;
-                    }
+        /// <summary>
+        /// Process replies on the request socket.
+        /// Heartbeats, errors, and subscribing to real time data streams.
+        /// </summary>
+        void _reqSocket_ReceiveReady(object sender, SocketEventArgs e)
+        {
+            var timeout = TimeSpan.FromMilliseconds(10);
+            string reply;
 
-                    reply = _reqSocket.Receive(Encoding.UTF8, timeout);
+            //wait for reply to see what happened
+            lock (_reqSocketLock)
+            {
+                reply = _reqSocket.Receive(Encoding.UTF8, timeout); //will be an empty string if there is a message
 
-                    switch (reply)
-                    {
-                        case "PONG": //reply to heartbeat message
-                            _lastHeartBeat = DateTime.Now;
-                            break;
+                if (reply == null) return;
 
-                        case "ERROR": //something went wrong
-                            {
-                                string error = _reqSocket.Receive(Encoding.UTF8);
-                                RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error));
-                                return;
-                            }
-                        case "SUCCESS": //successful request to start a new real time data stream
-                            {
-                                //also receive the symbol
-                                string symbol = _reqSocket.Receive(Encoding.UTF8);
-                                //request worked, so we subscribe to the stream
-                                _subSocket.Subscribe(Encoding.UTF8.GetBytes(symbol));
-                            }
-                            break;
+                reply = _reqSocket.Receive(Encoding.UTF8, timeout);
 
-                        case "CANCELED": //successful cancelation of a real time data stream
-                            {
-                                //also receive the symbol
-                                string symbol = _reqSocket.Receive(Encoding.UTF8);
+                switch (reply)
+                {
+                    case "PONG": //reply to heartbeat message
+                        _lastHeartBeat = DateTime.Now;
+                        break;
 
-                                //nothing to do?
-                            }
-                            break;
-                    }
+                    case "ERROR": //something went wrong
+                        {
+                            string error = _reqSocket.Receive(Encoding.UTF8);
+                            RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error));
+                            return;
+                        }
+                    case "SUCCESS": //successful request to start a new real time data stream
+                        {
+                            //also receive the symbol
+                            string symbol = _reqSocket.Receive(Encoding.UTF8);
+                            //request worked, so we subscribe to the stream
+                            _subSocket.Subscribe(Encoding.UTF8.GetBytes(symbol));
+                        }
+                        break;
+
+                    case "CANCELED": //successful cancelation of a real time data stream
+                        {
+                            //also receive the symbol
+                            string symbol = _reqSocket.Receive(Encoding.UTF8);
+
+                            //nothing to do?
+                        }
+                        break;
                 }
             }
         }
