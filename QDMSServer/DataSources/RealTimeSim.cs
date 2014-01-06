@@ -84,7 +84,7 @@ namespace QDMSServer.DataSources
                 double open = _rand.NextDouble() * 50 + 20;
                 double high = open + _rand.NextDouble();
                 double low = open - _rand.NextDouble();
-                double close = (high - low) * _rand.NextDouble();
+                double close = low + (high - low) * _rand.NextDouble();
                 RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
                     s, 
                     MyUtils.ConvertToTimestamp(DateTime.Now), 
