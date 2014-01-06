@@ -115,6 +115,10 @@ namespace QDMSClient
             _subSocket.Identity = Encoding.UTF8.GetBytes(clientName);
             _dealerSocket.Identity = Encoding.UTF8.GetBytes(clientName);
 
+            _dealerSocket.ReceiveReady += _dealerSocket_ReceiveReady;
+            _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
+            _subSocket.ReceiveReady += _subSocket_ReceiveReady;
+
             _heartBeatTimer = new Timer(1000);
             _heartBeatTimer.Elapsed += _timer_Elapsed;
             _host = host;
@@ -257,7 +261,7 @@ namespace QDMSClient
         private void RequestRepliesThread()
         {
             var timeout = TimeSpan.FromMilliseconds(10);
-            _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
+            
             using (var poller = new Poller(new[] { _reqSocket }))
             {
                 while (_running)
@@ -342,7 +346,7 @@ namespace QDMSClient
         {
             var timeout = TimeSpan.FromMilliseconds(5);
             _dealerSocket.Identity = Encoding.Unicode.GetBytes(_name);
-            _dealerSocket.ReceiveReady += _dealerSocket_ReceiveReady;
+            
             using (var poller = new Poller(new[] { _dealerSocket }))
             {
                 var ms = new MemoryStream();
@@ -376,18 +380,26 @@ namespace QDMSClient
         private void RealTimeDataReceiveLoop()
         {
             var timeout = TimeSpan.FromMilliseconds(1);
-            var ms = new MemoryStream();
-            while (_running)
-            {
-                int size;
-                byte[] symbol = _subSocket.Receive(null, timeout, out size);
 
-                if (size > 0)
+            using (var poller = new Poller(new[] { _subSocket }))
+            {
+                while (_running)
                 {
-                    byte[] buffer = _subSocket.Receive(null, out size);
-                    var bar = MyUtils.ProtoBufDeserialize<RealTimeDataEventArgs>(buffer, ms);
-                    RaiseEvent(RealTimeDataReceived, null, bar);
+                    poller.Poll(timeout);
                 }
+            }
+        }
+
+        void _subSocket_ReceiveReady(object sender, SocketEventArgs e)
+        {
+            int size;
+            byte[] symbol = _subSocket.Receive(null, out size);
+
+            if (size > 0)
+            {
+                byte[] buffer = _subSocket.Receive(null, out size);
+                var bar = MyUtils.ProtoBufDeserialize<RealTimeDataEventArgs>(buffer, new MemoryStream());
+                RaiseEvent(RealTimeDataReceived, null, bar);
             }
         }
 
