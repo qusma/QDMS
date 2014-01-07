@@ -1,14 +1,22 @@
-The QUSMA Data Management System (QDMS) is an application for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
+The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
-QDMS uses a client/server model. The server acts as a broker between clients and external data sources. It also manages metadata on instruments and local storage of historical data. It can construct continuous futures data. Finally it also functions as a UI for managing the metadata & data, as well as importing/exporting data from and to CSV files. [Here's a rough view of how the systems are connected to each other](http://i.imgur.com/qUWlpj7.png).
+The server acts as a broker between clients and external data sources, as well as a local storage of historical data. The server UI allows its use without the need for a client application. [Here's a rough view of how the systems are connected to each other](http://i.imgur.com/qUWlpj7.png).
 
-A simple sample application showing usage of the client can be found in the SampleApp project.
+A client library is provided which can access the server either locally or over a network, to request data, metadata, etc. A simple sample application showing usage of the client can be found [here](https://github.com/qusma/qdms/blob/master/SampleApp/Program.cs).
 
 QDMS uses MySQL for storage, ZeroMQ and Protocol Buffers for client/server communications, MahApps.Metro for the interface, and ib-csharp to communicate with IB's TWS.
 
 If you wish to contribute, fork the repo and send a pull request with your changes.
 
 For bug reports, feature requests, and general discussion please use the [google group](https://groups.google.com/forum/#!forum/qusma-data-management-system).
+
+Features:
+------------------------
+* Manages metadata on stocks, options, futures, CFDs, etc.
+* Downloads historical and real time data from external data sources.
+* Local storage of historical data.
+* Constructs continuous futures data.
+* CSV import/export.
 
 Screenshots:
 ------------------------
