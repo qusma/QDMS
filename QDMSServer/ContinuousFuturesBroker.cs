@@ -15,7 +15,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
@@ -29,7 +28,7 @@ namespace QDMSServer
     public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource, IContinuousFuturesBroker
     {
         private IDataClient _client;
-        private IInstrumentSource _instrumentMgr;
+        private readonly IInstrumentSource _instrumentMgr;
 
         // Keeps track of how many historical data requests remain until we can calculate the continuous prices
         // Key: request ID, Value: number of requests outstanding
@@ -68,7 +67,9 @@ namespace QDMSServer
         private int _lastFrontDontractRequestID;
 
         //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
-        private Dictionary<int, List<OHLCBar>> _data;
+        //Key: a KVP where key: the instrument ID, and value: the data frequency
+        //Value: data
+        private readonly Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>> _data;
 
         public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null, string clientName = "")
         {
@@ -97,7 +98,7 @@ namespace QDMSServer
 
             _client.Connect();
 
-            _data = new Dictionary<int, List<OHLCBar>>();
+            _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();
             _requestCounts = new Dictionary<int, int>();
             _requests = new Dictionary<int, HistoricalDataRequest>();
@@ -129,11 +130,16 @@ namespace QDMSServer
         {
             if (e.Request.Instrument.ID == null) return;
             int id = e.Request.Instrument.ID.Value;
-            if (_data.ContainsKey(id))
+            var kvpID = new KeyValuePair<int, BarSize>(id, e.Request.Frequency);
+
+            if (_data.ContainsKey(kvpID))
             {
-                _data.Remove(id);
+                _data.Remove(kvpID);
             }
-            _data.Add(id, e.Data);
+            _data.Add(kvpID, e.Data);
+
+            //TODO here we can't just remove the previous data, we have to add the new one and then take distinct values
+            //TODO but that doesn't take into account frequency...fuck
 
             lock (_reqCountLock)
             {
@@ -333,7 +339,7 @@ namespace QDMSServer
             List<Instrument> futures = new List<Instrument>(_contracts[request.AssignedID]);
 
             //start by cleaning up the data, it is possible that some of the futures may not have had ANY data returned!
-            futures = futures.Where(x => _data[x.ID.Value].Count > 0).ToList();
+            futures = futures.Where(x => _data[new KeyValuePair<int, BarSize>(x.ID.Value, request.Frequency)].Count > 0).ToList();
 
             var cf = request.Instrument.ContinuousFuture;
 
@@ -345,10 +351,10 @@ namespace QDMSServer
             Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
             Instrument lastUsedSelectedFuture = selectedFuture;
 
-            TimeSeries frontData = new TimeSeries(_data[frontFuture.ID.Value]);
-            TimeSeries backData = new TimeSeries(_data[backFuture.ID.Value]);
-            TimeSeries selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
-
+            TimeSeries frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
+            TimeSeries backData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]);
+            TimeSeries selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+            
             //starting date: I think it's enough to start a few days before the expiration of the first future
             //as long as it's before the starting date?
             DateTime currentDate = frontData[0].DT;
@@ -481,9 +487,9 @@ namespace QDMSServer
                     if (frontFuture == null) break; //no other futures left, get out
                     if (selectedFuture == null) break;
 
-                    frontData = new TimeSeries(_data[frontFuture.ID.Value]);
-                    backData = backFuture != null ? new TimeSeries(_data[backFuture.ID.Value]) : null;
-                    selectedData = new TimeSeries(_data[selectedFuture.ID.Value]);
+                    frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
+                    backData = backFuture != null ? new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]) : null;
+                    selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
 
                     frontData.AdvanceTo(currentDate);
                     if (backData != null)
