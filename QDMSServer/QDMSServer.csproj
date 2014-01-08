@@ -155,6 +155,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Tick.cs" />
     <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\PriceAdjuster.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
     <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
