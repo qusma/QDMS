@@ -63,10 +63,11 @@
 
 
         <Button Click="DeleteBtn_Click" x:Name="DeleteBtn" Content="Delete" Grid.Column="1" HorizontalAlignment="Left" Margin="10,11,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
-        <Button Click="ExportBtn_Click" x:Name="ExportBtn" Content="Export..." Grid.Column="1" HorizontalAlignment="Left" Margin="10,87,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
+        <Button Click="ExportBtn_Click" x:Name="ExportBtn" Content="Export..." Grid.Column="1" HorizontalAlignment="Left" Margin="10,126,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
         <Button Click="CloseBtn_Click" x:Name="CloseBtn" Content="Close" Grid.Column="1" HorizontalAlignment="Left" Margin="10,0,0,10" Grid.Row="3" VerticalAlignment="Bottom" Width="75"/>
         <Label Grid.Column="0" Name="StatusLabel" Content="Ready" HorizontalAlignment="Left" Margin="10,12,0,0" Grid.Row="3" VerticalAlignment="Top"/>
-        <Button Click="SaveChangesBtn_Click" x:Name="SaveChangesBtn" Content="Save Changes" FontSize="8" Grid.Column="1" HorizontalAlignment="Left" Margin="10,41,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
+        <Button Click="SaveChangesBtn_Click" x:Name="SaveChangesBtn" Content="Save Changes" FontSize="8" Grid.Column="1" HorizontalAlignment="Left" Margin="10,156,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
+        <Button Click="AdjustBtn_OnClick" x:Name="AdjustBtn" Content="Adjust" ToolTip="Generate adjusted prices, controling for dividends and splits." Grid.Column="1" HorizontalAlignment="Left" Margin="10,41,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
 
 
 

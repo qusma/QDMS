@@ -1,8 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="PriceAdjuster.cs" company="">
+// Copyright 2014 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using QDMS;
 
 namespace QDMSServer

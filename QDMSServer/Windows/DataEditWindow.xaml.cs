@@ -177,5 +177,16 @@ namespace QDMSServer
                 }
             }
         }
+
+        private void AdjustBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            var tmpData = Data.ToList();
+            PriceAdjuster.AdjustData(ref tmpData);
+            Data.Clear();
+            foreach (OHLCBar b in tmpData)
+            {
+                Data.Add(b);
+            }
+        }
     }
 }
