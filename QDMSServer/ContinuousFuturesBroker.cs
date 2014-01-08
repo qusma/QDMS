@@ -30,15 +30,21 @@ namespace QDMSServer
         private IDataClient _client;
         private readonly IInstrumentSource _instrumentMgr;
 
-        // Keeps track of how many historical data requests remain until we can calculate the continuous prices
-        // Key: request ID, Value: number of requests outstanding
+        /// <summary>
+        /// Keeps track of how many historical data requests remain until we can calculate the continuous prices
+        /// Key: request ID, Value: number of requests outstanding
+        /// </summary>
         private readonly Dictionary<int, int> _requestCounts;
 
-        // This keeps track of which futures contract requests belong to which continuous future request
-        // Key: contract request ID, Value: continuous future request ID
+        /// <summary>
+        /// This keeps track of which futures contract requests belong to which continuous future request
+        /// Key: contract request ID, Value: continuous future request ID
+        /// </summary>
         private readonly Dictionary<int, int> _histReqIDMap;
 
-        // Key: request ID, Value: the list of contracts used to fulfill this request
+        /// <summary>
+        /// Key: request ID, Value: the list of contracts used to fulfill this request
+        /// </summary>
         private readonly Dictionary<int, List<Instrument>> _contracts;
 
         /// <summary>
@@ -52,7 +58,9 @@ namespace QDMSServer
         /// </summary>
         private readonly Dictionary<int, FrontContractRequest> _frontContractRequestMap;
 
-        //keeps track of whether requests are for data, or for the front contract. True = data.
+        /// <summary>
+        /// keeps track of whether requests are for data, or for the front contract. True = data.
+        /// </summary>
         private readonly Dictionary<int, bool> _requestTypes;
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -60,16 +68,33 @@ namespace QDMSServer
         private readonly object _reqCountLock = new object();
         private readonly object _requestsLock = new object();
 
-        // Holds requests for the front contract of a CF, before they get processed
+        /// <summary>
+        /// Holds requests for the front contract of a CF, before they get processed
+        /// </summary>
         private readonly BlockingCollection<FrontContractRequest> _frontContractRequests;
 
-        // Used to give unique IDs to front contract requests
+        /// <summary>
+        /// Used to give unique IDs to front contract requests
+        /// </summary>
         private int _lastFrontDontractRequestID;
 
-        //This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
-        //Key: a KVP where key: the instrument ID, and value: the data frequency
-        //Value: data
+        /// <summary>
+        ///This dictionary uses instrument IDs as keys, and holds the data that we use to construct our futures
+        ///Key: a KVP where key: the instrument ID, and value: the data frequency
+        ///Value: data
+        /// </summary>
         private readonly Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>> _data;
+
+        /// <summary>
+        ///Some times there will be multiple requests for data being filled concurrently.
+        ///And sometimes they will be for the same instrument. Thus we can't safely delete data from _data,
+        ///because it might still be needed!
+        ///So here we keep track of the number of requests that are going to use the data...
+        ///and use that number to then finally free up the memory when all related requests are completed
+        ///Key: a KVP where key: the instrument ID, and value: the data frequency
+        ///Value: data
+        /// </summary>
+        private readonly Dictionary<KeyValuePair<int, BarSize>, int> _dataUsesPending;
 
         public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null, string clientName = "")
         {
@@ -106,6 +131,7 @@ namespace QDMSServer
             _frontContractRequests = new BlockingCollection<FrontContractRequest>();
             _requestTypes = new Dictionary<int, bool>();
             _frontContractRequestMap = new Dictionary<int, FrontContractRequest>();
+            _dataUsesPending = new Dictionary<KeyValuePair<int, BarSize>, int>();
 
             Name = "ContinuousFutures";
         }
@@ -172,7 +198,7 @@ namespace QDMSServer
                         FrontContractRequest originalReq = _frontContractRequestMap[cfReqID];
                         RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(originalReq.ID, frontContract, originalReq.Date.Value));
                     }
-                    
+
                     _requestTypes.Remove(e.Request.AssignedID);
                 }
             }
@@ -354,7 +380,7 @@ namespace QDMSServer
             TimeSeries frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
             TimeSeries backData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]);
             TimeSeries selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
-            
+
             //starting date: I think it's enough to start a few days before the expiration of the first future
             //as long as it's before the starting date?
             DateTime currentDate = frontData[0].DT;
@@ -382,56 +408,81 @@ namespace QDMSServer
 
             bool switchContract = false;
             int counter = 0; //some rollover rules require multiple consecutive days of greater vol/OI...this keeps track of that
+            List<long> frontDailyVolume = new List<long>(); //keeps track of how much volume has occured in each day
+            List<int> frontDailyOpenInterest = new List<int>(); //keeps track of open interest on a daily basis
+            List<long> backDailyVolume = new List<long>(); 
+            List<int> backDailyOpenInterest = new List<int>(); 
+            long frontTodaysVolume = 0, backTodaysVolume = 0;
+
+            DateTime lastDate = currentDate;
 
             //add the first piece of data we have available, and start looping
             cfData.Add(selectedData[0]);
 
             while (currentDate < finalDate)
             {
-                //do we need to switch contracts?
-                switch (cf.RolloverType)
+                //keep track of total volume "today"
+                if (frontData[0].Volume.HasValue) frontTodaysVolume += frontData[0].Volume.Value;
+                if (backData != null && backData[0].Volume.HasValue) backTodaysVolume += backData[0].Volume.Value;
+
+                if (lastDate.Day != currentDate.Day)
                 {
-                    case ContinuousFuturesRolloverType.Time:
-                        if (MyUtils.BusinessDaysBetween(currentDate, frontFuture.Expiration.Value, calendar) <= cf.RolloverDays)
-                        {
-                            switchContract = true;
-                        }
-                        break;
+                    frontDailyVolume.Add(frontTodaysVolume);
+                    backDailyVolume.Add(backTodaysVolume);
 
-                    case ContinuousFuturesRolloverType.Volume:
-                        if (backData != null && backData[0].Volume > frontData[0].Volume)
-                            counter++;
-                        else
-                            counter = 0;
-                        switchContract = counter >= cf.RolloverDays;
-                        break;
+                    if (frontData[0].OpenInterest.HasValue) frontDailyOpenInterest.Add(frontData[0].OpenInterest.Value);
+                    if (backData != null && backData[0].OpenInterest.HasValue) backDailyOpenInterest.Add(backData[0].OpenInterest.Value);
 
-                    case ContinuousFuturesRolloverType.OpenInterest:
-                        if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest)
-                            counter++;
-                        else
-                            counter = 0;
-                        switchContract = counter >= cf.RolloverDays;
-                        break;
+                    frontTodaysVolume = 0;
+                    backTodaysVolume = 0;
 
-                    case ContinuousFuturesRolloverType.VolumeAndOpenInterest:
-                        if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest &&
-                            backData[0].Volume > frontData[0].Volume)
-                            counter++;
-                        else
-                            counter = 0;
-                        switchContract = counter >= cf.RolloverDays;
-                        break;
+                    //do we need to switch contracts?
+                    switch (cf.RolloverType)
+                    {
+                        case ContinuousFuturesRolloverType.Time:
+                            if (MyUtils.BusinessDaysBetween(currentDate, frontFuture.Expiration.Value, calendar) <= cf.RolloverDays)
+                            {
+                                switchContract = true;
+                            }
+                            break;
 
-                    case ContinuousFuturesRolloverType.VolumeOrOpenInterest:
-                        if (backData != null && backData[0].OpenInterest > frontData[0].OpenInterest ||
-                            backData[0].Volume > frontData[0].Volume)
-                            counter++;
-                        else
-                            counter = 0;
-                        switchContract = counter >= cf.RolloverDays;
-                        break;
+                        case ContinuousFuturesRolloverType.Volume:
+                            if (backData != null && backDailyVolume.Last() > frontDailyVolume.Last())
+                                counter++;
+                            else
+                                counter = 0;
+                            switchContract = counter >= cf.RolloverDays;
+                            break;
+
+                        case ContinuousFuturesRolloverType.OpenInterest:
+                            if (backData != null && backDailyOpenInterest.Last() > frontDailyOpenInterest.Last())
+                                counter++;
+                            else
+                                counter = 0;
+                            switchContract = counter >= cf.RolloverDays;
+                            break;
+
+                        case ContinuousFuturesRolloverType.VolumeAndOpenInterest:
+                            if (backData != null && backDailyOpenInterest.Last() > frontDailyOpenInterest.Last() &&
+                                backDailyVolume.Last() > frontDailyVolume.Last())
+                                counter++;
+                            else
+                                counter = 0;
+                            switchContract = counter >= cf.RolloverDays;
+                            break;
+
+                        case ContinuousFuturesRolloverType.VolumeOrOpenInterest:
+                            if (backData != null && backDailyOpenInterest.Last() > frontDailyOpenInterest.Last() ||
+                                backDailyVolume.Last() > frontDailyVolume.Last())
+                                counter++;
+                            else
+                                counter = 0;
+                            switchContract = counter >= cf.RolloverDays;
+                            break;
+                    }
                 }
+
+
 
                 if (frontFuture.Expiration.Value <= currentDate)
                 {
@@ -723,7 +774,7 @@ namespace QDMSServer
                 //add it to the front contract requests map
                 _frontContractRequestMap.Add(tmpReq.AssignedID, request);
 
-                //finally send out a request for all the data...when it arrives, 
+                //finally send out a request for all the data...when it arrives,
                 //we process it and return the required front future
                 foreach (HistoricalDataRequest req in reqs)
                 {
