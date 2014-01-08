@@ -19,6 +19,8 @@ namespace QDMSServer
         /// </summary>
         public static void AdjustData(ref List<OHLCBar> data)
         {
+            if (data == null) return;
+
             //final adjusted prices equal the unadjusted ones
             data[data.Count - 1].AdjOpen = data[data.Count - 1].Open;
             data[data.Count - 1].AdjHigh = data[data.Count - 1].High;
