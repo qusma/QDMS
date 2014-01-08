@@ -61,7 +61,7 @@ namespace QDMSServer
 
             if (!TheInstrument.ID.HasValue) return;
 
-            ShowDialog();
+            Show();
         }
 
         void _client_Error(object sender, ErrorArgs e)
