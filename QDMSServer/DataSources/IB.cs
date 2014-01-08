@@ -190,6 +190,18 @@ namespace QDMSServer.DataSources
             //so we grab unique values only
             bars = bars.Distinct((x, y) => x.DT == y.DT).ToList();
 
+            //if the data is daily or lower freq, set adjusted ohlc values for convenience
+            if (_historicalDataRequests[requestID].Frequency >= QDMS.BarSize.OneDay)
+            {
+                foreach (OHLCBar b in bars)
+                {
+                    b.AdjOpen = b.Open;
+                    b.AdjHigh = b.High;
+                    b.AdjLow = b.Low;
+                    b.AdjClose = b.Close;
+                }
+            }
+
             RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
                 _historicalDataRequests[requestID],
                 bars.Where(x => x.DT.Date >= cutoffDate).ToList()));
