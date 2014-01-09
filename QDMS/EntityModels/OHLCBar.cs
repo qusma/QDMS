@@ -77,5 +77,16 @@ namespace QDMS
 
         [ProtoMember(14)]
         public decimal? Split { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0} - O: {1} H: {2} L: {3} C: {4} {5}",
+                DT.ToString("yyyy-MM-dd HH:mm:ss"),
+                Open,
+                High,
+                Low,
+                Close,
+                Dividend.HasValue ? "Div: " + Dividend.Value : "");
+        }
     }
 }
