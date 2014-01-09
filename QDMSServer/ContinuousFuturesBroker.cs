@@ -392,17 +392,17 @@ namespace QDMSServer
             //want to roll over if we had access to even earlier data.
             currentDate = frontFuture.Expiration.Value.AddDays(-20 - cf.RolloverDays);
 
+            frontData.AdvanceTo(currentDate);
+            backData.AdvanceTo(currentDate);
+            selectedData.AdvanceTo(currentDate);
+
             //final date is the earliest of: the last date of data available, or the request's endingdate
             DateTime lastDateAvailable = futures.Last().Expiration.Value;
             DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
 
             List<OHLCBar> cfData = new List<OHLCBar>();
 
-            decimal adjustmentFactor = 0;
-            if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio)
-            {
-                adjustmentFactor = 1;
-            }
+            decimal adjustmentFactor = cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio ? 1 : 0;
 
             Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
 
@@ -425,7 +425,8 @@ namespace QDMSServer
                 if (frontData[0].Volume.HasValue) frontTodaysVolume += frontData[0].Volume.Value;
                 if (backData != null && backData[0].Volume.HasValue) backTodaysVolume += backData[0].Volume.Value;
 
-                if (lastDate.Day != currentDate.Day)
+                var nextBar = selectedData.TryGetNextBar();
+                if (nextBar == null || nextBar.DT.Day != currentDate.Day)
                 {
                     frontDailyVolume.Add(frontTodaysVolume);
                     backDailyVolume.Add(backTodaysVolume);
@@ -482,8 +483,6 @@ namespace QDMSServer
                     }
                 }
 
-
-
                 if (frontFuture.Expiration.Value <= currentDate)
                 {
                     //no matter what, obviously we need to switch if the contract expires
@@ -494,7 +493,7 @@ namespace QDMSServer
                 bool selectedSeriesProgressed = false;
                 do
                 {
-                    currentDate = currentDate.Add(request.Frequency.ToTimeSpan());
+                    currentDate = currentDate.AddSeconds(request.Frequency.ToTimeSpan().TotalSeconds / 2);
                     selectedSeriesProgressed = selectedData.AdvanceTo(currentDate);
                     frontData.AdvanceTo(currentDate);
                     if (backData != null)
