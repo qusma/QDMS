@@ -200,6 +200,7 @@ namespace QDMSServer
                 instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
                 SecurityIdType.None,
                 string.Empty);
+            contract.IncludeExpired = true;
 
             if (instrument.Strike.HasValue && instrument.Strike.Value != 0)
                 contract.Strike = (double)instrument.Strike.Value;
