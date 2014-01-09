@@ -85,6 +85,15 @@ namespace QDMS
         }
 
         /// <summary>
+        /// Returns the bar following the "current" one. CAREFUL WITH SNOOPING!
+        /// </summary>
+        public OHLCBar TryGetNextBar()
+        {
+            if (CurrentBar == Series.Count - 1) return null;
+            return Series[CurrentBar + 1];
+        }
+
+        /// <summary>
         /// Progress the "current" time of the VariableSeries to the specified date and time.
         /// </summary>
         /// <returns>True if the CurrentBar was changed</returns>
