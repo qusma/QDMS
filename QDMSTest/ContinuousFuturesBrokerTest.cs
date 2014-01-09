@@ -2075,6 +2075,129 @@ namespace QDMSTest
             }
         }
 
+        [Test]
+        public void RolloverHappensAtTheCorrecTimeUsingVolumeRuleAndIntradayData()
+        {
+            var expectedPrices = new Dictionary<DateTime, decimal>
+            {
+                {new DateTime(2013,12,13,2,0, 0),  15.05m },
+                {new DateTime(2013,12,13,3,0, 0),  14.95m },
+                {new DateTime(2013,12,13,4,0, 0),  15.05m },
+                {new DateTime(2013,12,13,5,0, 0),  15.1m },
+                {new DateTime(2013,12,13,6,0, 0),  15.1m },
+                {new DateTime(2013,12,13,7,0, 0),  15.3m },
+                {new DateTime(2013,12,13,8,0, 0),  15.4m },
+                {new DateTime(2013,12,13,9,0, 0),  15.4m },
+                {new DateTime(2013,12,13,10,0, 0),  15.4m },
+                {new DateTime(2013,12,13,11,0, 0),  15.4m },
+                {new DateTime(2013,12,13,12,0, 0),  15.35m },
+                {new DateTime(2013,12,13,13,0, 0),  15.35m },
+                {new DateTime(2013,12,13,14,0, 0),  15.4m },
+                {new DateTime(2013,12,13,15,0, 0),  15.45m },
+                {new DateTime(2013,12,16,2,0, 0),  15.7m },
+                {new DateTime(2013,12,16,3,0, 0),  15.45m },
+                {new DateTime(2013,12,16,4,0, 0),  15.4m },
+                {new DateTime(2013,12,16,5,0, 0),  15.25m },
+                {new DateTime(2013,12,16,6,0, 0),  15.15m },
+                {new DateTime(2013,12,16,7,0, 0),  15.25m },
+                {new DateTime(2013,12,16,8,0, 0),  15.05m },
+                {new DateTime(2013,12,16,9,0, 0),  15.15m },
+                {new DateTime(2013,12,16,10,0, 0),  15.35m },
+                {new DateTime(2013,12,16,11,0, 0),  15.65m },
+                {new DateTime(2013,12,16,12,0, 0),  15.6m },
+                {new DateTime(2013,12,16,13,0, 0),  15.7m },
+                {new DateTime(2013,12,16,14,0, 0),  15.8m },
+                {new DateTime(2013,12,16,15,0, 0),  15.9m },
+                {new DateTime(2013,12,16,15,30, 0),  15.9m },
+                {new DateTime(2013,12,16,16,0, 0),  15.9m },
+                {new DateTime(2013,12,17,2,0, 0),  15.65m },
+                {new DateTime(2013,12,17,3,0, 0),  15.65m },
+                {new DateTime(2013,12,17,4,0, 0),  15.65m },
+                {new DateTime(2013,12,17,5,0, 0),  15.65m },
+                {new DateTime(2013,12,17,6,0, 0),  15.55m },
+                {new DateTime(2013,12,17,7,0, 0),  15.6m },
+                {new DateTime(2013,12,17,8,0, 0),  15.7m },
+                {new DateTime(2013,12,17,9,0, 0),  15.75m },
+                {new DateTime(2013,12,17,10,0, 0),  15.75m },
+                {new DateTime(2013,12,17,11,0, 0),  15.75m },
+                {new DateTime(2013,12,17,12,0, 0),  15.65m },
+                {new DateTime(2013,12,17,13,0, 0),  15.3m },
+                {new DateTime(2013,12,17,14,0, 0),  15.35m },
+                {new DateTime(2013,12,17,15,0, 0),  15.55m },
+                {new DateTime(2013,12,17,15,30, 0),  15.5m },
+                {new DateTime(2013,12,17,16,0, 0),  15.5m },
+                {new DateTime(2013,12,18,2,0, 0),  15.35m },
+                {new DateTime(2013,12,18,3,0, 0),  15.3m },
+                {new DateTime(2013,12,18,4,0, 0),  15.15m },
+                {new DateTime(2013,12,18,5,0, 0),  15.25m },
+                {new DateTime(2013,12,18,6,0, 0),  15.35m },
+                {new DateTime(2013,12,18,7,0, 0),  15.3m },
+                {new DateTime(2013,12,18,8,0, 0),  15.2m },
+                {new DateTime(2013,12,18,9,0, 0),  15.25m },
+                {new DateTime(2013,12,18,10,0, 0),  15.35m },
+                {new DateTime(2013,12,18,11,0, 0),  15.3m },
+                {new DateTime(2013,12,18,12,0, 0),  15.1m },
+                {new DateTime(2013,12,18,13,0, 0),  14.4m },
+                {new DateTime(2013,12,18,14,0, 0),  14.3m },
+                {new DateTime(2013,12,18,15,0, 0),  14.55m },
+                {new DateTime(2013,12,18,15,30, 0),  14.45m },
+                {new DateTime(2013,12,18,16,0, 0),  14.45m },
+
+            };
+
+            //return the contracts requested
+            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>(), null)).Returns(ContinuousFuturesBrokerTestData.GetContractsForIntradayData());
+
+            var requests = new List<HistoricalDataRequest>();
+            var futuresData = ContinuousFuturesBrokerTestData.GetIntradayVIXFuturesData();
+
+            _cfInst.ContinuousFuture.RolloverDays = 1;
+            _cfInst.ContinuousFuture.RolloverType = ContinuousFuturesRolloverType.Volume;
+
+            //handle the requests for historical data
+            int counter = 0;
+            _clientMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Returns(() => counter)
+                .Callback<HistoricalDataRequest>(req =>
+                {
+                    req.RequestID = counter;
+                    requests.Add(req);
+                    counter++;
+                });
+
+            //hook up the event to receive the data
+            var resultingData = new List<OHLCBar>();
+            _broker.HistoricalDataArrived += (sender, e) =>
+            {
+                resultingData = e.Data;
+            };
+
+            _req.StartingDate = new DateTime(2013, 12, 13);
+            _req.EndingDate = new DateTime(2013, 12, 18, 23, 0, 0);
+            _req.Frequency = BarSize.OneHour;
+
+
+            //make the request
+            _broker.RequestHistoricalData(_req);
+
+            //give back the contract data
+            foreach (HistoricalDataRequest r in requests)
+            {
+                _clientMock.Raise(x => x.HistoricalDataReceived += null, new HistoricalDataEventArgs(r, futuresData[r.Instrument.ID.Value]));
+            }
+
+            //make sure the right amount of data has been returned
+            var times = resultingData.Select(x => x.DT).ToList();
+            Assert.AreEqual(expectedPrices.Count, resultingData.Count);
+
+            //finally make sure we have correct continuous future prices
+            foreach (OHLCBar bar in resultingData)
+            {
+                if (expectedPrices.ContainsKey(bar.DT))
+                    Assert.AreEqual(expectedPrices[bar.DT], bar.Close, string.Format("At time: {0}", bar.DT));
+            }
+        }
+
         public void Dispose()
         {
             if (_broker != null)
