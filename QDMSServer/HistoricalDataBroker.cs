@@ -211,7 +211,7 @@ namespace QDMSServer
                 {
                     //grab the rest of the data from historical storage
                     var storageData = new List<OHLCBar>();
-                    if (e.Data[0].Date.ToDateTime() > originalRequest.StartingDate)
+                    if (e.Data.Count > 0 && e.Data[0].Date.ToDateTime() > originalRequest.StartingDate)
                     {
                         //we add half a bar to the request limit so that the data we get starts with the next one
                         DateTime correctedDateTime = e.Data[0].Date.Date.ToDateTime().AddMilliseconds(originalRequest.Frequency.ToTimeSpan().TotalMilliseconds / 2);
@@ -362,8 +362,12 @@ namespace QDMSServer
             ms.Position = 0;
             HistoricalDataRequest request = Serializer.Deserialize<HistoricalDataRequest>(ms);
 
-            //give the request an ID that we can use to track it
-            var rand = new Random();
+            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
+
+            //limit the ending date to the present
+            var now = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, exchangeTZ);
+            DateTime endDate = request.EndingDate > now ? now : request.EndingDate;
+            request.EndingDate = endDate;
 
             //log the request
             Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
