@@ -318,13 +318,14 @@ namespace QDMSServer.DataSources
                 //create subrequests, add them to the ID map, and send them to TWS
                 var subRequests = SplitRequest(request);
                 _subRequestCount.Add(originalReqID, subRequests.Count);
-                lock (_subReqMapLock)
+
+                foreach (HistoricalDataRequest subReq in subRequests)
                 {
-                    foreach (HistoricalDataRequest subReq in subRequests)
+                    _requestCounter++;
+                    lock (_subReqMapLock)
                     {
-                        _requestCounter++;
-                        SendHistoricalRequest(_requestCounter, subReq);
                         _subRequestIDMap.Add(_requestCounter, originalReqID);
+                        SendHistoricalRequest(_requestCounter, subReq);
                     }
                 }
             }
