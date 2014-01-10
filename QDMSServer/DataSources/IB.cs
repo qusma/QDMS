@@ -190,8 +190,9 @@ namespace QDMSServer.DataSources
             //so we grab unique values only
             bars = bars.Distinct((x, y) => x.DT == y.DT).ToList();
 
-            //if the data is daily or lower freq, set adjusted ohlc values for convenience
-            if (_historicalDataRequests[requestID].Frequency >= QDMS.BarSize.OneDay)
+            //if the data is daily or lower freq, and a stock, set adjusted ohlc values for convenience
+            if (_historicalDataRequests[requestID].Frequency >= QDMS.BarSize.OneDay && 
+                _historicalDataRequests[requestID].Instrument.Type == InstrumentType.Stock)
             {
                 foreach (OHLCBar b in bars)
                 {
