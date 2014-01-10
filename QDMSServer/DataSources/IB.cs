@@ -112,10 +112,11 @@ namespace QDMSServer.DataSources
             //One day or lower frequency means we don't get time data.
             //Instead we provide our own by using that day's session end...
             //perhaps this should be moved to the HistoricalDataBroker instead?
+            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
             if (request.Frequency >= QDMS.BarSize.OneDay)
             {
-                var utcDT = TimeZoneInfo.ConvertTimeToUtc(bar.DT, TimeZoneInfo.Local);
-                var dotw = utcDT.DayOfWeek.ToInt();
+                bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
+                var dotw = bar.DT.DayOfWeek.ToInt();
                 var daysSessionEnd = request.Instrument.Sessions.FirstOrDefault(x => (int)x.ClosingDay == dotw && x.IsSessionEnd);
                 if (daysSessionEnd != null)
                 {
@@ -128,7 +129,6 @@ namespace QDMSServer.DataSources
             }
             else
             {
-                var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
                 bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
             }
 
@@ -305,11 +305,7 @@ namespace QDMSServer.DataSources
             int originalReqID = ++_requestCounter;
             _historicalDataRequests.TryAdd(originalReqID, request);
             _arrivedHistoricalData.TryAdd(originalReqID, new List<OHLCBar>());
-
-            //limit the ending date to the present
-            DateTime endDate = request.EndingDate > DateTime.Now ? DateTime.Now : request.EndingDate;
-            request.EndingDate = endDate; //perhaps this should be moved to the historical data broker, instead
-
+            
             //if necessary, chop up the request into multiple chunks so as to abide
             //the historical data limitations
             if (TWSUtils.RequestObeysLimits(request))
@@ -367,12 +363,17 @@ namespace QDMSServer.DataSources
                 TWSUtils.TimespanToDurationString((request.EndingDate - request.StartingDate), request.Frequency),
                 request.EndingDate.ToString("yyyy-MM-dd hh:mm:ss")));
 
+            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
+            //we need to convert time from the exchange TZ to Local...the ib client then converts it to UTC
+            var startingDate = TimeZoneInfo.ConvertTime(request.StartingDate, exchangeTZ, TimeZoneInfo.Local);
+            var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Local);
+
             _client.RequestHistoricalData
             (
                 id,
                 TWSUtils.InstrumentToContract(request.Instrument),
-                request.EndingDate,
-                TWSUtils.TimespanToDurationString((request.EndingDate - request.StartingDate), request.Frequency),
+                endingDate,
+                TWSUtils.TimespanToDurationString((endingDate - startingDate), request.Frequency),
                 TWSUtils.BarSizeConverter(request.Frequency),
                 HistoricalDataType.Trades,
                 request.RTHOnly ? 1 : 0
