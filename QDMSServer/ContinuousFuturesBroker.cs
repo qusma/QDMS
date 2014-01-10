@@ -67,6 +67,7 @@ namespace QDMSServer
 
         private readonly object _reqCountLock = new object();
         private readonly object _requestsLock = new object();
+        private readonly object _dataUsesLock = new object();
 
         /// <summary>
         /// Holds requests for the front contract of a CF, before they get processed
@@ -350,6 +351,14 @@ namespace QDMSServer
             //send out the requests
             foreach (HistoricalDataRequest req in reqs)
             {
+                lock (_dataUsesLock)
+                {
+                    var kvp = new KeyValuePair<int, BarSize>(req.Instrument.ID.Value, req.Frequency);
+                    if (_dataUsesPending.ContainsKey(kvp))
+                        _dataUsesPending[kvp]++;
+                    else
+                        _dataUsesPending.Add(kvp, 1);
+                }
                 int requestID = _client.RequestHistoricalData(req);
                 _histReqIDMap.Add(requestID, request.AssignedID);
             }
@@ -565,6 +574,24 @@ namespace QDMSServer
             if (raiseDataEvent)
                 RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, cfData));
 
+            //clean up some data!
+            lock (_dataUsesLock)
+            {
+                foreach (Instrument i in futures)
+                {
+                    var kvp = new KeyValuePair<int, BarSize>(i.ID.Value, request.Frequency);
+                    if (_dataUsesPending[kvp] == 1) //this data isn't needed anywhere else, we can delete it
+                    {
+                        _dataUsesPending.Remove(kvp);
+                        _data.Remove(kvp);
+                    }
+                    else
+                    {
+                        _dataUsesPending[kvp]--;
+                    }
+                }
+            }
+
             return lastUsedSelectedFuture;
         }
 
@@ -777,6 +804,14 @@ namespace QDMSServer
                 //we process it and return the required front future
                 foreach (HistoricalDataRequest req in reqs)
                 {
+                    lock (_dataUsesLock)
+                    {
+                        var kvp = new KeyValuePair<int, BarSize>(req.Instrument.ID.Value, req.Frequency);
+                        if (_dataUsesPending.ContainsKey(kvp))
+                            _dataUsesPending[kvp]++;
+                        else
+                            _dataUsesPending.Add(kvp, 1);
+                    }
                     int requestID = _client.RequestHistoricalData(req);
                     _histReqIDMap.Add(requestID, tmpReq.AssignedID);
                 }
