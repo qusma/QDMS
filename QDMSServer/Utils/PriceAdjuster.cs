@@ -32,6 +32,15 @@ namespace QDMSServer
             for (int i = data.Count - 2; i >= 0; i--)
             {
                 decimal adjRet = (data[i + 1].Close + (data[i + 1].Dividend ?? 0)) / (data[i].Close / (data[i + 1].Split ?? 1));
+                if (adjRet == 0) //corner case when prices go to zero
+                {
+                    data[i].AdjClose = data[i].Close;
+                    data[i].AdjOpen = data[i].Open;
+                    data[i].AdjHigh = data[i].High;
+                    data[i].AdjLow = data[i].Low;
+                    continue;
+                }
+
                 data[i].AdjClose = data[i + 1].AdjClose / adjRet;
                 decimal ratio = (decimal)(data[i].AdjClose / data[i].Close);
                 data[i].AdjOpen = data[i].Open * ratio;
