@@ -29,9 +29,12 @@ namespace QDMS
             Data = new List<OHLCBar>();
         }
 
-        public DataAdditionRequest(List<OHLCBar> data)
+        public DataAdditionRequest(BarSize frequency, Instrument instrument, List<OHLCBar> data, bool overwrite = true)
         {
             Data = data;
+            Frequency = frequency;
+            Instrument = instrument;
+            Overwrite = overwrite;
         }
     }
 }
