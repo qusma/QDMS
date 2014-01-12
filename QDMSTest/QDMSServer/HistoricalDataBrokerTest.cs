@@ -16,30 +16,24 @@ namespace QDMSTest
     public class HistoricalDataBrokerTest
     {
         private HistoricalDataBroker _broker;
-        private Mock<IHistoricalDataSource> _ds;
-        private QDMSClient.QDMSClient _client;
+        private Mock<IHistoricalDataSource> _dataSourceMock;
+        private Mock<IDataStorage> _localStorageMock;
 
         [SetUp]
         public void SetUp()
         {
-            _ds = new Mock<IHistoricalDataSource>();
-            _ds.SetupGet(x => x.Name).Returns("MockSource");
-            _ds.SetupGet(x => x.Connected).Returns(true);
+            _dataSourceMock = new Mock<IHistoricalDataSource>();
+            _dataSourceMock.SetupGet(x => x.Name).Returns("MockSource");
+            _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
 
-            _broker = new HistoricalDataBroker(5553, additionalSources: new List<IHistoricalDataSource> { _ds.Object });
-            _broker.StartServer();
+            _localStorageMock = new Mock<IDataStorage>();
 
-            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5556, 5555, 5554, 5553);
-            _client.Connect();
+            _broker = new HistoricalDataBroker(_localStorageMock.Object, new List<IHistoricalDataSource> { _dataSourceMock.Object });
         }
 
         [TearDown]
         public void TearDown()
         {
-            _client.Disconnect();
-            _client.Dispose();
-
-            _broker.StopServer();
             _broker.Dispose();
         }
 
