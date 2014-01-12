@@ -244,13 +244,6 @@ namespace QDMSServer
             ms.Position = 0;
             HistoricalDataRequest request = Serializer.Deserialize<HistoricalDataRequest>(ms);
 
-            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
-
-            //limit the ending date to the present -- move to broker?
-            var now = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, exchangeTZ);
-            DateTime endDate = request.EndingDate > now ? now : request.EndingDate;
-            request.EndingDate = endDate;
-
             //log the request
             Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
                 requesterIdentity,

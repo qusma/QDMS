@@ -377,6 +377,13 @@ namespace QDMSServer
         //Sends off a historical data reques to the datasource that needs to fulfill it
         private void ForwardHistoricalRequest(HistoricalDataRequest request)
         {
+            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
+
+            //limit the ending date to the present
+            var now = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, exchangeTZ);
+            DateTime endDate = request.EndingDate > now ? now : request.EndingDate;
+            request.EndingDate = endDate;
+
             if (request.Instrument.IsContinuousFuture)
             {
                 DataSources["ContinuousFuturesBroker"].RequestHistoricalData(request);
