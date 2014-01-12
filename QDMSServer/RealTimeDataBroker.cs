@@ -256,8 +256,9 @@ namespace QDMSServer
         //this function is here because events may execute on other threads, and therefore can't use the logger on this one and must call the dispatcher
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
-                _logger.Log(level, message));
+            if (Application.Current != null) 
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    _logger.Log(level, message));
         }
 
         //tells the servers to stop running and waits for the threads to shut down.
@@ -647,7 +648,8 @@ namespace QDMSServer
         /// </summary>
         private void ConnectionTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            Application.Current.Dispatcher.InvokeAsync(TryConnect);
+            if(Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(TryConnect);
         }
 
         /// <summary>
