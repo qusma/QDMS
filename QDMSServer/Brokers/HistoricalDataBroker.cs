@@ -65,7 +65,7 @@ namespace QDMSServer
             }
         }
 
-        public HistoricalDataBroker(IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null)
+        public HistoricalDataBroker(IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null, IContinuousFuturesBroker cfBroker = null)
         {
             _dataStorage = localStorage ?? new MySQLStorage();
 
@@ -73,9 +73,11 @@ namespace QDMSServer
             {
                 { "Interactive Brokers", new IB(3) },
                 { "Yahoo", new Yahoo() },
-                { "ContinuousFuturesBroker", new ContinuousFuturesBroker() },
                 { "Quandl", new Quandl() }
             };
+
+            //add the continuous futures broker to the data sources
+            DataSources.Add("ContinuousFuturesBroker", cfBroker ?? new ContinuousFuturesBroker());
 
             //add additional sources
             if (additionalSources != null)
@@ -238,7 +240,8 @@ namespace QDMSServer
         /// </summary>
         private void ConnectionTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            Application.Current.Dispatcher.InvokeAsync(TryConnect);
+            if(Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(TryConnect);
         }
 
         /// <summary>
