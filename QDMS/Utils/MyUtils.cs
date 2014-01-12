@@ -153,7 +153,9 @@ namespace QDMS
         }
 
 
-
+        /// <summary>
+        /// Returns an IEnumerable of all possible values of an Enum.
+        /// </summary>
         public static IEnumerable<T> GetEnumValues<T>()
         {
             return Enum.GetValues(typeof(T)).Cast<T>();
