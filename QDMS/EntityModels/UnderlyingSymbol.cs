@@ -141,5 +141,10 @@ namespace QDMS
 
             return clone;
         }
+
+        public override string ToString()
+        {
+            return Symbol;
+        }
     }
 }

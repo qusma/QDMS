@@ -50,5 +50,14 @@ namespace QDMS
             clone.LongName = LongName;
             return clone;
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1} ({2}) TZ: {3}",
+                ID,
+                Name,
+                LongName,
+                Timezone);
+        }
     }
 }

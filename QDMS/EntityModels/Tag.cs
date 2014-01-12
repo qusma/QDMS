@@ -44,5 +44,10 @@ namespace QDMS
         {
             return other.ID == ID && other.Name == Name;
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }
