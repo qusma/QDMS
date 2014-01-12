@@ -92,6 +92,7 @@
     <Compile Include="QDMSServer\ContinuousFuturesBrokerTest.cs" />
     <Compile Include="QDMSServer\ContinuousFuturesBrokerTestData.cs" />
     <Compile Include="QDMSServer\HistoricalDataBrokerTest.cs" />
+    <Compile Include="QDMSServer\HistoricalDataServerTest.cs" />
     <Compile Include="QDMSServer\IBTest.cs" />
     <Compile Include="QDMS\MyExtensionsTest.cs" />
     <Compile Include="QDMS\MyUtilsTest.cs" />
