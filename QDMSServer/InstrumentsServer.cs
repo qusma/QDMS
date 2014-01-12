@@ -55,8 +55,7 @@ namespace QDMSServer
         {
             _socketPort = port;
 
-            if (instrumentManager == null)
-                _instrumentManager = new InstrumentManager();
+            _instrumentManager = instrumentManager ?? new InstrumentManager();
 
             //start the server
             StartServer();
