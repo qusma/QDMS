@@ -103,6 +103,12 @@ namespace QDMS
         [ProtoMember(11)]
         public int? IsSubrequestFor { get; set; }
 
+        /// <summary>
+        /// The server assigns the requester's zeromq identity string to this property 
+        /// so the data can be sent back to the correct client when it arrives.
+        /// </summary>
+        public string RequesterIdentity { get; set; }
+
         public HistoricalDataRequest()
         {
         }
@@ -131,6 +137,7 @@ namespace QDMS
             var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly, RequestID);
             clone.AssignedID = AssignedID;
             clone.IsSubrequestFor = IsSubrequestFor;
+            clone.RequesterIdentity = RequesterIdentity;
             return clone;
         }
     }
