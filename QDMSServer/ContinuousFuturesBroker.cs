@@ -25,7 +25,7 @@ using Instrument = QDMS.Instrument;
 
 namespace QDMSServer
 {
-    public class ContinuousFuturesBroker : IDisposable, IHistoricalDataSource, IContinuousFuturesBroker
+    public class ContinuousFuturesBroker : IDisposable, IContinuousFuturesBroker
     {
         private IDataClient _client;
         private readonly IInstrumentSource _instrumentMgr;

@@ -8,7 +8,7 @@ using System;
 
 namespace QDMS
 {
-    public interface IContinuousFuturesBroker
+    public interface IContinuousFuturesBroker : IHistoricalDataSource
     {
         /// <summary>
         /// Finds the currently active futures contract for a continuous futures instrument.
