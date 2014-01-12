@@ -13,13 +13,13 @@ namespace QDMS
     public class DataAdditionRequest
     {
         [ProtoMember(1)]
-        public BarSize Frequency;
+        public BarSize Frequency { get; set; }
 
         [ProtoMember(2)]
-        public Instrument Instrument;
+        public Instrument Instrument { get; set; }
 
         [ProtoMember(3)]
-        public List<OHLCBar> Data;
+        public List<OHLCBar> Data { get; set; }
 
         [ProtoMember(4)]
         public bool Overwrite = true;
@@ -27,6 +27,11 @@ namespace QDMS
         public DataAdditionRequest()
         {
             Data = new List<OHLCBar>();
+        }
+
+        public DataAdditionRequest(List<OHLCBar> data)
+        {
+            Data = data;
         }
     }
 }
