@@ -7,47 +7,37 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Timers;
 using System.Windows;
-using LZ4;
 using NLog;
-using ProtoBuf;
 using QDMS;
 using QDMSServer.DataSources;
-using ZeroMQ;
 using Timer = System.Timers.Timer;
 
 namespace QDMSServer
 {
-    public class HistoricalDataBroker : IDisposable
+    public class HistoricalDataBroker : IDisposable, IHistoricalDataBroker
     {
         /// <summary>
         /// Holds the real time data sources.
         /// </summary>
         public Dictionary<string, IHistoricalDataSource> DataSources { get; private set; }
 
-        /// <summary>
-        /// Whether the broker is running or not.
-        /// </summary>
-        public bool ServerRunning { get; set; }
-
         private readonly IDataStorage _dataStorage;
 
-        private readonly Thread _serverThread;
-        private ZmqContext _context;
-        private ZmqSocket _routerSocket;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         private Timer _connectionTimer; //tries to reconnect every once in a while if a datasource is disconnected
-        private bool _runServer = true;
+        
+        public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
 
-        private readonly object _identityMapLock = new object();
+        /// <summary>
+        /// Keeps track of IDs assigned to requests that have already been used, so there are no duplicates.
+        /// </summary>
+        private List<int> _usedIDs;
+        
         private readonly object _localStorageLock = new object();
-
-        private readonly int _listenPort;
 
         //when we get a new data request first we check the local storage
         //if only part of the data is there, we create subrequests to the outside storages, they are held
@@ -57,20 +47,9 @@ namespace QDMSServer
 
         private readonly ConcurrentDictionary<int, List<HistoricalDataRequest>> _subRequests;
 
-        private readonly ConcurrentQueue<KeyValuePair<int, List<OHLCBar>>> _dataQueue;
-
-        //requests are given an int ID that uniquely identifies them
-        //this is then paired to the client's identity
-        //when the data arrives, we then know where to route the results by looking up the ID in this Dictionary
-        private readonly Dictionary<int, string> _requestToIdentityMap;
-
         public void Dispose()
         {
-            if (_routerSocket != null)
-            {
-                _routerSocket.Dispose();
-                _routerSocket = null;
-            }
+
             if (_connectionTimer != null)
             {
                 _connectionTimer.Dispose();
@@ -84,17 +63,10 @@ namespace QDMSServer
             {
                 ((ContinuousFuturesBroker)DataSources["ContinuousFuturesBroker"]).Dispose();
             }
-            if (_context != null)
-            {
-                _context.Dispose();
-                _context = null;
-            }
         }
 
-        public HistoricalDataBroker(int port, IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null)
+        public HistoricalDataBroker(IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null)
         {
-            _listenPort = port;
-
             if(localStorage == null)
                 _dataStorage = new MySQLStorage();
 
@@ -126,21 +98,16 @@ namespace QDMSServer
             _dataStorage.Error += DatasourceError;
             _dataStorage.HistoricalDataArrived += LocalStorageHistoricalDataArrived;
 
-            _serverThread = new Thread(Server);
-            _serverThread.Name = "HDB Thread";
-
             _connectionTimer = new Timer(10000);
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
             _connectionTimer.Start();
 
-            _requestToIdentityMap = new Dictionary<int, string>();
+            
             _originalRequests = new ConcurrentDictionary<int, HistoricalDataRequest>();
             _subRequests = new ConcurrentDictionary<int, List<HistoricalDataRequest>>();
-            _dataQueue = new ConcurrentQueue<KeyValuePair<int, List<OHLCBar>>>();
+            _usedIDs = new List<int>();
 
             TryConnect();
-
-            StartServer();
         }
 
         /// <summary>
@@ -169,8 +136,23 @@ namespace QDMSServer
                 e.Data.Count,
                 e.Request.Instrument.Symbol));
 
-            //then add the data to the queue to be sent out over the network
-            _dataQueue.Enqueue(new KeyValuePair<int, List<OHLCBar>>(e.Request.AssignedID, e.Data));
+            //pass up the data to the server so it can be sent out
+            RaiseEvent(HistoricalDataArrived, this, e);
+        }
+
+        ///<summary>
+        /// Raise the event in a threadsafe manner
+        ///</summary>
+        ///<param name="event"></param>
+        ///<param name="sender"></param>
+        ///<param name="e"></param>
+        ///<typeparam name="T"></typeparam>
+        static private void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
+        where T : EventArgs
+        {
+            EventHandler<T> handler = @event;
+            if (handler == null) return;
+            handler(sender, e);
         }
 
         /// <summary>
@@ -231,8 +213,8 @@ namespace QDMSServer
                             correctedDateTime, originalRequest.Frequency);
                     }
 
-                    //then add the data to the queue to be sent out over the network
-                    _dataQueue.Enqueue(new KeyValuePair<int, List<OHLCBar>>(e.Request.AssignedID, storageData.Concat(e.Data).ToList()));
+                    //then send the data to the server through the event, so it can be send out to the client
+                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(e.Request, storageData.Concat(e.Data).ToList()));
 
                     Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2} and {3} points from local storage.",
                         e.Data.Count,
@@ -277,127 +259,13 @@ namespace QDMSServer
             }
         }
 
-        /// <summary>
-        /// Start the server.
-        /// </summary>
-        public void StartServer()
-        {
-            //check that it's not already running
-            if (ServerRunning) return;
-            _context = ZmqContext.Create();
-            _routerSocket = _context.CreateSocket(SocketType.ROUTER);
-            _routerSocket.Bind("tcp://*:" + _listenPort);
-
-            _runServer = true;
-            _serverThread.Start();
-            ServerRunning = true;
-        }
-
-        /// <summary>
-        /// Stop the server.
-        /// </summary>
-        public void StopServer()
-        {
-            if (!ServerRunning) return;
-
-            _runServer = false;
-            //if(_serverThread.ThreadState == ThreadState.Running)
-            _serverThread.Join();
-        }
-
-        /// <summary>
-        /// Receives new requests by polling, and sends data when it has arrived
-        /// </summary>
-        public void Server()
-        {
-            var timeout = TimeSpan.FromMilliseconds(10);
-            _routerSocket.ReceiveReady += socket_ReceiveReady;
-            KeyValuePair<int, List<OHLCBar>> newDataItem;
-            var ms = new MemoryStream();
-
-            using (var poller = new Poller(new[] { _routerSocket }))
-            {
-                while (_runServer)
-                {
-                    poller.Poll(timeout); //this'll trigger the ReceiveReady event when we've got an incoming request
-
-                    //check if there's anything in the queue, if there is we want to send it
-                    if (_dataQueue.TryDequeue(out newDataItem))
-                    {
-                        //this is a 4 part message
-                        //1st message part: the identity string of the client that we're routing the data to
-                        string clientIdentity;
-                        lock (_identityMapLock)
-                        {
-                            clientIdentity = _requestToIdentityMap[newDataItem.Key];
-                            _requestToIdentityMap.Remove(newDataItem.Key);
-                        }
-                        _routerSocket.SendMore(clientIdentity, Encoding.UTF8);
-
-                        //2nd message part: the type of reply we're sending
-                        _routerSocket.SendMore("HISTREQREP", Encoding.UTF8);
-
-                        //3rd message part: the HistoricalDataRequest object that was used to make the request
-                        HistoricalDataRequest request;
-                        _originalRequests.TryRemove(newDataItem.Key, out request);
-                        _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms));
-
-                        //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
-                        byte[] uncompressed = MyUtils.ProtoBufSerialize(newDataItem.Value, ms);
-                        _routerSocket.SendMore(BitConverter.GetBytes(uncompressed.Length));
-
-                        //5th message part: the compressed serialized data.
-                        byte[] compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); //compress
-                        _routerSocket.Send(compressed);
-                    }
-                }
-            }
-
-            ms.Dispose();
-            _routerSocket.Dispose();
-            _context.Dispose();
-            ServerRunning = false;
-        }
 
         /// <summary>
         /// Processes incoming historical data requests.
         /// </summary>
-        private void AcceptHistoricalDataRequest(string requesterIdentity, ZmqSocket socket)
+        public void RequestHistoricalData(HistoricalDataRequest request)
         {
-            //third: a serialized HistoricalDataRequest object which contains the details of the request
-            int size;
-            byte[] buffer = socket.Receive(null, out size);
-            if (size <= 0) return; //empty request object
 
-            var ms = new MemoryStream();
-            ms.Write(buffer, 0, size);
-            ms.Position = 0;
-            HistoricalDataRequest request = Serializer.Deserialize<HistoricalDataRequest>(ms);
-
-            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
-
-            //limit the ending date to the present
-            var now = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, exchangeTZ);
-            DateTime endDate = request.EndingDate > now ? now : request.EndingDate;
-            request.EndingDate = endDate;
-
-            //log the request
-            Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
-                requesterIdentity,
-                request.Instrument.Symbol,
-                Enum.GetName(typeof(BarSize), request.Frequency),
-                request.StartingDate,
-                request.EndingDate,
-                request.ForceFreshData ? 0 : 1,
-                request.LocalStorageOnly ? 0 : 1,
-                request.SaveDataToStorage ? 0 : 1,
-                request.Instrument.Datasource.Name));
-
-            //we have the identity of the sender and their request, now we add them to our request id -> identity map
-            lock (_identityMapLock)
-            {
-                request.AssignedID = GetUniqueRequestID(requesterIdentity);
-            }
 
             _originalRequests.TryAdd(request.AssignedID, request);
 
@@ -473,7 +341,7 @@ namespace QDMSServer
                         newBackRequest = (HistoricalDataRequest)request.Clone();
                         newBackRequest.EndingDate = localDataInfo.EarliestDate.AddMilliseconds(-request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
                         newBackRequest.IsSubrequestFor = request.AssignedID;
-                        newBackRequest.AssignedID = GetUniqueRequestID(requesterIdentity);
+                        newBackRequest.AssignedID = GetUniqueRequestID();
                         _subRequests[newBackRequest.IsSubrequestFor.Value].Add(newBackRequest);
                     }
 
@@ -486,7 +354,7 @@ namespace QDMSServer
                         newForwardRequest = (HistoricalDataRequest)request.Clone();
                         newForwardRequest.StartingDate = localDataInfo.LatestDate.AddMilliseconds(request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
                         newForwardRequest.IsSubrequestFor = request.AssignedID;
-                        newForwardRequest.AssignedID = GetUniqueRequestID(requesterIdentity);
+                        newForwardRequest.AssignedID = GetUniqueRequestID();
                         _subRequests[newForwardRequest.IsSubrequestFor.Value].Add(newForwardRequest);
                     }
 
@@ -519,7 +387,7 @@ namespace QDMSServer
         /// <summary>
         /// Gets a new unique AssignedID to identify requests with.
         /// </summary>
-        private int GetUniqueRequestID(string requesterIdentity)
+        private int GetUniqueRequestID()
         {
             //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
             var rand = new Random();
@@ -527,111 +395,32 @@ namespace QDMSServer
             do
             {
                 id = rand.Next(1, int.MaxValue);
-            } while (_requestToIdentityMap.ContainsKey(id));
+            } while (_usedIDs.Contains(id));
 
-            _requestToIdentityMap.Add(id, requesterIdentity);
+            _usedIDs.Add(id);
             return id;
         }
 
         /// <summary>
-        /// Handles incoming data "push" requests: the client sends data for us to add to local storage.
+        /// Forwards a data addition request to local storage.
         /// </summary>
-        private void AcceptDataAdditionRequest(string requesterIdentity, ZmqSocket socket)
+        public void AddData(DataAdditionRequest request)
         {
-            //final message part: receive the DataAdditionRequest object
-            int size;
-            var ms = new MemoryStream();
-            byte[] buffer = socket.Receive(null, TimeSpan.FromMilliseconds(10), out size);
-            if (size <= 0) return;
-
-            var request = MyUtils.ProtoBufDeserialize<DataAdditionRequest>(buffer, ms);
-
-            //log the request
-            Log(LogLevel.Info, string.Format("Received data push request for {0}.",
-                request.Instrument.Symbol));
-
-            //start building the reply
-            socket.SendMore(requesterIdentity, Encoding.UTF8);
-            socket.SendMore("PUSHREP", Encoding.UTF8);
-            try
-            {
-                lock (_localStorageLock)
-                {
-                    _dataStorage.AddData(request.Data, request.Instrument, request.Frequency, request.Overwrite);
-                }
-                socket.Send("OK", Encoding.UTF8);
-            }
-            catch (Exception ex)
-            {
-                socket.SendMore("ERROR", Encoding.UTF8);
-                socket.Send(ex.Message, Encoding.UTF8);
-            }
-        }
-
-        /// <summary>
-        /// Handles requests for information on data that is available in local storage
-        /// </summary>
-        private void AcceptAvailableDataRequest(string requesterIdentity, ZmqSocket socket)
-        {
-            //get the instrument
-            int size;
-            var ms = new MemoryStream();
-            byte[] buffer = socket.Receive(null, TimeSpan.FromMilliseconds(10), out size);
-            if (size <= 0) return;
-
-            var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
-
-            //log the request
-            Log(LogLevel.Info, string.Format("Received local data storage info request for {0}.",
-                instrument.Symbol));
-
-            //and send the reply
             lock (_localStorageLock)
             {
-                List<StoredDataInfo> storageInfo;
-                if (instrument.ID != null) storageInfo = _dataStorage.GetStorageInfo(instrument.ID.Value);
-                else return;
-
-                socket.SendMore(requesterIdentity, Encoding.UTF8);
-                socket.SendMore("AVAILABLEDATAREP", Encoding.UTF8);
-
-                socket.SendMore(MyUtils.ProtoBufSerialize(instrument, ms));
-
-                socket.SendMore(BitConverter.GetBytes(storageInfo.Count));
-                foreach (StoredDataInfo sdi in storageInfo)
-                {
-                    socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
-                }
-                socket.Send("END", Encoding.UTF8);
+                _dataStorage.AddData(request.Data, request.Instrument, request.Frequency, request.Overwrite);
             }
         }
 
-        /// <summary>
-        /// This is called when a new historical data request or data push request is made.
-        /// </summary>
-        private void socket_ReceiveReady(object sender, SocketEventArgs e)
+        public List<StoredDataInfo> GetAvailableDataInfo(Instrument instrument)
         {
-            //Here we process the first two message parts: first, the identity string of the client
-            string requesterIdentity = e.Socket.Receive(Encoding.UTF8);
+            if (instrument.ID == null)
+            {
+                Log(LogLevel.Info, "Request for available data on instrument without ID.");
+                return new List<StoredDataInfo>();
+            }
 
-            //second: the string specifying the type of request
-            string text = e.Socket.Receive(Encoding.UTF8);
-            if (text == "HISTREQ") //the client wants to request some data
-            {
-                AcceptHistoricalDataRequest(requesterIdentity, e.Socket);
-            }
-            else if (text == "HISTPUSH") //the client wants to push same data into the db
-            {
-                AcceptDataAdditionRequest(requesterIdentity, e.Socket);
-            }
-            else if (text == "AVAILABLEDATAREQ") //client wants to know what kind of data we have stored locally
-            {
-                AcceptAvailableDataRequest(requesterIdentity, e.Socket);
-            }
-            else
-            {
-                Log(LogLevel.Info, "Unrecognized request to historical data broker: " + text);
-            }
+            return _dataStorage.GetStorageInfo(instrument.ID.Value);
         }
     }
 }

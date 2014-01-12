@@ -31,7 +31,7 @@ namespace QDMSServer
     public partial class MainWindow : MetroWindow
     {
         private readonly RealTimeDataBroker _realTimeBroker;
-        private readonly HistoricalDataBroker _historicalDataBroker;
+        private readonly HistoricalDataServer _historicalDataServer;
         private readonly InstrumentsServer _instrumentsServer;
 
         private readonly QDMSClient.QDMSClient _client;
@@ -100,7 +100,7 @@ namespace QDMSServer
 
             _realTimeBroker = new RealTimeDataBroker(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort);
             _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort);
-            _historicalDataBroker = new HistoricalDataBroker(Properties.Settings.Default.hDBPort);
+            _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort);
 
             _client = new QDMSClient.QDMSClient(
                 "SERVERCLIENT", 
@@ -274,8 +274,8 @@ namespace QDMSServer
             _realTimeBroker.StopServer();
             _realTimeBroker.Dispose();
 
-            _historicalDataBroker.StopServer();
-            _historicalDataBroker.Dispose();
+            _historicalDataServer.StopServer();
+            _historicalDataServer.Dispose();
 
             _instrumentsServer.StopServer();
             _instrumentsServer.Dispose();

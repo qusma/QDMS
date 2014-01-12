@@ -145,13 +145,15 @@
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="InstrumentsServer.cs" />
-    <Compile Include="HistoricalDataBroker.cs" />
+    <Compile Include="Brokers\HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
     <Compile Include="ConcurrentNotifierBlockingList.cs" />
+    <Compile Include="Interfaces\IHistoricalDataBroker.cs" />
     <Compile Include="Interfaces\IInstrumentSource.cs" />
     <Compile Include="ListBoxExt.cs" />
     <Compile Include="RealTimeDataBroker.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
+    <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Tick.cs" />
     <Compile Include="Utils\DBUtils.cs" />
