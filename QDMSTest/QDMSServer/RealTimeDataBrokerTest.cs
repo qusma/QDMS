@@ -4,7 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using Moq;
 using NUnit.Framework;
 using QDMS;
