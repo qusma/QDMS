@@ -67,8 +67,7 @@ namespace QDMSServer
 
         public HistoricalDataBroker(IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null)
         {
-            if(localStorage == null)
-                _dataStorage = new MySQLStorage();
+            _dataStorage = localStorage ?? new MySQLStorage();
 
             DataSources = new Dictionary<string, IHistoricalDataSource>
             {
@@ -123,8 +122,9 @@ namespace QDMSServer
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
-                _logger.Log(level, message));
+            if(Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    _logger.Log(level, message));
         }
 
         /// <summary>
