@@ -61,7 +61,7 @@ namespace QDMSServer
             }
             if (DataSources.ContainsKey("ContinuousFuturesBroker"))
             {
-                ((ContinuousFuturesBroker)DataSources["ContinuousFuturesBroker"]).Dispose();
+                ((IContinuousFuturesBroker)DataSources["ContinuousFuturesBroker"]).Dispose();
             }
         }
 
