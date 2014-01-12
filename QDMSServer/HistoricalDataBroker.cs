@@ -91,11 +91,13 @@ namespace QDMSServer
             }
         }
 
-        public HistoricalDataBroker(int port)
+        public HistoricalDataBroker(int port, IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null)
         {
             _listenPort = port;
 
-            _dataStorage = new MySQLStorage();
+            if(localStorage == null)
+                _dataStorage = new MySQLStorage();
+
             DataSources = new Dictionary<string, IHistoricalDataSource>
             {
                 { "Interactive Brokers", new IB(3) },
@@ -103,6 +105,16 @@ namespace QDMSServer
                 { "ContinuousFuturesBroker", new ContinuousFuturesBroker() },
                 { "Quandl", new Quandl() }
             };
+
+            //add additional sources
+            if (additionalSources != null)
+            {
+                foreach (IHistoricalDataSource ds in additionalSources)
+                {
+                    if (!DataSources.ContainsKey(ds.Name))
+                        DataSources.Add(ds.Name, ds);
+                }
+            }
 
             foreach (IHistoricalDataSource ds in DataSources.Values)
             {
