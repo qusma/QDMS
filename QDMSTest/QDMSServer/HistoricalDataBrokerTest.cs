@@ -19,17 +19,29 @@ namespace QDMSTest
         private HistoricalDataBroker _broker;
         private Mock<IHistoricalDataSource> _dataSourceMock;
         private Mock<IDataStorage> _localStorageMock;
+        private Mock<IContinuousFuturesBroker> _cfBrokerMock;
+        private Instrument _instrument;
 
         [SetUp]
         public void SetUp()
         {
+            _instrument = new Instrument
+            {
+                ID = 1,
+                Symbol = "SPY",
+                Datasource = new Datasource { ID = 1, Name = "MockSource" }
+            };
+
             _dataSourceMock = new Mock<IHistoricalDataSource>();
             _dataSourceMock.SetupGet(x => x.Name).Returns("MockSource");
             _dataSourceMock.SetupGet(x => x.Connected).Returns(false);
 
             _localStorageMock = new Mock<IDataStorage>();
 
-            _broker = new HistoricalDataBroker(_localStorageMock.Object, new List<IHistoricalDataSource> { _dataSourceMock.Object });
+            _cfBrokerMock = new Mock<IContinuousFuturesBroker>();
+            _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
+
+            _broker = new HistoricalDataBroker(_localStorageMock.Object, new List<IHistoricalDataSource> { _dataSourceMock.Object }, _cfBrokerMock.Object);
 
             _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
         }
@@ -47,21 +59,13 @@ namespace QDMSTest
             {
                 new OHLCBar {Open = 1, High = 2, Low = 3, Close = 4, DT = new DateTime(2000, 1, 1) }
             };
-            
-            var instrument = new Instrument
-            {
-                ID = 1,
-                Symbol = "SPY",
-                Datasource = new Datasource {ID = 1, Name = "TESTDS"}
-            };
 
-            var request = new DataAdditionRequest(BarSize.OneDay, instrument, data, true);
-
+            var request = new DataAdditionRequest(BarSize.OneDay, _instrument, data, true);
 
             _broker.AddData(request);
             _localStorageMock.Verify(x => x.AddData(
                 It.Is<List<OHLCBar>>(b => b.Count == 1 && b[0].Close == 4),
-                It.Is<Instrument>(i => i.ID == 1 && i.Symbol == "SPY" && i.Datasource.Name == "TESTDS"),
+                It.Is<Instrument>(i => i.ID == 1 && i.Symbol == "SPY" && i.Datasource.Name == "MockSource"),
                 It.Is<BarSize>(z => z == BarSize.OneDay),
                 It.Is<bool>(k => k == true),
                 It.IsAny<bool>()), Times.Once);
@@ -70,18 +74,63 @@ namespace QDMSTest
         [Test]
         public void HistoricalDataRequestsAreForwardedToTheCorrectDataSource()
         {
-            var instrument = new Instrument
-            {
-                ID = 1,
-                Symbol = "SPY",
-                Datasource = new Datasource { ID = 1, Name = "TESTDS" }
-            };
-
-            var request = new HistoricalDataRequest(instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
                 forceFreshData: true,
                 localStorageOnly: false,
                 saveToLocalStorage: false,
                 rthOnly: true);
+
+            _broker.RequestHistoricalData(request);
+
+            _dataSourceMock.Verify(x => x.RequestHistoricalData(
+                It.Is<HistoricalDataRequest>(
+                    i =>
+                        i.Instrument.ID == 1 &&
+                        i.Frequency == BarSize.OneDay &&
+                        i.StartingDate.Year == 2012 &&
+                        i.StartingDate.Month == 1 &&
+                        i.StartingDate.Day == 1 &&
+                        i.EndingDate.Year == 2013 &&
+                        i.EndingDate.Month == 1 &&
+                        i.EndingDate.Day == 1 &&
+                        i.ForceFreshData == true &&
+                        i.LocalStorageOnly == false &&
+                        i.SaveDataToStorage == false &&
+                        i.RTHOnly == true)), Times.Once);
+        }
+
+        [Test]
+        public void RequestEndingTimesAreCorrectlyConstrainedToThePresentTimeInTheInstrumentsTimeZone()
+        {
+            _instrument.Exchange = new Exchange()
+            {
+                ID = 1,
+                Name = "Exchange",
+                Timezone = "Eastern Standard Time"
+            };
+
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2100, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            var est = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            var now = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, est);
+
+            var modifiedRequest = new HistoricalDataRequest();
+            _dataSourceMock.Setup(x => x
+                .RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Callback<HistoricalDataRequest>(req => modifiedRequest = req);
+
+            _broker.RequestHistoricalData(request);
+
+            Assert.AreEqual(now.Year, modifiedRequest.EndingDate.Year, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Year, now.Year));
+            Assert.AreEqual(now.Month, modifiedRequest.EndingDate.Month, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Month, now.Month));
+            Assert.AreEqual(now.Day, modifiedRequest.EndingDate.Day, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Day, now.Day));
+            Assert.AreEqual(now.Hour, modifiedRequest.EndingDate.Hour, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Hour, now.Hour));
+            Assert.AreEqual(now.Minute, modifiedRequest.EndingDate.Minute, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Minute, now.Minute));
+
         }
 
         [Test]
@@ -93,25 +142,137 @@ namespace QDMSTest
         [Test]
         public void ForceFreshDataFlagIsObeyed()
         {
-            Assert.IsTrue(false);
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            _broker.RequestHistoricalData(request);
+
+            _localStorageMock.Verify(x => x.GetStorageInfo(It.IsAny<int>(), It.IsAny<BarSize>()), Times.Never);
+            _localStorageMock.Verify(x => x.GetData(It.IsAny<Instrument>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<BarSize>()), Times.Never);
         }
 
         [Test]
         public void LocalStorageOnlyFlagIsObeyed()
         {
-            Assert.IsTrue(false);
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: false,
+                localStorageOnly: true,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            _broker.RequestHistoricalData(request);
+
+            _dataSourceMock.Verify(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()), Times.Never);
+            _localStorageMock.Verify(x => x.RequestHistoricalData(
+                It.Is<HistoricalDataRequest>(
+                    i =>
+                        i.Instrument.ID == 1 &&
+                        i.Frequency == BarSize.OneDay &&
+                        i.StartingDate.Year == 2012 &&
+                        i.StartingDate.Month == 1 &&
+                        i.StartingDate.Day == 1 &&
+                        i.EndingDate.Year == 2013 &&
+                        i.EndingDate.Month == 1 &&
+                        i.EndingDate.Day == 1 &&
+                        i.ForceFreshData == false &&
+                        i.LocalStorageOnly == true &&
+                        i.SaveDataToStorage == false &&
+                        i.RTHOnly == true)));
         }
 
         [Test]
         public void SavesToLocalStorageWhenSaveToLocalStorageFlagIsSet()
         {
-            Assert.IsTrue(false);
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: true,
+                rthOnly: true);
+
+            var data = new List<OHLCBar>
+            {
+                new OHLCBar {Open = 1, High = 2, Low = 3, Close = 4, DT = new DateTime(2000, 1, 1) }
+            };
+
+            //we need to set up a callback with the request after it has had an AssignedID assigned to it.
+            HistoricalDataRequest newRequest = new HistoricalDataRequest();
+            _dataSourceMock
+                .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Callback<HistoricalDataRequest>(req => newRequest = req);
+
+            _broker.RequestHistoricalData(request);
+
+            _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
+
+            _localStorageMock.Verify(
+                x => x.AddData(
+                    It.Is<List<OHLCBar>>(y => y.Count == 1), 
+                    It.Is<Instrument>(y => y.ID == 1), 
+                    It.Is<BarSize>(y => y == BarSize.OneDay), 
+                    It.Is<bool>(y => y == true), 
+                    It.IsAny<bool>()), 
+                    Times.Once);
         }
 
         [Test]
         public void DoesNotSaveToLocalStorageWhenSaveToLocalStorageFlagIsNotSet()
         {
-            Assert.IsTrue(false);
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            var data = new List<OHLCBar>
+            {
+                new OHLCBar {Open = 1, High = 2, Low = 3, Close = 4, DT = new DateTime(2000, 1, 1) }
+            };
+
+            //we need to set up a callback with the request after it has had an AssignedID assigned to it.
+            HistoricalDataRequest newRequest = new HistoricalDataRequest();
+            _dataSourceMock
+                .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Callback<HistoricalDataRequest>(req => newRequest = req);
+
+            _broker.RequestHistoricalData(request);
+
+            _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
+
+            _localStorageMock.Verify(
+                x => x.AddData(It.IsAny<List<OHLCBar>>(), It.IsAny<Instrument>(), It.IsAny<BarSize>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [Test]
+        public void DataRequestsOnContinuousFuturesAreForwardedToTheCFBroker()
+        {
+            _instrument.IsContinuousFuture = true;
+
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            _broker.RequestHistoricalData(request);
+
+            _cfBrokerMock.Verify(x => x.RequestHistoricalData(
+                It.Is<HistoricalDataRequest>(
+                    i =>
+                        i.Instrument.ID == 1 &&
+                        i.Frequency == BarSize.OneDay &&
+                        i.StartingDate.Year == 2012 &&
+                        i.StartingDate.Month == 1 &&
+                        i.StartingDate.Day == 1 &&
+                        i.EndingDate.Year == 2013 &&
+                        i.EndingDate.Month == 1 &&
+                        i.EndingDate.Day == 1 &&
+                        i.ForceFreshData == true &&
+                        i.LocalStorageOnly == false &&
+                        i.SaveDataToStorage == false &&
+                        i.RTHOnly == true)), Times.Once);
         }
 
         [Test]
@@ -123,13 +284,37 @@ namespace QDMSTest
         [Test]
         public void DataArrivedEventIsRaisedWhenDataSourceReturnsData()
         {
-            Assert.IsTrue(false);
+            bool eventRaised = false;
+
+            _broker.HistoricalDataArrived += (sender, e) => eventRaised = true;
+
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            var data = new List<OHLCBar>
+            {
+                new OHLCBar {Open = 1, High = 2, Low = 3, Close = 4, DT = new DateTime(2000, 1, 1) }
+            };
+
+            //we need to set up a callback with the request after it has had an AssignedID assigned to it.
+            HistoricalDataRequest newRequest = new HistoricalDataRequest();
+            _dataSourceMock
+                .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Callback<HistoricalDataRequest>(req => newRequest = req);
+
+            _broker.RequestHistoricalData(request);
+
+            _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
+
+            Assert.IsTrue(eventRaised);
         }
 
         [Test]
         public void RequesterIdentityIsPreservedWhenDataIsReturned()
         {
-            
         }
 
         [Test]
@@ -137,6 +322,5 @@ namespace QDMSTest
         {
             _dataSourceMock.Verify(x => x.Connect(), Times.Once);
         }
-        
     }
 }
