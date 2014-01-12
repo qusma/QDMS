@@ -437,6 +437,25 @@ namespace QDMSServer
             ms.Position = 0;
             var request = Serializer.Deserialize<RealTimeDataRequest>(ms);
 
+            //make sure the ID and data sources are set
+            if (!request.Instrument.ID.HasValue)
+            {
+                _reqSocket.SendMore("ERROR", Encoding.UTF8);
+                _reqSocket.Send("Instrument had no ID set.", Encoding.UTF8);
+
+                Log(LogLevel.Error, "Instrument with no ID requested.");
+                return;
+            }
+
+            if (request.Instrument.Datasource == null)
+            {
+                _reqSocket.SendMore("ERROR", Encoding.UTF8);
+                _reqSocket.Send("Instrument had no data source set.", Encoding.UTF8);
+
+                Log(LogLevel.Error, "Instrument with no data source requested.");
+                return;
+            }
+
             //with the current approach we can't handle multiple real time data streams from
             //the same symbol and data source, but at different frequencies
 
