@@ -145,10 +145,6 @@ namespace QDMSServer
         ///<summary>
         /// Raise the event in a threadsafe manner
         ///</summary>
-        ///<param name="event"></param>
-        ///<param name="sender"></param>
-        ///<param name="e"></param>
-        ///<typeparam name="T"></typeparam>
         static private void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
         where T : EventArgs
         {
