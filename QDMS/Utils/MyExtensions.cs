@@ -33,6 +33,14 @@ namespace QDMS
         }
 
         /// <summary>
+        /// Returns the number of decimal places, ignoring trailing zeros.
+        /// </summary>
+        public static int CountDecimalPlaces(this decimal value)
+        {
+            return Math.Max(0, value.ToString("G29").Length - Math.Truncate(value).ToString().Length - 1);
+        }
+
+        /// <summary>
         /// Convert day of week to integer, with Monday as 0.
         /// </summary>
         public static int ToInt(this DayOfWeek value)

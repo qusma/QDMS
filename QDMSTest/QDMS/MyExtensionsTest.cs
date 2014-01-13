@@ -117,5 +117,26 @@ namespace QDMSTest
             data = data.Distinct(x => x.DT.GetHashCode()).ToList();
             Assert.AreEqual(2, data.Count);
         }
+
+        [Test]
+        public void CountDecimalPlacesReturnsTheCorrectNumber()
+        {
+            decimal val = 5.123m;
+            Assert.AreEqual(3, val.CountDecimalPlaces());
+        }
+
+        [Test]
+        public void CountDecimalPlacesReturnsTheCorrectNumberForNegativeInputs()
+        {
+            decimal val = -5.123m;
+            Assert.AreEqual(3, val.CountDecimalPlaces());
+        }
+
+        [Test]
+        public void CountDecimalPlacesReturnsTheCorrectNumberWithTrailingZeros()
+        {
+            decimal val = 5.123000m;
+            Assert.AreEqual(3, val.CountDecimalPlaces());
+        }
     }
 }
