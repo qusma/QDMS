@@ -32,6 +32,13 @@ namespace QDMSTest
                 Datasource = new Datasource { ID = 1, Name = "MockSource" }
             };
 
+            _instrument.Exchange = new Exchange()
+            {
+                ID = 1,
+                Name = "Exchange",
+                Timezone = "Eastern Standard Time"
+            };
+
             _dataSourceMock = new Mock<IHistoricalDataSource>();
             _dataSourceMock.SetupGet(x => x.Name).Returns("MockSource");
             _dataSourceMock.SetupGet(x => x.Connected).Returns(false);
@@ -39,7 +46,7 @@ namespace QDMSTest
             _localStorageMock = new Mock<IDataStorage>();
 
             _cfBrokerMock = new Mock<IContinuousFuturesBroker>();
-            _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
+            _cfBrokerMock.SetupGet(x => x.Connected).Returns(true);
 
             _broker = new HistoricalDataBroker(_localStorageMock.Object, new List<IHistoricalDataSource> { _dataSourceMock.Object }, _cfBrokerMock.Object);
 
@@ -102,13 +109,6 @@ namespace QDMSTest
         [Test]
         public void RequestEndingTimesAreCorrectlyConstrainedToThePresentTimeInTheInstrumentsTimeZone()
         {
-            _instrument.Exchange = new Exchange()
-            {
-                ID = 1,
-                Name = "Exchange",
-                Timezone = "Eastern Standard Time"
-            };
-
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2100, 1, 1),
                 forceFreshData: true,
                 localStorageOnly: false,
@@ -136,7 +136,41 @@ namespace QDMSTest
         [Test]
         public void RequestsAreCorrectlySplitIntoSubrequestsWhenOnlyPartOfTheDataIsAvailable()
         {
-            Assert.IsTrue(false);
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: false,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            StoredDataInfo sdInfo = new StoredDataInfo()
+            {
+                EarliestDate = new DateTime(2012, 6, 1),
+                LatestDate = new DateTime(2012, 9, 1),
+                Frequency = BarSize.OneDay,
+                InstrumentID = 1
+            };
+
+            _localStorageMock.Setup(x => x.GetStorageInfo(1, BarSize.OneDay)).Returns(sdInfo);
+
+            _broker.RequestHistoricalData(request);
+
+            //first subrequest
+            _dataSourceMock.Verify(x => x.RequestHistoricalData(
+                It.Is<HistoricalDataRequest>(y => 
+                    y.StartingDate.Month == 1 && 
+                    y.StartingDate.Day == 1 &&
+                    y.EndingDate.Month == 5 &&
+                    y.EndingDate.Day == 31
+                    )), Times.Once);
+
+            //second subrequest
+            _dataSourceMock.Verify(x => x.RequestHistoricalData(
+                It.Is<HistoricalDataRequest>(y =>
+                    y.StartingDate.Month == 9 &&
+                    y.StartingDate.Day == 1 &&
+                    y.EndingDate.Month == 1 &&
+                    y.EndingDate.Day == 1
+                    )), Times.Once);
         }
 
         [Test]
