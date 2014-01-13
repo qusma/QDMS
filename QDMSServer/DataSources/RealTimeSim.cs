@@ -37,7 +37,7 @@ namespace QDMSServer.DataSources
             _loopsPassed = new ConcurrentDictionary<string, int>();
             _loopLimit = new ConcurrentDictionary<string, int>();
 
-            _timer = new Timer(100);
+            _timer = new Timer(1);
             _timer.Elapsed += SimulateData;
 
             _rand = new Random();
