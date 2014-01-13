@@ -153,6 +153,7 @@
     <Compile Include="ListBoxExt.cs" />
     <Compile Include="RealTimeDataBroker.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
+    <Compile Include="RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Tick.cs" />
