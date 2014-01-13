@@ -95,6 +95,7 @@
     <Compile Include="QDMSServer\HistoricalDataServerTest.cs" />
     <Compile Include="QDMSServer\IBTest.cs" />
     <Compile Include="QDMSServer\InstrumentsServerTest.cs" />
+    <Compile Include="QDMSServer\RTHFilterTest.cs" />
     <Compile Include="QDMS\MyExtensionsTest.cs" />
     <Compile Include="QDMS\MyUtilsTest.cs" />
     <Compile Include="QDMSServer\PriceAdjusterTest.cs" />
