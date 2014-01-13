@@ -49,19 +49,19 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Path=DT, StringFormat={}{0:yyyy-MM-dd}}" />
                 <DataGridTextColumn Header="Time" Binding="{Binding Path=DT, StringFormat={}{0:HH:mm:ss.fff}}" />
-                <DataGridTextColumn Width="65" Header="Open" Binding="{Binding Path=Open}" />
-                <DataGridTextColumn Width="65" Header="High" Binding="{Binding Path=High}" />
-                <DataGridTextColumn Width="65" Header="Low" Binding="{Binding Path=Low}" />
-                <DataGridTextColumn Width="65" Header="Close" Binding="{Binding Path=Close}" />
-                <DataGridTextColumn Width="75" Header="Volume" Binding="{Binding Path=Volume}" />
-                <DataGridTextColumn Width="75" Header="Open Interest" Binding="{Binding Path=OpenInterest}" />
+                <DataGridTextColumn x:Name="OpenCol" Width="65" Header="Open" Binding="{Binding Path=Open}" />
+                <DataGridTextColumn x:Name="HighCol" Width="65" Header="High" Binding="{Binding Path=High}" />
+                <DataGridTextColumn x:Name="LowCol"  Width="65" Header="Low" Binding="{Binding Path=Low}" />
+                <DataGridTextColumn x:Name="CloseCol" Width="65" Header="Close" Binding="{Binding Path=Close}" />
+                <DataGridTextColumn Width="75" Header="Volume" Binding="{Binding Path=Volume, StringFormat={}{0:n0}}" />
+                <DataGridTextColumn Width="75" Header="Open Interest" Binding="{Binding Path=OpenInterest, StringFormat={}{0:n0}}" />
                 <DataGridTextColumn Width="60" Header="Dividend" Binding="{Binding Path=Dividend}" />
                 <DataGridTextColumn Width="50" Header="Split" Binding="{Binding Path=Split}" />
 
-                <DataGridTextColumn Width="65" Header="AdjOpen" Binding="{Binding Path=AdjOpen}" />
-                <DataGridTextColumn Width="65" Header="AdjHigh" Binding="{Binding Path=AdjHigh}" />
-                <DataGridTextColumn Width="65" Header="AdjLow" Binding="{Binding Path=AdjLow}" />
-                <DataGridTextColumn Width="65" Header="AdjClose" Binding="{Binding Path=AdjClose}" />
+                <DataGridTextColumn x:Name="AdjOpenCol" Width="65" Header="AdjOpen" Binding="{Binding Path=AdjOpen}" />
+                <DataGridTextColumn x:Name="AdjHighCol" Width="65" Header="AdjHigh" Binding="{Binding Path=AdjHigh}" />
+                <DataGridTextColumn x:Name="AdjLowCol"  Width="65" Header="AdjLow" Binding="{Binding Path=AdjLow}" />
+                <DataGridTextColumn x:Name="AdjCloseCol" Width="65" Header="AdjClose" Binding="{Binding Path=AdjClose}" />
             </DataGrid.Columns>
         </DataGrid>
         <Button Click="ExportBtn_Click" x:Name="ExportBtn" Content="Export..." Grid.Column="1" HorizontalAlignment="Left" Margin="10,26,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>

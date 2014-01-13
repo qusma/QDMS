@@ -5,8 +5,11 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using QDMS;
@@ -77,6 +80,19 @@ namespace QDMSServer
             Application.Current.Dispatcher.Invoke(() =>
                 {
                     StatusLabel.Content = string.Format("Loaded {0} Bars", e.Data.Count);
+
+                    //find largest significant decimal by sampling the prices at the start and end of the series
+                    var decPlaces = new List<int>();
+                    for (int i = 0; i < 20; i++)
+                    {
+                        decPlaces.Add(e.Data[i].Open.CountDecimalPlaces());
+                        decPlaces.Add(e.Data[e.Data.Count - 1 - i].Close.CountDecimalPlaces());
+                    }
+
+                    //set the column format to use that number so we don't get any useless trailing 0s
+                    SetPriceColumnFormat(decPlaces.Max());
+
+
                     foreach (OHLCBar bar in e.Data)
                     {
                         Data.Add(bar);
@@ -115,6 +131,23 @@ namespace QDMSServer
                 var filePath = dialog.FileName;
                 Data.ToCSVFile(filePath);
             }
+        }
+
+        /// <summary>
+        /// Sets the formatting for the price columns to a given number of decimal places.
+        /// </summary>
+        private void SetPriceColumnFormat(int decimalPlaces)
+        {
+            //need to re-do the binding because simply changing the StringFormat results in a crash
+            OpenCol.Binding = new Binding("Open") { StringFormat = "{0:F" + decimalPlaces + "}" };
+            HighCol.Binding = new Binding("High") { StringFormat = "{0:F" + decimalPlaces + "}" };
+            LowCol.Binding = new Binding("Low") { StringFormat = "{0:F" + decimalPlaces + "}" };
+            CloseCol.Binding = new Binding("Close") { StringFormat = "{0:F" + decimalPlaces + "}" };
+
+            AdjOpenCol.Binding = new Binding("AdjOpen") { StringFormat = "{0:F" + decimalPlaces + "}" };
+            AdjHighCol.Binding = new Binding("AdjHigh") { StringFormat = "{0:F" + decimalPlaces + "}" };
+            AdjLowCol.Binding = new Binding("AdjLow") { StringFormat = "{0:F" + decimalPlaces + "}" };
+            AdjCloseCol.Binding = new Binding("AdjClose") { StringFormat = "{0:F" + decimalPlaces + "}" };
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)
