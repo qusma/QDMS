@@ -189,9 +189,6 @@ namespace QDMSServer
             //connect to our data sources
             TryConnect();
 
-            //finally start listening and stuff
-            StartServer();
-
             //start up the continuous futures broker
             if (cfBroker == null)
             {

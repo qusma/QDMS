@@ -56,9 +56,6 @@ namespace QDMSServer
             _socketPort = port;
 
             _instrumentManager = instrumentManager ?? new InstrumentManager();
-
-            //start the server
-            StartServer();
         }
 
         /// <summary>
@@ -171,8 +168,9 @@ namespace QDMSServer
         /// </summary>
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
-                _logger.Log(level, message));
+            if(Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    _logger.Log(level, message));
         }
     }
 }

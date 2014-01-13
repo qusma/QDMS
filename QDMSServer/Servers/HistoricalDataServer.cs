@@ -49,8 +49,6 @@ namespace QDMSServer
 
             _serverThread = new Thread(Server);
             _serverThread.Name = "HDB Thread";
-
-            StartServer();
         }
 
         void _broker_HistoricalDataArrived(object sender, HistoricalDataEventArgs e)

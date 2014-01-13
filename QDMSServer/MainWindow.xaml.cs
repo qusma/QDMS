@@ -21,7 +21,6 @@ using NLog;
 using NLog.Targets;
 using QDMS;
 using QDMSServer.DataSources;
-using System.Configuration;
 
 namespace QDMSServer
 {
@@ -97,11 +96,17 @@ namespace QDMSServer
             }
             
             
-
+            //create the various servers
             _realTimeBroker = new RealTimeDataBroker(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort);
             _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort);
             _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort);
 
+            //and start them
+            _realTimeBroker.StartServer();
+            _instrumentsServer.StartServer();
+            _historicalDataServer.StartServer();
+
+            //we also need a client to make historical data requests with 
             _client = new QDMSClient.QDMSClient(
                 "SERVERCLIENT", 
                 "localhost",
