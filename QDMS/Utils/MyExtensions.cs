@@ -37,7 +37,7 @@ namespace QDMS
         /// </summary>
         public static int CountDecimalPlaces(this decimal value)
         {
-            return Math.Max(0, value.ToString("G29").Length - Math.Truncate(value).ToString().Length - 1);
+            return Math.Max(0, value.ToString("0.#########################").Length - Math.Truncate(value).ToString().Length - 1);
         }
 
         /// <summary>

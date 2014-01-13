@@ -132,6 +132,14 @@ namespace QDMSTest
             Assert.AreEqual(3, val.CountDecimalPlaces());
         }
 
+
+        [Test]
+        public void CountDecimalPlacesReturnsTheCorrectNumberForSmallNumbers()
+        {
+            decimal val = 0.0000001m;
+            Assert.AreEqual(7, val.CountDecimalPlaces());
+        }
+
         [Test]
         public void CountDecimalPlacesReturnsTheCorrectNumberWithTrailingZeros()
         {
