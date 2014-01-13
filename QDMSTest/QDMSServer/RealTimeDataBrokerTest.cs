@@ -24,25 +24,25 @@ namespace QDMSTest
         [SetUp]
         public void SetUp()
         {
-            _ds = new Mock<IRealTimeDataSource>();
-            _ds.SetupGet(x => x.Name).Returns("MockSource");
-            _ds.SetupGet(x => x.Connected).Returns(true);
+            //_ds = new Mock<IRealTimeDataSource>();
+            //_ds.SetupGet(x => x.Name).Returns("MockSource");
+            //_ds.SetupGet(x => x.Connected).Returns(true);
 
-            _broker = new RealTimeDataBroker(5555, 5556, new List<IRealTimeDataSource> { _ds.Object });
-            _broker.StartServer();
+            //_broker = new RealTimeDataBroker(5555, 5556, new List<IRealTimeDataSource> { _ds.Object });
+            //_broker.StartServer();
 
-            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5556, 5555, 5554, 5553);
-            _client.Connect();
+            //_client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5556, 5555, 5554, 5553);
+            //_client.Connect();
         }
 
         [TearDown]
         public void TearDown()
         {
-            _client.Disconnect();
-            _client.Dispose();
+            //_client.Disconnect();
+            //_client.Dispose();
 
-            _broker.StopServer();
-            _broker.Dispose();
+            //_broker.StopServer();
+            //_broker.Dispose();
         }
 
         [Test]
