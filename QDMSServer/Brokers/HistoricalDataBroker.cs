@@ -139,7 +139,7 @@ namespace QDMSServer
                 e.Request.Instrument.Symbol));
 
             //pass up the data to the server so it can be sent out
-            RaiseEvent(HistoricalDataArrived, this, e);
+            ReturnData(e);
         }
 
         ///<summary>
@@ -203,10 +203,10 @@ namespace QDMSServer
             }
             else //the data does NOT go to local storage, so we have to load that stuff and combine it right here
             {
+                //grab the rest of the data from historical storage
+                var storageData = new List<OHLCBar>();
                 lock (_localStorageLock)
                 {
-                    //grab the rest of the data from historical storage
-                    var storageData = new List<OHLCBar>();
                     if (e.Data.Count > 0 && e.Data[0].Date.ToDateTime() > originalRequest.StartingDate)
                     {
                         //we add half a bar to the request limit so that the data we get starts with the next one
@@ -214,17 +214,29 @@ namespace QDMSServer
                         storageData = _dataStorage.GetData(originalRequest.Instrument, originalRequest.StartingDate,
                             correctedDateTime, originalRequest.Frequency);
                     }
-
-                    //then send the data to the server through the event, so it can be send out to the client
-                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(e.Request, storageData.Concat(e.Data).ToList()));
-
-                    Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2} and {3} points from local storage.",
-                        e.Data.Count,
-                        e.Request.Instrument.Datasource.Name,
-                        e.Request.Instrument.Symbol,
-                        storageData.Count));
                 }
+
+                //then send the data to the server through the event, so it can be send out to the client
+                ReturnData(new HistoricalDataEventArgs(e.Request, storageData.Concat(e.Data).ToList()));
+
+                Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2} and {3} points from local storage.",
+                    e.Data.Count,
+                    e.Request.Instrument.Datasource.Name,
+                    e.Request.Instrument.Symbol,
+                    storageData.Count));
             }
+        }
+
+        /// <summary>
+        /// Raise the event that returns data to the server, after applying an RTH filter if needed.
+        /// </summary>
+        private void ReturnData(HistoricalDataEventArgs e)
+        {
+            //if needed, we filter out the data outside of regular trading hours
+            RaiseEvent(HistoricalDataArrived, this,
+                e.Request.RTHOnly && e.Request.Instrument.Sessions != null
+                    ? new HistoricalDataEventArgs(e.Request, RTHFilter.Filter(e.Data, e.Request.Instrument.Sessions.ToList()))
+                    : new HistoricalDataEventArgs(e.Request, e.Data));
         }
 
         /// <summary>
