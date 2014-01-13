@@ -59,12 +59,16 @@ namespace QDMSServer
         /// </summary>
         void _broker_RealTimeDataArrived(object sender, RealTimeDataEventArgs e)
         {
-            var ms = new MemoryStream();
-            lock (_pubSocketLock)
+            using (var ms = new MemoryStream())
             {
                 Serializer.Serialize(ms, e);
-                _pubSocket.SendMore(Encoding.UTF8.GetBytes(e.Symbol)); //start by sending the ticker before the data
-                _pubSocket.Send(ms.ToArray()); //then send the serialized bar
+                //this lock is needed because this method will be called from 
+                //the thread of each DataSource in the broker
+                lock (_pubSocketLock) 
+                {
+                    _pubSocket.SendMore(Encoding.UTF8.GetBytes(e.Symbol)); //start by sending the ticker before the data
+                    _pubSocket.Send(ms.ToArray()); //then send the serialized bar
+                }
             }
         }
 
