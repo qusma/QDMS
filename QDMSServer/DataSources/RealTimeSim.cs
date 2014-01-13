@@ -37,7 +37,7 @@ namespace QDMSServer.DataSources
             _loopsPassed = new ConcurrentDictionary<string, int>();
             _loopLimit = new ConcurrentDictionary<string, int>();
 
-            _timer = new Timer(100);
+            _timer = new Timer(1);
             _timer.Elapsed += SimulateData;
 
             _rand = new Random();
@@ -58,12 +58,17 @@ namespace QDMSServer.DataSources
         public int RequestRealTimeData(RealTimeDataRequest request)
         {
             bool success = _requestedSymbols.TryAdd(_requestIDs, request.Instrument.Symbol);
-            if(request.Frequency == BarSize.Tick)
-                _loopLimit.TryAdd(request.Instrument.Symbol, 1);
-            else
-                _loopLimit.TryAdd(request.Instrument.Symbol, (int) (request.Frequency.ToTimeSpan().TotalMilliseconds / 100));
 
-            _loopsPassed.TryAdd(request.Instrument.Symbol, _loopLimit[request.Instrument.Symbol]);
+            int number;
+            if (request.Frequency == BarSize.Tick)
+                number = 1;
+            else
+                number = (int)(request.Frequency.ToTimeSpan().TotalMilliseconds / 100);
+
+            _loopsPassed.TryAdd(request.Instrument.Symbol, number);
+            _loopLimit.TryAdd(request.Instrument.Symbol, number);
+            
+            
             return ++_requestIDs;
         }
 

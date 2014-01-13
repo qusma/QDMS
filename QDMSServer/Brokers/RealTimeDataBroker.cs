@@ -7,33 +7,18 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Timers;
 using System.Windows;
 using NLog;
-using ProtoBuf;
 using QDMS;
 using QDMSServer.DataSources;
-using ZeroMQ;
 using Timer = System.Timers.Timer;
 
 namespace QDMSServer
 {
-    public class RealTimeDataBroker : IDisposable
+    public class RealTimeDataBroker : IDisposable, IRealTimeDataBroker
     {
-        /// <summary>
-        /// This property determines the port used to send out real time data on the publish socket.
-        /// </summary>
-        public int PublisherPort { get; private set; }
-
-        /// <summary>
-        /// This property determines the port used to receive new requests.
-        /// </summary>
-        public int RequestPort { get; private set; }
-
         /// <summary>
         /// Holds the real time data sources.
         /// </summary>
@@ -60,11 +45,6 @@ namespace QDMSServer
         /// </summary>
         private readonly Dictionary<string, List<string>> _aliases;
 
-        /// <summary>
-        /// Is true if the server is running
-        /// </summary>
-        public bool ServerRunning { get; private set; }
-
         ///<summary>
         ///When bars arrive, the data source raises an event
         ///the event adds the data to the _arrivedBars
@@ -85,41 +65,22 @@ namespace QDMSServer
         /// </summary>
         private readonly Dictionary<int, int> _continuousFuturesIDMap;
 
-        private Thread _requestThread;
+        
         private IContinuousFuturesBroker _cfBroker;
-        private bool _runServer = true;
-        private ZmqContext _context;
-        private ZmqSocket _pubSocket;
-        private ZmqSocket _reqSocket;
+
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private Timer _connectionTimer; //tries to reconnect every once in a while
-        private MemoryStream _ms;
-        private readonly object _pubSocketLock = new object();
+        
         private readonly object _subscriberCountLock = new object();
         private readonly object _aliasLock = new object();
         private readonly object _cfRequestLock = new object();
 
         public void Dispose()
         {
-            if (_ms != null)
-            {
-                _ms.Dispose();
-                _ms = null;
-            }
             if (_cfBroker != null)
             {
                 _cfBroker.Dispose();
                 _cfBroker = null;
-            }
-            if (_pubSocket != null)
-            {
-                _pubSocket.Dispose();
-                _pubSocket = null;
-            }
-            if (_reqSocket != null)
-            {
-                _reqSocket.Dispose();
-                _reqSocket = null;
             }
             if (_connectionTimer != null)
             {
@@ -130,11 +91,6 @@ namespace QDMSServer
             {
                 ((IB)DataSources["Interactive Brokers"]).Dispose();
             }
-            if (_context != null)
-            {
-                _context.Dispose();
-                _context = null;
-            }
             if (_arrivedBars != null)
                 _arrivedBars.Dispose();
         }
@@ -142,15 +98,10 @@ namespace QDMSServer
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="pubPort">The port to use for the publishing server.</param>
-        /// <param name="reqPort">The port to use for the request server.</param>
         /// <param name="additionalDataSources">Optional. Pass any additional data sources (for testing purposes).</param>
         /// <param name="cfBroker">Optional. IContinuousFuturesBroker (for testing purposes).</param>
-        public RealTimeDataBroker(int pubPort, int reqPort, IEnumerable<IRealTimeDataSource> additionalDataSources = null, IContinuousFuturesBroker cfBroker = null)
+        public RealTimeDataBroker(IEnumerable<IRealTimeDataSource> additionalDataSources = null, IContinuousFuturesBroker cfBroker = null)
         {
-            if (pubPort == reqPort) throw new Exception("Publish and request ports must be different");
-            PublisherPort = pubPort;
-            RequestPort = reqPort;
             _connectionTimer = new Timer(10000);
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
             _connectionTimer.Start();
@@ -184,8 +135,6 @@ namespace QDMSServer
             _pendingCFRealTimeRequests = new Dictionary<int, RealTimeDataRequest>();
             _continuousFuturesIDMap = new Dictionary<int, int>();
 
-            _ms = new MemoryStream();
-
             //connect to our data sources
             TryConnect();
 
@@ -205,18 +154,73 @@ namespace QDMSServer
         }
 
         /// <summary>
+        /// Request to initiate a real time data stream.
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <returns>True is the request was successful, false otherwise.</returns>
+        public bool RequestRealTimeData(RealTimeDataRequest request)
+        {
+            //if there is already an active stream of this instrument
+            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID))
+            {
+                IncrementSubscriberCount(request.Instrument);
+
+                //log the request
+                Log(LogLevel.Info,
+                    string.Format("RTD Request for existing stream: {0} from {1} @ {2}",
+                        request.Instrument.Symbol,
+                        request.Instrument.Datasource.Name,
+                        Enum.GetName(typeof(BarSize), request.Frequency)));
+
+                return true;
+            }
+            else if (DataSources.ContainsKey(request.Instrument.Datasource.Name) && //make sure the datasource is present & connected
+                     DataSources[request.Instrument.Datasource.Name].Connected)
+            {
+                if (request.Instrument.IsContinuousFuture)
+                {
+                    //if it's a CF, we need to find which contract is currently "used"
+                    //and request that one
+                    lock (_cfRequestLock)
+                    {
+                        _pendingCFRealTimeRequests.Add(_cfBroker.RequestFrontContract(request.Instrument), request);
+                    }
+
+                    //the asynchronous nature of the request for the front month creates a lot of problems
+                    //we either have to abandon the REP socket and use something asynchronous there
+                    //which creates a ton of problems (we need unique IDs for every request and so forth)
+                    //or we send back "success" without actually knowing if the request for the
+                    //continuous futures real time data was successful or not!
+                    //For now I have chosen the latter approach.
+                }
+                else //NOT a continuous future, just a normal instrument: do standard request procedure
+                {
+                    ForwardRTDRequest(request);
+                }
+
+                return true;
+            }
+            else //no new request was made, send the client the reason why
+            {
+                if (!DataSources.ContainsKey(request.Instrument.Datasource.Name))
+                {
+                    throw new Exception("No such datasource.");
+                }
+                else if (!DataSources[request.Instrument.Datasource.Name].Connected)
+                {
+                    throw new Exception("No such datasource.");
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
         /// When one of the data sources receives new real time data, it raises an event which is handled by this method,
         /// which then forwards the data over the PUB socket after serializing it.
         /// </summary>
         public void RealTimeData(object sender, RealTimeDataEventArgs e)
         {
-            lock (_pubSocketLock)
-            {
-                _ms.SetLength(0);
-                _pubSocket.SendMore(Encoding.UTF8.GetBytes(e.Symbol)); //start by sending the ticker before the data
-                Serializer.Serialize(_ms, e);
-                _pubSocket.Send(_ms.ToArray()); //then send the serialized bar
-            }
+            RaiseEvent(RealTimeDataArrived, this, e);
 
             //continuous futures aliases
             lock (_aliasLock)
@@ -225,11 +229,8 @@ namespace QDMSServer
                 {
                     foreach (string alias in _aliases[e.Symbol])
                     {
-                        _ms.SetLength(0);
-                        _pubSocket.SendMore(Encoding.UTF8.GetBytes(alias)); //start by sending the ticker before the data
-                        e.Symbol = alias; //change to the symbol to the alias
-                        Serializer.Serialize(_ms, e);
-                        _pubSocket.Send(_ms.ToArray()); //then send the serialized bar
+                        e.Symbol = alias;
+                        RaiseEvent(RealTimeDataArrived, this, e);
                     }
                 }
             }
@@ -247,7 +248,9 @@ namespace QDMSServer
 #endif
         }
 
-        //this function is here because events may execute on other threads, and therefore can't use the logger on this one and must call the dispatcher
+        /// <summary>
+        /// Log stuff.
+        /// </summary>
         private void Log(LogLevel level, string message)
         {
             if (Application.Current != null) 
@@ -255,91 +258,23 @@ namespace QDMSServer
                     _logger.Log(level, message));
         }
 
-        //tells the servers to stop running and waits for the threads to shut down.
-        public void StopServer()
+
+        ///<summary>
+        /// Raise the event in a threadsafe manner
+        ///</summary>
+        static private void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
+            where T : EventArgs
         {
-            _runServer = false;
-
-            //clear the socket and context and say it's not running any more
-            if (_pubSocket != null)
-                _pubSocket.Dispose();
-
-            _requestThread.Join();
-        }
-
-        /// <summary>
-        /// Starts the publishing and request servers.
-        /// </summary>
-        public void StartServer()
-        {
-            if (!ServerRunning) //only start if it isn't running already
-            {
-                _runServer = true;
-                _context = ZmqContext.Create();
-
-                //the publisher socket
-                _pubSocket = _context.CreateSocket(SocketType.PUB);
-                _pubSocket.Bind("tcp://*:" + PublisherPort);
-
-                //the request socket
-                _reqSocket = _context.CreateSocket(SocketType.REP);
-                _reqSocket.Bind("tcp://*:" + RequestPort);
-
-                _requestThread = new Thread(RequestServer) { Name = "RTDB Request Thread" };
-
-                //clear queue before starting?
-                _requestThread.Start();
-            }
-            ServerRunning = true;
-        }
-
-        /// <summary>
-        /// This method runs on its own thread. The loop receives requests and sends the appropriate reply.
-        /// Can request a ping or to open a new real time data stream.
-        /// </summary>
-        private void RequestServer()
-        {
-            TimeSpan timeout = new TimeSpan(50000);
-
-            MemoryStream ms = new MemoryStream();
-            while (_runServer)
-            {
-                string requestType = _reqSocket.Receive(Encoding.UTF8, timeout);
-                if (requestType == null) continue;
-
-                //handle ping requests
-                if (requestType == "PING")
-                {
-                    _reqSocket.Send("PONG", Encoding.UTF8);
-                    continue;
-                }
-
-                //Handle real time data requests
-                if (requestType == "RTD") //Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
-                {
-                    HandleRTDataRequest(timeout, ms);
-                }
-
-                //manage cancellation requests
-                //two part message: first: "CANCEL". Second: the instrument
-                if (requestType == "CANCEL")
-                {
-                    HandleRTDataCancelRequest(timeout);
-                }
-            }
-
-            //clear the socket and context and say it's not running any more
-            _reqSocket.Dispose();
-
-            ms.Dispose();
-            ServerRunning = false;
+            EventHandler<T> handler = @event;
+            if (handler == null) return;
+            handler(sender, e);
         }
 
         /// <summary>
         /// Cancel a real time data stream and clean up after it.
         /// </summary>
         /// <returns>True if the stream was canceled, False if subsribers remain.</returns>
-        private bool CancelRTDStream(int instrumentID)
+        public bool CancelRTDStream(int instrumentID)
         {
             //make sure there is a data stream for this instrument
             if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID))
@@ -396,122 +331,7 @@ namespace QDMSServer
             return false;
         }
 
-        // Accept a request to cancel a real time data stream
-        // Obviously we only actually cancel it if
-        private void HandleRTDataCancelRequest(TimeSpan timeout)
-        {
-            int receivedBytes;
-            byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
-            if (receivedBytes <= 0) return;
-
-            //receive the instrument
-            var ms = new MemoryStream();
-            ms.Write(buffer, 0, receivedBytes);
-            ms.Position = 0;
-            var instrument = Serializer.Deserialize<Instrument>(ms);
-
-            if (instrument.ID != null)
-                CancelRTDStream(instrument.ID.Value);
-
-            //two part message:
-            //1: "CANCELED"
-            //2: the symbol
-            _reqSocket.SendMore("CANCELED", Encoding.UTF8);
-            _reqSocket.Send(instrument.Symbol, Encoding.UTF8);
-        }
-
-        // Accept a real time data request
-        private void HandleRTDataRequest(TimeSpan timeout, MemoryStream ms)
-        {
-            int receivedBytes;
-            byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
-            if (receivedBytes <= 0) return;
-
-            ms.Write(buffer, 0, receivedBytes);
-            ms.Position = 0;
-            var request = Serializer.Deserialize<RealTimeDataRequest>(ms);
-
-            //make sure the ID and data sources are set
-            if (!request.Instrument.ID.HasValue)
-            {
-                _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                _reqSocket.Send("Instrument had no ID set.", Encoding.UTF8);
-
-                Log(LogLevel.Error, "Instrument with no ID requested.");
-                return;
-            }
-
-            if (request.Instrument.Datasource == null)
-            {
-                _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                _reqSocket.Send("Instrument had no data source set.", Encoding.UTF8);
-
-                Log(LogLevel.Error, "Instrument with no data source requested.");
-                return;
-            }
-
-            //with the current approach we can't handle multiple real time data streams from
-            //the same symbol and data source, but at different frequencies
-
-            //if there is already an active stream of this instrument
-            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID))
-            {
-                IncrementSubscriberCount(request.Instrument);
-
-                //log the request
-                Log(LogLevel.Info,
-                    string.Format("RTD Request for existing stream: {0} from {1} @ {2}",
-                        request.Instrument.Symbol,
-                        request.Instrument.Datasource.Name,
-                        Enum.GetName(typeof(BarSize), request.Frequency)));
-
-                //and report success back to the requesting client
-                _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
-                //along with the symbol of the instrument
-                _reqSocket.Send(request.Instrument.Symbol, Encoding.UTF8);
-            }
-            else if (DataSources.ContainsKey(request.Instrument.Datasource.Name) && //make sure the datasource is present & connected
-                     DataSources[request.Instrument.Datasource.Name].Connected)
-            {
-                if (request.Instrument.IsContinuousFuture)
-                {
-                    //if it's a CF, we need to find which contract is currently "used"
-                    //and request that one
-                    lock (_cfRequestLock)
-                    {
-                        _pendingCFRealTimeRequests.Add(_cfBroker.RequestFrontContract(request.Instrument), request);
-                    }
-
-                    //the asynchronous nature of the request for the front month creates a lot of problems
-                    //we either have to abandon the REP socket and use something asynchronous there
-                    //which creates a ton of problems (we need unique IDs for every request and so forth)
-                    //or we send back "success" without actually knowing if the request for the
-                    //continuous futures real time data was successful or not!
-                    //For now I have chosen the latter approach.
-                }
-                else //NOT a continuous future, just a normal instrument: do standard request procedure
-                {
-                    ForwardRTDRequest(request);
-                }
-
-                //and report success back to the requesting client
-                _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
-                //along with the symbol of the instrument
-                _reqSocket.Send(request.Instrument.Symbol, Encoding.UTF8);
-            }
-            else //no new request was made, send the client the reason why
-            {
-                _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                if (!DataSources.ContainsKey(request.Instrument.Datasource.Name))
-                {
-                    _reqSocket.Send("No such data source.", Encoding.UTF8);
-                }
-                else if (!DataSources[request.Instrument.Datasource.Name].Connected)
-                {
-                    _reqSocket.Send("Data source not connected.", Encoding.UTF8);
-                }
-            }
-        }
+        
 
         /// <summary>
         /// Increments the number of subscribers to a real time data stream by 1.
@@ -679,5 +499,7 @@ namespace QDMSServer
                 }
             }
         }
+
+        public event EventHandler<RealTimeDataEventArgs> RealTimeDataArrived;
     }
 }

@@ -150,11 +150,13 @@
     <Compile Include="ConcurrentNotifierBlockingList.cs" />
     <Compile Include="Interfaces\IHistoricalDataBroker.cs" />
     <Compile Include="Interfaces\IInstrumentSource.cs" />
+    <Compile Include="Interfaces\IRealTimeDataBroker.cs" />
     <Compile Include="ListBoxExt.cs" />
-    <Compile Include="RealTimeDataBroker.cs" />
+    <Compile Include="Brokers\RealTimeDataBroker.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
     <Compile Include="RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
+    <Compile Include="Servers\RealTimeDataServer.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Tick.cs" />
     <Compile Include="Utils\DBUtils.cs" />
