@@ -19,30 +19,23 @@ namespace QDMSTest
     {
         private RealTimeDataBroker _broker;
         private Mock<IRealTimeDataSource> _ds;
-        private QDMSClient.QDMSClient _client;
 
         [SetUp]
         public void SetUp()
         {
-            //_ds = new Mock<IRealTimeDataSource>();
-            //_ds.SetupGet(x => x.Name).Returns("MockSource");
-            //_ds.SetupGet(x => x.Connected).Returns(true);
+            _ds = new Mock<IRealTimeDataSource>();
+            _ds.SetupGet(x => x.Name).Returns("MockSource");
+            _ds.SetupGet(x => x.Connected).Returns(false);
 
-            //_broker = new RealTimeDataBroker(5555, 5556, new List<IRealTimeDataSource> { _ds.Object });
-            //_broker.StartServer();
+            _broker = new RealTimeDataBroker(new List<IRealTimeDataSource> { _ds.Object });
 
-            //_client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5556, 5555, 5554, 5553);
-            //_client.Connect();
+            _ds.SetupGet(x => x.Connected).Returns(true);
         }
 
         [TearDown]
         public void TearDown()
         {
-            //_client.Disconnect();
-            //_client.Dispose();
-
-            //_broker.StopServer();
-            //_broker.Dispose();
+            _broker.Dispose();
         }
 
         [Test]
@@ -63,7 +56,7 @@ namespace QDMSTest
 
             var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds);
 
-            _client.RequestRealTimeData(req);
+            _broker.RequestRealTimeData(req);
 
             _ds.Verify(x => x.RequestRealTimeData(
                 It.Is<RealTimeDataRequest>(
