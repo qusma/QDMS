@@ -86,7 +86,7 @@ namespace QDMSServer
         private readonly Dictionary<int, int> _continuousFuturesIDMap;
 
         private Thread _requestThread;
-        private ContinuousFuturesBroker _cfBroker;
+        private IContinuousFuturesBroker _cfBroker;
         private bool _runServer = true;
         private ZmqContext _context;
         private ZmqSocket _pubSocket;
@@ -190,10 +190,7 @@ namespace QDMSServer
             TryConnect();
 
             //start up the continuous futures broker
-            if (cfBroker == null)
-            {
-                _cfBroker = new ContinuousFuturesBroker(clientName: "RTDBCFClient");
-            }
+            _cfBroker = cfBroker ?? new ContinuousFuturesBroker(clientName: "RTDBCFClient");
             _cfBroker.FoundFrontContract += _cfBroker_FoundFrontContract;
         }
 
