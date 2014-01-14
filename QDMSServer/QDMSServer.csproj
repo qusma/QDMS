@@ -58,6 +58,9 @@
     <StartupObject>QDMSServer.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Bloomberglp.Blpapi">
+      <HintPath>..\Libraries\BLPAPI\Bloomberglp.Blpapi.dll</HintPath>
+    </Reference>
     <Reference Include="clrzmq, Version=2.2.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\clrzmq.3.0.0-rc1\lib\net40\clrzmq.dll</HintPath>
@@ -142,6 +145,7 @@
     <Compile Include="CheckBoxItem.cs" />
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ContinuousFuturesBroker.cs" />
+    <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="InstrumentsServer.cs" />
