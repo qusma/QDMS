@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="QDMSClient.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -21,14 +21,9 @@ namespace QDMSClient
 {
     public class QDMSClient : IDataClient
     {
-        public event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
-
-        public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
-
-        public event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
-
-        public event EventHandler<ErrorArgs> Error;
-
+        /// <summary>
+        /// Returns true if the connection to the server is up.
+        /// </summary>
         public bool Connected
         {
             get
@@ -38,29 +33,75 @@ namespace QDMSClient
         }
 
         private ZmqContext _context;
-        private ZmqSocket _reqSocket; //this socket sends requests for real time data
-        private ZmqSocket _subSocket; //this socket receives real time data
-        private ZmqSocket _dealerSocket; //this socket sends requests for and receives historical data
-        private Timer _heartBeatTimer; //periodically sends heartbeat messages to server to ensure the connection is up
+
+        /// <summary>
+        /// This socket sends requests for real time data.
+        /// </summary>
+        private ZmqSocket _reqSocket;
+
+        /// <summary>
+        /// This socket receives real time data.
+        /// </summary>
+        private ZmqSocket _subSocket;
+
+        /// <summary>
+        /// This socket sends requests for and receives historical data.
+        /// </summary>
+        private ZmqSocket _dealerSocket;
+
+        /// <summary>
+        /// Periodically sends heartbeat messages to server to ensure the connection is up.
+        /// </summary>
+        private Timer _heartBeatTimer;
+
+        /// <summary>
+        /// The time when the last heartbeat was received. If it's too long ago we're disconnected.
+        /// </summary>
         private DateTime _lastHeartBeat;
 
+        /// <summary>
+        /// This thread run the DealerLoop() method.
+        /// It sends out requests for historical data, and receives data when requests are fulfilled.
+        /// </summary>
         private Thread _dealerLoopThread;
+
+        /// <summary>
+        /// This thread runs the
+        /// </summary>
         private Thread _realTimeDataReceiveLoopThread;
+
         private Thread _reqLoopThread;
 
+        //Where to connect
         private readonly string _host;
-        private readonly string _name;
+
         private readonly int _realTimeRequestPort;
         private readonly int _realTimePublishPort;
         private readonly int _instrumentServerPort;
         private readonly int _historicalDataPort;
+
+        /// <summary>
+        /// This holds the zeromq identity string that we'll be using.
+        /// </summary>
+        private readonly string _name;
+
+        /// <summary>
+        /// Queue of historical data requests waiting to be sent out.
+        /// </summary>
         private readonly ConcurrentQueue<HistoricalDataRequest> _historicalDataRequests;
 
+        /// <summary>
+        /// This int is used to give each historical request a unique RequestID.
+        /// Keep in mind this is unique to the CLIENT. AssignedID is unique to the server.
+        /// </summary>
         private int _historicalRequestCount;
 
         private readonly object _reqSocketLock = new object();
         private readonly object _dealerSocketLock = new object();
 
+        /// <summary>
+        /// Used to start and stop the various threads that keep the client running.
+        /// </summary>
         private bool _running;
 
         public void Dispose()
@@ -261,7 +302,7 @@ namespace QDMSClient
         private void RequestRepliesThread()
         {
             var timeout = TimeSpan.FromMilliseconds(10);
-            
+
             using (var poller = new Poller(new[] { _reqSocket }))
             {
                 while (_running)
@@ -275,7 +316,7 @@ namespace QDMSClient
         /// Process replies on the request socket.
         /// Heartbeats, errors, and subscribing to real time data streams.
         /// </summary>
-        void _reqSocket_ReceiveReady(object sender, SocketEventArgs e)
+        private void _reqSocket_ReceiveReady(object sender, SocketEventArgs e)
         {
             var timeout = TimeSpan.FromMilliseconds(10);
             string reply;
@@ -346,7 +387,7 @@ namespace QDMSClient
         {
             var timeout = TimeSpan.FromMilliseconds(5);
             _dealerSocket.Identity = Encoding.Unicode.GetBytes(_name);
-            
+
             using (var poller = new Poller(new[] { _dealerSocket }))
             {
                 var ms = new MemoryStream();
@@ -390,7 +431,7 @@ namespace QDMSClient
             }
         }
 
-        void _subSocket_ReceiveReady(object sender, SocketEventArgs e)
+        private void _subSocket_ReceiveReady(object sender, SocketEventArgs e)
         {
             int size;
             byte[] symbol = _subSocket.Receive(null, out size);
@@ -635,5 +676,13 @@ namespace QDMSClient
             if (handler == null) return;
             handler(sender, e);
         }
+
+        public event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
+
+        public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
+
+        public event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
+
+        public event EventHandler<ErrorArgs> Error;
     }
 }
