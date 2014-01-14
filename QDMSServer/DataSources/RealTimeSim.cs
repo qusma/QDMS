@@ -63,7 +63,7 @@ namespace QDMSServer.DataSources
             if (request.Frequency == BarSize.Tick)
                 number = 1;
             else
-                number = (int)(request.Frequency.ToTimeSpan().TotalMilliseconds / 100);
+                number = (int)(request.Frequency.ToTimeSpan().TotalMilliseconds);
 
             _loopsPassed.TryAdd(request.Instrument.Symbol, number);
             _loopLimit.TryAdd(request.Instrument.Symbol, number);
