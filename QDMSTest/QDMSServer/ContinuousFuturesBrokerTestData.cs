@@ -65,13 +65,35 @@ namespace QDMSTest
                 DatasourceID = 1
             };
 
+            var apr13 = new Instrument
+            {
+                ID = 6,
+                Type = InstrumentType.Future,
+                Expiration = new DateTime(2013, 4, 20),
+                UnderlyingSymbol = "VIX",
+                Symbol = "VIXJ13",
+                DatasourceID = 1
+            };
+
+            var may13 = new Instrument
+            {
+                ID = 7,
+                Type = InstrumentType.Future,
+                Expiration = new DateTime(2013, 5, 20),
+                UnderlyingSymbol = "VIX",
+                Symbol = "VIXK13",
+                DatasourceID = 1
+            };
+
             var futures = new List<Instrument>
             {
                 nov12,
                 dec12,
                 jan13,
                 feb13,
-                mar13
+                mar13,
+                apr13,
+                may13
             };
 
             return futures;
@@ -1777,7 +1799,9 @@ new OHLCBar {Open = 13.65m, High =13.65m, Low = 13.6m, Close = 13.6m, Volume = 1
                 {2, dec12},
                 {3, jan13},
                 {4, feb13},
-                {5, mar13}
+                {5, mar13},
+                {6, new List<OHLCBar>()},
+                {7, new List<OHLCBar>()}
             };
 
             return data;

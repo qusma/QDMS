@@ -106,8 +106,13 @@ namespace QDMSTest
             //make the request
             _broker.RequestHistoricalData(_req);
 
-            Assert.IsTrue(requests.Any(x => x.Instrument.ID == 1));
-            Assert.IsTrue(false); //WRITE THIS
+            Thread.Sleep(50);
+
+            Assert.AreEqual(4, requests.Count);
+            Assert.IsTrue(requests.Any(x => x.Instrument.ID == 2), "ID 2");
+            Assert.IsTrue(requests.Any(x => x.Instrument.ID == 3), "ID 3");
+            Assert.IsTrue(requests.Any(x => x.Instrument.ID == 4), "ID 4");
+            Assert.IsTrue(requests.Any(x => x.Instrument.ID == 5), "ID 5");
         }
 
         [Test]
@@ -1794,7 +1799,7 @@ namespace QDMSTest
         [Test]
         public void FindFrontContractFindsCorrectContractNMonthsBack()
         {
-            List<Instrument> contracts = ContinuousFuturesBrokerTestData.GetVIXFutures();
+            List<Instrument> contracts = ContinuousFuturesBrokerTestData.GetVIXFutures().Where(x => x.ID < 6).ToList();
 
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x
