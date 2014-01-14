@@ -4,6 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// A collection that handles concurrency issues and raises the
+// CollectionChanged event in the thread on which the handler was added.
+// Used for the ActiveStreams collection in the RealTimeDataBroker.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,7 +21,7 @@ namespace QDMSServer
     {
         public List<T> Collection;
         private readonly Dictionary<Delegate, Thread> _handlerThreads;
-        private object lockObj = new object();
+        private readonly object _lockObj = new object();
 
         public ConcurrentNotifierBlockingList()
         {
@@ -30,7 +34,7 @@ namespace QDMSServer
             bool res = false;
             if(timeout == -1)
             {
-                lock(lockObj)
+                lock(_lockObj)
                 {
                     Collection.Add(value);
                     res = true;
@@ -38,7 +42,7 @@ namespace QDMSServer
             }
             else
             {
-                if(Monitor.TryEnter(lockObj, timeout))
+                if(Monitor.TryEnter(_lockObj, timeout))
                 {
                     try
                     {
@@ -47,7 +51,7 @@ namespace QDMSServer
                     }
                     finally
                     {
-                        Monitor.Exit(lockObj);
+                        Monitor.Exit(_lockObj);
                     }
                 }
             }
@@ -63,7 +67,7 @@ namespace QDMSServer
             int index = 0;
             if (timeout == -1)
             {
-                lock (lockObj)
+                lock (_lockObj)
                 {
                     index = Collection.IndexOf(value);
                     if (index >= 0)
@@ -75,7 +79,7 @@ namespace QDMSServer
             }
             else
             {
-                if (Monitor.TryEnter(lockObj, timeout))
+                if (Monitor.TryEnter(_lockObj, timeout))
                 {
                     try
                     {
@@ -88,7 +92,7 @@ namespace QDMSServer
                     }
                     finally
                     {
-                        Monitor.Exit(lockObj);
+                        Monitor.Exit(_lockObj);
                     }
                 }
             }
@@ -102,7 +106,7 @@ namespace QDMSServer
         {
             get
             {
-                lock (lockObj)
+                lock (_lockObj)
                 {
                     return Collection[index];
                 }
@@ -110,7 +114,7 @@ namespace QDMSServer
 
             set
             {
-                lock (lockObj)
+                lock (_lockObj)
                 {
                     Collection[index] = value;
                 }

@@ -4,6 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// The RealTimeDataBroker sits between the HistoricalDataServer
+// and the external data source adapters. 
+// Requests for new real time data streams are handled in RequestRealTimeData(),
+// then forwarded the appropriate external data source (if the stream doesn't already exist)
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

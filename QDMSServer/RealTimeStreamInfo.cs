@@ -4,6 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// Holds information on a real time data stream. 
+// Used to display the "running" streams in the server UI.
+
 using QDMS;
 
 namespace QDMSServer

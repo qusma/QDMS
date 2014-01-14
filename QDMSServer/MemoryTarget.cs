@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// A target for NLog, used to display the log in the UI.
+
 using System;
 using System.Reactive.Subjects;
 using NLog;

@@ -4,12 +4,23 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-// The idea here then is the following:
+// This class serves two primary functions: construct continuous futures data,
+// and find what the current "front" contract for a continuous future instrument is.
+//
+// How the data works:
 // Receive a request for data in RequestHistoricalData().
 // In there, figure out which actual futures contracts we need, and request their data.
 // Keep track of that stuff in _requestIDs.
 // When all the data has arrived, figure out how to stich it together in CalcContFutData()
-// Finally send it out using the HistoricalDataArrived event
+// Finally send it out using the HistoricalDataArrived event.
+//
+// How finding the front contract works:
+// Receive request on RequestFrontContract() and return a unique ID identifying this request.
+// If it's a time-based switch over, just calculate it on the spot.
+// Otherwise we have to grab the data and do the calculations in CalcContFutData() which returns
+// the final contract used.
+// The result is findally returned through the FoundFrontContract event.
+
 
 using System;
 using System.Collections.Concurrent;

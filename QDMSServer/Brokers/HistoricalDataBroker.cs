@@ -4,6 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// The HistoricalDataBroker sits between the HistoricalDataServer
+// and the external data source adapters. 
+// Requests for data are handled in RequestHistoricalData(),
+// then forwarded to local storage, the appropriate external data source, or both.
+// When data returns, it's sent through the HistoricalDataArrived event.
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

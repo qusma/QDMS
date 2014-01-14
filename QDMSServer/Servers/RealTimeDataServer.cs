@@ -1,10 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// -----------------------------------------------------------------------
+// <copyright file="RealTimeDataServer.cs" company="">
+// Copyright 2014 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
+
+// This class handles networking for real time data data.
+// Clients send their requests through ZeroMQ. Here they are parsed
+// and then forwarded to the RealTimeDataBroker.
+// Data sent from the RealTimeDataBroker is sent out to the clients.
+// Two types of possible requests: 
+// 1. To start receiving real time data
+// 2. To cancel a real time data stream
+
+
+using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using NLog;
 using ProtoBuf;

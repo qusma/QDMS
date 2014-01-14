@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// Holds data of a single tick (i.e. a single trade).
+
 using System;
 
 namespace QDMSServer

@@ -4,6 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// This class is used to filter data, removing any bars that happen outside of
+// regular trading hours.
+
 using System;
 using System.Collections.Generic;
 using QDMS;
@@ -16,6 +19,7 @@ namespace QDMSServer
         {
             if (data == null) throw new NullReferenceException("data");
             if (sessions == null) throw new NullReferenceException("sessions");
+            if (sessions.Count == 0) return data;
 
             return data;
         }

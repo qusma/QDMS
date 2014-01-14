@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// This class is used to add, remove, search for, and modify instruments.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

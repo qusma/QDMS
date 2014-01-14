@@ -4,6 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+// This class handles networking for historical data.
+// Clients send their requests through ZeroMQ. Here they are parsed
+// and then forwarded to the HistoricalDataBroker.
+// Data sent from the HistoricalDataBroker is sent out to the clients.
+// Three types of possible requests: 
+// 1. For historical data
+// 2. To check what data is available in the local database
+// 3. To add data to the local database
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
