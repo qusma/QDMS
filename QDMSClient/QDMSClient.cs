@@ -66,10 +66,15 @@ namespace QDMSClient
         private Thread _dealerLoopThread;
 
         /// <summary>
-        /// This thread runs the
+        /// This thread runs the RealTimeDataReceiveLoop() method. Receives data.
         /// </summary>
         private Thread _realTimeDataReceiveLoopThread;
 
+        /// <summary>
+        /// This thread runs the RequestRepliesThread() method.
+        /// It polls the _reqSocket, which receives replies to requests:
+        /// heartbeats, errors, successful stream requests, and successful stream cancelations.
+        /// </summary>
         private Thread _reqLoopThread;
 
         //Where to connect
