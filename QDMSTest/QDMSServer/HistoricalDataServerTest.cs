@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Moq;
 using NUnit.Framework;
@@ -74,6 +75,65 @@ namespace QDMSTest
                     r.Frequency == BarSize.OneDay &&
                     r.StartingDate == new DateTime(2012, 1, 1) &&
                     r.EndingDate == new DateTime(2013, 1, 1))), Times.Once);
+        }
+
+        [Test]
+        public void StartServerStartsTheServer()
+        {
+            Assert.IsTrue(_hdServer.ServerRunning);
+        }
+
+        [Test]
+        public void StopServerStopsTheServer()
+        {
+            _hdServer.StopServer();
+            Assert.IsFalse(_hdServer.ServerRunning);
+        }
+
+        [Test]
+        public void DataPushRequestIsForwardedToLocalStorage()
+        {
+            var instrument = new Instrument
+            {
+                ID = 1,
+                Symbol = "SPY",
+                Datasource = new Datasource { ID = 1, Name = "MockSource" }
+            };
+
+            var data = new List<OHLCBar>
+            {
+                new OHLCBar {Open = 1, High = 2, Low = 3, Close = 4, DT = new DateTime(2013, 1, 1) }
+            };
+
+            var req = new DataAdditionRequest(BarSize.OneDay, instrument, data, true);
+
+            _client.PushData(req);
+
+            _brokerMock.Verify(x => x.AddData(
+                It.Is<DataAdditionRequest>(y => 
+                    y.Frequency == BarSize.OneDay &&
+                    y.Instrument.ID == 1 &&
+                    y.Data.Count == 1)
+                ), Times.Once);
+        }
+
+        [Test]
+        public void AcceptAvailableDataRequestsAreForwardedToTheHistoricalDataBroker()
+        {
+            var instrument = new Instrument
+            {
+                ID = 1,
+                Symbol = "SPY",
+                Datasource = new Datasource { ID = 1, Name = "MockSource" }
+            };
+
+            _client.GetLocallyAvailableDataInfo(instrument);
+
+            _brokerMock.Verify(x => x.GetAvailableDataInfo(
+                It.Is<Instrument>(y =>
+                    y.ID == 1 &&
+                    y.Symbol == "SPY")
+                    ), Times.Once);
         }
     }
 }
