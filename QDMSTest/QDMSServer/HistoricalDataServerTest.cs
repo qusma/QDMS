@@ -70,8 +70,8 @@ namespace QDMSTest
             Thread.Sleep(500);
 
             _brokerMock.Verify(x => x.RequestHistoricalData(
-                It.Is<HistoricalDataRequest>(r => 
-                    r.Instrument.ID == 1 && 
+                It.Is<HistoricalDataRequest>(r =>
+                    r.Instrument.ID == 1 &&
                     r.Frequency == BarSize.OneDay &&
                     r.StartingDate == new DateTime(2012, 1, 1) &&
                     r.EndingDate == new DateTime(2013, 1, 1))), Times.Once);
@@ -110,7 +110,7 @@ namespace QDMSTest
             _client.PushData(req);
 
             _brokerMock.Verify(x => x.AddData(
-                It.Is<DataAdditionRequest>(y => 
+                It.Is<DataAdditionRequest>(y =>
                     y.Frequency == BarSize.OneDay &&
                     y.Instrument.ID == 1 &&
                     y.Data.Count == 1)

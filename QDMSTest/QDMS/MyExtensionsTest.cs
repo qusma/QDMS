@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="MyExtensionsTest.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ namespace QDMSTest
         [Test]
         public void DistinctReturnsDistinctValues()
         {
-            var data = new List<int> { 5, 6, 6, 5, 4, 1, 2};
+            var data = new List<int> { 5, 6, 6, 5, 4, 1, 2 };
             data = data.Distinct((x, y) => x == y).ToList();
 
             var targetData = new List<int> { 5, 6, 4, 1, 2 };
@@ -131,7 +131,6 @@ namespace QDMSTest
             decimal val = -5.123m;
             Assert.AreEqual(3, val.CountDecimalPlaces());
         }
-
 
         [Test]
         public void CountDecimalPlacesReturnsTheCorrectNumberForSmallNumbers()

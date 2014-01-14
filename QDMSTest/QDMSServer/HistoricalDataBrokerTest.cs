@@ -130,7 +130,6 @@ namespace QDMSTest
             Assert.AreEqual(now.Day, modifiedRequest.EndingDate.Day, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Day, now.Day));
             Assert.AreEqual(now.Hour, modifiedRequest.EndingDate.Hour, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Hour, now.Hour));
             Assert.AreEqual(now.Minute, modifiedRequest.EndingDate.Minute, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Minute, now.Minute));
-
         }
 
         [Test]
@@ -156,8 +155,8 @@ namespace QDMSTest
 
             //first subrequest
             _dataSourceMock.Verify(x => x.RequestHistoricalData(
-                It.Is<HistoricalDataRequest>(y => 
-                    y.StartingDate.Month == 1 && 
+                It.Is<HistoricalDataRequest>(y =>
+                    y.StartingDate.Month == 1 &&
                     y.StartingDate.Day == 1 &&
                     y.EndingDate.Month == 5 &&
                     y.EndingDate.Day == 31
@@ -243,11 +242,11 @@ namespace QDMSTest
 
             _localStorageMock.Verify(
                 x => x.AddData(
-                    It.Is<List<OHLCBar>>(y => y.Count == 1), 
-                    It.Is<Instrument>(y => y.ID == 1), 
-                    It.Is<BarSize>(y => y == BarSize.OneDay), 
-                    It.Is<bool>(y => y == true), 
-                    It.IsAny<bool>()), 
+                    It.Is<List<OHLCBar>>(y => y.Count == 1),
+                    It.Is<Instrument>(y => y.ID == 1),
+                    It.Is<BarSize>(y => y == BarSize.OneDay),
+                    It.Is<bool>(y => y == true),
+                    It.IsAny<bool>()),
                     Times.Once);
         }
 

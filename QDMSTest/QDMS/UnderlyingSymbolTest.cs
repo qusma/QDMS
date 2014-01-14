@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="UnderlyingSymbolTest.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -16,10 +16,10 @@ namespace QDMSTest
         [Test]
         public void CorrectlyCalculatesVIXFuturesExpirationDates()
         {
-            //The Wednesday that is thirty days prior to the third Friday of the calendar month 
-            //immediately following the month in which the contract expires ("Final Settlement Date"). 
-            //If the third Friday of the month subsequent to expiration of the applicable VIX futures 
-            //contract is a CBOE holiday, the Final Settlement Date for the contract shall be thirty days 
+            //The Wednesday that is thirty days prior to the third Friday of the calendar month
+            //immediately following the month in which the contract expires ("Final Settlement Date").
+            //If the third Friday of the month subsequent to expiration of the applicable VIX futures
+            //contract is a CBOE holiday, the Final Settlement Date for the contract shall be thirty days
             //prior to the CBOE business day immediately preceding that Friday.
 
             var vix = new UnderlyingSymbol();
@@ -117,9 +117,9 @@ namespace QDMSTest
         [Test]
         public void CorrectlyCalculatesCLFuturesExpirationDates()
         {
-            //Trading in the current delivery month shall cease on the third business day prior to the 
-            //twenty-fifth calendar day of the month preceding the delivery month. If the twenty-fifth 
-            //calendar day of the month is a non-business day, trading shall cease on the third business 
+            //Trading in the current delivery month shall cease on the third business day prior to the
+            //twenty-fifth calendar day of the month preceding the delivery month. If the twenty-fifth
+            //calendar day of the month is a non-business day, trading shall cease on the third business
             //day prior to the last business day preceding the twenty-fifth calendar day.
             var cl = new UnderlyingSymbol();
             cl.Rule = new ExpirationRule
@@ -151,7 +151,7 @@ namespace QDMSTest
         [Test]
         public void CorrectlyCalculatesUltraTBondFuturesExpirationDates()
         {
-            //Seventh business day preceding the last business day of the delivery month. 
+            //Seventh business day preceding the last business day of the delivery month.
             //Trading in expiring contracts closes at 12:01 p.m. on the last trading day.
             var ub = new UnderlyingSymbol();
             ub.Rule = new ExpirationRule
@@ -209,7 +209,7 @@ namespace QDMSTest
         [Test]
         public void CorrectlyCalculates6EFuturesExpirationDates()
         {
-            //9:16 a.m. Central Time (CT) on the second business day immediately preceding 
+            //9:16 a.m. Central Time (CT) on the second business day immediately preceding
             //the third Wednesday of the contract month (usually Monday).
             var eur = new UnderlyingSymbol();
             eur.Rule = new ExpirationRule

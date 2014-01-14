@@ -1,11 +1,8 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="ContinuousFuturesBrokerTest.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
-
-// The spreadsheet used to generate the test values can be found here: 
-// https://docs.google.com/spreadsheet/ccc?key=0Ar6kbZGbHAQmdGZFRGR0SDV3dEdpT0dqaXhrSm10UVE&usp=sharing
 
 using System;
 using System.Collections.Generic;
@@ -2049,7 +2046,6 @@ namespace QDMSTest
                     counter++;
                 });
 
-
             //make the request
             foreach (DateTime dt in expectedExpirationMonths.Keys)
             {
@@ -2142,7 +2138,6 @@ namespace QDMSTest
                 {new DateTime(2013,12,18,15,0, 0),  14.55m },
                 {new DateTime(2013,12,18,15,30, 0),  14.45m },
                 {new DateTime(2013,12,18,16,0, 0),  14.45m },
-
             };
 
             //return the contracts requested
@@ -2175,7 +2170,6 @@ namespace QDMSTest
             _req.StartingDate = new DateTime(2013, 12, 13);
             _req.EndingDate = new DateTime(2013, 12, 18, 23, 0, 0);
             _req.Frequency = BarSize.OneHour;
-
 
             //make the request
             _broker.RequestHistoricalData(_req);

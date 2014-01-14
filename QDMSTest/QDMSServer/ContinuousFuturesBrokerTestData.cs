@@ -1,4 +1,8 @@
-﻿// Data sourced from the CBOE: http://cfe.cboe.com/Products/historicalVIX.aspx
+﻿// -----------------------------------------------------------------------
+// <copyright file="ContinuousFuturesBrokerTestData.cs" company="">
+// Copyright 2014 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -76,7 +80,6 @@ namespace QDMSTest
         //utility function to get the contracts used for the intraday continuous futures calculations
         public static List<Instrument> GetContractsForIntradayData()
         {
-
             var dec13 = new Instrument
             {
                 ID = 1,
@@ -385,7 +388,6 @@ new OHLCBar {Open = 16.2m, High =16.2m, Low = 16.1m, Close = 16.15m, Volume = 24
 new OHLCBar {Open = 16.1m, High =16.1m, Low = 15.75m, Close = 15.85m, Volume = 5850, DT = new DateTime(2013,12,17,13,0, 0) },
 new OHLCBar {Open = 15.85m, High =16.05m, Low = 15.8m, Close = 16.05m, Volume = 6192, DT = new DateTime(2013,12,17,14,0, 0) },
 new OHLCBar {Open = 16.1m, High =16.25m, Low = 16.05m, Close = 16.25m, Volume = 3285, DT = new DateTime(2013,12,17,15,0, 0) },
-
             };
 
             var jan14 = new List<OHLCBar>
@@ -774,9 +776,7 @@ new OHLCBar {Open = 13.65m, High =13.65m, Low = 13.55m, Close = 13.6m, Volume = 
 new OHLCBar {Open = 13.55m, High =13.6m, Low = 13.5m, Close = 13.55m, Volume = 2980, DT = new DateTime(2014,1,7,14,0, 0) },
 new OHLCBar {Open = 13.6m, High =13.65m, Low = 13.55m, Close = 13.65m, Volume = 3150, DT = new DateTime(2014,1,7,15,0, 0) },
 new OHLCBar {Open = 13.65m, High =13.65m, Low = 13.6m, Close = 13.6m, Volume = 153, DT = new DateTime(2014,1,7,15,30, 0) },
-
             };
-
 
             var data = new Dictionary<int, List<OHLCBar>>
             {

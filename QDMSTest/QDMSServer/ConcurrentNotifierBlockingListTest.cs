@@ -1,8 +1,14 @@
-﻿using System.Collections.Generic;
+﻿// -----------------------------------------------------------------------
+// <copyright file="ConcurrentNotifierBlockingListTest.cs" company="">
+// Copyright 2014 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Windows.Threading;
 using NUnit.Framework;
 using QDMSServer;
-using System.Windows.Threading;
 
 namespace QDMSTest
 {
@@ -10,7 +16,7 @@ namespace QDMSTest
     public class ConcurrentNotifierBlockingListTest
     {
         private ConcurrentNotifierBlockingList<int> _list;
-            
+
         [SetUp]
         public void Setup()
         {
@@ -69,8 +75,8 @@ namespace QDMSTest
         public void AdditionNotificationWorks()
         {
             //we have to use the dispatcher once so that the event can be raised on this thread
-            Dispatcher disp = Dispatcher.CurrentDispatcher; 
-            
+            Dispatcher disp = Dispatcher.CurrentDispatcher;
+
             var actions = new List<NotifyCollectionChangedAction>();
 
             _list.CollectionChanged += (sender, e) => actions.Add(e.Action);
@@ -84,7 +90,7 @@ namespace QDMSTest
         public void RemovalNotificationWorks()
         {
             //we have to use the dispatcher once so that the event can be raised on this thread
-            Dispatcher disp = Dispatcher.CurrentDispatcher; 
+            Dispatcher disp = Dispatcher.CurrentDispatcher;
             var actions = new List<NotifyCollectionChangedAction>();
 
             _list.CollectionChanged += (sender, e) => actions.Add(e.Action);

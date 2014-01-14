@@ -15,15 +15,15 @@ namespace QDMSTest
     {
         private RealTimeDataServer _rtServer;
         private QDMSClient.QDMSClient _client;
-        private Mock<IHistoricalDataBroker> _brokerMock;
+        private Mock<IRealTimeDataBroker> _brokerMock;
 
         [SetUp]
         public void SetUp()
         {
-            _brokerMock = new Mock<IHistoricalDataBroker>();
+            _brokerMock = new Mock<IRealTimeDataBroker>();
 
             //also need the real time server to keep the "heartbeat" going
-            _rtServer = new RealTimeDataServer(5555, 5554);
+            _rtServer = new RealTimeDataServer(5555, 5554, _brokerMock.Object);
             _rtServer.StartServer();
 
             _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5556, 5557);

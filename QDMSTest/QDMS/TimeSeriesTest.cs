@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="TimeSeriesTest.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -35,10 +35,9 @@ namespace QDMSTest
                 new OHLCBar {Open = 27.18m, High =27.3m, Low = 26.5m, Close = 26.84m, Volume = 499, OpenInterest = 2397, DT = new DateTime(2012,3,23) },
                 new OHLCBar {Open = 26.58m, High =26.58m, Low = 25.5m, Close = 25.65m, Volume = 644, OpenInterest = 2782, DT = new DateTime(2012,3,26) },
             };
-            
+
             _ts = new TimeSeries(data);
         }
-
 
         [Test]
         public void CurrentBarProgressedToTheRightPoint()

@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="MyUtilsTest.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ namespace QDMSTest
         [Test]
         public void OrdinalReturnsCorrectSuffix()
         {
-            Dictionary<int, string> inputAndExpectedValues = new Dictionary<int, string> 
+            Dictionary<int, string> inputAndExpectedValues = new Dictionary<int, string>
             {
                 {1, "1st"},
                 {2, "2nd"},
@@ -40,7 +40,6 @@ namespace QDMSTest
                 {22, "22nd"},
                 {23, "23rd"}
             };
-
 
             foreach (var kvp in inputAndExpectedValues)
             {
@@ -77,9 +76,8 @@ namespace QDMSTest
             };
             var ms = new MemoryStream();
 
-
             var instDeserialized = MyUtils.ProtoBufDeserialize<Instrument>(MyUtils.ProtoBufSerialize(inst, ms), ms);
-            
+
             Assert.AreEqual(inst.ID, instDeserialized.ID);
             Assert.AreEqual(inst.Symbol, instDeserialized.Symbol);
             Assert.AreEqual(inst.UnderlyingSymbol, instDeserialized.UnderlyingSymbol);

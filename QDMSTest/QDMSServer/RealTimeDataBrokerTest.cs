@@ -4,9 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using Moq;
 using NUnit.Framework;
 using QDMS;
@@ -60,20 +58,16 @@ namespace QDMSTest
 
             _ds.Verify(x => x.RequestRealTimeData(
                 It.Is<RealTimeDataRequest>(
-                    r => r.Instrument.ID == 1 && 
+                    r => r.Instrument.ID == 1 &&
                     r.Instrument.Symbol == "SPY" &&
-                    r.Frequency == BarSize.FiveSeconds)), 
+                    r.Frequency == BarSize.FiveSeconds)),
                 Times.Once);
         }
 
         [Test]
         public void RequestsCorrectFuturesContractForContinuousFutures()
         {
-            
-
-
             Assert.IsTrue(false);
-
         }
     }
 }
