@@ -22,7 +22,7 @@ namespace QDMS
         public List<OHLCBar> Data { get; set; }
 
         [ProtoMember(4)]
-        public bool Overwrite = true;
+        public bool Overwrite { get; set; }
 
         public DataAdditionRequest()
         {
