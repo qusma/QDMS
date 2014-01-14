@@ -109,6 +109,8 @@ namespace QDMSTest
 
             _client.PushData(req);
 
+            Thread.Sleep(50);
+
             _brokerMock.Verify(x => x.AddData(
                 It.Is<DataAdditionRequest>(y =>
                     y.Frequency == BarSize.OneDay &&
@@ -128,6 +130,8 @@ namespace QDMSTest
             };
 
             _client.GetLocallyAvailableDataInfo(instrument);
+
+            Thread.Sleep(50);
 
             _brokerMock.Verify(x => x.GetAvailableDataInfo(
                 It.Is<Instrument>(y =>
