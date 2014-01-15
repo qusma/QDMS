@@ -61,7 +61,6 @@
     <Compile Include="EntityConfigs\DatasourceConfig.cs" />
     <Compile Include="EntityConfigs\ExchangeConfig.cs" />
     <Compile Include="EntityConfigs\InstrumentConfig.cs" />
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="MyDBContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EntityConfigs\SessionTemplateConfig.cs" />
