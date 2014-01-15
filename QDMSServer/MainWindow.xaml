@@ -80,6 +80,15 @@
         <Menu Background="WhiteSmoke">
             <MenuItem Header="_File">
                 <MenuItem Header="_Exit" x:Name="BtnExit" Click="BtnExit_ItemClick"/>
+                <Separator/>
+                <MenuItem Header="Backup">
+                    <MenuItem Header="Metadata" x:Name="BackupMetadataBtn" Click="BackupMetadataBtn_Click" IsEnabled="False"/>
+                    <MenuItem Header="Data" x:Name="BackupDataBtn" Click="BackupDataBtn_Click" IsEnabled="False"/>
+                </MenuItem>
+                <MenuItem Header="Restore">
+                    <MenuItem Header="Metadata" x:Name="RestoreMetadataBtn" Click="RestoreMetadataBtn_OnClick" IsEnabled="False"/>
+                    <MenuItem Header="Data" x:Name="RestoreDataBtn" Click="RestoreDataBtn_OnClick" IsEnabled="False"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="Add Instrument">

@@ -626,7 +626,25 @@ namespace QDMSServer
             ((MenuItem)menu.Items[6]).IsEnabled = !multipleSelected; //edit data
         }
 
+        private void BackupMetadataBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void BackupDataBtn_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
 
 
+        private void RestoreMetadataBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RestoreDataBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
