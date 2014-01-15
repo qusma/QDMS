@@ -114,7 +114,7 @@ namespace QDMSServer
                     //check if there's anything in the queue, if there is we want to send it
                     if (_dataQueue.TryDequeue(out newDataItem))
                     {
-                        //this is a 4 part message
+                        //this is a 5 part message
                         //1st message part: the identity string of the client that we're routing the data to
                         string clientIdentity = newDataItem.Key.RequesterIdentity;
 
