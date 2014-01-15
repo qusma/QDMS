@@ -36,6 +36,12 @@ namespace QDMS
         [ProtoMember(5)]
         public Instrument FallBack { get; set; }
 
+        /// <summary>
+        /// This value is used on the client side to uniquely identify real time data requests.
+        /// </summary>
+        [ProtoMember(6)]
+        public int RequestID { get; set; }
+
         public RealTimeDataRequest()
         {
         }
@@ -58,6 +64,7 @@ namespace QDMS
         {
             var clone = new RealTimeDataRequest(Instrument, Frequency, RTHOnly, SaveToLocalStorage);
             clone.FallBack = FallBack;
+            clone.RequestID = RequestID;
             return clone;
         }
     }
