@@ -239,7 +239,7 @@ namespace QDMSServer
         /// <summary>
         /// Processes incoming historical data requests.
         /// </summary>
-        public void AcceptHistoricalDataRequest(string requesterIdentity, ZmqSocket socket)
+        private void AcceptHistoricalDataRequest(string requesterIdentity, ZmqSocket socket)
         {
             //third: a serialized HistoricalDataRequest object which contains the details of the request
             int size;

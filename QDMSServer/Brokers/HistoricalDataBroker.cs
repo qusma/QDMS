@@ -282,8 +282,6 @@ namespace QDMSServer
         /// </summary>
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
-
-
             _originalRequests.TryAdd(request.AssignedID, request);
 
             //request is for fresh data ONLY -- send the request directly to the external data source
