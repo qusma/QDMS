@@ -16,7 +16,7 @@ using QDMS;
 #pragma warning disable 67
 namespace QDMSServer.DataSources
 {
-    class Yahoo : IHistoricalDataSource
+    public class Yahoo : IHistoricalDataSource
     {
         readonly Logger _logger = LogManager.GetCurrentClassLogger();
 

@@ -14,7 +14,7 @@ using QDMS;
 #pragma warning disable 67
 namespace QDMSServer.DataSources
 {
-    class MySQLStorage : IDataStorage, IDisposable
+    public class MySQLStorage : IDataStorage, IDisposable
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 

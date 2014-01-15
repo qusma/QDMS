@@ -22,7 +22,7 @@ using LogLevel = NLog.LogLevel;
 
 namespace QDMSServer.DataSources
 {
-    internal class IB : IHistoricalDataSource, IRealTimeDataSource
+    public class IB : IHistoricalDataSource, IRealTimeDataSource
     {
         private readonly IBClient _client;
         private readonly Dictionary<int, RealTimeDataRequest> _realTimeDataRequests;

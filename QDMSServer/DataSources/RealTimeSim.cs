@@ -12,7 +12,7 @@ using QDMS;
 #pragma warning disable 67
 namespace QDMSServer.DataSources
 {
-    class RealTimeSim : IRealTimeDataSource, IDisposable
+    public class RealTimeSim : IRealTimeDataSource, IDisposable
     {
         private Timer _timer;
         private ConcurrentDictionary<int, string> _requestedSymbols;
