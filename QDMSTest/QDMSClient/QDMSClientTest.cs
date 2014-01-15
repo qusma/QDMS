@@ -26,21 +26,7 @@ namespace QDMSTest
         }
 
         [Test]
-        public void RequestHistoricalDataReturnsMinusOneWhenDatesAreWrong()
-        {
-            var req = new HistoricalDataRequest
-            {
-                Instrument = new Instrument { ID = 1, Symbol = "SPY" },
-                StartingDate = new DateTime(2012, 1, 1),
-                EndingDate = new DateTime(2011, 1, 1),
-                Frequency = BarSize.OneDay
-            };
-
-            Assert.AreEqual(-1, _client.RequestHistoricalData(req));
-        }
-
-        [Test]
-        public void RequestHistoricalDataRaisesErrorEventWhenDatesAreWrong()
+        public void RequestHistoricalDataRaisesErrorEventAndReturnsMinusOneWhenDatesAreWrong()
         {
             var req = new HistoricalDataRequest
             {
@@ -53,19 +39,79 @@ namespace QDMSTest
             bool errorTriggered = false;
             _client.Error += (sender, e) => errorTriggered = true;
 
-            _client.RequestHistoricalData(req);
+            Assert.AreEqual(-1, _client.RequestHistoricalData(req));
 
             Assert.IsTrue(errorTriggered);
         }
 
         [Test]
-        public void RequestHistoricalDataReturnsMinusOneWhenNotConnected()
+        public void RequestHistoricalDataRaisesErrorEventAndReturnsMinusOneWhenNotConnected()
         {
+            var req = new HistoricalDataRequest
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY" },
+                StartingDate = new DateTime(2012, 1, 1),
+                EndingDate = new DateTime(2013, 1, 1),
+                Frequency = BarSize.OneDay
+            };
+
+            bool errorTriggered = false;
+            _client.Error += (sender, e) => errorTriggered = true;
+
+            Assert.AreEqual(-1, _client.RequestHistoricalData(req));
+
+            Assert.IsTrue(errorTriggered);
         }
 
         [Test]
-        public void RequestHistoricalDataRaisesErrorEventWhenNotConnected()
+        public void RequestHistoricalDataRaisesErrorEventAndReturnsMinusOneWhenInstrumentIsNull()
         {
+            var req = new HistoricalDataRequest
+            {
+                Instrument = null,
+                StartingDate = new DateTime(2012, 1, 1),
+                EndingDate = new DateTime(2013, 1, 1),
+                Frequency = BarSize.OneDay
+            };
+
+            bool errorTriggered = false;
+            _client.Error += (sender, e) => errorTriggered = true;
+
+            Assert.AreEqual(-1, _client.RequestHistoricalData(req));
+
+            Assert.IsTrue(errorTriggered);
+        }
+
+        [Test]
+        public void RequestRealTimelDataRaisesErrorEventAndReturnsMinusOneWhenInstrumentIsNull()
+        {
+            var req = new RealTimeDataRequest()
+            {
+                Instrument = null
+            };
+
+            bool errorTriggered = false;
+            _client.Error += (sender, e) => errorTriggered = true;
+
+            Assert.AreEqual(-1, _client.RequestRealTimeData(req));
+
+            Assert.IsTrue(errorTriggered);
+        }
+
+        [Test]
+        public void RequestRealTimelDataRaisesErrorEventAndReturnsMinusOneWhenNotConnected()
+        {
+            var req = new RealTimeDataRequest()
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY" }
+            };
+
+            bool errorTriggered = false;
+            _client.Error += (sender, e) => errorTriggered = true;
+
+            Assert.AreEqual(-1, _client.RequestRealTimeData(req));
+
+            Assert.IsTrue(errorTriggered);
         }
     }
 }
