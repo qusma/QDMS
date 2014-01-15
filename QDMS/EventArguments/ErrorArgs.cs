@@ -13,10 +13,11 @@ namespace QDMS
         /// <summary>
         /// Event args for error event.
         /// </summary>
-        public ErrorArgs(int code, string message)
+        public ErrorArgs(int code, string message, int? requestID = null)
         {
             ErrorCode = code;
             ErrorMessage = message;
+            RequestID = requestID;
         }
 
         /// <summary>
@@ -28,5 +29,10 @@ namespace QDMS
         /// Error message.
         /// </summary>
         public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// If this error concerns a specific request, its RequestID is given here.
+        /// </summary>
+        public int? RequestID { get; set; }
     }
 }
