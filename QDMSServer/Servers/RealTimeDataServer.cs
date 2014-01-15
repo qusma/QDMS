@@ -224,24 +224,31 @@ namespace QDMSServer
             //forward the request to the broker
             try
             {
-                bool success = Broker.RequestRealTimeData(request);
-                if (success)
+                if (Broker.RequestRealTimeData(request))
                 {
                     //and report success back to the requesting client
                     _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
-                    //along with the symbol of the instrument
-                    _reqSocket.Send(request.Instrument.Symbol, Encoding.UTF8);
+                    //along with the request
+                    _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
                 }
                 else
                 {
-                    //TODO write
+                    //report error back to the requesting client
+                    _reqSocket.SendMore("ERROR", Encoding.UTF8);
+                    //error message
+                    _reqSocket.SendMore("Unkown error.", Encoding.UTF8);
+                    //along with the request
+                    _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
                 }
             }
             catch (Exception ex)
             {
                 //there was a problem with requesting the feed
                 _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                _reqSocket.Send(ex.Message, Encoding.UTF8);
+                //error message
+                _reqSocket.SendMore(ex.Message, Encoding.UTF8);
+                //request
+                _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
             }
 
             

@@ -99,7 +99,7 @@ namespace QDMSClient
         /// This int is used to give each historical request a unique RequestID.
         /// Keep in mind this is unique to the CLIENT. AssignedID is unique to the server.
         /// </summary>
-        private int _historicalRequestCount;
+        private int _requestCount;
 
         private readonly object _reqSocketLock = new object();
         private readonly object _dealerSocketLock = new object();
@@ -220,17 +220,29 @@ namespace QDMSClient
         /// <summary>
         /// Request historical data. Data will be delivered through the HistoricalDataReceived event.
         /// </summary>
-        /// <returns>An ID uniquely identifying this historical data request.</returns>
+        /// <returns>An ID uniquely identifying this historical data request. -1 if there was an error.</returns>
         public int RequestHistoricalData(HistoricalDataRequest request)
         {
             //make sure the request is valid
             if (request.EndingDate <= request.StartingDate)
             {
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Historical Data Request Failed: Starting date must be after ending date."));
+                return -1;
             }
 
-            _historicalRequestCount++;
-            request.RequestID = _historicalRequestCount;
+            if (request.Instrument == null)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Historical Data Request Failed: null Instrument."));
+                return -1;
+            }
+
+            if (!Connected)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request historical data - not connected."));
+                return -1;
+            }
+
+            request.RequestID = _requestCount++;
             _historicalDataRequests.Enqueue(request);
             return request.RequestID;
         }
@@ -238,13 +250,22 @@ namespace QDMSClient
         /// <summary>
         /// Request a new real time data stream. Data will be delivered through the RealTimeDataReceived event.
         /// </summary>
-        public void RequestRealTimeData(RealTimeDataRequest request)
+        /// <returns>An ID uniquely identifying this real time data request. -1 if there was an error.</returns>
+        public int RequestRealTimeData(RealTimeDataRequest request)
         {
             if (!Connected)
             {
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request real time data - not connected."));
-                return;
+                return -1;
             }
+
+            if (request.Instrument == null)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Real Time Data Request Failed: null Instrument."));
+                return -1;
+            }
+
+            request.RequestID = _requestCount++;
 
             lock (_reqSocketLock)
             {
@@ -256,6 +277,7 @@ namespace QDMSClient
                 _reqSocket.SendMore("RTD", Encoding.UTF8);
                 _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
             }
+            return request.RequestID;
         }
 
         /// <summary>
@@ -324,12 +346,12 @@ namespace QDMSClient
         private void _reqSocket_ReceiveReady(object sender, SocketEventArgs e)
         {
             var timeout = TimeSpan.FromMilliseconds(10);
-            string reply;
+            var ms = new MemoryStream();
 
             //wait for reply to see what happened
             lock (_reqSocketLock)
             {
-                reply = _reqSocket.Receive(Encoding.UTF8, timeout); //will be an empty string if there is a message
+                string reply = _reqSocket.Receive(Encoding.UTF8, timeout);
 
                 if (reply == null) return;
 
@@ -343,16 +365,27 @@ namespace QDMSClient
 
                     case "ERROR": //something went wrong
                         {
+                            //first the message
                             string error = _reqSocket.Receive(Encoding.UTF8);
-                            RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error));
+
+                            //then the request
+                            int size;
+                            byte[] buffer = _reqSocket.Receive(null, TimeSpan.FromSeconds(1), out size);
+                            var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
+
+                            //error event
+                            RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error, request.RequestID));
                             return;
                         }
                     case "SUCCESS": //successful request to start a new real time data stream
                         {
-                            //also receive the symbol
-                            string symbol = _reqSocket.Receive(Encoding.UTF8);
+                            //receive the request
+                            int size;
+                            byte[] buffer = _reqSocket.Receive(null, TimeSpan.FromSeconds(1), out size);
+                            var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
+
                             //request worked, so we subscribe to the stream
-                            _subSocket.Subscribe(Encoding.UTF8.GetBytes(symbol));
+                            _subSocket.Subscribe(Encoding.UTF8.GetBytes(request.Instrument.Symbol));
                         }
                         break;
 
