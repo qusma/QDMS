@@ -33,7 +33,7 @@ namespace QDMS
         /// <summary>
         /// Request a new real time data stream. Data will be delivered through the RealTimeDataReceived event.
         /// </summary>
-        void RequestRealTimeData(RealTimeDataRequest request);
+        int RequestRealTimeData(RealTimeDataRequest request);
         /// <summary>
         /// Tries to connect to the QDMS server.
         /// </summary>
