@@ -29,7 +29,9 @@ namespace QDMSServer
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
+        private readonly RealTimeDataBroker _realTimeBroker;
         private readonly RealTimeDataServer _realTimeServer;
+        private readonly HistoricalDataBroker _historicalBroker;
         private readonly HistoricalDataServer _historicalDataServer;
         private readonly InstrumentsServer _instrumentsServer;
 
@@ -95,11 +97,14 @@ namespace QDMSServer
                 Instruments.Add(i);
             }
             
+            //create brokers
+            _realTimeBroker = new RealTimeDataBroker();
+            _historicalBroker = new HistoricalDataBroker();
             
             //create the various servers
-            _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort);
+            _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, _realTimeBroker);
             _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort);
-            _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort);
+            _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, _historicalBroker);
 
             //and start them
             _realTimeServer.StartServer();
@@ -118,7 +123,7 @@ namespace QDMSServer
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
 
 
-            ActiveStreamGrid.ItemsSource = _realTimeServer.Broker.ActiveStreams;
+            ActiveStreamGrid.ItemsSource = _realTimeBroker.ActiveStreams;
 
             entityContext.Dispose();
         }
