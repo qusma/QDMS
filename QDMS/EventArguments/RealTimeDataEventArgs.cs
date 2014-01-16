@@ -16,7 +16,7 @@ namespace QDMS
         /// <summary>
         /// Real time bar event arguments.
         /// </summary>
-        public RealTimeDataEventArgs(string symbol, long time, decimal open, decimal high, decimal low, decimal close, long volume, double wap, int count)
+        public RealTimeDataEventArgs(string symbol, long time, decimal open, decimal high, decimal low, decimal close, long volume, double wap, int count, int requestID)
         {
             Symbol = symbol;
             Time = time;
@@ -27,6 +27,7 @@ namespace QDMS
             Volume = volume;
             Wap = wap;
             Count = count;
+            RequestID = requestID;
         }
 
         /// <summary>
@@ -90,6 +91,11 @@ namespace QDMS
         /// </summary>
         [ProtoMember(9)]
         public double Wap { get; set; }
+
+        /// <summary>
+        /// The AssignedID of the original RealTimeDataRequest that started this stream.
+        /// </summary>
+        public int RequestID { get; set; }
 
     }
 }

@@ -227,7 +227,8 @@ namespace QDMSServer
                 e.Close,
                 e.Volume,
                 e.Wap,
-                e.Count);
+                e.Count,
+                0);
         }
     }
 }
