@@ -24,7 +24,7 @@ namespace QDMSServer.DataSources
 {
     public class IB : IHistoricalDataSource, IRealTimeDataSource
     {
-        private readonly IBClient _client;
+        private readonly IIBClient _client;
         private readonly Dictionary<int, RealTimeDataRequest> _realTimeDataRequests;
         private readonly ConcurrentDictionary<int, HistoricalDataRequest> _historicalDataRequests;
 
@@ -58,7 +58,7 @@ namespace QDMSServer.DataSources
 
         public bool Connected { get { return _client.Connected; } }
 
-        public IB(int clientID = -1)
+        public IB(int clientID = -1, IIBClient client = null)
         {
             Name = "Interactive Brokers";
 
@@ -82,7 +82,7 @@ namespace QDMSServer.DataSources
 
             _requestCounter = 1;
 
-            _client = new IBClient();
+            _client = client ?? new IBClient();
             _client.Error += _client_Error;
             _client.ConnectionClosed += _client_ConnectionClosed;
             _client.RealTimeBar += _client_RealTimeBar;
@@ -427,8 +427,9 @@ namespace QDMSServer.DataSources
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
-                _logger.Log(level, message));
+            if (Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    _logger.Log(level, message));
         }
 
         /// <summary>
