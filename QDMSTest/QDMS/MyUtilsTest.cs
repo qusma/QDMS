@@ -60,6 +60,12 @@ namespace QDMSTest
         }
 
         [Test]
+        public void TimestampToDateTimeReturnsCorrectDateTime()
+        {
+            Assert.AreEqual(new DateTime(2002, 2, 5, 11, 5, 12), MyUtils.TimestampToDateTime(1012907112));
+        }
+
+        [Test]
         public void ProtoBufSerializeAndDeserializeResultsInIdenticalObject()
         {
             var inst = new Instrument
