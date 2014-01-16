@@ -139,5 +139,36 @@ namespace QDMSTest
                     y.Symbol == "SPY")
                     ), Times.Once);
         }
+
+        [Test]
+        public void SendsErrorMessageWhenExceptionIsRaisedByBrokerOnHistoricalDataRequest()
+        {
+            bool errorRaised = false;
+            _client.Error += (sender, e) => errorRaised = true;
+
+            var instrument = new Instrument
+            {
+                ID = 1,
+                Symbol = "SPY",
+                Datasource = new Datasource { ID = 1, Name = "MockSource" }
+            };
+
+            instrument.Exchange = new Exchange()
+            {
+                ID = 1,
+                Name = "Exchange",
+                Timezone = "Eastern Standard Time"
+            };
+
+            var request = new HistoricalDataRequest(instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1));
+
+            _brokerMock.Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>())).Throws(new Exception("error message"));   
+
+            _client.RequestHistoricalData(request);
+
+            Thread.Sleep(500);
+
+            Assert.IsTrue(errorRaised);
+        }
     }
 }
