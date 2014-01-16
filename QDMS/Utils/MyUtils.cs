@@ -152,6 +152,11 @@ namespace QDMS
             return (long) elapsedTime.TotalSeconds;
         }
 
+        public static DateTime TimestampToDateTime(long timestamp)
+        {
+            return Epoch.AddSeconds(timestamp);
+        }
+
 
         /// <summary>
         /// Returns an IEnumerable of all possible values of an Enum.
