@@ -198,7 +198,7 @@ namespace QDMSServer
         /// <returns>True is the request was successful, false otherwise.</returns>
         public bool RequestRealTimeData(RealTimeDataRequest request)
         {
-            request.AssignedID = 1;
+            request.AssignedID = GetUniqueRequestID();
             lock (_requestsLock)
             {
                 _requests.Add(request.AssignedID, request);
