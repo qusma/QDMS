@@ -42,6 +42,11 @@ namespace QDMS
         [ProtoMember(6)]
         public int RequestID { get; set; }
 
+        /// <summary>
+        /// The real time data broker gives the request an ID, which is then used to identify it when the data is returned.
+        /// </summary>
+        public int AssignedID { get; set; }
+
         public RealTimeDataRequest()
         {
         }
@@ -65,6 +70,7 @@ namespace QDMS
             var clone = new RealTimeDataRequest(Instrument, Frequency, RTHOnly, SaveToLocalStorage);
             clone.FallBack = FallBack;
             clone.RequestID = RequestID;
+            clone.AssignedID = AssignedID;
             return clone;
         }
     }
