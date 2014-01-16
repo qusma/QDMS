@@ -70,7 +70,17 @@ namespace QDMSServer
         /// </summary>
         private readonly Dictionary<int, int> _continuousFuturesIDMap;
 
-        
+        /// <summary>
+        /// Here we store the requests, key is the AssignedID.
+        /// </summary>
+        private readonly Dictionary<int, RealTimeDataRequest> _requests;
+
+        /// <summary>
+        /// Keeps track of IDs assigned to requests that have already been used, so there are no duplicates.
+        /// </summary>
+        private List<int> _usedIDs;
+
+        private IDataStorage _localStorage;
         private IContinuousFuturesBroker _cfBroker;
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -79,6 +89,7 @@ namespace QDMSServer
         private readonly object _subscriberCountLock = new object();
         private readonly object _aliasLock = new object();
         private readonly object _cfRequestLock = new object();
+        private readonly object _requestsLock = new object();
 
         public void Dispose()
         {
@@ -105,7 +116,7 @@ namespace QDMSServer
         /// </summary>
         /// <param name="additionalDataSources">Optional. Pass any additional data sources (for testing purposes).</param>
         /// <param name="cfBroker">Optional. IContinuousFuturesBroker (for testing purposes).</param>
-        public RealTimeDataBroker(IEnumerable<IRealTimeDataSource> additionalDataSources = null, IContinuousFuturesBroker cfBroker = null)
+        public RealTimeDataBroker(IEnumerable<IRealTimeDataSource> additionalDataSources = null, IContinuousFuturesBroker cfBroker = null, IDataStorage localStorage = null)
         {
             _connectionTimer = new Timer(10000);
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
@@ -139,9 +150,14 @@ namespace QDMSServer
             _aliases = new Dictionary<string, List<string>>();
             _pendingCFRealTimeRequests = new Dictionary<int, RealTimeDataRequest>();
             _continuousFuturesIDMap = new Dictionary<int, int>();
+            _requests = new Dictionary<int, RealTimeDataRequest>();
+            _usedIDs = new List<int>();
 
             //connect to our data sources
             TryConnect();
+
+            //local storage
+            _localStorage = localStorage ?? new MySQLStorage();
 
             //start up the continuous futures broker
             _cfBroker = cfBroker ?? new ContinuousFuturesBroker(clientName: "RTDBCFClient");
@@ -159,12 +175,35 @@ namespace QDMSServer
         }
 
         /// <summary>
+        /// Gets a new unique AssignedID to identify requests with.
+        /// </summary>
+        private int GetUniqueRequestID()
+        {
+            //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
+            var rand = new Random();
+            int id;
+            do
+            {
+                id = rand.Next(1, int.MaxValue);
+            } while (_usedIDs.Contains(id));
+
+            _usedIDs.Add(id);
+            return id;
+        }
+
+        /// <summary>
         /// Request to initiate a real time data stream.
         /// </summary>
         /// <param name="request">The request</param>
         /// <returns>True is the request was successful, false otherwise.</returns>
         public bool RequestRealTimeData(RealTimeDataRequest request)
         {
+            request.AssignedID = 1;
+            lock (_requestsLock)
+            {
+                _requests.Add(request.AssignedID, request);
+            }
+
             //if there is already an active stream of this instrument
             if (ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID))
             {
@@ -237,6 +276,21 @@ namespace QDMSServer
                         e.Symbol = alias;
                         RaiseEvent(RealTimeDataArrived, this, e);
                     }
+                }
+            }
+
+            //save to local storage
+            //perhaps just add it to a queue and then process in a different thread
+            lock(_requestsLock)
+            {
+                var req = _requests[e.RequestID];
+                if (req.SaveToLocalStorage)
+                {
+                    _localStorage.AddDataAsync(
+                        new OHLCBar { Open = e.Open, High = e.High, Low = e.Low, Close = e.Close, Volume = e.Volume, DT = MyUtils.TimestampToDateTime(e.Time) },
+                        req.Instrument,
+                        req.Frequency,
+                        overwrite: false);
                 }
             }
 
