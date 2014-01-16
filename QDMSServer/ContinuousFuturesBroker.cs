@@ -177,7 +177,6 @@ namespace QDMSServer
             _data.Add(kvpID, e.Data);
 
             //TODO here we can't just remove the previous data, we have to add the new one and then take distinct values
-            //TODO but that doesn't take into account frequency...fuck
 
             lock (_reqCountLock)
             {

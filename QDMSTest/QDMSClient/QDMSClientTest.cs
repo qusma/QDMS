@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// -----------------------------------------------------------------------
+// <copyright file="QDMSClientTest.cs" company="">
+// Copyright 2014 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using NUnit.Framework;
 using QDMS;
 
@@ -85,7 +87,7 @@ namespace QDMSTest
         [Test]
         public void RequestRealTimelDataRaisesErrorEventAndReturnsMinusOneWhenInstrumentIsNull()
         {
-            var req = new RealTimeDataRequest()
+            var req = new RealTimeDataRequest
             {
                 Instrument = null
             };
@@ -101,7 +103,7 @@ namespace QDMSTest
         [Test]
         public void RequestRealTimelDataRaisesErrorEventAndReturnsMinusOneWhenNotConnected()
         {
-            var req = new RealTimeDataRequest()
+            var req = new RealTimeDataRequest
             {
                 Instrument = new Instrument { ID = 1, Symbol = "SPY" }
             };
