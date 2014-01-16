@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Moq;
 using NUnit.Framework;
@@ -345,15 +346,63 @@ namespace QDMSTest
             Assert.IsTrue(eventRaised);
         }
 
-        [Test]
-        public void RequesterIdentityIsPreservedWhenDataIsReturned()
-        {
-        }
 
         [Test]
         public void BrokerConnectsToDataSources()
         {
             _dataSourceMock.Verify(x => x.Connect(), Times.Once);
+        }
+
+        [Test]
+        public void RequestsAreGivenAUniqueAssignedIDGreaterThanZero()
+        {
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            var assignedIDs = new List<int>();
+            _dataSourceMock
+                .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Callback<HistoricalDataRequest>(req => assignedIDs.Add(req.AssignedID));
+
+            for (int i = 0; i < 3; i++)
+            {
+            	_broker.RequestHistoricalData(request);
+            }
+
+            Assert.AreEqual(3, assignedIDs.Count);
+            Assert.AreEqual(3, assignedIDs.Distinct().Count());
+            Assert.AreEqual(0, assignedIDs.Count(x => x < 0));
+        }
+
+        [Test]
+        [ExpectedException]
+        public void ThrowsExceptionWhenMakingRequestForInstrumentWithDataSourceThatDoesNotExist()
+        {
+            _instrument.Datasource.Name = "ASDfasdf___________________aasdf";
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                 forceFreshData: true,
+                 localStorageOnly: false,
+                 saveToLocalStorage: false,
+                 rthOnly: true);
+            _broker.RequestHistoricalData(request);
+        }
+
+        [Test]
+        [ExpectedException]
+        public void ThrowsExceptionWhenMakingRequestForInstrumentWithDataSourceThatIsDisconnected()
+        {
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                 forceFreshData: true,
+                 localStorageOnly: false,
+                 saveToLocalStorage: false,
+                 rthOnly: true);
+
+            _dataSourceMock.SetupGet(x => x.Connected).Returns(false);
+
+            _broker.RequestHistoricalData(request);
         }
     }
 }
