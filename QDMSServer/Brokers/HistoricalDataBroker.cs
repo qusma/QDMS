@@ -276,19 +276,61 @@ namespace QDMSServer
             }
         }
 
+        /// <summary>
+        /// Ensures that the data source specified is present and connected.
+        /// Throws an exception otherwise.
+        /// </summary>
+        private void CheckDataSource(string name)
+        {
+            if (!DataSources.ContainsKey(name))
+                throw new Exception(string.Format("Data source {0} does not exist.", name));
+            if(!DataSources[name].Connected)
+                throw new Exception(string.Format("Data source {0} is not connected.", name));
+        }
 
         /// <summary>
         /// Processes incoming historical data requests.
         /// </summary>
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
+            //assign an ID to the request
+            request.AssignedID = GetUniqueRequestID();
+
             _originalRequests.TryAdd(request.AssignedID, request);
 
             //request is for fresh data ONLY -- send the request directly to the external data source
             if (request.ForceFreshData)
             {
+                //make sure data source is present and available
+                try
+                {
+                    CheckDataSource(request.Instrument.Datasource.Name);
+                }
+                catch (Exception ex)
+                {
+                    Log(LogLevel.Error, string.Format("Could not fulfill request ID {0}, error: {1}", request.AssignedID, ex.Message));
+                    throw;
+                }
+
                 ForwardHistoricalRequest(request);
                 return;
+            }
+
+            //check if the data source is present and available...
+            //if not, simply send the request to local storage and throw an exception
+            try
+            {
+                CheckDataSource(request.Instrument.Datasource.Name);
+            }
+            catch (Exception ex)
+            {
+                lock (_localStorageLock)
+                {
+                    _dataStorage.RequestHistoricalData(request);
+                }
+
+                Log(LogLevel.Error, string.Format("Data source problem for request ID {0}, forwarded directly to local storage. Error: {1}", request.AssignedID, ex.Message));
+                throw;
             }
 
             //request says to ignore the external data source, just send the request as-is to the local storage
