@@ -18,6 +18,7 @@ namespace QDMSServer.DataSources
         private ConcurrentDictionary<int, string> _requestedSymbols;
         private ConcurrentDictionary<string, int> _loopsPassed;
         private ConcurrentDictionary<string, int> _loopLimit;
+        private ConcurrentDictionary<string, int> _idMap;
         private Random _rand;
         private int _requestIDs;
 
@@ -36,6 +37,7 @@ namespace QDMSServer.DataSources
             _requestedSymbols = new ConcurrentDictionary<int, string>();
             _loopsPassed = new ConcurrentDictionary<string, int>();
             _loopLimit = new ConcurrentDictionary<string, int>();
+            _idMap = new ConcurrentDictionary<string, int>();
 
             _timer = new Timer(1);
             _timer.Elapsed += SimulateData;
@@ -67,7 +69,7 @@ namespace QDMSServer.DataSources
 
             _loopsPassed.TryAdd(request.Instrument.Symbol, number);
             _loopLimit.TryAdd(request.Instrument.Symbol, number);
-            
+            _idMap.TryAdd(request.Instrument.Symbol, request.AssignedID);
             
             return ++_requestIDs;
         }
@@ -90,16 +92,21 @@ namespace QDMSServer.DataSources
                 double high = open + _rand.NextDouble();
                 double low = open - _rand.NextDouble();
                 double close = low + (high - low) * _rand.NextDouble();
-                RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
-                    s, 
-                    MyUtils.ConvertToTimestamp(DateTime.Now), 
-                    (decimal) open,
-                    (decimal) high,
-                    (decimal) low,
-                    (decimal) close,
-                    1000,
-                    0,
-                    0));
+                int id;
+                bool success =_idMap.TryGetValue(s, out id);
+
+                if(success)
+                    RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
+                        s, 
+                        MyUtils.ConvertToTimestamp(DateTime.Now), 
+                        (decimal) open,
+                        (decimal) high,
+                        (decimal) low,
+                        (decimal) close,
+                        1000,
+                        0,
+                        0,
+                        id));
             }
         }
 
