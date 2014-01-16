@@ -504,8 +504,30 @@ namespace QDMSClient
                     case "AVAILABLEDATAREP":
                         HandleAvailabledataReply();
                         break;
+
+                    case "ERROR":
+                        HandleErrorReply();
+                        break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Called when we get some sort of error reply
+        /// </summary>
+        private void HandleErrorReply()
+        {
+            //the request ID
+            int size;
+            byte[] buffer = _dealerSocket.Receive(null, TimeSpan.FromMilliseconds(100), out size);
+            if (size <= 0) return;
+            int requestID = BitConverter.ToInt32(buffer, 0);
+
+            //finally the error message
+            string message = _dealerSocket.Receive(Encoding.UTF8);
+
+            //raise the error event
+            RaiseEvent(Error, this, new ErrorArgs(-1, message, requestID));
         }
 
         /// <summary>
