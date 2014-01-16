@@ -20,6 +20,7 @@ namespace QDMSTest
         private RealTimeDataBroker _broker;
         private Mock<IContinuousFuturesBroker> _cfBrokerMock;
         private Mock<IRealTimeDataSource> _dataSourceMock;
+        private Mock<IDataStorage> _localStorageMock;
 
         [SetUp]
         public void SetUp()
@@ -31,8 +32,10 @@ namespace QDMSTest
             _cfBrokerMock = new Mock<IContinuousFuturesBroker>();
             _cfBrokerMock.SetupGet(x => x.Connected).Returns(true);
 
+            _localStorageMock = new Mock<IDataStorage>();
+            _localStorageMock.Setup(x => x.Connected).Returns(true);
 
-            _broker = new RealTimeDataBroker(new List<IRealTimeDataSource> { _dataSourceMock.Object }, _cfBrokerMock.Object);
+            _broker = new RealTimeDataBroker(new List<IRealTimeDataSource> { _dataSourceMock.Object }, _cfBrokerMock.Object, _localStorageMock.Object);
 
             _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
         }
@@ -215,11 +218,39 @@ namespace QDMSTest
             _cfBrokerMock.Raise(x => x.FoundFrontContract += null, new FoundFrontContractEventArgs(0, frontFutureInstrument, DateTime.Now));
 
             _dataSourceMock.Raise(x => x.DataReceived += null, 
-                new RealTimeDataEventArgs("VXF4", MyUtils.ConvertToTimestamp(DateTime.Now), 100, 100, 100, 100, 50, 100, 2));
+                new RealTimeDataEventArgs("VXF4", MyUtils.ConvertToTimestamp(DateTime.Now), 100, 100, 100, 100, 50, 100, 2, 0));
 
             Thread.Sleep(50);
 
             Assert.IsTrue(raisedCorrectSymbol);
+        }
+
+        [Test]
+        public void RealTimeDataIsSavedToLocalStorageIfFlagIsSet()
+        {
+            var inst = new Instrument
+            {
+                ID = 1,
+                Symbol = "SPY",
+                Datasource = new Datasource { ID = 999, Name = "MockSource" }
+            };
+
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, savetoLocalStorage: true);
+
+            int assignedID = 0;
+            _dataSourceMock.Setup(x => x.RequestRealTimeData(It.IsAny<RealTimeDataRequest>())).Callback<RealTimeDataRequest>(r => assignedID = r.AssignedID);
+
+            _broker.RequestRealTimeData(req);
+            Thread.Sleep(100);
+
+
+            _dataSourceMock.Raise(x => x.DataReceived += null, new RealTimeDataEventArgs("SPY", 1389906576, 100, 100, 100, 100, 1000, 100, 5, assignedID));
+
+            _localStorageMock.Verify(x => x.AddDataAsync(
+                It.Is<OHLCBar>(y => y.Open == 100 && y.Volume == 1000),
+                It.Is<Instrument>(y => y.ID == 1 && y.Symbol == "SPY"),
+                It.Is<BarSize>(y => y == BarSize.FiveSeconds),
+                It.Is<bool>(y => y == false)));
         }
     }
 }
