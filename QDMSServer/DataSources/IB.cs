@@ -41,6 +41,13 @@ namespace QDMSServer.DataSources
         /// </summary>
         private readonly Dictionary<int, int> _subRequestCount;
 
+        /// <summary>
+        /// Connects two IDs: the AssignedID of the RealTimeDataRequest from the broker, and the ID of the
+        /// request at the TWS client.
+        /// Key: tws client ID, value: AssignedID
+        /// </summary>
+        private readonly Dictionary<int, int> _requestIDMap;
+
         private readonly Queue<int> _realTimeRequestQueue;
         private readonly Queue<int> _historicalRequestQueue;
 
@@ -53,6 +60,7 @@ namespace QDMSServer.DataSources
         private readonly int _clientID;
         private readonly object _queueLock = new object();
         private readonly object _subReqMapLock = new object();
+        private readonly object _requestIDMapLock = new object();
 
         public string Name { get; private set; }
 
@@ -76,6 +84,7 @@ namespace QDMSServer.DataSources
 
             _subRequestIDMap = new Dictionary<int, int>();
             _subRequestCount = new Dictionary<int, int>();
+            _requestIDMap = new Dictionary<int, int>();
 
             _requestRepeatTimer = new Timer(20000); //we wait 20 seconds to repeat failed requests
             _requestRepeatTimer.Elapsed += ReSendRequests;
@@ -213,7 +222,9 @@ namespace QDMSServer.DataSources
         private void _client_RealTimeBar(object sender, RealTimeBarEventArgs e)
         {
             RealTimeDataEventArgs args = TWSUtils.RealTimeDataEventArgsConverter(e);
-            args.Symbol = _realTimeDataRequests[e.RequestId].Instrument.Symbol;
+            var originalRequest = _realTimeDataRequests[e.RequestId];
+            args.Symbol = originalRequest.Instrument.Symbol;
+            args.RequestID = _requestIDMap[args.RequestID];
             RaiseEvent(DataReceived, this, args);
         }
 
@@ -406,7 +417,12 @@ namespace QDMSServer.DataSources
         /// </summary>
         public int RequestRealTimeData(RealTimeDataRequest request)
         {
-            _realTimeDataRequests.Add(++_requestCounter, request);
+            lock (_requestIDMapLock)
+            {
+                _requestCounter++;
+                _realTimeDataRequests.Add(_requestCounter, request);
+                _requestIDMap.Add(_requestCounter, request.AssignedID);
+            }
             Contract contract = TWSUtils.InstrumentToContract(request.Instrument);
 
             _client.RequestRealTimeBars(
