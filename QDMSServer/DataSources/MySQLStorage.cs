@@ -303,13 +303,18 @@ namespace QDMSServer.DataSources
         /// This method allows adding data, but allowing the actual saving of the data to be delayed.
         /// Useful when you want to allow the data source the ability to make batch inserts/save to file/whatever on its own discretion.
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="instrument"></param>
-        /// <param name="frequency"></param>
-        /// <param name="overwrite"></param>
         public void AddDataAsync(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false)
         {
             AddData(data, instrument, frequency, overwrite);
+        }
+
+        /// <summary>
+        /// This method allows adding data, but allowing the actual saving of the data to be delayed.
+        /// Useful when you want to allow the data source the ability to make batch inserts/save to file/whatever on its own discretion.
+        /// </summary>
+        public void AddDataAsync(OHLCBar data, Instrument instrument, BarSize frequency, bool overwrite = false)
+        {
+            AddData(new List<OHLCBar> {data}, instrument, frequency, overwrite);
         }
 
         /// <summary>

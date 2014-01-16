@@ -22,6 +22,7 @@ namespace QDMS
         /// <param name="frequency"></param>
         /// <param name="overwrite"></param>
         void AddDataAsync(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false);
+        void AddDataAsync(OHLCBar data, Instrument instrument, BarSize frequency, bool overwrite = false);
 
 
         void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool adjust = false);
