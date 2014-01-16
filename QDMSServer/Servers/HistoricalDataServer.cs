@@ -265,7 +265,25 @@ namespace QDMSServer
 
             request.RequesterIdentity = requesterIdentity;
 
-            _broker.RequestHistoricalData(request);
+            try
+            {
+                _broker.RequestHistoricalData(request);
+            }
+            catch (Exception ex) //there's some sort of problem with fulfilling the request. Inform the client.
+            {
+                //this is a 4 part message
+                //1st message part: the identity string of the client that we're routing the data to
+                _routerSocket.SendMore(requesterIdentity, Encoding.UTF8);
+
+                //2nd message part: the type of reply we're sending
+                _routerSocket.SendMore("ERROR", Encoding.UTF8);
+
+                //3rd message part: the request ID
+                _routerSocket.SendMore(BitConverter.GetBytes(request.RequestID));
+
+                //4th message part: the error
+                _routerSocket.Send(ex.Message, Encoding.UTF8);
+            }
         }
 
         /// <summary>
