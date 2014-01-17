@@ -160,18 +160,43 @@ namespace QDMSServer
 
         private void CheckDBConnection()
         {
-            //try to establish a database connection. If not possible, prompt the user to enter details
-            var connection = DBUtils.CreateMySqlConnection(noDB: true);
-            try
-            {
-                connection.Open();
-            }
-            catch (Exception)
+            //if no db type has been selected, we gotta show that window no matter what
+            if (Properties.Settings.Default.databaseType != "MySql" && Properties.Settings.Default.databaseType != "SqlServer")
             {
                 var dbDetailsWindow = new DBConnectionWindow();
                 dbDetailsWindow.ShowDialog();
             }
-            connection.Close();
+
+            if (Properties.Settings.Default.databaseType == "MySql")
+            {
+                //try to establish a database connection. If not possible, prompt the user to enter details
+                var connection = DBUtils.CreateMySqlConnection(noDB: true);
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception)
+                {
+                    var dbDetailsWindow = new DBConnectionWindow();
+                    dbDetailsWindow.ShowDialog();
+                }
+                connection.Close();
+            }
+            else //SQL Server
+            {
+                //try to establish a database connection. If not possible, prompt the user to enter details
+                var connection = DBUtils.CreateSqlServerConnection(noDB: true);
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception)
+                {
+                    var dbDetailsWindow = new DBConnectionWindow();
+                    dbDetailsWindow.ShowDialog();
+                }
+                connection.Close();
+            }
         }
 
         //check if the database exists, and if not, create it
