@@ -19,6 +19,7 @@ namespace QDMS
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
 
+        [MaxLength(255)]
         public string Name { get; set; }
 
         public virtual ICollection<TemplateSession> Sessions { get; set; }

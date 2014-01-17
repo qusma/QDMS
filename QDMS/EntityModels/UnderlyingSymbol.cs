@@ -25,6 +25,7 @@ namespace QDMS
         public int ID { get; set; }
 
         [ProtoMember(2)]
+        [MaxLength(255)]
         public string Symbol { get; set; }
 
         //The byte is what we save to the database, the ExpirationRule is what we use in our applications

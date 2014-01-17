@@ -18,13 +18,21 @@ namespace QDMS
     [Serializable]
     public class Instrument : ICloneable
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [ProtoMember(20)]
+        public int? ID { get; set; }
+
         [ProtoMember(1)]
+        [MaxLength(255)]
         public string Symbol { get; set; }
 
         [ProtoMember(2)]
+        [MaxLength(255)]
         public string UnderlyingSymbol { get; set; }
 
         [ProtoMember(89)]
+        [MaxLength(255)]
         public string Name { get; set; }
 
         [ProtoMember(3)]
@@ -85,21 +93,26 @@ namespace QDMS
         public OptionType? OptionType { get; set; }
 
         [ProtoMember(11)]
+        
         public decimal? Strike { get; set; }
 
         [ProtoMember(12)]
+        [MaxLength(25)]
         public string Currency { get; set; }
 
         [ProtoMember(13)]
         public decimal? MinTick { get; set; }
 
         [ProtoMember(14)]
+        [MaxLength(255)]
         public string Industry { get; set; }
 
         [ProtoMember(15)]
+        [MaxLength(255)]
         public string Category { get; set; }
 
         [ProtoMember(16)]
+        [MaxLength(255)]
         public string Subcategory { get; set; }
 
         [ProtoMember(17)]
@@ -110,11 +123,6 @@ namespace QDMS
 
         [ProtoMember(19)]
         public virtual ICollection<Tag> Tags { get; set; }
-
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [ProtoMember(20)]
-        public int? ID { get; set; }
 
         [ProtoMember(90)]
         public int? DatasourceID { get; set; }
@@ -140,6 +148,7 @@ namespace QDMS
         public int? SessionTemplateID { get; set; }
 
         [ProtoMember(28)]
+        [MaxLength(255)]
         public string DatasourceSymbol { get; set; }
 
         [ProtoMember(29)]

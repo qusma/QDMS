@@ -11,6 +11,8 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    [ProtoContract]
+    [Serializable]
     public class TemplateSession : ICloneable
     {
         [Key]
