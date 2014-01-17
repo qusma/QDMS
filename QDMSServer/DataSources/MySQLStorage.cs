@@ -155,7 +155,7 @@ namespace QDMSServer.DataSources
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
             var data = GetData(request.Instrument, request.StartingDate, request.EndingDate, request.Frequency);
-            //TODO filter out data outside RTH if RTHOnly is true
+
             RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, data));
         }
 
