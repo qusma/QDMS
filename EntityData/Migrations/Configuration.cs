@@ -1,3 +1,4 @@
+using System.Data.Entity.SqlServer;
 using MySql.Data.Entity;
 using QDMS;
 using System.Data.Entity.Migrations;
@@ -10,6 +11,8 @@ namespace EntityData.Migrations
         {
             AutomaticMigrationsEnabled = false;
             SetSqlGenerator("MySql.Data.MySqlClient", new MySqlMigrationSqlGenerator());
+            //SetSqlGenerator("System.Data.SqlClient", new SqlServerMigrationSqlGenerator());
+            //TODO solution?
         }
 
         protected override void Seed(MyDBContext context)
