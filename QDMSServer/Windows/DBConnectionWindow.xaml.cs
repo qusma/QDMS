@@ -26,7 +26,7 @@ namespace QDMSServer
 
         private void TestConnectionBtn_Click(object sender, RoutedEventArgs e)
         {
-            MySqlConnection connection = DBUtils.CreateConnection(server: HostTextBox.Text, username: UsernameTextBox.Text, password: PasswordTextBox.Password);
+            MySqlConnection connection = DBUtils.CreateMySqlConnection(server: HostTextBox.Text, username: UsernameTextBox.Text, password: PasswordTextBox.Password);
             try
             {
                 connection.Open();
@@ -43,7 +43,7 @@ namespace QDMSServer
 
         private void OKBtn_Click(object sender, RoutedEventArgs e)
         {
-            MySqlConnection connection = DBUtils.CreateConnection(server: HostTextBox.Text, username: UsernameTextBox.Text, password: PasswordTextBox.Password);
+            MySqlConnection connection = DBUtils.CreateMySqlConnection(server: HostTextBox.Text, username: UsernameTextBox.Text, password: PasswordTextBox.Password);
             try
             {
                 connection.Open();

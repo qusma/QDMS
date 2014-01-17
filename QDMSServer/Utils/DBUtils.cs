@@ -6,6 +6,7 @@
 
 using System;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -50,7 +51,41 @@ namespace QDMSServer
             return Convert.ToBase64String(buffer);
         }
 
-        static public MySqlConnection CreateConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
+        public static SqlConnection CreateSqlServerConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
+        {
+            string connectionString = String.Format(
+                "Data Source={0};",
+                server ?? Settings.Default.dbHost);
+
+            if (!noDB)
+            {
+                connectionString += String.Format("Initial Catalog={0};", database);
+            }
+
+            if(!string.IsNullOrEmpty(username)) //user/pass authentication
+            {
+                if(password == null)
+                {
+                    try
+                    {
+                        password = Unprotect(Settings.Default.dbPassword);
+                    }
+                    catch
+                    {
+                        password = "";
+                    }
+                }
+                connectionString += string.Format("User ID={0};Password={1};", username, password);
+            }
+            else //windows authentication
+            {
+                connectionString += "Integrated Security=True;"
+            }
+
+            return new SqlConnection(connectionString);
+        }
+
+        public static MySqlConnection CreateMySqlConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
         {
             if (password == null)
             {
@@ -72,7 +107,7 @@ namespace QDMSServer
                 username ?? Settings.Default.dbUsername,
                 password
                 );
-
+            
             if (!noDB)
             {
                 connectionString += String.Format("database={0};", database);
@@ -108,7 +143,7 @@ namespace QDMSServer
 
         public static bool CheckDBExists()
         {
-            using (var connection = CreateConnection(noDB: true))
+            using (var connection = CreateMySqlConnection(noDB: true))
             {
                 connection.Open();
                 var cmd = new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qdms'", connection);

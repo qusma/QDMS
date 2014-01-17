@@ -46,7 +46,7 @@ namespace QDMSServer.DataSources
         {
             get
             {
-                using (MySqlConnection connection = DBUtils.CreateConnection("qdmsdata"))
+                using (MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata"))
                 {
                     bool result = connection.Ping();
                     return result;
@@ -66,7 +66,7 @@ namespace QDMSServer.DataSources
         /// <returns></returns>
         private MySqlConnection TryConnect(out bool succeeded)
         {
-            MySqlConnection connection = DBUtils.CreateConnection("qdmsdata");
+            MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata");
             try
             {
                 connection.Open();
