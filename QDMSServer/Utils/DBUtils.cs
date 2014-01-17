@@ -20,8 +20,38 @@ namespace QDMSServer
     {
         public static void SetConnectionString()
         {
+            if(Settings.Default.databaseType == "MySql")
+                SetMySqlConnectionString();
+            else
+                SetSqlServerConnectionString();
+
+            ConfigurationManager.RefreshSection("connectionStrings");
+        }
+
+        private static void SetSqlServerConnectionString()
+        {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings["qdmsEntitiesMySql"];
+            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings["qdmsEntities"];
+
+            //this is an extremely dirty hack that allows us to change the connection string at runtime
+            var fi = typeof(ConfigurationElement).GetField("_bReadOnly", BindingFlags.Instance | BindingFlags.NonPublic);
+            fi.SetValue(conSettings, false);
+
+            conSettings.ConnectionString = GetSqlServerConnectionString(
+                "qdms",
+                Settings.Default.sqlServerHost,
+                Settings.Default.sqlServerUsername,
+                Unprotect(Settings.Default.sqlServerPassword),
+                useWindowsAuthentication: Settings.Default.sqlServerUseWindowsAuthentication);
+            conSettings.ProviderName = "System.Data.SqlClient";
+
+            config.Save();
+        }
+
+        private static void SetMySqlConnectionString()
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings["qdmsEntities"];
 
             //this is an extremely dirty hack that allows us to change the connection string at runtime
             var fi = typeof(ConfigurationElement).GetField("_bReadOnly", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -31,19 +61,32 @@ namespace QDMSServer
                 Settings.Default.mySqlUsername,
                 Unprotect(Settings.Default.mySqlPassword),
                 Settings.Default.mySqlHost);
+            conSettings.ProviderName = "MySql.Data.MySqlClient";
 
             config.Save();
-            ConfigurationManager.RefreshSection("connectionStrings");
-            
         }
 
+        /// <summary>
+        /// Used for decrypting db passwords.
+        /// </summary>
         public static string Unprotect(string encryptedString)
         {
-            byte[] buffer = ProtectedData.Unprotect(Convert.FromBase64String(encryptedString), null, DataProtectionScope.CurrentUser);
-
+            byte[] buffer;
+            try
+            {
+                buffer = ProtectedData.Unprotect(Convert.FromBase64String(encryptedString), null, DataProtectionScope.CurrentUser);
+            }
+            catch (Exception ex)
+            {
+                //if it's empty or incorrectly formatted, we get an exception. Just return an empty string.
+                return "";
+            }
             return Encoding.Unicode.GetString(buffer);
         }
 
+        /// <summary>
+        /// Used for encrypting db passwords.
+        /// </summary>
         public static string Protect(string unprotectedString)
         {
             byte[] buffer = ProtectedData.Protect(Encoding.Unicode.GetBytes(unprotectedString), null, DataProtectionScope.CurrentUser);
@@ -51,24 +94,30 @@ namespace QDMSServer
             return Convert.ToBase64String(buffer);
         }
 
-        public static SqlConnection CreateSqlServerConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
+        public static SqlConnection CreateSqlServerConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false, bool useWindowsAuthentication = true)
+        {
+            string connectionString = GetSqlServerConnectionString(database, server, username, password, noDB, useWindowsAuthentication);
+            return new SqlConnection(connectionString);
+        }
+
+        private static string GetSqlServerConnectionString(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false, bool useWindowsAuthentication = true)
         {
             string connectionString = String.Format(
                 "Data Source={0};",
-                server ?? Settings.Default.mySqlHost);
+                server ?? Settings.Default.sqlServerHost);
 
             if (!noDB)
             {
                 connectionString += String.Format("Initial Catalog={0};", database);
             }
 
-            if(!string.IsNullOrEmpty(username)) //user/pass authentication
+            if (!useWindowsAuthentication) //user/pass authentication
             {
-                if(password == null)
+                if (password == null)
                 {
                     try
                     {
-                        password = Unprotect(Settings.Default.mySqlPassword);
+                        password = Unprotect(Settings.Default.sqlServerPassword);
                     }
                     catch
                     {
@@ -81,8 +130,7 @@ namespace QDMSServer
             {
                 connectionString += "Integrated Security=True;";
             }
-
-            return new SqlConnection(connectionString);
+            return connectionString;
         }
 
         public static MySqlConnection CreateMySqlConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
@@ -121,6 +169,9 @@ namespace QDMSServer
             return new MySqlConnection(connectionString);
         }
 
+        /// <summary>
+        /// Returns the contents of a text file in the Resources folder. Used for the db creation.
+        /// </summary>
         public static string GetSQLResource(string name)
         {
             string sql = "";
@@ -141,12 +192,23 @@ namespace QDMSServer
             return sql;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static bool CheckDBExists()
+        {
+            if (Settings.Default.databaseType == "MySql")
+                return CheckMySqlDBExists();
+            else
+                return true; //TODO write
+        }
+
+        private static bool CheckMySqlDBExists()
         {
             using (var connection = CreateMySqlConnection(noDB: true))
             {
                 connection.Open();
-                var cmd = new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qdms'", connection);
+                var cmd = new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qdmsdata'", connection);
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (!reader.Read()) //database does not exist!
