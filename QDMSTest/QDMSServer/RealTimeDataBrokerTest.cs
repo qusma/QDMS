@@ -202,6 +202,8 @@ namespace QDMSTest
             var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds);
 
             _cfBrokerMock.Setup(x => x.RequestFrontContract(It.IsAny<Instrument>(), It.IsAny<DateTime?>())).Returns(0);
+            int assignedID = 0;
+            _dataSourceMock.Setup(x => x.RequestRealTimeData(It.IsAny<RealTimeDataRequest>())).Callback<RealTimeDataRequest>(r => assignedID = r.AssignedID);
 
             bool raisedCorrectSymbol = false;
             _broker.RealTimeDataArrived += (sender, e) =>
@@ -217,8 +219,8 @@ namespace QDMSTest
 
             _cfBrokerMock.Raise(x => x.FoundFrontContract += null, new FoundFrontContractEventArgs(0, frontFutureInstrument, DateTime.Now));
 
-            _dataSourceMock.Raise(x => x.DataReceived += null, 
-                new RealTimeDataEventArgs("VXF4", MyUtils.ConvertToTimestamp(DateTime.Now), 100, 100, 100, 100, 50, 100, 2, 0));
+            _dataSourceMock.Raise(x => x.DataReceived += null,
+                new RealTimeDataEventArgs("VXF4", MyUtils.ConvertToTimestamp(DateTime.Now), 100, 100, 100, 100, 50, 100, 2, assignedID));
 
             Thread.Sleep(50);
 
