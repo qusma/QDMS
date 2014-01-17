@@ -161,7 +161,7 @@ namespace QDMSServer
         private void CheckDBConnection()
         {
             //try to establish a database connection. If not possible, prompt the user to enter details
-            var connection = DBUtils.CreateConnection(noDB: true);
+            var connection = DBUtils.CreateMySqlConnection(noDB: true);
             try
             {
                 connection.Open();
@@ -184,7 +184,7 @@ namespace QDMSServer
                 {
                     try
                     {
-                        var connection = DBUtils.CreateConnection(noDB: true);
+                        var connection = DBUtils.CreateMySqlConnection(noDB: true);
                         connection.Open();
                         var cmd = new MySqlCommand("", connection);
 
