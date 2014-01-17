@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Data.Entity;
+using EntityData.Migrations;
 using QDMS;
 
 namespace EntityData
@@ -29,6 +30,8 @@ namespace EntityData
  
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, Configuration>());
+
             modelBuilder.Entity<ExchangeSession>().ToTable("exchangesessions");
             modelBuilder.Entity<InstrumentSession>().ToTable("instrumentsessions");
             modelBuilder.Entity<TemplateSession>().ToTable("templatesessions");
@@ -50,7 +53,6 @@ namespace EntityData
                 x.MapRightKey("TagID");
                 x.ToTable("tag_map");
             });
-                
         }
     }
 }
