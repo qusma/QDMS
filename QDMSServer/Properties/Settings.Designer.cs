@@ -199,5 +199,51 @@ namespace QDMSServer.Properties {
                 this["databaseType"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string sqlServerHost {
+            get {
+                return ((string)(this["sqlServerHost"]));
+            }
+            set {
+                this["sqlServerHost"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool sqlServerUseWindowsAuthentication {
+            get {
+                return ((bool)(this["sqlServerUseWindowsAuthentication"]));
+            }
+            set {
+                this["sqlServerUseWindowsAuthentication"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public string sqlServerUsername {
+            get {
+                return ((string)(this["sqlServerUsername"]));
+            }
+            set {
+                this["sqlServerUsername"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public string sqlServerPassword {
+            get {
+                return ((string)(this["sqlServerPassword"]));
+            }
+            set {
+                this["sqlServerPassword"] = value;
+            }
+        }
     }
 }
