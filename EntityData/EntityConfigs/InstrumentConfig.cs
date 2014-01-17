@@ -36,7 +36,7 @@ namespace EntityData
             this.HasOptional(x => x.ContinuousFuture)
                 .WithMany()
                 .HasForeignKey(x => x.ContinuousFutureID)
-                .WillCascadeOnDelete(true);
+                .WillCascadeOnDelete(false);
         }
     } 
  
