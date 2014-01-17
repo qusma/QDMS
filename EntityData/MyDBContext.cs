@@ -13,7 +13,7 @@ namespace EntityData
     public partial class MyDBContext : DbContext
     {
         public MyDBContext()
-            : base("Name=qdmsEntitiesMySql")
+            : base("Name=qdmsEntities")
         {
         }
  
@@ -32,17 +32,16 @@ namespace EntityData
         {
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, Configuration>());
 
-            modelBuilder.Entity<ExchangeSession>().ToTable("exchangesessions");
-            modelBuilder.Entity<InstrumentSession>().ToTable("instrumentsessions");
-            modelBuilder.Entity<TemplateSession>().ToTable("templatesessions");
-           
-
             modelBuilder.Configurations.Add(new InstrumentConfig());
             modelBuilder.Configurations.Add(new TagConfig());
             modelBuilder.Configurations.Add(new ExchangeConfig());
             modelBuilder.Configurations.Add(new DatasourceConfig());
             modelBuilder.Configurations.Add(new UnderlyingSymbolConfig());
             modelBuilder.Configurations.Add(new ContinuousFutureConfig());
+
+            modelBuilder.Entity<ExchangeSession>().ToTable("exchangesessions");
+            modelBuilder.Entity<InstrumentSession>().ToTable("instrumentsessions");
+            modelBuilder.Entity<TemplateSession>().ToTable("templatesessions");
 
             modelBuilder.Entity<Instrument>()
             .HasMany(c => c.Tags)
@@ -53,6 +52,10 @@ namespace EntityData
                 x.MapRightKey("TagID");
                 x.ToTable("tag_map");
             });
+
+
+            modelBuilder.Entity<Instrument>().Property(x => x.Strike).HasPrecision(16, 8);
+            modelBuilder.Entity<Instrument>().Property(x => x.MinTick).HasPrecision(16, 8);
         }
     }
 }
