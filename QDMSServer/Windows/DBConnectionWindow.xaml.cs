@@ -19,8 +19,8 @@ namespace QDMSServer
         public DBConnectionWindow()
         {
             InitializeComponent();
-            HostTextBox.Text = Properties.Settings.Default.dbHost;
-            UsernameTextBox.Text = Properties.Settings.Default.dbUsername;
+            HostTextBox.Text = Properties.Settings.Default.mySqlHost;
+            UsernameTextBox.Text = Properties.Settings.Default.mySqlUsername;
             PasswordTextBox.Password = "asdf";
         }
 
@@ -55,9 +55,9 @@ namespace QDMSServer
             }
             connection.Close();
 
-            Properties.Settings.Default.dbHost = HostTextBox.Text;
-            Properties.Settings.Default.dbUsername = UsernameTextBox.Text;
-            Properties.Settings.Default.dbPassword = DBUtils.Protect(PasswordTextBox.Password);
+            Properties.Settings.Default.mySqlHost = HostTextBox.Text;
+            Properties.Settings.Default.mySqlUsername = UsernameTextBox.Text;
+            Properties.Settings.Default.mySqlPassword = DBUtils.Protect(PasswordTextBox.Password);
 
             Properties.Settings.Default.Save();
 

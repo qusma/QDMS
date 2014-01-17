@@ -28,9 +28,9 @@ namespace QDMSServer
             fi.SetValue(conSettings, false);
 
             conSettings.ConnectionString = string.Format("User Id={0};Password={1};Host={2};Database=qdms;Persist Security Info=True",
-                Settings.Default.dbUsername,
-                Unprotect(Settings.Default.dbPassword),
-                Settings.Default.dbHost);
+                Settings.Default.mySqlUsername,
+                Unprotect(Settings.Default.mySqlPassword),
+                Settings.Default.mySqlHost);
 
             config.Save();
             ConfigurationManager.RefreshSection("connectionStrings");
@@ -55,7 +55,7 @@ namespace QDMSServer
         {
             string connectionString = String.Format(
                 "Data Source={0};",
-                server ?? Settings.Default.dbHost);
+                server ?? Settings.Default.mySqlHost);
 
             if (!noDB)
             {
@@ -68,7 +68,7 @@ namespace QDMSServer
                 {
                     try
                     {
-                        password = Unprotect(Settings.Default.dbPassword);
+                        password = Unprotect(Settings.Default.mySqlPassword);
                     }
                     catch
                     {
@@ -79,7 +79,7 @@ namespace QDMSServer
             }
             else //windows authentication
             {
-                connectionString += "Integrated Security=True;"
+                connectionString += "Integrated Security=True;";
             }
 
             return new SqlConnection(connectionString);
@@ -91,7 +91,7 @@ namespace QDMSServer
             {
                 try
                 {
-                    password = Unprotect(Settings.Default.dbPassword);
+                    password = Unprotect(Settings.Default.mySqlPassword);
                 }
                 catch
                 {
@@ -103,8 +103,8 @@ namespace QDMSServer
                 "server={0};" +
                 "user id={1};" +
                 "Password={2};",
-                server ?? Settings.Default.dbHost,
-                username ?? Settings.Default.dbUsername,
+                server ?? Settings.Default.mySqlHost,
+                username ?? Settings.Default.mySqlUsername,
                 password
                 );
             

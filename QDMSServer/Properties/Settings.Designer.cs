@@ -74,12 +74,12 @@ namespace QDMSServer.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string dbHost {
+        public string mySqlHost {
             get {
-                return ((string)(this["dbHost"]));
+                return ((string)(this["mySqlHost"]));
             }
             set {
-                this["dbHost"] = value;
+                this["mySqlHost"] = value;
             }
         }
         
@@ -157,23 +157,23 @@ namespace QDMSServer.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public string dbUsername {
+        public string mySqlUsername {
             get {
-                return ((string)(this["dbUsername"]));
+                return ((string)(this["mySqlUsername"]));
             }
             set {
-                this["dbUsername"] = value;
+                this["mySqlUsername"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public string dbPassword {
+        public string mySqlPassword {
             get {
-                return ((string)(this["dbPassword"]));
+                return ((string)(this["mySqlPassword"]));
             }
             set {
-                this["dbPassword"] = value;
+                this["mySqlPassword"] = value;
             }
         }
         
@@ -185,6 +185,18 @@ namespace QDMSServer.Properties {
             }
             set {
                 this["quandlAuthCode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string databaseType {
+            get {
+                return ((string)(this["databaseType"]));
+            }
+            set {
+                this["databaseType"] = value;
             }
         }
     }
