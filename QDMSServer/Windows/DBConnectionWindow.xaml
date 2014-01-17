@@ -3,44 +3,112 @@
         xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Database Connection" Height="252" Width="300"
+        Title="Database Connection" Height="262" Width="332"
         ResizeMode="NoResize"
         BorderBrush="Black"
         BorderThickness="1"
     >
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="45"/>
-            <RowDefinition Height="200*"/>
-        </Grid.RowDefinitions>
-        <TextBlock Text="Could not establish a connection to the database, enter connection details below." TextWrapping="WrapWithOverflow"
-               HorizontalAlignment="Left" Margin="10,10,-10,0" VerticalAlignment="Top" Height="59" Grid.RowSpan="2" Width="292"/>
+        <TabControl Name="Tabs">
+            <TabItem Name="DbTypeSelectionTab" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="150*"/>
+                        <RowDefinition Height="45"/>
+                    </Grid.RowDefinitions>
+                    <GroupBox Grid.Row="0" Header="Choose Database Type" Margin="10,10,10,0" HorizontalAlignment="Stretch" Height="150" VerticalAlignment="Top">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="45*"/>
+                                <RowDefinition Height="45*"/>
+                            </Grid.RowDefinitions>
+                            <RadioButton Name="MySqlRadiobtn" Grid.Row="0" Content="MySQL" HorizontalAlignment="Left" VerticalAlignment="Top" Width="252" IsChecked="True"/>
+                            <RadioButton Name="SqlServerRadioBtn" Grid.Row="1"  Content="SQL Server" HorizontalAlignment="Left" VerticalAlignment="Top" Width="252"/>
+                        </Grid>
+                    </GroupBox>
+                    <Button Grid.Row="1" Content="Next" Name="NextBtn" Click="NextBtn_Click" Width="75" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10"></Button>
 
-        <Button Name="OKBtn" Click="OKBtn_Click" Content="OK" HorizontalAlignment="Left" Margin="207,145,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
-        <Button Click="TestConnectionBtn_Click" Name="TestConnectionBtn" Content="Test Connection" HorizontalAlignment="Left" Margin="10,145,0,0" Grid.Row="1" VerticalAlignment="Top" Width="123" />
-        <GroupBox Header="Connection Details" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Height="130" Width="272">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30*"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="100*"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Content="Host:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Label Grid.Row="1" Grid.Column="0" Content="Username:" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="70"/>
-                <Label Grid.Row="2" Grid.Column="0" Content="Password:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70" />
+                </Grid>
+            </TabItem>
+            
+            <TabItem Name="MySqlTab">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="200*"/>
+                        <RowDefinition Height="45" />
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="1" Name="MySqlOKBtn" Click="MySqlOKBtn_Click" Content="OK" HorizontalAlignment="Right" Margin="10" VerticalAlignment="Top" Width="75"/>
+                    <Button Grid.Row="1" Click="MySqlTestConnectionBtn_Click" Name="MySqlTestConnectionBtn" Content="Test Connection" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="123" />
+                    <GroupBox Header="Connection Details" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="0" VerticalAlignment="Top" Height="130" Width="272">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="100*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0" Content="Host:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                            <Label Grid.Row="1" Grid.Column="0" Content="Username:" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="70"/>
+                            <Label Grid.Row="2" Grid.Column="0" Content="Password:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70" />
 
-                <TextBox Name="HostTextBox" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" />
-                <TextBox Name="UsernameTextBox" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" />
-                <PasswordBox Name="PasswordTextBox"  Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" VerticalAlignment="Top" />
+                            <TextBox Name="MySqlHostTextBox" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" />
+                            <TextBox Name="MySqlUsernameTextBox" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" />
+                            <PasswordBox Name="MySqlPasswordTextBox"  Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" VerticalAlignment="Top" />
 
 
-            </Grid>
-        </GroupBox>
+                        </Grid>
+                    </GroupBox>
 
+                </Grid>
+            </TabItem>
+
+            <TabItem Name="SqlServerTab">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="200*"/>
+                        <RowDefinition Height="45" />
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="1" Name="SqlServerOKBtn" Click="SqlServerOKBtn_Click" Content="OK" HorizontalAlignment="Right" Margin="10" VerticalAlignment="Top" Width="75"/>
+                    <Button Grid.Row="1" Click="SqlServerTestConnectionBtn_Click" Name="SqlServerTestConnectionBtn" Content="Test Connection" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="123" />
+                    <GroupBox Header="Connection Details" HorizontalAlignment="Stretch" Margin="10,10,10,0" Grid.Row="0" VerticalAlignment="Top" Height="160">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="85"/>
+                                <ColumnDefinition Width="100*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0" Content="Authentication:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                            <Label Grid.Row="1" Grid.Column="0" Content="Host:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                            <Label Grid.Row="2" Grid.Column="0" Content="Username:" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="70"/>
+                            <Label Grid.Row="3" Grid.Column="0" Content="Password:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70" />
+
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="10,0">
+                                <RadioButton Name="WindowsAuthenticationRadioBtn" Content="Windows" IsChecked="True" />
+                                <RadioButton Name="SqlServerAuthenticationRadioBtn" Content="SQL Server" Margin="10,0" />
+                            </StackPanel>
+                            <TextBox Name="SqlServerHostTextBox" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" Height="23" Margin="10,0,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" />
+                            <TextBox Name="SqlServerUsernameTextBox" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch" 
+                                     Height="23" Margin="10,0,0,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top"
+                                     IsEnabled="{Binding ElementName=SqlServerAuthenticationRadioBtn, Path=IsChecked}" />
+                            <PasswordBox Name="SqlServerPasswordTextBox"  Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" 
+                                         Height="23" Margin="10,0,0,0" VerticalAlignment="Top"
+                                         IsEnabled="{Binding ElementName=SqlServerAuthenticationRadioBtn, Path=IsChecked}"/>
+
+
+                        </Grid>
+                    </GroupBox>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
+    
 </controls:MetroWindow>
