@@ -56,6 +56,15 @@ namespace EntityData
 
             modelBuilder.Entity<Instrument>().Property(x => x.Strike).HasPrecision(16, 8);
             modelBuilder.Entity<Instrument>().Property(x => x.MinTick).HasPrecision(16, 8);
+
+            modelBuilder.Entity<ExchangeSession>().Property(x => x.OpeningTime).HasPrecision(3);
+            modelBuilder.Entity<ExchangeSession>().Property(x => x.ClosingTime).HasPrecision(3);
+
+            modelBuilder.Entity<InstrumentSession>().Property(x => x.OpeningTime).HasPrecision(3);
+            modelBuilder.Entity<InstrumentSession>().Property(x => x.ClosingTime).HasPrecision(3);
+
+            modelBuilder.Entity<TemplateSession>().Property(x => x.OpeningTime).HasPrecision(3);
+            modelBuilder.Entity<TemplateSession>().Property(x => x.ClosingTime).HasPrecision(3);
         }
     }
 }
