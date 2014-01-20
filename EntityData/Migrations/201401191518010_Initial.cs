@@ -90,6 +90,11 @@ namespace EntityData.Migrations
                         Name = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                     })
                 .PrimaryKey(t => t.ID);
+
+            CreateIndex(
+            "dbo.Datasources",
+            "Name",
+            unique: true);
             
             CreateTable(
                 "dbo.Exchanges",
@@ -106,8 +111,6 @@ namespace EntityData.Migrations
                 "dbo.Exchanges",
                 "Name",
                 unique: true);
-            
-
             
             CreateTable(
                 "dbo.exchangesessions",
