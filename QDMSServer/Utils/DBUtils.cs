@@ -198,33 +198,5 @@ namespace QDMSServer
 
             return sql;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static bool CheckDBExists()
-        {
-            if (Settings.Default.databaseType == "MySql")
-                return CheckMySqlDBExists();
-            else
-                return true; //TODO write
-        }
-
-        private static bool CheckMySqlDBExists()
-        {
-            using (var connection = CreateMySqlConnection(noDB: true))
-            {
-                connection.Open();
-                var cmd = new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qdmsdata'", connection);
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (!reader.Read()) //database does not exist!
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
     }
 }

@@ -47,9 +47,6 @@ namespace QDMSServer
             //make sure we can connect to the database
             CheckDBConnection();
 
-            //and that the db we want is there...create it otherwise
-            CheckDBExists();
-
             //set the log directory
             SetLogDirectory();
             
@@ -81,8 +78,14 @@ namespace QDMSServer
                 ((MenuItem)Resources["UpdateFreqSubMenu"]).Items.Add(button);
             }
 
+            //create metadata db if it doesn't exist
             var entityContext = new MyDBContext();
             entityContext.Database.Initialize(false);
+
+            //create data db if it doesn't exist
+            var dataContext = new DataDBContext();
+            dataContext.Database.Initialize(false);
+            dataContext.Dispose();
 
             //build the tags menu
             var allTags = entityContext.Tags.ToList();
@@ -197,40 +200,6 @@ namespace QDMSServer
                     dbDetailsWindow.ShowDialog();
                 }
                 connection.Close();
-            }
-        }
-
-        //check if the database exists, and if not, create it
-        private void CheckDBExists()
-        {
-            if (!DBUtils.CheckDBExists())
-            {
-                var dialogResult = MessageBox.Show("Database not found, do you want to create it?", "Database Creation", MessageBoxButton.YesNo);
-                if (dialogResult == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        var connection = DBUtils.CreateMySqlConnection(noDB: true);
-                        connection.Open();
-                        var cmd = new MySqlCommand("", connection);
-
-                        cmd.CommandText = DBUtils.GetSQLResource("qdms.sql");
-                        cmd.ExecuteNonQuery();
-
-                        cmd.CommandText = DBUtils.GetSQLResource("qdmsdata.sql");
-                        cmd.ExecuteNonQuery();
-                        connection.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Error creating database: " + ex.Message);
-                        Close();
-                    }
-                }
-                else
-                {
-                    Close();
-                }
             }
         }
 
