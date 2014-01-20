@@ -182,6 +182,7 @@
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\PriceAdjuster.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
+    <Compile Include="Utils\Seed.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
     <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
     <Compile Include="ValueConverters\ExchangeMultiValueConverter.cs" />

@@ -87,7 +87,7 @@ namespace EntityData.Migrations
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        Name = c.String(unicode: false),
+                        Name = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                     })
                 .PrimaryKey(t => t.ID);
             
@@ -197,7 +197,6 @@ namespace EntityData.Migrations
                 .ForeignKey("dbo.Tags", t => t.TagID, cascadeDelete: true)
                 .Index(t => t.InstrumentID)
                 .Index(t => t.TagID);
-            
         }
         
         public override void Down()
