@@ -1,14 +1,18 @@
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity.SqlServer;
+// -----------------------------------------------------------------------
+// <copyright file="Configuration.cs" company="">
+// Copyright 2014 Alexander Soffronow Pagonidis
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System.Data.Entity.Migrations;
 using MySql.Data.Entity;
 using QDMS;
-using System.Data.Entity.Migrations;
 
 namespace EntityData.Migrations
 {
-    internal sealed class Configuration : DbMigrationsConfiguration<MyDBContext>
+    internal sealed class MyDbContextConfiguration : DbMigrationsConfiguration<MyDBContext>
     {
-        public Configuration()
+        public MyDbContextConfiguration()
         {
             AutomaticMigrationsEnabled = true;
             SetSqlGenerator("MySql.Data.MySqlClient", new MySqlMigrationSqlGenerator());

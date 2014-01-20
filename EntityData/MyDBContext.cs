@@ -30,7 +30,7 @@ namespace EntityData
  
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, Configuration>());
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
 
             modelBuilder.Configurations.Add(new InstrumentConfig());
             modelBuilder.Configurations.Add(new TagConfig());
