@@ -27,6 +27,7 @@ namespace QDMS
         public string Name { get; set; }
 
         [ProtoMember(3)]
+        [MaxLength(255)]
         public string Timezone { get; set; }
 
         [ProtoMember(4)]

@@ -102,7 +102,7 @@ namespace EntityData.Migrations
                     {
                         ID = c.Int(nullable: false, identity: true),
                         Name = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
-                        Timezone = c.String(unicode: false),
+                        Timezone = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                         LongName = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                     })
                 .PrimaryKey(t => t.ID);
