@@ -175,28 +175,5 @@ namespace QDMSServer
 
             return new MySqlConnection(connectionString);
         }
-
-        /// <summary>
-        /// Returns the contents of a text file in the Resources folder. Used for the db creation.
-        /// </summary>
-        public static string GetSQLResource(string name)
-        {
-            string sql = "";
-
-            string filename = "QDMSServer.Resources." + name;
-
-            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(filename))
-            {
-                if (stream != null)
-                {
-                    using (StreamReader streamReader = new StreamReader(stream))
-                    {
-                        sql = streamReader.ReadToEnd();
-                    }
-                }
-            }
-
-            return sql;
-        }
     }
 }
