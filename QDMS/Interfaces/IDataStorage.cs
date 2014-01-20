@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
-    public interface IDataStorage : IHistoricalDataSource
+    public interface IDataStorage : IHistoricalDataSource, IDisposable
     {
         void AddData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false, bool adjust = true);
 
