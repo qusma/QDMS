@@ -100,5 +100,13 @@ namespace QDMSServer.DataSources
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
         public event EventHandler<ErrorArgs> Error;
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
