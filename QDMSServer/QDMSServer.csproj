@@ -163,6 +163,7 @@
     <Compile Include="ContinuousFuturesBroker.cs" />
     <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\Quandl.cs" />
+    <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="InstrumentsServer.cs" />
     <Compile Include="Brokers\HistoricalDataBroker.cs" />
