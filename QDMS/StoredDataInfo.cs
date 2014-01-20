@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using ProtoBuf;
 
 namespace QDMS
@@ -20,10 +21,11 @@ namespace QDMS
         public BarSize Frequency { get; set; }
 
         public DateTime EarliestDate { get; set; }
-        
+
         public DateTime LatestDate { get; set; }
 
         [ProtoMember(3)]
+        [NotMapped]
         public long EarliestDateAsLong
         {
             get
@@ -37,6 +39,7 @@ namespace QDMS
         }
 
         [ProtoMember(4)]
+        [NotMapped]
         public long LatestDateAsLong
         {
             get

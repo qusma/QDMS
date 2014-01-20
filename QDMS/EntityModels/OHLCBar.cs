@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NodaTime;
 using ProtoBuf;
@@ -77,6 +78,8 @@ namespace QDMS
 
         [ProtoMember(14)]
         public decimal? Split { get; set; }
+
+        public BarSize Frequency { get; set; }
 
         public override string ToString()
         {
