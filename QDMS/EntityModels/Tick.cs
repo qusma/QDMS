@@ -21,5 +21,16 @@ namespace QDMS
 
         [ProtoMember(3)]
         public int Contracts { get; set; }
+
+        public Tick()
+        {
+        }
+
+        public Tick(DateTime dt, decimal price, int contracts)
+        {
+            DT = dt;
+            Price = price;
+            Contracts = contracts;
+        }
     }
 }
