@@ -82,7 +82,8 @@ namespace QDMSServer
             }
 
             var entityContext = new MyDBContext();
-            
+            entityContext.Database.Initialize(false);
+
             //build the tags menu
             var allTags = entityContext.Tags.ToList();
             BuildTagContextMenu(allTags);
