@@ -160,12 +160,13 @@
     </ApplicationDefinition>
     <Compile Include="CheckBoxItem.cs" />
     <Compile Include="CheckBoxTag.cs" />
-    <Compile Include="ContinuousFuturesBroker.cs" />
+    <Compile Include="Brokers\ContinuousFuturesBroker.cs" />
     <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
-    <Compile Include="InstrumentsServer.cs" />
+    <Compile Include="DataStorageFactory.cs" />
+    <Compile Include="Servers\InstrumentsServer.cs" />
     <Compile Include="Brokers\HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
     <Compile Include="ConcurrentNotifierBlockingList.cs" />
@@ -178,8 +179,6 @@
     <Compile Include="RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Servers\RealTimeDataServer.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="Tick.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\PriceAdjuster.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
