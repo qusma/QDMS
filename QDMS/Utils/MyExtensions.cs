@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using NodaTime;
@@ -30,6 +31,16 @@ namespace QDMS
                 count++;
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Removes all the elements that match the conditions defined by the specified predicate.
+        /// </summary>
+        public static void RemoveAll<T>(this ObservableCollection<T> collection, Func<T, bool> predicate)
+        {
+            var toRemove = collection.Where(predicate);
+            foreach (T item in toRemove)
+                collection.Remove(item);
         }
 
         /// <summary>
