@@ -80,6 +80,8 @@ namespace EntityData.Migrations
                 new string[4] { "Symbol", "DatasourceID", "ExchangeID", "Expiration" },
                 unique: true);
             
+
+            
             CreateTable(
                 "dbo.Datasources",
                 c => new
@@ -100,19 +102,20 @@ namespace EntityData.Migrations
                     })
                 .PrimaryKey(t => t.ID);
 
-
             CreateIndex(
                 "dbo.Exchanges",
                 "Name",
                 unique: true);
+            
+
             
             CreateTable(
                 "dbo.exchangesessions",
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        OpeningTime = c.Time(nullable: false, precision: 0),
-                        ClosingTime = c.Time(nullable: false, precision: 0),
+                        OpeningTime = c.Time(nullable: false, precision: 3),
+                        ClosingTime = c.Time(nullable: false, precision: 3),
                         ExchangeID = c.Int(nullable: false),
                         IsSessionEnd = c.Boolean(nullable: false),
                         OpeningDay = c.Int(nullable: false),
@@ -127,8 +130,8 @@ namespace EntityData.Migrations
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        OpeningTime = c.Time(nullable: false, precision: 0),
-                        ClosingTime = c.Time(nullable: false, precision: 0),
+                        OpeningTime = c.Time(nullable: false, precision: 3),
+                        ClosingTime = c.Time(nullable: false, precision: 3),
                         InstrumentID = c.Int(nullable: false),
                         IsSessionEnd = c.Boolean(nullable: false),
                         OpeningDay = c.Int(nullable: false),
@@ -171,8 +174,8 @@ namespace EntityData.Migrations
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        OpeningTime = c.Time(nullable: false, precision: 0),
-                        ClosingTime = c.Time(nullable: false, precision: 0),
+                        OpeningTime = c.Time(nullable: false, precision: 3),
+                        ClosingTime = c.Time(nullable: false, precision: 3),
                         TemplateID = c.Int(nullable: false),
                         IsSessionEnd = c.Boolean(nullable: false),
                         OpeningDay = c.Int(nullable: false),
@@ -205,10 +208,8 @@ namespace EntityData.Migrations
             DropForeignKey("dbo.tag_map", "TagID", "dbo.Tags");
             DropForeignKey("dbo.tag_map", "InstrumentID", "dbo.Instruments");
             DropForeignKey("dbo.instrumentsessions", "InstrumentID", "dbo.Instruments");
-            DropForeignKey("dbo.instrumentsessions", "InstrumentID", "dbo.Instruments");
             DropForeignKey("dbo.Instruments", "PrimaryExchangeID", "dbo.Exchanges");
             DropForeignKey("dbo.Instruments", "ExchangeID", "dbo.Exchanges");
-            DropForeignKey("dbo.exchangesessions", "ExchangeID", "dbo.Exchanges");
             DropForeignKey("dbo.exchangesessions", "ExchangeID", "dbo.Exchanges");
             DropForeignKey("dbo.Instruments", "DatasourceID", "dbo.Datasources");
             DropForeignKey("dbo.Instruments", "ContinuousFutureID", "dbo.ContinuousFutures");
@@ -218,10 +219,8 @@ namespace EntityData.Migrations
             DropIndex("dbo.tag_map", new[] { "TagID" });
             DropIndex("dbo.tag_map", new[] { "InstrumentID" });
             DropIndex("dbo.instrumentsessions", new[] { "InstrumentID" });
-            DropIndex("dbo.instrumentsessions", new[] { "InstrumentID" });
             DropIndex("dbo.Instruments", new[] { "PrimaryExchangeID" });
             DropIndex("dbo.Instruments", new[] { "ExchangeID" });
-            DropIndex("dbo.exchangesessions", new[] { "ExchangeID" });
             DropIndex("dbo.exchangesessions", new[] { "ExchangeID" });
             DropIndex("dbo.Instruments", new[] { "DatasourceID" });
             DropIndex("dbo.Instruments", new[] { "ContinuousFutureID" });
