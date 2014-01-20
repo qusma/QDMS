@@ -128,6 +128,15 @@ namespace QDMSServer
             Properties.Settings.Default.quandlAuthCode = QuandlAPITokenTextBox.Text;
 
             //Database
+            if (DbTypeMySql.IsChecked.HasValue && DbTypeMySql.IsChecked.Value)
+            {
+                Properties.Settings.Default.databaseType = "MySql";
+            }
+            else
+            {
+                Properties.Settings.Default.databaseType = "SqlServer";
+            }
+
             Properties.Settings.Default.mySqlHost = MySqlHost.Text;
             Properties.Settings.Default.mySqlUsername = MySqlUsername.Text;
             Properties.Settings.Default.mySqlPassword = DBUtils.Protect(MySqlPassword.Password);
