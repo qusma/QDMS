@@ -443,7 +443,7 @@ namespace QDMSServer
                         ConvertTimeZone(bars, tzInfo);
 
                         //low frequencies, < 1 day. No adjustment required and inserting data at intervals instead of all at once
-                        using (var storage = new MySQLStorage())
+                        using (var storage = DataStorageFactory.Get())
                         {
                             try
                             {
@@ -513,7 +513,7 @@ namespace QDMSServer
                 bars.Sort((x, y) => x.DT.CompareTo(y.DT));
 
             //try to import
-            using (var storage = new MySQLStorage())
+            using (var storage = DataStorageFactory.Get())
             {
                 try
                 {

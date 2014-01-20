@@ -73,7 +73,7 @@ namespace QDMSServer
 
         public HistoricalDataBroker(IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null, IContinuousFuturesBroker cfBroker = null)
         {
-            _dataStorage = localStorage ?? new MySQLStorage();
+            _dataStorage = localStorage ?? DataStorageFactory.Get();
 
             DataSources = new Dictionary<string, IHistoricalDataSource>
             {

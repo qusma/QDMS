@@ -234,7 +234,7 @@ namespace QDMSServer
 
             int requestCount = 0;
 
-            using (var localStorage = new MySQLStorage())
+            using (var localStorage = DataStorageFactory.Get())
             {
                 foreach (Instrument i in selectedInstruments)
                 {
@@ -471,7 +471,7 @@ namespace QDMSServer
             }
 
 
-            using (var storage = new MySQLStorage())
+            using (var storage = DataStorageFactory.Get())
             {
                 foreach (Instrument i in selectedInstruments)
                 {

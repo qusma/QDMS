@@ -157,7 +157,7 @@ namespace QDMSServer
             TryConnect();
 
             //local storage
-            _localStorage = localStorage ?? new MySQLStorage();
+            _localStorage = localStorage ?? DataStorageFactory.Get();
 
             //start up the continuous futures broker
             _cfBroker = cfBroker ?? new ContinuousFuturesBroker(clientName: "RTDBCFClient");

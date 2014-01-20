@@ -57,7 +57,7 @@ namespace QDMSServer
             if (!TheInstrument.ID.HasValue) return;
 
             //grab the data info
-            using (var localStorage = new MySQLStorage())
+            using (var localStorage = DataStorageFactory.Get())
             {
                 var storageInfo = localStorage.GetStorageInfo(TheInstrument.ID.Value);
 
@@ -84,7 +84,7 @@ namespace QDMSServer
             Data.Clear();
 
             //grab the data
-            using (var localStorage = new MySQLStorage())
+            using (var localStorage = DataStorageFactory.Get())
             {
                 
                 var bars = localStorage.GetData(TheInstrument, StartTime, EndTime, (BarSize)ResolutionComboBox.SelectedItem);
@@ -161,9 +161,9 @@ namespace QDMSServer
                     b.DT = TimeZoneInfo.ConvertTime(b.DT, TimeZoneInfo.Local, _tzInfo);
                 }
             }
-            
 
-            using (var localStorage = new MySQLStorage())
+
+            using (var localStorage = DataStorageFactory.Get())
             {
                 localStorage.DeleteData(TheInstrument, _loadedFrequency, toDelete);
             }
@@ -196,7 +196,7 @@ namespace QDMSServer
 
         private void SaveChangesBtn_Click(object sender, RoutedEventArgs e)
         {
-            using (var localStorage = new MySQLStorage())
+            using (var localStorage = DataStorageFactory.Get())
             {
                 try
                 {

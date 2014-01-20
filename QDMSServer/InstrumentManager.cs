@@ -293,7 +293,7 @@ namespace QDMSServer
                 entityContext.SaveChanges();
             }
 
-            using (var localStorage = new MySQLStorage())
+            using (var localStorage = DataStorageFactory.Get())
             {
                 localStorage.Connect();
 
