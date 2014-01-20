@@ -20,25 +20,31 @@ namespace QDMSServer
     {
         public static void SetConnectionString()
         {
-            if(Settings.Default.databaseType == "MySql")
-                SetMySqlConnectionString();
+            if (Settings.Default.databaseType == "MySql")
+            {
+                SetMySqlConnectionString("qdmsEntities", "qdms");
+                SetMySqlConnectionString("qdmsDataEntities", "qdmsdata");
+            }
             else
-                SetSqlServerConnectionString();
+            {
+                SetSqlServerConnectionString("qdmsEntities", "qdms");
+                SetSqlServerConnectionString("qdmsDataEntities", "qdmsdata");
+            }
 
             ConfigurationManager.RefreshSection("connectionStrings");
         }
 
-        private static void SetSqlServerConnectionString()
+        private static void SetSqlServerConnectionString(string stringName, string dbName)
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings["qdmsEntities"];
+            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings[stringName];
 
             //this is an extremely dirty hack that allows us to change the connection string at runtime
             var fi = typeof(ConfigurationElement).GetField("_bReadOnly", BindingFlags.Instance | BindingFlags.NonPublic);
             fi.SetValue(conSettings, false);
 
             conSettings.ConnectionString = GetSqlServerConnectionString(
-                "qdms",
+                dbName,
                 Settings.Default.sqlServerHost,
                 Settings.Default.sqlServerUsername,
                 Unprotect(Settings.Default.sqlServerPassword),
@@ -48,19 +54,20 @@ namespace QDMSServer
             config.Save();
         }
 
-        private static void SetMySqlConnectionString()
+        private static void SetMySqlConnectionString(string stringName, string dbName)
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings["qdmsEntities"];
+            ConnectionStringSettings conSettings = config.ConnectionStrings.ConnectionStrings[stringName];
 
             //this is an extremely dirty hack that allows us to change the connection string at runtime
             var fi = typeof(ConfigurationElement).GetField("_bReadOnly", BindingFlags.Instance | BindingFlags.NonPublic);
             fi.SetValue(conSettings, false);
 
-            conSettings.ConnectionString = string.Format("User Id={0};Password={1};Host={2};Database=qdms;Persist Security Info=True",
+            conSettings.ConnectionString = string.Format("User Id={0};Password={1};Host={2};Database={3};Persist Security Info=True",
                 Settings.Default.mySqlUsername,
                 Unprotect(Settings.Default.mySqlPassword),
-                Settings.Default.mySqlHost);
+                Settings.Default.mySqlHost,
+                dbName);
             conSettings.ProviderName = "MySql.Data.MySqlClient";
 
             config.Save();
