@@ -81,11 +81,11 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Exit" x:Name="BtnExit" Click="BtnExit_ItemClick"/>
                 <Separator/>
-                <MenuItem Header="Backup">
-                    <MenuItem Header="Metadata" x:Name="BackupMetadataBtn" Click="BackupMetadataBtn_Click" IsEnabled="False"/>
-                    <MenuItem Header="Data" x:Name="BackupDataBtn" Click="BackupDataBtn_Click" IsEnabled="False"/>
+                <MenuItem Header="Backup" x:Name="BackupMenuItem">
+                    <MenuItem Header="Metadata" x:Name="BackupMetadataBtn" Click="BackupMetadataBtn_Click" />
+                    <MenuItem Header="Data" x:Name="BackupDataBtn" Click="BackupDataBtn_Click" />
                 </MenuItem>
-                <MenuItem Header="Restore">
+                <MenuItem Header="Restore" x:Name="RestoreMenuItem">
                     <MenuItem Header="Metadata" x:Name="RestoreMetadataBtn" Click="RestoreMetadataBtn_OnClick" IsEnabled="False"/>
                     <MenuItem Header="Data" x:Name="RestoreDataBtn" Click="RestoreDataBtn_OnClick" IsEnabled="False"/>
                 </MenuItem>

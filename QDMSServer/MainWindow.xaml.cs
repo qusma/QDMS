@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -52,6 +53,13 @@ namespace QDMSServer
             
             //set the connection string
             DBUtils.SetConnectionString();
+
+            //dim the backup/restore menu items in case of sql server, which isn't implemented yet
+            if (Properties.Settings.Default.databaseType != "MySql")
+            {
+                BackupMenuItem.IsEnabled = false;
+                RestoreMenuItem.IsEnabled = false;
+            }
 
             InitializeComponent();
             DataContext = this;
@@ -634,23 +642,109 @@ namespace QDMSServer
 
         private void BackupMetadataBtn_Click(object sender, RoutedEventArgs e)
         {
+            string path;
+            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog();
+            file.FileName = "qdms.sql"; // Default file name
+            file.DefaultExt = ".sql"; // Default file extension
+            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
 
+            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                path = file.FileName;
+            }
+            else
+            {
+                return;
+            }
+
+            if (Properties.Settings.Default.databaseType == "MySql")
+            {
+                DBUtils.BackupMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsEntities"].ToString());
+            }
+            else
+            {
+                //sql server
+            }
         }
 
         private void BackupDataBtn_Click(object sender, RoutedEventArgs e)
         {
-            
+            string path;
+            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog();
+            file.FileName = "qdmsData.sql"; // Default file name
+            file.DefaultExt = ".sql"; // Default file extension
+            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
+
+            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                path = file.FileName;
+            }
+            else
+            {
+                return;
+            }
+
+            if (Properties.Settings.Default.databaseType == "MySql")
+            {
+                DBUtils.BackupMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsDataEntities"].ToString());
+            }
+            else
+            {
+                //sql server
+            }
         }
 
 
         private void RestoreMetadataBtn_OnClick(object sender, RoutedEventArgs e)
         {
+            string path;
+            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog();
+            file.DefaultExt = ".sql"; // Default file extension
+            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
 
+            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                path = file.FileName;
+            }
+            else
+            {
+                return;
+            }
+
+            if (Properties.Settings.Default.databaseType == "MySql")
+            {
+                DBUtils.RestoreMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsEntities"].ToString());
+            }
+            else
+            {
+                //sql server
+            }
         }
 
         private void RestoreDataBtn_OnClick(object sender, RoutedEventArgs e)
         {
+            string path;
+            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog();
+            file.DefaultExt = ".sql"; // Default file extension
+            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
 
+            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                path = file.FileName;
+            }
+            else
+            {
+                return;
+            }
+
+            if (Properties.Settings.Default.databaseType == "MySql")
+            {
+                DBUtils.RestoreMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsDataEntities"].ToString());
+            }
+            else
+            {
+                //sql server
+            }
         }
     }
 }

@@ -175,5 +175,39 @@ namespace QDMSServer
 
             return new MySqlConnection(connectionString);
         }
+
+        /// <summary>
+        /// Back up a MySql database to the specified file.
+        /// </summary>
+        public static void BackupMySqlDb(string path, string conectionString)
+        {
+            using (MySqlConnection conn = new MySqlConnection(conectionString))
+            {
+                using (MySqlCommand cmd = new MySqlCommand("", conn))
+                {
+                    conn.Open();
+                    var backup = new MySqlBackup(cmd);
+                    backup.ExportToFile(path);
+                    conn.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Back up a MySql database from the specified file.
+        /// </summary>
+        public static void RestoreMySqlDb(string path, string conectionString)
+        {
+            using (MySqlConnection conn = new MySqlConnection(conectionString))
+            {
+                using (MySqlCommand cmd = new MySqlCommand("", conn))
+                {
+                    conn.Open();
+                    var backup = new MySqlBackup(cmd);
+                    backup.ImportFromFile(path);
+                    conn.Close();
+                }
+            }
+        }
     }
 }
