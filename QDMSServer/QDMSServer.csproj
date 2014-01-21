@@ -166,6 +166,11 @@
     <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="DataStorageFactory.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Servers\InstrumentsServer.cs" />
     <Compile Include="Brokers\HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
@@ -317,11 +322,6 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -329,6 +329,7 @@
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="job_scheduling_data_2_0.xsd">
@@ -387,16 +388,10 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\qdms.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\CheckBox_669_24.bmp" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Large_243.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\qdmsdata.sql" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\appbar.box.layered.png" />

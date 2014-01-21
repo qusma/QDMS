@@ -59,45 +59,5 @@ namespace QDMSServer.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CREATE DATABASE  IF NOT EXISTS `qdms` /*!40100 DEFAULT CHARACTER SET latin1 */;
-        ///USE `qdms`;
-        ///-- MySQL dump 10.13  Distrib 5.6.13, for Win32 (x86)
-        ///--
-        ///-- Host: 127.0.0.1    Database: qdms
-        ///-- ------------------------------------------------------
-        ///-- Server version	5.6.14-log
-        ///
-        ////*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-        ////*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-        ////*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-        ////*!40101 SET NAMES utf8 */;        /// [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string qdms {
-            get {
-                return ResourceManager.GetString("qdms", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CREATE DATABASE  IF NOT EXISTS `qdmsdata` /*!40100 DEFAULT CHARACTER SET latin1 */;
-        ///USE `qdmsdata`;
-        ///-- MySQL dump 10.13  Distrib 5.6.13, for Win32 (x86)
-        ///--
-        ///-- Host: 127.0.0.1    Database: qdmsdata
-        ///-- ------------------------------------------------------
-        ///-- Server version	5.6.14-log
-        ///
-        ////*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-        ////*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-        ////*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-        ////*!40101 SET NAM [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string qdmsdata {
-            get {
-                return ResourceManager.GetString("qdmsdata", resourceCulture);
-            }
-        }
     }
 }
