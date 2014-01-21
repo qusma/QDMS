@@ -263,10 +263,10 @@ namespace QDMSServer.DataSources
                 
                 //finally update the instrument info
                 cmd.CommandText = string.Format(
-                                    "INSERT INTO instrumentinfo (InstrumentID, Frequency, EarliestAvailableDT, LatestAvailableDT) VALUES " +
+                                    "INSERT INTO instrumentinfo (InstrumentID, Frequency, EarliestDate, LatestDate) VALUES " +
                                     "({0}, {1}, '{2}', '{3}') " +
-                                    "ON DUPLICATE KEY UPDATE EarliestAvailableDT = LEAST(EarliestAvailableDT, '{2}'), " +
-                                    "LatestAvailableDT = GREATEST(LatestAvailableDT, '{3}')",
+                                    "ON DUPLICATE KEY UPDATE EarliestDate = LEAST(EarliestDate, '{2}'), " +
+                                    "LatestDate = GREATEST(LatestDate, '{3}')",
                                     instrument.ID.Value,
                                     (int)frequency,
                                     data[0].DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
@@ -425,8 +425,8 @@ namespace QDMSServer.DataSources
                         //update the instrumentinfo table
                         cmd.CommandText = string.Format("UPDATE instrumentinfo AS t1, " +
                                                         "(SELECT MAX(DT) as maxdt, MIN(DT) as mindt FROM data WHERE instrumentID = {0} AND Frequency = {1}) AS t2 " +
-                                                        "SET `EarliestAvailableDT` = t2.mindt, " +
-                                                        "t1.`LatestAvailableDT` = t2.maxdt " +
+                                                        "SET `EarliestDate` = t2.mindt, " +
+                                                        "t1.`LatestDate` = t2.maxdt " +
                                                         "WHERE t1.instrumentID = {0} AND t1.Frequency = {1}", instrument.ID, (int)frequency);
                         cmd.ExecuteNonQuery();
                     }
@@ -461,8 +461,8 @@ namespace QDMSServer.DataSources
                         {
                             InstrumentID = instrumentID,
                             Frequency = (BarSize) reader.GetInt32("Frequency"),
-                            EarliestDate = reader.GetDateTime("EarliestAvailableDT"),
-                            LatestDate = reader.GetDateTime("LatestAvailableDT")
+                            EarliestDate = reader.GetDateTime("EarliestDate"),
+                            LatestDate = reader.GetDateTime("LatestDate")
                         };
                         instrumentInfos.Add(info);
                     }
@@ -497,8 +497,8 @@ namespace QDMSServer.DataSources
                     {
                         instrumentInfo.InstrumentID = instrumentID;
                         instrumentInfo.Frequency = (BarSize)reader.GetInt32("Frequency");
-                        instrumentInfo.EarliestDate = reader.GetDateTime("EarliestAvailableDT");
-                        instrumentInfo.LatestDate = reader.GetDateTime("LatestAvailableDT");
+                        instrumentInfo.EarliestDate = reader.GetDateTime("EarliestDate");
+                        instrumentInfo.LatestDate = reader.GetDateTime("LatestDate");
                     }
                     else
                     {
