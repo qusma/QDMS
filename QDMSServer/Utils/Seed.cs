@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Data.Entity.Migrations;
 using EntityData;
@@ -603,6 +604,11 @@ namespace QDMSServer
                     Template = sessiontemplates.First(x => x.Name == "CME: FX Futures (GLOBEX)")
                 }
             };
+
+            foreach (TemplateSession t in templatesessions)
+            {
+                context.TemplateSessions.Add(t);
+            }
             #endregion
 
             #region exchanges
@@ -1009,26 +1015,38 @@ namespace QDMSServer
             }
             #endregion
 
+            context.SaveChanges();
+
             #region exchangesessions
             #endregion
 
             #region instruments
-            //TODO add exchange, session template
+
             var spy = new Instrument
             {
                 Symbol = "SPY",
                 Currency = "USD",
                 Type = InstrumentType.Stock,
                 UnderlyingSymbol = "SPY",
-                Datasource = yahoo,
+                Datasource = context.Datasources.First(x => x.Name == "Yahoo"),
                 Name = "SPDR S&P 500 ETF Trust",
                 Multiplier = 1,
                 MinTick = 0.01m,
                 Industry = "Funds",
                 Category = "Equity Fund",
-                Subcategory = "Growth&Income-Large Cap"
+                Subcategory = "Growth&Income-Large Cap",
+                Exchange = context.Exchanges.First(x => x.Name == "NYSE"),
+                SessionsSource = SessionsSource.Template,
+                SessionTemplateID = context.SessionTemplates.First(x => x.Name == "U.S. Equities RTH").ID,
             };
-            context.Instruments.AddOrUpdate(x => new {x.Symbol, x.Datasource, x.Expiration, x.Exchange}, spy);
+            spy.Sessions = new List<InstrumentSession>();
+
+            foreach (TemplateSession t in context.TemplateSessions.Where(x => x.TemplateID == spy.SessionTemplateID))
+            {
+                spy.Sessions.Add(MyUtils.SessionConverter(t));
+            }
+
+            context.Instruments.AddOrUpdate(x => new {x.Symbol, x.DatasourceID, x.Expiration, x.ExchangeID}, spy);
             #endregion
 
             context.SaveChanges();
