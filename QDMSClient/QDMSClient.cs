@@ -7,10 +7,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Timers;
+using System.Linq;
 using LZ4;
 using ProtoBuf;
 using QDMS;
@@ -31,6 +33,16 @@ namespace QDMSClient
                 return (DateTime.Now - _lastHeartBeat).TotalSeconds < 5;
             }
         }
+
+        /// <summary>
+        /// Keeps track of historical requests that have been sent but the data has not been received yet.
+        /// </summary>
+        public ObservableCollection<HistoricalDataRequest> PendingHistoricalRequests { get; set; }
+
+        /// <summary>
+        /// Keeps track of live real time data streams.
+        /// </summary>
+        public ObservableCollection<RealTimeDataRequest> RealTimeDataStreams { get; set; }
 
         private ZmqContext _context;
 
@@ -103,6 +115,8 @@ namespace QDMSClient
 
         private readonly object _reqSocketLock = new object();
         private readonly object _dealerSocketLock = new object();
+        private readonly object _pendingHistoricalRequestsLock = new object();
+        private readonly object _realTimeDataStreamsLock = new object();
 
         /// <summary>
         /// Used to start and stop the various threads that keep the client running.
@@ -176,6 +190,8 @@ namespace QDMSClient
             _historicalDataPort = historicalDataPort;
 
             _historicalDataRequests = new ConcurrentQueue<HistoricalDataRequest>();
+            PendingHistoricalRequests = new ObservableCollection<HistoricalDataRequest>();
+            RealTimeDataStreams = new ObservableCollection<RealTimeDataRequest>();
         }
 
         /// <summary>
@@ -243,6 +259,12 @@ namespace QDMSClient
             }
 
             request.RequestID = _requestCount++;
+
+            lock (_pendingHistoricalRequestsLock)
+            {
+                PendingHistoricalRequests.Add(request);
+            }
+
             _historicalDataRequests.Enqueue(request);
             return request.RequestID;
         }
@@ -384,6 +406,12 @@ namespace QDMSClient
                             byte[] buffer = _reqSocket.Receive(null, TimeSpan.FromSeconds(1), out size);
                             var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
+                            //Add it to the active streams
+                            lock (_realTimeDataStreamsLock)
+                            {
+                                RealTimeDataStreams.Add(request);
+                            }
+
                             //request worked, so we subscribe to the stream
                             _subSocket.Subscribe(Encoding.UTF8.GetBytes(request.Instrument.Symbol));
                         }
@@ -406,6 +434,12 @@ namespace QDMSClient
         ///  </summary>
         public void Disconnect()
         {
+            //start by canceling all active real time streams
+            while (RealTimeDataStreams.Count > 0)
+            {
+                CancelRealTimeData(RealTimeDataStreams.First().Instrument);
+            }
+
             _running = false;
             _heartBeatTimer.Stop();
 
@@ -711,6 +745,11 @@ namespace QDMSClient
             }
 
             _subSocket.Unsubscribe(Encoding.UTF8.GetBytes(instrument.Symbol));
+
+            lock (_realTimeDataStreamsLock)
+            {
+                RealTimeDataStreams.RemoveAll(x => x.Instrument.ID == instrument.ID);
+            }
         }
 
         /// <summary>
