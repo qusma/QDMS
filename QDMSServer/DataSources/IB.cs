@@ -122,7 +122,7 @@ namespace QDMSServer.DataSources
             //Instead we provide our own by using that day's session end...
             //perhaps this should be moved to the HistoricalDataBroker instead?
             var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
-            if (request.Frequency >= QDMS.BarSize.OneDay)
+            if (request.Frequency >= QDMS.BarSize.OneDay && request.Instrument.Sessions != null)
             {
                 bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
                 var dotw = bar.DT.DayOfWeek.ToInt();
