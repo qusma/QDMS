@@ -131,10 +131,10 @@
                                                     ItemsSource="{Binding Source={StaticResource InstrumentTypes}}"
                                                     SelectedItemBinding="{Binding Path=Type}" Header="Type" Width="60" />
                             <DataGridTextColumn x:Name="ColExpiration" Binding="{Binding Path=Expiration,StringFormat={}{0:dd/MM/yyyy}}" Header="Expiration" Width="100"/>
-                            <DataGridTextColumn x:Name="ColMinTick" Binding="{Binding Path=MinTick}" Header="Min. Tick" Width="60"/>
+                            <DataGridTextColumn x:Name="ColMinTick" Binding="{Binding Path=MinTick, StringFormat={}{0:0.###########}}" Header="Min. Tick" Width="60"/>
                             <DataGridTextColumn x:Name="ColMult" Binding="{Binding Path=Multiplier}" Header="Multiplier" Width="60"/>
                             <DataGridTextColumn x:Name="ColOptType" Binding="{Binding Path=OptionType}" Header="Opt Type" Width="50"/>
-                            <DataGridTextColumn x:Name="ColStrike" Binding="{Binding Path=Strike}" Header="Strike" Width="60"/>
+                            <DataGridTextColumn x:Name="ColStrike" Binding="{Binding Path=Strike, StringFormat={}{0:0.###########}}"  Header="Strike" Width="60"/>
                             <DataGridTextColumn x:Name="ColCurrency" Binding="{Binding Path=Currency}" Header="Currency" Width="60"/>
                             <DataGridTextColumn x:Name="ColDatasource" Binding="{Binding Path=Datasource.Name}" Header="Datasource" Width="80"/>
                             <DataGridTextColumn x:Name="ColIndustry" Binding="{Binding Path=Industry}" Header="Industry" Width="60"/>
