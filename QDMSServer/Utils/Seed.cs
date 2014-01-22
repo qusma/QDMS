@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Linq;
 using System.Data.Entity.Migrations;
 using EntityData;
 using QDMS;
@@ -161,10 +163,446 @@ namespace QDMSServer
             {
                 context.SessionTemplates.AddOrUpdate(x => x.Name, s);
             }
+
+
             #endregion
 
             #region templatesessions
-            
+            var templatesessions = new[]
+            {
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities RTH")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities RTH")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities RTH")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities RTH")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Friday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities RTH")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(9, 30, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Friday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Friday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre & Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre & Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre & Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre & Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(20, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Friday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "U.S. Equities (w/ Pre & Post)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(8, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(8, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(8, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(8, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(8, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Sunday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 30, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (Open Outcry)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 30, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (Open Outcry)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 30, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (Open Outcry)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 30, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (Open Outcry)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(8, 30, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Friday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures (Open Outcry)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Sunday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: Equity Index Futures [E-Mini] (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: FX Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: FX Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: FX Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: FX Futures (GLOBEX)")
+                },
+                new TemplateSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Sunday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    Template = sessiontemplates.First(x => x.Name == "CME: FX Futures (GLOBEX)")
+                }
+            };
             #endregion
 
             #region exchanges
