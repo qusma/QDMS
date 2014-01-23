@@ -557,6 +557,12 @@ namespace QDMSClient
             if (size <= 0) return;
             int requestID = BitConverter.ToInt32(buffer, 0);
 
+            //remove from pending requests
+            lock (_pendingHistoricalRequestsLock)
+            {
+                PendingHistoricalRequests.RemoveAll(x => x.RequestID == requestID);
+            }
+
             //finally the error message
             string message = _dealerSocket.Receive(Encoding.UTF8);
 
@@ -643,6 +649,12 @@ namespace QDMSClient
             byte[] decompressed = LZ4Codec.Decode(dataBuffer, 0, size, outputSize);
 
             var data = MyUtils.ProtoBufDeserialize<List<OHLCBar>>(decompressed, ms);
+
+            //remove from pending requests
+            lock (_pendingHistoricalRequestsLock)
+            {
+                PendingHistoricalRequests.RemoveAll(x => x.RequestID == request.RequestID);
+            }
 
             RaiseEvent(HistoricalDataReceived, this, new HistoricalDataEventArgs(request, data));
         }
