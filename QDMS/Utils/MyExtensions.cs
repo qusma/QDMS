@@ -38,7 +38,7 @@ namespace QDMS
         /// </summary>
         public static void RemoveAll<T>(this ObservableCollection<T> collection, Func<T, bool> predicate)
         {
-            var toRemove = collection.Where(predicate);
+            var toRemove = collection.Where(predicate).ToList();
             foreach (T item in toRemove)
                 collection.Remove(item);
         }
