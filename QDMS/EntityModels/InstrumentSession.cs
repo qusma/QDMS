@@ -75,7 +75,7 @@ namespace QDMS
         /// </returns>
         public object Clone()
         {
-            var clone = new InstrumentSession()
+            var clone = new InstrumentSession
             {
                 ID = ID,
                 OpeningTime = TimeSpan.FromSeconds(OpeningTime.TotalSeconds),
