@@ -145,5 +145,16 @@ namespace QDMSTest
             decimal val = 5.123000m;
             Assert.AreEqual(3, val.CountDecimalPlaces());
         }
+
+        [Test]
+        public void RemoveAllRemovesCorrectItemsFromCollection()
+        {
+            var data = new List<int> { 1, 3, 5, 4, 6, 8 };
+            data.RemoveAll(x => x % 2 == 0);
+            Assert.AreEqual(3, data.Count);
+            Assert.Contains(1, data);
+            Assert.Contains(3, data);
+            Assert.Contains(5, data);
+        }
     }
 }
