@@ -219,7 +219,7 @@ namespace QDMSServer
         public static RealTimeDataEventArgs RealTimeDataEventArgsConverter(RealTimeBarEventArgs e)
         {
             return new RealTimeDataEventArgs(
-                "",
+                0,
                 e.Time,
                 e.Open,
                 e.High,

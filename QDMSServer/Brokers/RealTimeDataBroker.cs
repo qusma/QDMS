@@ -48,7 +48,7 @@ namespace QDMSServer
         /// So we use aliases: the key is the underlying contract
         /// and the value is a list of aliases that are also sent out.
         /// </summary>
-        private readonly Dictionary<string, List<string>> _aliases;
+        private readonly Dictionary<int, List<int>> _aliases;
 
         ///<summary>
         ///When bars arrive, the data source raises an event
@@ -147,7 +147,7 @@ namespace QDMSServer
             ActiveStreams = new ConcurrentNotifierBlockingList<RealTimeStreamInfo>();
             _arrivedBars = new BlockingCollection<RealTimeDataEventArgs>();
             StreamSubscribersCount = new Dictionary<RealTimeStreamInfo, int>();
-            _aliases = new Dictionary<string, List<string>>();
+            _aliases = new Dictionary<int, List<int>>();
             _pendingCFRealTimeRequests = new Dictionary<int, RealTimeDataRequest>();
             _continuousFuturesIDMap = new Dictionary<int, int>();
             _requests = new Dictionary<int, RealTimeDataRequest>();
@@ -269,11 +269,11 @@ namespace QDMSServer
             //continuous futures aliases
             lock (_aliasLock)
             {
-                if (_aliases.ContainsKey(e.Symbol))
+                if (_aliases.ContainsKey(e.InstrumentID))
                 {
-                    foreach (string alias in _aliases[e.Symbol])
+                    foreach (int alias in _aliases[e.InstrumentID])
                     {
-                        e.Symbol = alias;
+                        e.InstrumentID = alias;
                         RaiseEvent(RealTimeDataArrived, this, e);
                     }
                 }
@@ -296,8 +296,8 @@ namespace QDMSServer
 
 #if DEBUG
             Log(LogLevel.Trace,
-                string.Format("RTD Received Symbol: {0} O:{1} H:{2} L:{3} C:{4} V:{5} T:{6}",
-                    e.Symbol,
+                string.Format("RTD Received Instrument ID: {0} O:{1} H:{2} L:{3} C:{4} V:{5} T:{6}",
+                    e.InstrumentID,
                     e.Open,
                     e.High,
                     e.Low,
@@ -350,10 +350,10 @@ namespace QDMSServer
                     //we must also clear the alias list
                     lock (_aliasLock)
                     {
-                        _aliases[instrument.Symbol].Remove(contract.Symbol);
-                        if (_aliases[instrument.Symbol].Count == 0)
+                        _aliases[contractID].Remove(instrumentID); //TODO there might be an issue here
+                        if (_aliases[contractID].Count == 0)
                         {
-                            _aliases.Remove(instrument.Symbol);
+                            _aliases.Remove(contractID);
                         }
                     }
 
@@ -423,7 +423,16 @@ namespace QDMSServer
         private void ForwardRTDRequest(RealTimeDataRequest request)
         {
             //send the request to the correct data source
-            int reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
+            int reqID;
+            try
+            {
+                reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, "Error requesting real time data: " + ex.Message);
+                return;
+            }
 
             //log the request
             Log(LogLevel.Info,
@@ -455,6 +464,11 @@ namespace QDMSServer
         private void _cfBroker_FoundFrontContract(object sender, FoundFrontContractEventArgs e)
         {
             RealTimeDataRequest request;
+            if (!e.Instrument.ID.HasValue)
+            {
+                Log(LogLevel.Error, "CF Broker returned front contract with no ID");
+                return;
+            }
 
             //grab the original request
             lock (_cfRequestLock)
@@ -465,8 +479,7 @@ namespace QDMSServer
 
             //add the contract to the ID map
             if (request.Instrument.ID.HasValue &&
-                !_continuousFuturesIDMap.ContainsKey(request.Instrument.ID.Value) &&
-                e.Instrument.ID.HasValue)
+                !_continuousFuturesIDMap.ContainsKey(request.Instrument.ID.Value))
             {
                 _continuousFuturesIDMap.Add(request.Instrument.ID.Value, e.Instrument.ID.Value);
             }
@@ -474,12 +487,16 @@ namespace QDMSServer
             //add the alias
             lock (_aliasLock)
             {
-                string contract = e.Instrument.Symbol;
-                if (!_aliases.ContainsKey(contract))
+                int contractID = e.Instrument.ID.Value;
+                if (!_aliases.ContainsKey(contractID))
                 {
-                    _aliases.Add(contract, new List<string>());
+                    _aliases.Add(contractID, new List<int>());
                 }
-                _aliases[contract].Add(request.Instrument.Symbol);
+
+                if (request.Instrument.ID.HasValue)
+                {
+                    _aliases[contractID].Add(request.Instrument.ID.Value);
+                }
             }
 
             //need to check if there's already a stream of the contract....

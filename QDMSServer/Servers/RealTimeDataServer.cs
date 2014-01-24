@@ -78,7 +78,7 @@ namespace QDMSServer
                 //the thread of each DataSource in the broker
                 lock (_pubSocketLock) 
                 {
-                    _pubSocket.SendMore(Encoding.UTF8.GetBytes(e.Symbol)); //start by sending the ticker before the data
+                    _pubSocket.SendMore(BitConverter.GetBytes(e.InstrumentID)); //start by sending the ticker before the data
                     _pubSocket.Send(ms.ToArray()); //then send the serialized bar
                 }
             }

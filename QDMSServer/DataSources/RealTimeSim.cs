@@ -15,10 +15,10 @@ namespace QDMSServer.DataSources
     public class RealTimeSim : IRealTimeDataSource, IDisposable
     {
         private Timer _timer;
-        private ConcurrentDictionary<int, string> _requestedSymbols;
-        private ConcurrentDictionary<string, int> _loopsPassed;
-        private ConcurrentDictionary<string, int> _loopLimit;
-        private ConcurrentDictionary<string, int> _idMap;
+        private ConcurrentDictionary<int, int> _requestedInstrumentIDs;
+        private ConcurrentDictionary<int, int> _loopsPassed;
+        private ConcurrentDictionary<int, int> _loopLimit;
+        private ConcurrentDictionary<int, int> _idMap;
         private Random _rand;
         private int _requestIDs;
 
@@ -34,10 +34,10 @@ namespace QDMSServer.DataSources
         public RealTimeSim()
         {
             Name = "SIM";
-            _requestedSymbols = new ConcurrentDictionary<int, string>();
-            _loopsPassed = new ConcurrentDictionary<string, int>();
-            _loopLimit = new ConcurrentDictionary<string, int>();
-            _idMap = new ConcurrentDictionary<string, int>();
+            _requestedInstrumentIDs = new ConcurrentDictionary<int, int>();
+            _loopsPassed = new ConcurrentDictionary<int, int>();
+            _loopLimit = new ConcurrentDictionary<int, int>();
+            _idMap = new ConcurrentDictionary<int, int>();
 
             _timer = new Timer(1);
             _timer.Elapsed += SimulateData;
@@ -59,7 +59,10 @@ namespace QDMSServer.DataSources
 
         public int RequestRealTimeData(RealTimeDataRequest request)
         {
-            bool success = _requestedSymbols.TryAdd(_requestIDs, request.Instrument.Symbol);
+            if (!request.Instrument.ID.HasValue) throw new Exception("ID doesn't have value.");
+
+
+            bool success = _requestedInstrumentIDs.TryAdd(_requestIDs, request.Instrument.ID.Value);
 
             int number;
             if (request.Frequency == BarSize.Tick)
@@ -67,37 +70,37 @@ namespace QDMSServer.DataSources
             else
                 number = (int)(request.Frequency.ToTimeSpan().TotalMilliseconds);
 
-            _loopsPassed.TryAdd(request.Instrument.Symbol, number);
-            _loopLimit.TryAdd(request.Instrument.Symbol, number);
-            _idMap.TryAdd(request.Instrument.Symbol, request.AssignedID);
+            _loopsPassed.TryAdd(request.Instrument.ID.Value, number);
+            _loopLimit.TryAdd(request.Instrument.ID.Value, number);
+            _idMap.TryAdd(request.Instrument.ID.Value, request.AssignedID);
             
             return ++_requestIDs;
         }
 
         public void CancelRealTimeData(int requestID)
         {
-            string symbol;
-            _requestedSymbols.TryRemove(requestID, out symbol);
+            int instrumentID;
+            _requestedInstrumentIDs.TryRemove(requestID, out instrumentID);
         }
 
         private void SimulateData(object sender, ElapsedEventArgs e)
         {
-            foreach (string s in _requestedSymbols.Values)
+            foreach (int instrumentID in _requestedInstrumentIDs.Values)
             {
-                _loopsPassed[s]++;
-                if (_loopsPassed[s] < _loopLimit[s]) continue;
-                _loopsPassed[s] = 0;
+                _loopsPassed[instrumentID]++;
+                if (_loopsPassed[instrumentID] < _loopLimit[instrumentID]) continue;
+                _loopsPassed[instrumentID] = 0;
 
                 double open = _rand.NextDouble() * 50 + 20;
                 double high = open + _rand.NextDouble();
                 double low = open - _rand.NextDouble();
                 double close = low + (high - low) * _rand.NextDouble();
                 int id;
-                bool success =_idMap.TryGetValue(s, out id);
+                bool success = _idMap.TryGetValue(instrumentID, out id);
 
                 if(success)
                     RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
-                        s, 
+                        instrumentID, 
                         MyUtils.ConvertToTimestamp(DateTime.Now), 
                         (decimal) open,
                         (decimal) high,

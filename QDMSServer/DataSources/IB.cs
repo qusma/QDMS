@@ -223,7 +223,7 @@ namespace QDMSServer.DataSources
         {
             RealTimeDataEventArgs args = TWSUtils.RealTimeDataEventArgsConverter(e);
             var originalRequest = _realTimeDataRequests[e.RequestId];
-            args.Symbol = originalRequest.Instrument.Symbol;
+            args.InstrumentID = originalRequest.Instrument.ID.Value;
             args.RequestID = _requestIDMap[e.RequestId];
             RaiseEvent(DataReceived, this, args);
         }

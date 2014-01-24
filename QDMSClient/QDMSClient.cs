@@ -413,7 +413,7 @@ namespace QDMSClient
                             }
 
                             //request worked, so we subscribe to the stream
-                            _subSocket.Subscribe(Encoding.UTF8.GetBytes(request.Instrument.Symbol));
+                            _subSocket.Subscribe(BitConverter.GetBytes(request.Instrument.ID.Value));
                         }
                         break;
 
@@ -506,7 +506,7 @@ namespace QDMSClient
         private void _subSocket_ReceiveReady(object sender, SocketEventArgs e)
         {
             int size;
-            byte[] symbol = _subSocket.Receive(null, out size);
+            byte[] instrumentID = _subSocket.Receive(null, out size);
 
             if (size > 0)
             {

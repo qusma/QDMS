@@ -16,9 +16,9 @@ namespace QDMS
         /// <summary>
         /// Real time bar event arguments.
         /// </summary>
-        public RealTimeDataEventArgs(string symbol, long time, decimal open, decimal high, decimal low, decimal close, long volume, double wap, int count, int requestID)
+        public RealTimeDataEventArgs(int instrumentID, long time, decimal open, decimal high, decimal low, decimal close, long volume, double wap, int count, int requestID)
         {
-            Symbol = symbol;
+            InstrumentID = instrumentID;
             Time = time;
             Open = open;
             High = high;
@@ -69,10 +69,10 @@ namespace QDMS
         public decimal Open { get; set; }
 
         /// <summary>
-        /// The symbol of the instrument.
+        /// The ID of the instrument.
         /// </summary>
         [ProtoMember(6)]
-        public string Symbol { get; set; }
+        public int InstrumentID { get; set; }
 
         /// <summary>
         /// The date-time stamp of the start of the bar.
