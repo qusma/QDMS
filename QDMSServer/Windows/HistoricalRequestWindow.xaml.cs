@@ -83,14 +83,15 @@ namespace QDMSServer
 
                     //find largest significant decimal by sampling the prices at the start and end of the series
                     var decPlaces = new List<int>();
-                    for (int i = 0; i < 20; i++)
+                    for (int i = 0; i < Math.Min(20, e.Data.Count); i++)
                     {
                         decPlaces.Add(e.Data[i].Open.CountDecimalPlaces());
                         decPlaces.Add(e.Data[e.Data.Count - 1 - i].Close.CountDecimalPlaces());
                     }
 
                     //set the column format to use that number so we don't get any useless trailing 0s
-                    SetPriceColumnFormat(decPlaces.Max());
+                    if(decPlaces.Count > 0)
+                        SetPriceColumnFormat(decPlaces.Max());
 
 
                     foreach (OHLCBar bar in e.Data)
