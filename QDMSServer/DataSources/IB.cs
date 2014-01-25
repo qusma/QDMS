@@ -124,7 +124,6 @@ namespace QDMSServer.DataSources
             var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
             if (request.Frequency >= QDMS.BarSize.OneDay && request.Instrument.Sessions != null)
             {
-                bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
                 var dotw = bar.DT.DayOfWeek.ToInt();
                 var daysSessionEnd = request.Instrument.Sessions.FirstOrDefault(x => (int)x.ClosingDay == dotw && x.IsSessionEnd);
                 if (daysSessionEnd != null)
@@ -135,6 +134,7 @@ namespace QDMSServer.DataSources
                 {
                     bar.DT = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day, 23, 59, 59);
                 }
+                bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
             }
             else
             {
@@ -175,8 +175,10 @@ namespace QDMSServer.DataSources
                     }
                 }
 
-                if(requestComplete)
+                if (requestComplete)
+                {
                     HistoricalDataRequestComplete(id);
+                }
             }
         }
 
@@ -277,9 +279,22 @@ namespace QDMSServer.DataSources
             }
             else if ((int)e.ErrorCode == 200) //No security definition has been found for the request.
             {
-                //this will happen for example when asking for data on expired futures
-                //return an empty data list
-                HistoricalDataRequestComplete(e.TickerId);
+                //Again multiple errors share the same code...
+                if (e.ErrorMsg.Contains("No security definition has been found for the request"))
+                {
+                    //this will happen for example when asking for data on expired futures
+                    //return an empty data list
+                    if(_historicalDataRequests.ContainsKey(e.TickerId))
+                        HistoricalDataRequestComplete(e.TickerId);
+                }
+                else //in this case we're handling a "Invalid destination exchange specified" error
+                {
+                    //not sure if there's anything else to do, if it's a real time request it just fails...
+                    if (_historicalDataRequests.ContainsKey(e.TickerId))
+                        HistoricalDataRequestComplete(e.TickerId);
+                }
+
+
             }
 
             //different messages depending on the type of request
@@ -316,6 +331,7 @@ namespace QDMSServer.DataSources
             //and if we get an error regarding its failure, send it again using a timer
             int originalReqID = ++_requestCounter;
             _historicalDataRequests.TryAdd(originalReqID, request);
+            
             _arrivedHistoricalData.TryAdd(originalReqID, new List<OHLCBar>());
             
             //if necessary, chop up the request into multiple chunks so as to abide
