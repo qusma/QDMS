@@ -208,6 +208,9 @@
     <Compile Include="Windows\AddInstrumentQuandlWindow.xaml.cs">
       <DependentUpon>AddInstrumentQuandlWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\SessionTemplatesWindow.xaml.cs">
+      <DependentUpon>SessionTemplatesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\EditRootSymbolWindow.xaml.cs">
       <DependentUpon>EditRootSymbolWindow.xaml</DependentUpon>
     </Compile>
@@ -235,8 +238,8 @@
     <Compile Include="Windows\ExchangesWindow.xaml.cs">
       <DependentUpon>ExchangesWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\SessionTemplatesWindow.xaml.cs">
-      <DependentUpon>SessionTemplatesWindow.xaml</DependentUpon>
+    <Compile Include="Windows\ScheduledJobsWindow.xaml.cs">
+      <DependentUpon>ScheduledJobsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
@@ -272,6 +275,10 @@
     <Page Include="Windows\AddInstrumentQuandlWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\SessionTemplatesWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\EditRootSymbolWindow.xaml">
       <SubType>Designer</SubType>
@@ -309,7 +316,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\SessionTemplatesWindow.xaml">
+    <Page Include="Windows\ScheduledJobsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

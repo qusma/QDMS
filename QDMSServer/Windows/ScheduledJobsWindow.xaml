@@ -1,0 +1,56 @@
+﻿<controls:MetroWindow
+    xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    x:Class="QDMSServer.ScheduledJobsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Session Templates" Height="558" Width="574.568"
+    BorderBrush="Black"
+    BorderThickness="1"
+    >
+    <controls:MetroWindow.Resources>
+
+    </controls:MetroWindow.Resources>
+
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="200*"/>
+        </Grid.ColumnDefinitions>
+        <Button Click="AddBtn_Click" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,11,251,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+        <Button Click="ModifyBtn_Click" x:Name="ModifyBtn" Content="Modify" HorizontalAlignment="Right" Margin="0,11,171,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+        <Button Click="DeleteBtn_Click" x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,11,91,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+
+        <DataGrid Name="TemplatesGrid" Grid.Column="0" AutoGenerateColumns="False" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" ItemsSource="{Binding Templates}" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Path=Name}"  Width="250" />
+            </DataGrid.Columns>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource MetroDataGridRow}" >
+                    <Setter Property="MinHeight" Value="20"/>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="489*"/>
+            </Grid.RowDefinitions>
+            <GroupBox Header="Instruments To Update" HorizontalAlignment="Stretch" Margin="10,10,10,0" Grid.Row="1" VerticalAlignment="Top" Height="152"/>
+            <GroupBox Header="Options" HorizontalAlignment="Stretch" Margin="10,167,10,0" Grid.Row="1" VerticalAlignment="Top" Height="110">
+                <Grid>
+                    <Label Content="Frequency: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="When To Run" HorizontalAlignment="Stretch" Margin="10,282,10,0" Grid.Row="1" VerticalAlignment="Top" Height="197" >
+                <Grid>
+                    
+                </Grid>
+            </GroupBox>
+
+        </Grid>
+    </Grid>
+</controls:MetroWindow>
