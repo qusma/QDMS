@@ -74,11 +74,11 @@ namespace QDMSServer
             //     M (months) Y (years) If no unit is specified, seconds are used. "years" is
             //     currently limited to one.
             if (minFreq > QDMS.BarSize.OneMonth)
-                return Math.Ceiling(t.TotalDays / 365).ToString("0") + " Y";
+                return Math.Ceiling(Math.Max(1, t.TotalDays / 365)).ToString("0") + " Y";
             if(minFreq >= QDMS.BarSize.OneMonth)
-                return Math.Ceiling(t.TotalDays / 29).ToString("0") + " M";
+                return Math.Ceiling(Math.Max(1, t.TotalDays / 29)).ToString("0") + " M";
             if(minFreq >= QDMS.BarSize.OneWeek)
-                return Math.Ceiling(t.TotalDays / 7).ToString("0") + " W";
+                return Math.Ceiling(Math.Max(1, t.TotalDays / 7)).ToString("0") + " W";
             if (minFreq >= QDMS.BarSize.OneDay || t.TotalSeconds > 86400)
             {
                 if (t.TotalDays > 14)
@@ -90,7 +90,7 @@ namespace QDMSServer
                 }
                 else
                 {
-                    return Math.Ceiling(t.TotalDays).ToString("0") + " D";
+                    return Math.Ceiling(Math.Max(1, t.TotalDays)).ToString("0") + " D";
                 }
             }
 
