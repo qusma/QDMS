@@ -37,17 +37,50 @@
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
-                <RowDefinition Height="489*"/>
+                <RowDefinition Height="170"/>
+                <RowDefinition Height="170"/>
+                <RowDefinition Height="300*"/>
             </Grid.RowDefinitions>
-            <GroupBox Header="Instruments To Update" HorizontalAlignment="Stretch" Margin="10,10,10,0" Grid.Row="1" VerticalAlignment="Top" Height="152"/>
-            <GroupBox Header="Options" HorizontalAlignment="Stretch" Margin="10,167,10,0" Grid.Row="1" VerticalAlignment="Top" Height="110">
+            
+            <GroupBox Header="Instruments To Update" HorizontalAlignment="Stretch" Margin="10,10,10,0" Grid.Row="1" VerticalAlignment="Top" Height="152">
                 <Grid>
-                    <Label Content="Frequency: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50*"/>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="239*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton Content="Instrument:" HorizontalAlignment="Left" Margin="5,20,0,0" VerticalAlignment="Top"/>
+                    <RadioButton Grid.Column="0" Grid.Row="1" Content="Instruments With Tag:" HorizontalAlignment="Left" Margin="5,20,0,0" VerticalAlignment="Top"/>
+
+                    <ComboBox Grid.Column="1" Grid.Row="0" Name="InstrumentsComboBox" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"/>
+                    <ComboBox Grid.Column="1" Grid.Row="1" Name="TagsComboBox" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"/>
+
                 </Grid>
             </GroupBox>
-            <GroupBox Header="When To Run" HorizontalAlignment="Stretch" Margin="10,282,10,0" Grid.Row="1" VerticalAlignment="Top" Height="197" >
+            <GroupBox Header="Options" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="2" VerticalAlignment="Stretch">
                 <Grid>
-                    
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160*"/>
+                        <ColumnDefinition Width="216*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50*"/>
+                        <RowDefinition Height="50*"/>
+                    </Grid.RowDefinitions>
+                    <Label Content="Frequency: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Label Grid.Column="0" Grid.Row="1"  Content="Datasource: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+
+                    <ComboBox Grid.Column="1" Grid.Row="0" Name="FrequencyComboBox" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"/>
+                    <ComboBox Grid.Column="1" Grid.Row="1" Name="DatasourceComboBox" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"/>
+
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="When To Run" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" >
+                <Grid>
+
                 </Grid>
             </GroupBox>
 
