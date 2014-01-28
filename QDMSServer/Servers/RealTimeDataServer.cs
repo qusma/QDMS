@@ -174,9 +174,7 @@ namespace QDMSServer
 
             //receive the instrument
             var ms = new MemoryStream();
-            ms.Write(buffer, 0, receivedBytes);
-            ms.Position = 0;
-            var instrument = Serializer.Deserialize<Instrument>(ms);
+            var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
             if (instrument.ID != null)
                 Broker.CancelRTDStream(instrument.ID.Value);
@@ -195,9 +193,7 @@ namespace QDMSServer
             byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
             if (receivedBytes <= 0) return;
 
-            ms.Write(buffer, 0, receivedBytes);
-            ms.Position = 0;
-            var request = Serializer.Deserialize<RealTimeDataRequest>(ms);
+            var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
             //make sure the ID and data sources are set
             if (!request.Instrument.ID.HasValue)
