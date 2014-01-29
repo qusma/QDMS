@@ -60,6 +60,7 @@
     <Compile Include="DataDBContext.cs" />
     <Compile Include="EntityConfigs\ContinuousFutureConfig.cs" />
     <Compile Include="EntityConfigs\DatasourceConfig.cs" />
+    <Compile Include="EntityConfigs\DataUpdateJobConfig.cs" />
     <Compile Include="EntityConfigs\ExchangeConfig.cs" />
     <Compile Include="EntityConfigs\InstrumentConfig.cs" />
     <Compile Include="Migrations\201401191518010_Initial.cs" />
@@ -69,6 +70,10 @@
     <Compile Include="Migrations\201401201826336_DataInitial.cs" />
     <Compile Include="Migrations\201401201826336_DataInitial.Designer.cs">
       <DependentUpon>201401201826336_DataInitial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201401291813551_AddDataUpdateJobs.cs" />
+    <Compile Include="Migrations\201401291813551_AddDataUpdateJobs.Designer.cs">
+      <DependentUpon>201401291813551_AddDataUpdateJobs.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
@@ -99,6 +104,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201401201826336_DataInitial.resx">
       <DependentUpon>201401201826336_DataInitial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201401291813551_AddDataUpdateJobs.resx">
+      <DependentUpon>201401291813551_AddDataUpdateJobs.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
