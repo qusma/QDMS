@@ -69,6 +69,9 @@
     <Reference Include="Common.Logging">
       <HintPath>..\packages\Common.Logging.2.1.2\lib\net40\Common.Logging.dll</HintPath>
     </Reference>
+    <Reference Include="Common.Logging.NLog">
+      <HintPath>..\packages\Common.Logging.NLog.2.0.0\lib\2.0\Common.Logging.NLog.dll</HintPath>
+    </Reference>
     <Reference Include="DataGridFilterLibrary">
       <HintPath>..\Libraries\DataGridFilter\DataGridFilterLibrary.dll</HintPath>
     </Reference>
@@ -136,6 +139,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Rx-Linq.2.2.2\lib\net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
+    <Reference Include="System.Reactive.PlatformServices">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.3\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -167,6 +173,8 @@
     <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="DataStorageFactory.cs" />
+    <Compile Include="JobsManager.cs" />
+    <Compile Include="Jobs\DataUpdateJob.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
