@@ -250,7 +250,7 @@ namespace QDMSServer
                 {
                     throw new Exception("No such datasource.");
                 }
-                else if (!DataSources[request.Instrument.Datasource.Name].Connected)
+                if (!DataSources[request.Instrument.Datasource.Name].Connected)
                 {
                     throw new Exception("Datasource not connected.");
                 }
