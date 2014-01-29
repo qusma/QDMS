@@ -54,6 +54,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntityModels\DataUpdateJobDetails.cs" />
     <Compile Include="EntityModels\ExpirationRule.cs" />
     <Compile Include="EntityModels\Tick.cs" />
     <Compile Include="Enums\DayType.cs" />
