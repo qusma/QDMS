@@ -28,7 +28,8 @@ namespace EntityData
         public DbSet<TemplateSession> TemplateSessions { get; set; }
         public DbSet<UnderlyingSymbol> UnderlyingSymbols { get; set; }
         public DbSet<ContinuousFuture> ContinuousFutures { get; set; }
- 
+        public DbSet<DataUpdateJobDetails> DataUpdateJobs { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Configurations.Add(new InstrumentConfig());
@@ -37,6 +38,7 @@ namespace EntityData
             modelBuilder.Configurations.Add(new DatasourceConfig());
             modelBuilder.Configurations.Add(new UnderlyingSymbolConfig());
             modelBuilder.Configurations.Add(new ContinuousFutureConfig());
+            modelBuilder.Configurations.Add(new DataUpdateJobConfig());
 
             modelBuilder.Entity<ExchangeSession>().ToTable("exchangesessions");
             modelBuilder.Entity<InstrumentSession>().ToTable("instrumentsessions");
