@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -17,11 +18,12 @@ using System.Windows.Data;
 using System.Windows.Input;
 using EntityData;
 using MahApps.Metro.Controls;
-using MySql.Data.MySqlClient;
 using NLog;
 using NLog.Targets;
 using QDMS;
-using QDMSServer.DataSources;
+using Quartz;
+using Quartz.Impl;
+using Quartz.Impl.Matchers;
 
 namespace QDMSServer
 {
@@ -36,6 +38,8 @@ namespace QDMSServer
         private readonly HistoricalDataServer _historicalDataServer;
         private readonly InstrumentsServer _instrumentsServer;
 
+        private IScheduler _scheduler;
+
         private readonly QDMSClient.QDMSClient _client;
 
         private ProgressBar _progressBar;
@@ -45,6 +49,8 @@ namespace QDMSServer
         
         public MainWindow()
         {
+            Common.Logging.LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter { Level = Common.Logging.LogLevel.Trace };
+
             //make sure we can connect to the database
             CheckDBConnection();
 
@@ -142,6 +148,13 @@ namespace QDMSServer
 
             ActiveStreamGrid.ItemsSource = _realTimeBroker.ActiveStreams;
 
+            //create the scheduler
+            ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
+            _scheduler = schedulerFactory.GetScheduler();
+            _scheduler.Start();
+
+            //Grab jobs and schedule them
+            JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.ToList());
 
             entityContext.Dispose();
         }
@@ -287,6 +300,8 @@ namespace QDMSServer
         //the application is closing, shut down all the servers and stuff
         private void DXWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            _scheduler.Shutdown(true);
+
             _client.Disconnect();
             _client.Dispose();
 
@@ -643,10 +658,12 @@ namespace QDMSServer
         private void BackupMetadataBtn_Click(object sender, RoutedEventArgs e)
         {
             string path;
-            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog();
-            file.FileName = "qdms.sql"; // Default file name
-            file.DefaultExt = ".sql"; // Default file extension
-            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
+            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog
+            {
+                FileName = "qdms.sql",
+                DefaultExt = ".sql",
+                Filter = @"SQL Scripts (.sql)|*.sql"
+            };
 
             if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -670,10 +687,12 @@ namespace QDMSServer
         private void BackupDataBtn_Click(object sender, RoutedEventArgs e)
         {
             string path;
-            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog();
-            file.FileName = "qdmsData.sql"; // Default file name
-            file.DefaultExt = ".sql"; // Default file extension
-            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
+            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog
+            {
+                FileName = "qdmsData.sql",
+                DefaultExt = ".sql",
+                Filter = @"SQL Scripts (.sql)|*.sql"
+            };
 
             if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -745,6 +764,22 @@ namespace QDMSServer
             {
                 //sql server
             }
+        }
+
+        private void DataJobsBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            var window = new ScheduledJobsWindow();
+            window.ShowDialog();
+
+            //clear and re-schedule all jobs, allowing any existing jobs to finish first.
+            _scheduler.PauseAll();
+            using (var entityContext = new MyDBContext())
+            {
+                JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.ToList());
+            }
+            var alljobs = _scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupContains("DEFAULT"));
+
+            _scheduler.ResumeAll();
         }
     }
 }

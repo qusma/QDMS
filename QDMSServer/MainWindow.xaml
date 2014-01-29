@@ -104,6 +104,8 @@
                 <Separator/>
                 <MenuItem Header="Root Symbols" x:Name="RootSymbolsBtn" Click="RootSymbolsBtn_OnClick"/>
                 <Separator/>
+                <MenuItem Header="Scheduled Jobs" x:Name="DataJobsBtn" Click="DataJobsBtn_OnClick"/>
+                <Separator/>
                 <MenuItem Header="Settings" x:Name="BtnSettings" Click="BtnSettings_OnItemClick" />
             </MenuItem>
         </Menu>
