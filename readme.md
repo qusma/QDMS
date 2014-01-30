@@ -16,6 +16,7 @@ Features:
 * Downloads historical and real time data from external data sources.
 * Local storage of historical data.
 * Constructs continuous futures data.
+* Schedule automatic data updates.
 * CSV import/export.
 
 Screenshots:
