@@ -1,14 +1,14 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="MainWindow.xaml.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Configuration;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,6 +16,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using Common.Logging.NLog;
 using EntityData;
 using MahApps.Metro.Controls;
 using NLog;
@@ -38,25 +39,26 @@ namespace QDMSServer
         private readonly HistoricalDataServer _historicalDataServer;
         private readonly InstrumentsServer _instrumentsServer;
 
-        private IScheduler _scheduler;
+        private readonly IScheduler _scheduler;
 
         private readonly QDMSClient.QDMSClient _client;
 
         private ProgressBar _progressBar;
 
         public ObservableCollection<Instrument> Instruments { get; set; }
+
         public ObservableCollection<LogEventInfo> LogMessages { get; set; }
-        
+
         public MainWindow()
         {
-            Common.Logging.LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter { Level = Common.Logging.LogLevel.Trace };
+            Common.Logging.LogManager.Adapter = new NLogLoggerFactoryAdapter(null);
 
             //make sure we can connect to the database
             CheckDBConnection();
 
             //set the log directory
             SetLogDirectory();
-            
+
             //set the connection string
             DBUtils.SetConnectionString();
 
@@ -85,8 +87,8 @@ namespace QDMSServer
             {
                 var button = new MenuItem
                 {
-                    Header = Regex.Replace(((BarSize) value).ToString(), "([A-Z])", " $1").Trim(),
-                    Tag = (BarSize) value
+                    Header = Regex.Replace(((BarSize)value).ToString(), "([A-Z])", " $1").Trim(),
+                    Tag = (BarSize)value
                 };
                 button.Click += UpdateHistoricalDataBtn_ItemClick;
                 ((MenuItem)Resources["UpdateFreqSubMenu"]).Items.Add(button);
@@ -120,11 +122,11 @@ namespace QDMSServer
             {
                 Instruments.Add(i);
             }
-            
+
             //create brokers
             _realTimeBroker = new RealTimeDataBroker();
             _historicalBroker = new HistoricalDataBroker();
-            
+
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, _realTimeBroker);
             _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort);
@@ -135,12 +137,12 @@ namespace QDMSServer
             _instrumentsServer.StartServer();
             _historicalDataServer.StartServer();
 
-            //we also need a client to make historical data requests with 
+            //we also need a client to make historical data requests with
             _client = new QDMSClient.QDMSClient(
-                "SERVERCLIENT", 
+                "SERVERCLIENT",
                 "localhost",
                 Properties.Settings.Default.rtDBReqPort,
-                Properties.Settings.Default.rtDBPubPort, 
+                Properties.Settings.Default.rtDBPubPort,
                 Properties.Settings.Default.instrumentServerPort,
                 Properties.Settings.Default.hDBPort);
             _client.Connect();
@@ -154,7 +156,7 @@ namespace QDMSServer
             _scheduler.Start();
 
             //Grab jobs and schedule them
-            JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.ToList());
+            JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.Include(t => t.Instrument).Include(t => t.Tag).ToList());
 
             entityContext.Dispose();
         }
@@ -230,8 +232,7 @@ namespace QDMSServer
             }
         }
 
-
-        void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
+        private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
         {
             Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -254,7 +255,7 @@ namespace QDMSServer
         }
 
         //check the latest date we have available in local storage, then request historical data from that date to the current time
-        void UpdateHistoricalDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
+        private void UpdateHistoricalDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
             var frequency = (BarSize)((MenuItem)sender).Tag;
             List<Instrument> selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>().ToList();
@@ -294,8 +295,6 @@ namespace QDMSServer
                 _progressBar.Maximum += requestCount;
             }
         }
-
-
 
         //the application is closing, shut down all the servers and stuff
         private void DXWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -427,7 +426,6 @@ namespace QDMSServer
                 toRemove.Add(i);
             }
 
-
             while (toRemove.Count > 0)
             {
                 Instruments.Remove(toRemove[toRemove.Count - 1]);
@@ -453,7 +451,6 @@ namespace QDMSServer
             var selectedInstrument = (Instrument)selectedInstruments[0];
             var window = new DataImportWindow(selectedInstrument);
             window.ShowDialog();
-
         }
 
         private void ExchangesBtn_OnItemClick(object sender, RoutedEventArgs routedEventArgs)
@@ -476,9 +473,9 @@ namespace QDMSServer
 
         private void PBar_Loaded(object sender, RoutedEventArgs e)
         {
-            _progressBar = (ProgressBar) sender;
+            _progressBar = (ProgressBar)sender;
         }
-        
+
         //delete data from selected instruments
         private void ClearDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
@@ -498,7 +495,6 @@ namespace QDMSServer
                     "Delete", MessageBoxButton.YesNo);
                 if (res == MessageBoxResult.No) return;
             }
-
 
             using (var storage = DataStorageFactory.Get())
             {
@@ -616,7 +612,6 @@ namespace QDMSServer
                 var newTag = new Tag { Name = newTagName };
                 context.Tags.Add(newTag);
 
-
                 //apply the tag to the selected instruments
                 var selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>();
                 foreach (Instrument i in selectedInstruments)
@@ -713,13 +708,14 @@ namespace QDMSServer
             }
         }
 
-
         private void RestoreMetadataBtn_OnClick(object sender, RoutedEventArgs e)
         {
             string path;
-            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog();
-            file.DefaultExt = ".sql"; // Default file extension
-            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
+            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog
+            {
+                DefaultExt = ".sql",
+                Filter = @"SQL Scripts (.sql)|*.sql"
+            };
 
             if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -743,9 +739,11 @@ namespace QDMSServer
         private void RestoreDataBtn_OnClick(object sender, RoutedEventArgs e)
         {
             string path;
-            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog();
-            file.DefaultExt = ".sql"; // Default file extension
-            file.Filter = @"SQL Scripts (.sql)|*.sql"; // Filter files by extension 
+            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog
+            {
+                DefaultExt = ".sql",
+                Filter = @"SQL Scripts (.sql)|*.sql"
+            };
 
             if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -775,9 +773,10 @@ namespace QDMSServer
             _scheduler.PauseAll();
             using (var entityContext = new MyDBContext())
             {
-                JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.ToList());
+                JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.Include(t => t.Instrument).Include(t => t.Tag).ToList());
             }
-            var alljobs = _scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupContains("DEFAULT"));
+
+            var alljobs = _scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.AnyGroup());
 
             _scheduler.ResumeAll();
         }
