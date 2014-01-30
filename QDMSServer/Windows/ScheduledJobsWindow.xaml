@@ -63,18 +63,18 @@
                         <ColumnDefinition Width="160"/>
                         <ColumnDefinition Width="239*"/>
                     </Grid.ColumnDefinitions>
-                    <RadioButton Content="Instrument:" HorizontalAlignment="Left" Margin="5,20,0,0" VerticalAlignment="Top" 
+                    <RadioButton Content="Instrument:" HorizontalAlignment="Left" Margin="5,20,0,0" VerticalAlignment="Top" GroupName="Group1"
                                  IsChecked="{Binding ElementName=JobsGrid,Path=SelectedItem.UseTag,Converter={StaticResource InvertBooleanConverter}}" Name="InstrumentsRadioBtn"/>
-                    <RadioButton Grid.Column="0" Grid.Row="1" Content="Instruments With Tag:" HorizontalAlignment="Left" Margin="5,20,0,0" VerticalAlignment="Top"
-                                 IsChecked="{Binding ElementName=JobsGrid,Path=SelectedItem.UseTag}" Name="TagRadioBtn" />
+                    <RadioButton Grid.Column="0" Grid.Row="1" Content="Instruments With Tag:" HorizontalAlignment="Left" GroupName="Group2"
+                                 Margin="5,20,0,0" VerticalAlignment="Top" IsChecked="{Binding ElementName=JobsGrid,Path=SelectedItem.UseTag}" Name="TagRadioBtn" />
 
                     <ComboBox Grid.Column="1" Grid.Row="0" Name="InstrumentsComboBox" IsEnabled="{Binding ElementName=InstrumentsRadioBtn,Path=IsChecked}"
                               HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"
-                              ItemsSource="{Binding Instruments}"
+                              ItemsSource="{Binding Instruments}" SelectedItem="{Binding ElementName=JobsGrid,Path=SelectedItem.Instrument}"
                               />
                     <ComboBox Grid.Column="1" Grid.Row="1" Name="TagsComboBox" IsEnabled="{Binding ElementName=TagRadioBtn,Path=IsChecked}"
                               HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"
-                              DisplayMemberPath="Name" ItemsSource="{Binding Tags}" />
+                              DisplayMemberPath="Name" ItemsSource="{Binding Tags}" SelectedItem="{Binding ElementName=JobsGrid,Path=SelectedItem.Tag}" />
 
                 </Grid>
             </GroupBox>
