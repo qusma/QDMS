@@ -29,7 +29,7 @@ namespace QDMSServer
                 IDictionary map = new Dictionary<string, object> { { "details", job } };
 
                 IJobDetail quartzJob = JobBuilder
-                    .Create()
+                    .Create<DataUpdateJob>()
                     .WithIdentity(job.Name)
                     .UsingJobData(new JobDataMap(map))
                     .Build();
@@ -42,27 +42,29 @@ namespace QDMSServer
             ITrigger trigger = TriggerBuilder
                 .Create()
                 .WithSchedule(GetScheduleBuilder(jobDetails))
-                .StartNow()
                 .WithIdentity(jobDetails.Name + "Trigger")
                 .Build();
             
             return trigger;
         }
 
-        private static CronScheduleBuilder GetScheduleBuilder(DataUpdateJobDetails jobDetails)
+        private static DailyTimeIntervalScheduleBuilder GetScheduleBuilder(DataUpdateJobDetails jobDetails)
         {
             if(jobDetails.WeekDaysOnly)
             {
-                return CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(jobDetails.Time.Hours, jobDetails.Time.Minutes,
-                    DayOfWeek.Monday,
-                    DayOfWeek.Tuesday,
-                    DayOfWeek.Wednesday,
-                    DayOfWeek.Thursday,
-                    DayOfWeek.Friday);
+                return DailyTimeIntervalScheduleBuilder
+                    .Create()
+                    .OnMondayThroughFriday()
+                    .StartingDailyAt(new TimeOfDay(jobDetails.Time.Hours, jobDetails.Time.Minutes))
+                    .EndingDailyAfterCount(1);
             }
             else
             {
-                return CronScheduleBuilder.DailyAtHourAndMinute(jobDetails.Time.Hours, jobDetails.Time.Minutes);
+                return DailyTimeIntervalScheduleBuilder
+                    .Create()
+                    .OnEveryDay()
+                    .StartingDailyAt(new TimeOfDay(jobDetails.Time.Hours, jobDetails.Time.Minutes))
+                    .EndingDailyAfterCount(1);
             }
         }
     }
