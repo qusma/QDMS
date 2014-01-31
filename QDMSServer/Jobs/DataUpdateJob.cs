@@ -50,9 +50,8 @@ namespace QDMSServer
             System.Buffer.BlockCopy(details.Name.ToCharArray(), 0, bytes, 0, bytes.Length);
             var r = new Random((int)DateTime.Now.TimeOfDay.TotalSeconds ^ BitConverter.ToInt32(bytes, 0));
 
-            List<Instrument> instruments = new List<Instrument>();
             var im = new InstrumentManager();
-            instruments = details.UseTag 
+            List<Instrument> instruments = details.UseTag 
                 ? im.FindInstruments(pred: x => x.Tags.Any(y => y.ID == details.TagID)) 
                 : im.FindInstruments(pred: x => x.ID == details.InstrumentID);
 
@@ -93,6 +92,13 @@ namespace QDMSServer
                     {
                         if (!i.ID.HasValue) continue;
 
+                        //don't request data on expired securities unless the expiration was recent
+                        if (i.Expiration.HasValue && (DateTime.Now - i.Expiration.Value).TotalDays > 15)
+                        {
+                            Log(LogLevel.Trace, string.Format("Data update job {0}: ignored instrument w/ ID {1} due to expiration date.", details.Name, i.ID));
+                            continue;
+                        }
+
                         DateTime startingDT = new DateTime(1900, 1, 1);
 
                         var storageInfo = localStorage.GetStorageInfo(i.ID.Value);
@@ -114,7 +120,7 @@ namespace QDMSServer
                     }
                 }
 
-                //Requests aren't send immediately so wait before killing the client to make sure the request is sent out
+                //Requests aren't sent immediately so wait before killing the client to make sure the request gets to the server
                 Thread.Sleep(50);
 
                 client.Disconnect();
