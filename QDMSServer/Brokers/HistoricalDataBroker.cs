@@ -83,7 +83,7 @@ namespace QDMSServer
             };
 
             //add the continuous futures broker to the data sources
-            DataSources.Add("ContinuousFuturesBroker", cfBroker ?? new ContinuousFuturesBroker());
+            DataSources.Add("ContinuousFuturesBroker", cfBroker ?? new ContinuousFuturesBroker(clientName: "HDBCFClient"));
 
             //add additional sources
             if (additionalSources != null)
