@@ -166,28 +166,13 @@ namespace QDMSClient
         /// <param name="historicalDataPort">The port used for historical data.</param>
         public QDMSClient(string clientName, string host, int realTimeRequestPort, int realTimePublishPort, int instrumentServerPort, int historicalDataPort)
         {
-            _context = ZmqContext.Create();
-            _reqSocket = _context.CreateSocket(SocketType.DEALER);
-            _subSocket = _context.CreateSocket(SocketType.SUB);
-            _dealerSocket = _context.CreateSocket(SocketType.DEALER);
-
-            _reqSocket.Identity = Encoding.UTF8.GetBytes(clientName);
-            _subSocket.Identity = Encoding.UTF8.GetBytes(clientName);
-            _dealerSocket.Identity = Encoding.UTF8.GetBytes(clientName);
-
-            _dealerSocket.ReceiveReady += _dealerSocket_ReceiveReady;
-            _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
-            _subSocket.ReceiveReady += _subSocket_ReceiveReady;
-
-            _heartBeatTimer = new Timer(1000);
-            _heartBeatTimer.Elapsed += _timer_Elapsed;
             _host = host;
             _name = clientName;
-
             _realTimeRequestPort = realTimeRequestPort;
             _realTimePublishPort = realTimePublishPort;
             _instrumentServerPort = instrumentServerPort;
             _historicalDataPort = historicalDataPort;
+
 
             _historicalDataRequests = new ConcurrentQueue<HistoricalDataRequest>();
             PendingHistoricalRequests = new ObservableCollection<HistoricalDataRequest>();
@@ -307,6 +292,21 @@ namespace QDMSClient
         /// </summary>
         public void Connect()
         {
+            Dispose();
+
+            _context = ZmqContext.Create();
+            _reqSocket = _context.CreateSocket(SocketType.DEALER);
+            _subSocket = _context.CreateSocket(SocketType.SUB);
+            _dealerSocket = _context.CreateSocket(SocketType.DEALER);
+
+            _reqSocket.Identity = Encoding.UTF8.GetBytes(_name);
+            _subSocket.Identity = Encoding.UTF8.GetBytes(_name);
+            _dealerSocket.Identity = Encoding.UTF8.GetBytes(_name);
+
+            _dealerSocket.ReceiveReady += _dealerSocket_ReceiveReady;
+            _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
+            _subSocket.ReceiveReady += _subSocket_ReceiveReady;
+
             _reqSocket.Connect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
 
             //start off by sending a ping to make sure everything is regular
@@ -342,6 +342,8 @@ namespace QDMSClient
             _reqLoopThread = new Thread(RequestRepliesThread) { Name = "Client Requests Loop" };
             _reqLoopThread.Start();
 
+            _heartBeatTimer = new Timer(1000);
+            _heartBeatTimer.Elapsed += _timer_Elapsed;
             _heartBeatTimer.Start();
         }
 
@@ -443,13 +445,23 @@ namespace QDMSClient
             _running = false;
             _heartBeatTimer.Stop();
 
-            _dealerLoopThread.Join();
-            _realTimeDataReceiveLoopThread.Join();
-            _reqLoopThread.Join();
+            if(_dealerLoopThread != null && _dealerLoopThread.ThreadState == ThreadState.Running)
+                _dealerLoopThread.Join();
 
-            _reqSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
-            _subSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimePublishPort));
-            _dealerSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _historicalDataPort));
+            if (_realTimeDataReceiveLoopThread != null && _realTimeDataReceiveLoopThread.ThreadState == ThreadState.Running)
+            _realTimeDataReceiveLoopThread.Join();
+
+            if (_reqLoopThread != null && _reqLoopThread.ThreadState == ThreadState.Running)
+            _reqLoopThread.Join();
+            
+            if(_reqSocket != null)
+                _reqSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
+
+            if (_subSocket != null)
+                _subSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimePublishPort));
+
+            if (_dealerSocket != null)
+                _dealerSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _historicalDataPort));
         }
 
         /// <summary>
