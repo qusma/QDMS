@@ -16,6 +16,7 @@ namespace EntityData.Migrations
         public MyDbContextConfiguration()
         {
             AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
 
             SetSqlGenerator("MySql.Data.MySqlClient", new MySqlMigrationSqlGenerator());
             //SetSqlGenerator("System.Data.SqlClient", new SqlServerMigrationSqlGenerator());
