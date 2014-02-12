@@ -26,6 +26,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
@@ -108,6 +109,8 @@ namespace QDMSServer
         /// </summary>
         private readonly Dictionary<KeyValuePair<int, BarSize>, int> _dataUsesPending;
 
+        private readonly Timer _reconnectTimer;
+
         public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null, string clientName = "")
         {
             if (client == null)
@@ -117,7 +120,7 @@ namespace QDMSServer
 
                 _client = new QDMSClient.QDMSClient(
                     clientName,
-                    "localhost",
+                    "127.0.0.1",
                     Properties.Settings.Default.rtDBReqPort,
                     Properties.Settings.Default.rtDBPubPort,
                     Properties.Settings.Default.instrumentServerPort,
@@ -132,7 +135,6 @@ namespace QDMSServer
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
-
             _client.Connect();
 
             _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
@@ -145,8 +147,31 @@ namespace QDMSServer
             _frontContractRequestMap = new Dictionary<int, FrontContractRequest>();
             _dataUsesPending = new Dictionary<KeyValuePair<int, BarSize>, int>();
 
+            _reconnectTimer = new Timer(1000);
+            _reconnectTimer.Elapsed += _reconnectTimer_Elapsed;
+            _reconnectTimer.Start();
+
             Name = "ContinuousFutures";
         }
+
+        void _reconnectTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (!_client.Connected)
+            {
+                _reconnectTimer.Stop();
+                Log(LogLevel.Info, "CFB: trying to reconnect.");
+                try
+                {
+                    _client.Connect();
+                }
+                catch (Exception ex)
+                {
+                    Log(LogLevel.Error, "CFB error when trying to connect: " + ex.Message);
+                }
+            }
+        }
+
+
 
         private void _client_Error(object sender, ErrorArgs e)
         {
@@ -155,6 +180,8 @@ namespace QDMSServer
 
         public void Dispose()
         {
+            if (_reconnectTimer != null)
+                _reconnectTimer.Dispose();
             if (_client != null)
             {
                 _client.Dispose();
@@ -239,6 +266,9 @@ namespace QDMSServer
                 return requests;
             }
 
+            //remove any continuous futures
+            futures = futures.Where(x => !x.IsContinuousFuture).ToList();
+
             //order them by ascending expiration date
             futures = futures.OrderBy(x => x.Expiration).ToList();
 
@@ -247,7 +277,8 @@ namespace QDMSServer
             {
                 if (!cf.MonthIsUsed(i))
                 {
-                    futures = futures.Where(x => x.Expiration != null && x.Expiration.Value.Month != i).ToList();
+                    int i1 = i;
+                    futures = futures.Where(x => x.Expiration.HasValue && x.Expiration.Value.Month != i1).ToList();
                 }
             }
 
@@ -430,8 +461,8 @@ namespace QDMSServer
             int counter = 0; //some rollover rules require multiple consecutive days of greater vol/OI...this keeps track of that
             List<long> frontDailyVolume = new List<long>(); //keeps track of how much volume has occured in each day
             List<int> frontDailyOpenInterest = new List<int>(); //keeps track of open interest on a daily basis
-            List<long> backDailyVolume = new List<long>(); 
-            List<int> backDailyOpenInterest = new List<int>(); 
+            List<long> backDailyVolume = new List<long>();
+            List<int> backDailyOpenInterest = new List<int>();
             long frontTodaysVolume = 0, backTodaysVolume = 0;
 
             DateTime lastDate = currentDate;
@@ -679,8 +710,6 @@ namespace QDMSServer
         {
             if (!cfInstrument.IsContinuousFuture) throw new Exception("Not a continuous future instrument.");
 
-            Log(LogLevel.Info, "CFB: Received request for front contract of CF: " + cfInstrument.Symbol);
-
             _lastFrontDontractRequestID++;
             var req = new FrontContractRequest
             {
@@ -700,6 +729,8 @@ namespace QDMSServer
         /// </summary>
         private void ProcessFrontContractRequest(FrontContractRequest request)
         {
+            Log(LogLevel.Info, "Processing front contract request for symbol: " + request.Instrument.Symbol);
+
             DateTime currentDate = request.Date ?? DateTime.Now;
 
             var cf = request.Instrument.ContinuousFuture;
@@ -764,7 +795,9 @@ namespace QDMSServer
 
                 var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
 
-                RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
+                var timer = new Timer(100) { AutoReset = false };
+                timer.Elapsed += (sender, e) => RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
+                timer.Start();
             }
             else //otherwise, we have to actually look at the historical data to figure out which contract is selected
             {
