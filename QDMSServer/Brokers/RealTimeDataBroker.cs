@@ -225,10 +225,18 @@ namespace QDMSServer
                 {
                     //if it's a CF, we need to find which contract is currently "used"
                     //and request that one
+                    int frontContractRequestID;
+
                     lock (_cfRequestLock)
                     {
-                        _pendingCFRealTimeRequests.Add(_cfBroker.RequestFrontContract(request.Instrument), request);
+                        frontContractRequestID = _cfBroker.RequestFrontContract(request.Instrument);
+                        _pendingCFRealTimeRequests.Add(frontContractRequestID, request);
                     }
+
+                    Log(LogLevel.Info,
+                        string.Format("Request for CF RTD, sent front contract request, RT request ID: {0}, FC request ID: {1}",
+                        request.AssignedID,
+                        frontContractRequestID));
 
                     //the asynchronous nature of the request for the front month creates a lot of problems
                     //we either have to abandon the REP socket and use something asynchronous there
@@ -350,7 +358,7 @@ namespace QDMSServer
                     //we must also clear the alias list
                     lock (_aliasLock)
                     {
-                        _aliases[contractID].Remove(instrumentID); //TODO there might be an issue here
+                        _aliases[contractID].Remove(instrumentID);
                         if (_aliases[contractID].Count == 0)
                         {
                             _aliases.Remove(contractID);
@@ -469,6 +477,8 @@ namespace QDMSServer
                 Log(LogLevel.Error, "CF Broker returned front contract with no ID");
                 return;
             }
+
+            Log(LogLevel.Info, string.Format("Front contract received on request ID {0}, is: {1}", e.ID, e.Instrument.Symbol));
 
             //grab the original request
             lock (_cfRequestLock)
