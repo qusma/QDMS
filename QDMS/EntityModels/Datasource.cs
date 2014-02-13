@@ -21,7 +21,7 @@ namespace QDMS
         public int ID { get; set; }
 
         [ProtoMember(2)]
-        [MaxLength(255)]
+        [MaxLength(100)]
         public string Name { get; set; }
 
         public override string ToString()

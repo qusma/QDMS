@@ -42,7 +42,7 @@ namespace EntityData.Migrations
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        Symbol = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
+                        Symbol = c.String(maxLength: 100, unicode: false, storeType: "nvarchar"),
                         UnderlyingSymbol = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                         Name = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                         PrimaryExchangeID = c.Int(),
@@ -77,7 +77,7 @@ namespace EntityData.Migrations
 
             CreateIndex(
                 "dbo.Instruments",
-                new string[4] { "Symbol", "DatasourceID", "ExchangeID", "Expiration" },
+                new string[5] { "Symbol", "DatasourceID", "ExchangeID", "Expiration", "Strike" },
                 unique: true);
             
 
@@ -87,7 +87,7 @@ namespace EntityData.Migrations
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        Name = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
+                        Name = c.String(maxLength: 100, unicode: false, storeType: "nvarchar"),
                     })
                 .PrimaryKey(t => t.ID);
 
@@ -101,7 +101,7 @@ namespace EntityData.Migrations
                 c => new
                     {
                         ID = c.Int(nullable: false, identity: true),
-                        Name = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
+                        Name = c.String(maxLength: 100, unicode: false, storeType: "nvarchar"),
                         Timezone = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                         LongName = c.String(maxLength: 255, unicode: false, storeType: "nvarchar"),
                     })

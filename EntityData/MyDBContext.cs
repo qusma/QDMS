@@ -67,6 +67,7 @@ namespace EntityData
             modelBuilder.Entity<TemplateSession>().Property(x => x.OpeningTime).HasPrecision(0);
             modelBuilder.Entity<TemplateSession>().Property(x => x.ClosingTime).HasPrecision(0);
 
+            
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
     }

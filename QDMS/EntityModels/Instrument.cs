@@ -24,7 +24,7 @@ namespace QDMS
         public int? ID { get; set; }
 
         [ProtoMember(1)]
-        [MaxLength(255)]
+        [MaxLength(100)]
         public string Symbol { get; set; }
 
         [ProtoMember(2)]
