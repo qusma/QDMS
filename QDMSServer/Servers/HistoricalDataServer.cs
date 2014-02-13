@@ -89,8 +89,9 @@ namespace QDMSServer
             if (!ServerRunning) return;
 
             _runServer = false;
-            //if(_serverThread.ThreadState == ThreadState.Running)
-            _serverThread.Join();
+
+            if(_serverThread != null && _serverThread.ThreadState == ThreadState.Running)
+                _serverThread.Join();
         }
 
         
@@ -298,6 +299,8 @@ namespace QDMSServer
 
         public void Dispose()
         {
+            StopServer();
+
             if (_routerSocket != null)
             {
                 _routerSocket.Dispose();
@@ -307,11 +310,6 @@ namespace QDMSServer
             {
                 _context.Dispose();
                 _context = null;
-            }
-            if (_broker != null)
-            {
-                _broker.Dispose();
-                _broker = null;
             }
         }
     }
