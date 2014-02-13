@@ -55,7 +55,6 @@ namespace QDMSServer
 
         public void Dispose()
         {
-
             if (_connectionTimer != null)
             {
                 _connectionTimer.Dispose();

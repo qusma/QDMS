@@ -312,6 +312,10 @@ namespace QDMSServer
 
             _instrumentsServer.StopServer();
             _instrumentsServer.Dispose();
+
+            _realTimeBroker.Dispose();
+
+            _historicalBroker.Dispose();
         }
 
         //exiting the application
