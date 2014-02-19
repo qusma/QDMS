@@ -1,6 +1,6 @@
 The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
-The server acts as a broker between clients and external data sources, as well as a local storage of historical data. The server UI allows its use without the need for a client application. [Here's a rough view of how the systems are connected to each other](http://i.imgur.com/qUWlpj7.png).
+The server acts as a broker between clients and external data sources, as well as a local storage of historical data. The server UI allows its use without the need for a client application. [Here's a rough view of how the systems are connected to each other](http://i.imgur.com/oRbwoiG.png).
 
 A client library is provided which can access the server either locally or over a network, to request data, metadata, etc. A simple sample application showing usage of the client can be found [here](https://github.com/qusma/qdms/blob/master/SampleApp/Program.cs).
 
