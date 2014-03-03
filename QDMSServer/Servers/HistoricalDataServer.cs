@@ -158,7 +158,7 @@ namespace QDMSServer
             {
                 AcceptHistoricalDataRequest(requesterIdentity, e.Socket);
             }
-            else if (text == "HISTPUSH") //the client wants to push same data into the db
+            else if (text == "HISTPUSH") //the client wants to push some data into the db
             {
                 AcceptDataAdditionRequest(requesterIdentity, e.Socket);
             }
