@@ -51,7 +51,7 @@ namespace QDMSServer
 
         public MainWindow()
         {
-            Common.Logging.LogManager.Adapter = new NLogLoggerFactoryAdapter(null);
+            Common.Logging.LogManager.Adapter = new NLogLoggerFactoryAdapter(new Common.Logging.Configuration.NameValueCollection());
 
             //make sure we can connect to the database
             CheckDBConnection();
