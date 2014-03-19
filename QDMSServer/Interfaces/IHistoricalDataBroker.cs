@@ -15,7 +15,7 @@ namespace QDMSServer
         /// <summary>
         /// Holds the real time data sources.
         /// </summary>
-        Dictionary<string, IHistoricalDataSource> DataSources { get; }
+        ObservableDictionary<string, IHistoricalDataSource> DataSources { get; }
 
         void RequestHistoricalData(HistoricalDataRequest request);
         void AddData(DataAdditionRequest request);

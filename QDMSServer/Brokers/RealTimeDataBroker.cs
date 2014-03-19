@@ -27,7 +27,7 @@ namespace QDMSServer
         /// <summary>
         /// Holds the real time data sources.
         /// </summary>
-        public Dictionary<string, IRealTimeDataSource> DataSources { get; private set; }
+        public ObservableDictionary<string, IRealTimeDataSource> DataSources { get; private set; }
 
         /// <summary>
         /// Holds the active data streams. They KVP consists of key: request ID, value: data source name
@@ -122,7 +122,7 @@ namespace QDMSServer
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
             _connectionTimer.Start();
 
-            DataSources = new Dictionary<string, IRealTimeDataSource>
+            DataSources = new ObservableDictionary<string, IRealTimeDataSource>
             {
                 {"SIM", new RealTimeSim()},
                 {"Interactive Brokers", new IB()}
@@ -576,7 +576,7 @@ namespace QDMSServer
         /// </summary>
         private void TryConnect()
         {
-            foreach (var s in DataSources)
+            foreach (KeyValuePair<string, IRealTimeDataSource> s in DataSources)
             {
                 if (!s.Value.Connected)
                 {
