@@ -5,10 +5,11 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.ComponentModel;
 
 namespace QDMS
 {
-    public interface IHistoricalDataSource
+    public interface IHistoricalDataSource : INotifyPropertyChanged
     {
         /// <summary>
         /// Connect to the data source.

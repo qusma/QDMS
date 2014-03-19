@@ -5,10 +5,11 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.ComponentModel;
 
 namespace QDMS
 {
-    public interface IRealTimeDataSource
+    public interface IRealTimeDataSource : INotifyPropertyChanged
     {
         /// <summary>
         /// Connect to the data source.
