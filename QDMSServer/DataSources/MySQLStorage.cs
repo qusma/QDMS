@@ -6,10 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using MySql.Data.MySqlClient;
 using NLog;
 using QDMS;
+using QDMS.Annotations;
+using System.Timers;
 
 #pragma warning disable 67
 namespace QDMSServer.DataSources
@@ -18,9 +22,26 @@ namespace QDMSServer.DataSources
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// Periodically updates the Connected property.
+        /// </summary>
+        private Timer _connectionStatusUpdateTimer;
+
         public MySQLStorage()
         {
             Name = "Local Storage";
+            _connectionStatusUpdateTimer = new Timer(1000);
+            _connectionStatusUpdateTimer.Elapsed += _connectionStatusUpdateTimer_Elapsed;
+            _connectionStatusUpdateTimer.Start();
+        }
+
+        void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            using (MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata"))
+            {
+                bool result = connection.Ping();
+                Connected = result;
+            }
         }
 
         /// <summary>
@@ -39,6 +60,8 @@ namespace QDMSServer.DataSources
             
         }
 
+        private bool _connected;
+
         /// <summary>
         /// Whether the connection to the data source is up or not.
         /// </summary>
@@ -46,11 +69,13 @@ namespace QDMSServer.DataSources
         {
             get
             {
-                using (MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata"))
-                {
-                    bool result = connection.Ping();
-                    return result;
-                }
+                return _connected;
+            }
+
+            set
+            {
+                _connected = value;
+                OnPropertyChanged();
             }
         }
 
@@ -536,7 +561,20 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Dispose()
         {
-            
+            if (_connectionStatusUpdateTimer != null)
+            {
+                _connectionStatusUpdateTimer.Dispose();
+                _connectionStatusUpdateTimer = null;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
