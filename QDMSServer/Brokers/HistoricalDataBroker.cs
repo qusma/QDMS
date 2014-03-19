@@ -28,7 +28,7 @@ namespace QDMSServer
         /// <summary>
         /// Holds the real time data sources.
         /// </summary>
-        public Dictionary<string, IHistoricalDataSource> DataSources { get; private set; }
+        public ObservableDictionary<string, IHistoricalDataSource> DataSources { get; private set; }
 
         private readonly IDataStorage _dataStorage;
 
@@ -74,7 +74,7 @@ namespace QDMSServer
         {
             _dataStorage = localStorage ?? DataStorageFactory.Get();
 
-            DataSources = new Dictionary<string, IHistoricalDataSource>
+            DataSources = new ObservableDictionary<string, IHistoricalDataSource>
             {
                 { "Interactive Brokers", new IB(3) },
                 { "Yahoo", new Yahoo() },
@@ -265,7 +265,7 @@ namespace QDMSServer
             if (!_dataStorage.Connected)
                 _dataStorage.Connect();
 
-            foreach (var s in DataSources)
+            foreach (KeyValuePair<string, IHistoricalDataSource> s in DataSources)
             {
                 if (!s.Value.Connected)
                 {
