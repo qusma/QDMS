@@ -236,7 +236,10 @@ namespace QDMSServer
                         //This request originates from a front contract request
                         Instrument frontContract = GetContFutData(req, false);
                         FrontContractRequest originalReq = _frontContractRequestMap[cfReqID];
-                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(originalReq.ID, frontContract, originalReq.Date == null ? DateTime.Now : originalReq.Date.Value));
+                        lock (_frontContractReturnLock)
+                        {
+                            RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(originalReq.ID, frontContract, originalReq.Date == null ? DateTime.Now : originalReq.Date.Value));
+                        }
                     }
 
                     _requestTypes.Remove(e.Request.AssignedID);
