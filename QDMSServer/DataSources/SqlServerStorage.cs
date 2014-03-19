@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using QDMS;
+using QDMS.Annotations;
 
+#pragma warning disable 67
 namespace QDMSServer.DataSources
 {
     public class SqlServerStorage : IDataStorage
@@ -34,6 +35,7 @@ namespace QDMSServer.DataSources
         /// The name of the data source.
         /// </summary>
         public string Name { get; private set; }
+
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
             throw new NotImplementedException();
@@ -98,7 +100,9 @@ namespace QDMSServer.DataSources
         }
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
+
         public event EventHandler<ErrorArgs> Error;
+
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
 
         /// <summary>
@@ -108,5 +112,15 @@ namespace QDMSServer.DataSources
         {
             throw new NotImplementedException();
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
+#pragma warning restore 67
