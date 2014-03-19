@@ -132,7 +132,39 @@ namespace QDMSTest
         [Test]
         public void RealTimeRequestsAreReSentAfterARealTimeDataPacingViolation()
         {
-            Assert.IsTrue(false);
+            var exchange = new Exchange { ID = 1, Name = "Ex", Timezone = "Pacific Standard Time" };
+            var req = new RealTimeDataRequest
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY", Exchange = exchange },
+                Frequency = QDMS.BarSize.FiveSeconds,
+                RTHOnly = true
+            };
+
+            int requestID = 0;
+
+            _ibClientMock
+                .Setup(x => x.RequestRealTimeBars(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<int>(),
+                    It.IsAny<RealTimeBarType>(),
+                    It.IsAny<bool>()))
+                .Callback<int, Contract, int, RealTimeBarType, bool>((y, a, b, c, d) => requestID = y);
+
+
+            _ibDatasource.RequestRealTimeData(req);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestID, (ErrorMessage)420, ""));
+
+            Thread.Sleep(20000);
+
+            _ibClientMock.Verify(x => x.RequestRealTimeBars(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<int>(),
+                    It.IsAny<RealTimeBarType>(),
+                    It.IsAny<bool>()),
+                    Times.Exactly(2));
         }
 
         [Test]
