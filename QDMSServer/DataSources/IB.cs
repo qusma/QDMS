@@ -429,7 +429,7 @@ namespace QDMSServer.DataSources
                 TWSUtils.TimespanToDurationString((request.EndingDate - request.StartingDate), request.Frequency),
                 request.EndingDate.ToString("yyyy-MM-dd hh:mm:ss")));
 
-            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
+            TimeZoneInfo exchangeTZ = request.Instrument.GetTZInfo();
             //we need to convert time from the exchange TZ to Local...the ib client then converts it to UTC
             var startingDate = TimeZoneInfo.ConvertTime(request.StartingDate, exchangeTZ, TimeZoneInfo.Local);
             var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Local);
