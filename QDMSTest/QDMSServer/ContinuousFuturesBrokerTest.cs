@@ -65,6 +65,13 @@ namespace QDMSTest
                 new DateTime(2013, 2, 1));
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _broker.Dispose();
+            _broker = null;
+        }
+
         //This tests the call to the instrument manager, making sure we're looking for the right contracts
         [Test]
         public void SearchesForCorrectContracts()
@@ -1512,9 +1519,19 @@ namespace QDMSTest
                 _broker.RequestFrontContract(_cfInst, dt);
             }
 
-            Thread.Sleep(1000);
+            int i = 0;
+            while (expectedExpirationMonths.Count != returnedExpirationMonths.Count)
+            {
+                i++;
+                if (i >= 50)
+                {
+                    string missing = string.Join(", ", expectedExpirationMonths.Except(returnedExpirationMonths).Select(x => x.Key));
+                    Assert.IsTrue(false, "Took too long. Missing: " + missing);
+                }
+                Thread.Sleep(50);
+            }
 
-            Assert.AreEqual(expectedExpirationMonths.Count, returnedExpirationMonths.Count);
+            Assert.AreEqual(0, expectedExpirationMonths.Except(returnedExpirationMonths).Count());
 
             foreach (var kvp in expectedExpirationMonths)
             {
@@ -1785,7 +1802,16 @@ namespace QDMSTest
                 _broker.RequestFrontContract(_cfInst, dt);
             }
 
-            Thread.Sleep(2000);
+            int i = 0;
+            while (expectedExpirationMonths.Count != returnedExpirationMonths.Count)
+            {
+                i++;
+                if (i >= 50)
+                {
+                    Assert.IsTrue(false, "Took too long.");
+                }
+                Thread.Sleep(50);
+            }
 
             Assert.AreEqual(expectedExpirationMonths.Count, returnedExpirationMonths.Count);
 
@@ -1894,7 +1920,10 @@ namespace QDMSTest
             Dictionary<DateTime, int?> returnedExpirationMonths = new Dictionary<DateTime, int?>();
 
             //hook up the event to add the expiration month
-            _broker.FoundFrontContract += (sender, e) => returnedExpirationMonths.Add(e.Date, e.Instrument == null ? null : (int?)e.Instrument.Expiration.Value.Month);
+            _broker.FoundFrontContract += (sender, e) =>
+                {
+                    returnedExpirationMonths.Add(e.Date, e.Instrument == null ? null : (int?)e.Instrument.Expiration.Value.Month);
+                };
 
             _cfInst.ContinuousFuture.Month = 2;
 
@@ -1904,14 +1933,27 @@ namespace QDMSTest
                 _broker.RequestFrontContract(_cfInst, dt);
             }
 
-            Thread.Sleep(1000);
 
-            Assert.AreEqual(expectedExpirationMonths.Count, returnedExpirationMonths.Count);
+            int i = 0;
+            while (expectedExpirationMonths.Count != returnedExpirationMonths.Count)
+            {
+                i++;
+                if (i >= 50)
+                {
+                    string missing = string.Join(", ", expectedExpirationMonths.Except(returnedExpirationMonths).Select(x => x.Key));
+                    Assert.IsTrue(false, "Took too long. Missing: " + missing);
+                }
+                Thread.Sleep(50);
+            }
+
+            string missing2 = string.Join(", ", expectedExpirationMonths.Except(returnedExpirationMonths).Select(x => x.Key));
+            Assert.AreEqual(0, expectedExpirationMonths.Except(returnedExpirationMonths).Count(), missing2);
 
             foreach (var kvp in expectedExpirationMonths)
             {
                 var month = kvp.Value;
-                Assert.AreEqual(month, returnedExpirationMonths[kvp.Key], kvp.Key.ToString());
+                Assert.IsTrue(returnedExpirationMonths.ContainsKey(kvp.Key), "Contains: " + kvp.Key.ToString());
+                Assert.AreEqual(month, returnedExpirationMonths[kvp.Key], "Are equal: " + kvp.Key.ToString());
             }
         }
 
