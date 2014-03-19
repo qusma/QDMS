@@ -219,6 +219,7 @@
     <Compile Include="CheckBoxItem.cs" />
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="Brokers\ContinuousFuturesBroker.cs" />
+    <Compile Include="Collections\ObservableDictionary.cs" />
     <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\SqlServerStorage.cs" />
@@ -234,7 +235,7 @@
     <Compile Include="Servers\InstrumentsServer.cs" />
     <Compile Include="Brokers\HistoricalDataBroker.cs" />
     <Compile Include="InstrumentManager.cs" />
-    <Compile Include="ConcurrentNotifierBlockingList.cs" />
+    <Compile Include="Collections\ConcurrentNotifierBlockingList.cs" />
     <Compile Include="Interfaces\IHistoricalDataBroker.cs" />
     <Compile Include="Interfaces\IInstrumentSource.cs" />
     <Compile Include="Interfaces\IRealTimeDataBroker.cs" />
