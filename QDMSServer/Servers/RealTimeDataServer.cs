@@ -229,16 +229,15 @@ namespace QDMSServer
                 }
                 else
                 {
-                    //report error back to the requesting client
-                    _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                    //error message
-                    _reqSocket.SendMore("Unkown error.", Encoding.UTF8);
-                    //along with the request
-                    _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
+                    throw new Exception("Unknown error.");
                 }
             }
             catch (Exception ex)
             {
+                //log the error
+                Log(LogLevel.Error, string.Format("RTDS: Error handling RTD request {0} @ {1} ({2}): {3}", 
+                    request.Instrument.Symbol, request.Instrument.Datasource, request.Frequency, ex.Message));
+
                 //there was a problem with requesting the feed
                 _reqSocket.SendMore("ERROR", Encoding.UTF8);
                 //error message
