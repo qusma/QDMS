@@ -8,9 +8,13 @@
 // Don't have access to the real deal, so not sure how well it works.
 
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Bloomberglp.Blpapi;
 using QDMS;
+using QDMS.Annotations;
 
+#pragma warning disable 67
 namespace QDMSServer.DataSources
 {
     public class Bloomberg : IHistoricalDataSource, IRealTimeDataSource
@@ -188,5 +192,15 @@ namespace QDMSServer.DataSources
         public event EventHandler<RealTimeDataEventArgs> DataReceived;
 
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
+#pragma warning restore 67
