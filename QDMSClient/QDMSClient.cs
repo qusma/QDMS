@@ -443,7 +443,9 @@ namespace QDMSClient
             }
 
             _running = false;
-            _heartBeatTimer.Stop();
+
+            if(_heartBeatTimer != null)
+                _heartBeatTimer.Stop();
 
             if(_dealerLoopThread != null && _dealerLoopThread.ThreadState == ThreadState.Running)
                 _dealerLoopThread.Join();
