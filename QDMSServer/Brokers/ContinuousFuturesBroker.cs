@@ -26,7 +26,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Timers;
 using System.Windows;
 using NLog;
@@ -82,6 +81,7 @@ namespace QDMSServer
         private readonly object _reqCountLock = new object();
         private readonly object _requestsLock = new object();
         private readonly object _dataUsesLock = new object();
+        private readonly object _frontContractReturnLock = new object();
 
         /// <summary>
         /// Holds requests for the front contract of a CF, before they get processed
@@ -234,9 +234,9 @@ namespace QDMSServer
                     else
                     {
                         //This request originates from a front contract request
-                        Instrument frontContract = GetContFutData(req);
+                        Instrument frontContract = GetContFutData(req, false);
                         FrontContractRequest originalReq = _frontContractRequestMap[cfReqID];
-                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(originalReq.ID, frontContract, originalReq.Date.Value));
+                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(originalReq.ID, frontContract, originalReq.Date == null ? DateTime.Now : originalReq.Date.Value));
                     }
 
                     _requestTypes.Remove(e.Request.AssignedID);
@@ -409,7 +409,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <returns>The last contract used in the construction of this continuous futures instrument.</returns>
         private Instrument GetContFutData(HistoricalDataRequest request, bool raiseDataEvent = true)
@@ -805,18 +805,10 @@ namespace QDMSServer
                 var timer = new Timer(50) { AutoReset = false };
                 timer.Elapsed += (sender, e) =>
                     {
-                        //Console.Error.WriteLine("{0} ThreadID: {1} Returning request, instrument: {2} at time: {3} Result: {4}",
-                        //    DateTime.Now.ToString("fff"),
-                        //    Thread.CurrentThread.ManagedThreadId,
-                        //    request.Instrument,
-                        //    request.Date.HasValue ? request.Date.ToString() : "null",
-                        //    contract == null ? "null" : contract.ToString());
-
-                        //BUG
-                        //HACK
-                        //TODO fix this
-                        Console.Error.WriteLine("I have absolutely no idea what this does, but it makes the tests pass");
-                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
+                        lock (_frontContractReturnLock)
+                        {
+                            RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
+                        }
                     };
                 timer.Start();
             }
@@ -827,7 +819,7 @@ namespace QDMSServer
                 var r = new Random();
 
                 //we use GetRequiredRequests to get the historical requests we need to make
-                var tmpReq = new HistoricalDataRequest()
+                var tmpReq = new HistoricalDataRequest
                 {
                     Instrument = request.Instrument,
                     StartingDate = currentDate.AddDays(-1),
@@ -851,7 +843,10 @@ namespace QDMSServer
                 //make sure the request is fulfillable with the available contracts, otherwise return empty-handed
                 if (reqs.Count == 0 || reqs.Count(x => x.Instrument.Expiration.HasValue && x.Instrument.Expiration.Value >= request.Date) == 0)
                 {
-                    RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, null, currentDate));
+                    lock (_frontContractReturnLock)
+                    {
+                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, null, currentDate));
+                    }
                     lock (_requestsLock)
                     {
                         _requests.Remove(tmpReq.AssignedID);
