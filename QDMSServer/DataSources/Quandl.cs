@@ -42,10 +42,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using NLog;
 using QDMS;
+using QDMS.Annotations;
 
 namespace QDMSServer.DataSources
 {
@@ -182,5 +185,13 @@ namespace QDMSServer.DataSources
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
         public event EventHandler<ErrorArgs> Error;
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
