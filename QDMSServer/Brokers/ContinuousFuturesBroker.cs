@@ -25,11 +25,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
+using QDMS.Annotations;
 using QLNet;
 using Instrument = QDMS.Instrument;
 using Timer = System.Timers.Timer;
@@ -888,6 +891,14 @@ namespace QDMSServer
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
 
         public event EventHandler<FoundFrontContractEventArgs> FoundFrontContract;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
 
