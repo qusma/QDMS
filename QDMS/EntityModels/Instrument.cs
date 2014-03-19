@@ -169,9 +169,10 @@ namespace QDMS
         /// <returns>Returns TimeZoneInfo for this instrument's exchange's timezone. If it's null, it returns UTC.</returns>
         public TimeZoneInfo GetTZInfo()
         {
-            return TimeZoneInfo.FindSystemTimeZoneById(string.IsNullOrEmpty(Exchange.Timezone) 
-                ? "UTC" 
-                : Exchange.Timezone);
+            return TimeZoneInfo.FindSystemTimeZoneById(
+                Exchange == null || string.IsNullOrEmpty(Exchange.Timezone)
+                    ? "UTC" 
+                    : Exchange.Timezone);
         }
 
         public override string ToString()
