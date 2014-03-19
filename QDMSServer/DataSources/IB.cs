@@ -12,12 +12,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Timers;
 using System.Windows;
 using Krs.Ats.IBNet;
 using NLog;
 using QDMS;
+using QDMS.Annotations;
 using LogLevel = NLog.LogLevel;
 
 namespace QDMSServer.DataSources
@@ -53,7 +56,16 @@ namespace QDMSServer.DataSources
 
         private readonly ConcurrentDictionary<int, List<OHLCBar>> _arrivedHistoricalData;
 
-        private readonly Timer _requestRepeatTimer;
+        /// <summary>
+        /// Used to repeat failed requests after some time has passed.
+        /// </summary>
+        private Timer _requestRepeatTimer;
+
+        /// <summary>
+        /// Periodically updates the Connected property.
+        /// </summary>
+        private Timer _connectionStatusUpdateTimer;
+        
         private int _requestCounter;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -64,7 +76,20 @@ namespace QDMSServer.DataSources
 
         public string Name { get; private set; }
 
-        public bool Connected { get { return _client.Connected; } }
+        private bool _connected;
+        public bool Connected
+        {
+            get
+            {
+                return _connected;
+            }
+
+            private set
+            {
+                _connected = value;
+                OnPropertyChanged();
+            }
+        }
 
         public IB(int clientID = -1, IIBClient client = null)
         {
@@ -89,6 +114,10 @@ namespace QDMSServer.DataSources
             _requestRepeatTimer = new Timer(20000); //we wait 20 seconds to repeat failed requests
             _requestRepeatTimer.Elapsed += ReSendRequests;
 
+            _connectionStatusUpdateTimer = new Timer(1000);
+            _connectionStatusUpdateTimer.Elapsed += _connectionStatusUpdateTimer_Elapsed;
+            _connectionStatusUpdateTimer.Start();
+
             _requestCounter = 1;
 
             _client = client ?? new IBClient();
@@ -96,6 +125,14 @@ namespace QDMSServer.DataSources
             _client.ConnectionClosed += _client_ConnectionClosed;
             _client.RealTimeBar += _client_RealTimeBar;
             _client.HistoricalData += _client_HistoricalData;
+        }
+
+        /// <summary>
+        /// Update the connection status.
+        /// </summary>
+        void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Connected = _client != null ? _client.Connected : false;
         }
 
         /// <summary>
@@ -504,7 +541,21 @@ namespace QDMSServer.DataSources
         public void Dispose()
         {
             Properties.Settings.Default.ibClientRequestCounter = _requestCounter;
-            _client.Dispose();
+            
+            if(_client != null)
+                _client.Dispose();
+
+            if (_requestRepeatTimer != null)
+            {
+                _requestRepeatTimer.Dispose();
+                _requestRepeatTimer = null;
+            }
+
+            if (_connectionStatusUpdateTimer != null)
+            {
+                _connectionStatusUpdateTimer.Dispose();
+                _connectionStatusUpdateTimer = null;
+            }
         }
 
         ///<summary>
@@ -529,5 +580,14 @@ namespace QDMSServer.DataSources
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
 
         public event EventHandler<QDMS.HistoricalDataEventArgs> HistoricalDataArrived;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
