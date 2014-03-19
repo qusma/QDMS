@@ -5,11 +5,13 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Krs.Ats.IBNet;
 using Moq;
 using NUnit.Framework;
 using QDMS;
+using QDMSServer;
 using QDMSServer.DataSources;
 using BarSize = Krs.Ats.IBNet.BarSize;
 using HistoricalDataEventArgs = Krs.Ats.IBNet.HistoricalDataEventArgs;
@@ -40,7 +42,91 @@ namespace QDMSTest
         [Test]
         public void HistoricalRequestsAreSplitToRespectRequestLimits()
         {
-            Assert.IsTrue(false);
+            int[] requestCount = {0};
+
+            _ibClientMock.Setup(
+                x => x.RequestHistoricalData(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<string>(),
+                    It.IsAny<BarSize>(),
+                    It.IsAny<HistoricalDataType>(),
+                    It.IsAny<int>()))
+                .Callback<int, Contract, DateTime, string, BarSize, HistoricalDataType, int>(
+                    (a, b, c, d, e, f, g) => requestCount[0]++);
+
+            var requests = new Dictionary<KeyValuePair<BarSize, int>, int> //left side is barsize/seconds, right side is expected splits
+            {
+                { new KeyValuePair<BarSize, int>(BarSize.OneDay, 500 * 24 * 3600), 2},
+                { new KeyValuePair<BarSize, int>(BarSize.OneHour, 75 * 24 * 3600), 3},
+                { new KeyValuePair<BarSize, int>(BarSize.ThirtyMinutes, 22 * 24 * 3600), 4},
+                { new KeyValuePair<BarSize, int>(BarSize.OneMinute, 9 * 24 * 3600), 5},
+                { new KeyValuePair<BarSize, int>(BarSize.ThirtySeconds, 40 * 3600), 2},
+                { new KeyValuePair<BarSize, int>(BarSize.FifteenSeconds, 4 * 14400), 5},
+                { new KeyValuePair<BarSize, int>(BarSize.FiveSeconds, 2 * 7200), 3},
+                { new KeyValuePair<BarSize, int>(BarSize.OneSecond, 10 * 1800), 11}
+            };
+
+            var inst = new Instrument();
+
+            foreach (var kvp in requests)
+            {
+                _ibDatasource.RequestHistoricalData(new HistoricalDataRequest(
+                    inst,
+                    TWSUtils.BarSizeConverter(kvp.Key.Key),
+                    DateTime.Now.AddSeconds(-kvp.Key.Value),
+                    DateTime.Now,
+                    forceFreshData: true));
+
+                Assert.AreEqual(kvp.Value, requestCount[0], kvp.Key.Key.ToString());
+                requestCount[0] = 0;
+            }
+        }
+
+        [Test]
+        public void HistoricalRequestsAreNotSplitIfNotNecessary()
+        {
+            int[] requestCount = { 0 };
+
+            _ibClientMock.Setup(
+                x => x.RequestHistoricalData(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<string>(),
+                    It.IsAny<BarSize>(),
+                    It.IsAny<HistoricalDataType>(),
+                    It.IsAny<int>()))
+                .Callback<int, Contract, DateTime, string, BarSize, HistoricalDataType, int>(
+                    (a, b, c, d, e, f, g) => requestCount[0]++);
+
+            var requests = new Dictionary<KeyValuePair<BarSize, int>, int> //left side is barsize/seconds, right side is expected splits
+            {
+                { new KeyValuePair<BarSize, int>(BarSize.OneDay, 300 * 24 * 3600), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.OneHour, 25 * 24 * 3600), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.ThirtyMinutes, 6 * 24 * 3600), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.OneMinute, 1 * 24 * 3600), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.ThirtySeconds, 21 * 3600), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.FifteenSeconds, 13400), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.FiveSeconds, 6900), 1},
+                { new KeyValuePair<BarSize, int>(BarSize.OneSecond, 1500), 1}
+            };
+
+            var inst = new Instrument();
+
+            foreach (var kvp in requests)
+            {
+                _ibDatasource.RequestHistoricalData(new HistoricalDataRequest(
+                    inst,
+                    TWSUtils.BarSizeConverter(kvp.Key.Key),
+                    DateTime.Now.AddSeconds(-kvp.Key.Value),
+                    DateTime.Now,
+                    forceFreshData: true));
+
+                Assert.AreEqual(kvp.Value, requestCount[0], kvp.Key.Key.ToString());
+                requestCount[0] = 0;
+            }
         }
 
         [Test]
