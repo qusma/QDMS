@@ -33,9 +33,9 @@ namespace QDMSServer
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        private readonly RealTimeDataBroker _realTimeBroker;
+        public RealTimeDataBroker RealTimeBroker { get; set; }
         private readonly RealTimeDataServer _realTimeServer;
-        private readonly HistoricalDataBroker _historicalBroker;
+        public HistoricalDataBroker HistoricalBroker { get; set; }
         private readonly HistoricalDataServer _historicalDataServer;
         private readonly InstrumentsServer _instrumentsServer;
 
@@ -124,13 +124,13 @@ namespace QDMSServer
             }
 
             //create brokers
-            _realTimeBroker = new RealTimeDataBroker();
-            _historicalBroker = new HistoricalDataBroker();
+            RealTimeBroker = new RealTimeDataBroker();
+            HistoricalBroker = new HistoricalDataBroker();
 
             //create the various servers
-            _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, _realTimeBroker);
+            _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
             _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort);
-            _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, _historicalBroker);
+            _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, HistoricalBroker);
 
             //and start them
             _realTimeServer.StartServer();
@@ -148,7 +148,7 @@ namespace QDMSServer
             _client.Connect();
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
 
-            ActiveStreamGrid.ItemsSource = _realTimeBroker.ActiveStreams;
+            ActiveStreamGrid.ItemsSource = RealTimeBroker.ActiveStreams;
 
             //create the scheduler
             ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
@@ -313,9 +313,9 @@ namespace QDMSServer
             _instrumentsServer.StopServer();
             _instrumentsServer.Dispose();
 
-            _realTimeBroker.Dispose();
+            RealTimeBroker.Dispose();
 
-            _historicalBroker.Dispose();
+            HistoricalBroker.Dispose();
         }
 
         //exiting the application
