@@ -103,6 +103,11 @@ namespace QDMSServer
             return (Krs.Ats.IBNet.BarSize)(int)freq;
         }
 
+        public static QDMS.BarSize BarSizeConverter(Krs.Ats.IBNet.BarSize freq)
+        {
+            return (QDMS.BarSize)(int)freq;
+        }
+
         public static RightType OptionTypeToRightType(OptionType? type)
         {
             if (type == null) return RightType.Undefined;
