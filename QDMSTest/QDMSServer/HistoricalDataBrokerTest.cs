@@ -383,6 +383,19 @@ namespace QDMSTest
         {
             _instrument.Datasource.Name = "ASDfasdf___________________aasdf";
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                 forceFreshData: false,
+                 localStorageOnly: false,
+                 saveToLocalStorage: false,
+                 rthOnly: true);
+            _broker.RequestHistoricalData(request);
+        }
+
+        [Test]
+        [ExpectedException]
+        public void ThrowsExceptionWhenMakingRequestForInstrumentWithDataSourceThatDoesNotExistAndForcingFreshData()
+        {
+            _instrument.Datasource.Name = "ASDfasdf___________________aasdf";
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
                  forceFreshData: true,
                  localStorageOnly: false,
                  saveToLocalStorage: false,
