@@ -54,6 +54,13 @@ namespace QDMSTest
         }
 
         [Test]
+        [ExpectedException]
+        public void GetFuturesContractSymbolThrowsExceptionWhenMonthOutOfRange()
+        {
+            MyUtils.GetFuturesContractSymbol("GC", 0, 2012);
+        }
+
+        [Test]
         public void ConvertToTimestampReturnsCorrectTimestamp()
         {
             Assert.AreEqual(1012907112, MyUtils.ConvertToTimestamp(new DateTime(2002, 2, 5, 11, 5, 12)));
