@@ -94,7 +94,7 @@ namespace QDMS
                     return "Z";
                     
             }
-            return "";
+            throw new ArgumentOutOfRangeException("month", "Month must be between 1-12");
         }
 
         /// <summary>
