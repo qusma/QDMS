@@ -84,6 +84,7 @@ namespace QDMSServer
         private readonly object _reqCountLock = new object();
         private readonly object _requestsLock = new object();
         private readonly object _dataUsesLock = new object();
+        private readonly object _dataLock = new object();
         private readonly object _frontContractReturnLock = new object();
 
         /// <summary>
@@ -142,6 +143,7 @@ namespace QDMSServer
             _client.Error += _client_Error;
             _client.Connect();
 
+            
             _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();
             _requestCounts = new Dictionary<int, int>();
@@ -196,20 +198,37 @@ namespace QDMSServer
                 _frontContractRequests.Dispose();
         }
 
+        /// <summary>
+        /// Historical data has arrived. 
+        /// Add it to our data store, then check if all requests have been 
+        /// fulfilled for a particular continuous futures request. If they 
+        /// have, go do the calculations.
+        /// </summary>
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
         {
             if (e.Request.Instrument.ID == null) return;
             int id = e.Request.Instrument.ID.Value;
             var kvpID = new KeyValuePair<int, BarSize>(id, e.Request.Frequency);
 
-            if (_data.ContainsKey(kvpID))
+            lock (_data)
             {
-                _data.Remove(kvpID);
+                if (_data.ContainsKey(kvpID))
+                {
+                    //We already have data on this instrument ID/Frequency combo.
+                    //Add the arrived data, then discard any doubles, then order.
+                    _data[kvpID].AddRange(e.Data);
+                    _data[kvpID].Distinct((x, y) => x.DT == y.DT);
+                    _data[kvpID] = _data[kvpID].OrderBy(x => x.DT).ToList();
+                }
+                else
+                {
+                    //We have nothing on this instrument ID/Frequency combo.
+                    //Just add a new entry in the dictionary.
+                    _data.Add(kvpID, e.Data);
+                }
             }
-            _data.Add(kvpID, e.Data);
 
-            //TODO here we can't just remove the previous data, we have to add the new one and then take distinct values
-
+            //Here we check if all necessary requests have arrived. If they have, do some work.
             lock (_reqCountLock)
             {
                 //get the request id of the continuous futures request that caused this contract request
@@ -424,7 +443,10 @@ namespace QDMSServer
             List<Instrument> futures = new List<Instrument>(_contracts[request.AssignedID]);
 
             //start by cleaning up the data, it is possible that some of the futures may not have had ANY data returned!
-            futures = futures.Where(x => _data[new KeyValuePair<int, BarSize>(x.ID.Value, request.Frequency)].Count > 0).ToList();
+            lock (_dataLock)
+            {
+                futures = futures.Where(x => _data[new KeyValuePair<int, BarSize>(x.ID.Value, request.Frequency)].Count > 0).ToList();
+            }
 
             var cf = request.Instrument.ContinuousFuture;
 
@@ -436,9 +458,13 @@ namespace QDMSServer
             Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
             Instrument lastUsedSelectedFuture = selectedFuture;
 
-            TimeSeries frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
-            TimeSeries backData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]);
-            TimeSeries selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+            TimeSeries frontData, backData, selectedData;
+            lock (_dataLock)
+            {
+                frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
+                backData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]);
+                selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+            }
 
             //starting date: I think it's enough to start a few days before the expiration of the first future
             //as long as it's before the starting date?
@@ -596,9 +622,12 @@ namespace QDMSServer
                     if (frontFuture == null) break; //no other futures left, get out
                     if (selectedFuture == null) break;
 
-                    frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
-                    backData = backFuture != null ? new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]) : null;
-                    selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+                    lock (_dataLock)
+                    {
+                        frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
+                        backData = backFuture != null ? new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]) : null;
+                        selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+                    }
 
                     frontData.AdvanceTo(currentDate);
                     if (backData != null)
@@ -633,7 +662,10 @@ namespace QDMSServer
                     if (_dataUsesPending[kvp] == 1) //this data isn't needed anywhere else, we can delete it
                     {
                         _dataUsesPending.Remove(kvp);
-                        _data.Remove(kvp);
+                        lock (_dataLock)
+                        {
+                            _data.Remove(kvp);
+                        }
                     }
                     else
                     {
