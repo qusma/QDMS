@@ -225,7 +225,7 @@ namespace QDMSClient
         public int RequestHistoricalData(HistoricalDataRequest request)
         {
             //make sure the request is valid
-            if (request.EndingDate <= request.StartingDate)
+            if (request.EndingDate < request.StartingDate)
             {
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Historical Data Request Failed: Starting date must be after ending date."));
                 return -1;
