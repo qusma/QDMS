@@ -90,6 +90,7 @@ namespace QDMSServer
         private readonly object _aliasLock = new object();
         private readonly object _cfRequestLock = new object();
         private readonly object _requestsLock = new object();
+        private readonly object _activeStreamsLock = new object();
 
         public void Dispose()
         {
@@ -205,7 +206,12 @@ namespace QDMSServer
             }
 
             //if there is already an active stream of this instrument
-            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID))
+            bool streamExists;
+            lock (_activeStreamsLock)
+            {
+                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID);
+            }
+            if (streamExists)
             {
                 IncrementSubscriberCount(request.Instrument);
 
@@ -343,59 +349,62 @@ namespace QDMSServer
         /// <returns>True if the stream was canceled, False if subsribers remain.</returns>
         public bool CancelRTDStream(int instrumentID)
         {
-            //make sure there is a data stream for this instrument
-            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID))
+            lock (_activeStreamsLock)
             {
-                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrumentID);
-                var instrument = streamInfo.Instrument;
-
-                //if it's a continuous future we also need to cancel the actual contract
-                if (instrument.IsContinuousFuture)
+                //make sure there is a data stream for this instrument
+                if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID))
                 {
-                    var contractID = _continuousFuturesIDMap[instrumentID];
-                    var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
+                    var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrumentID);
+                    var instrument = streamInfo.Instrument;
 
-                    //we must also clear the alias list
-                    lock (_aliasLock)
+                    //if it's a continuous future we also need to cancel the actual contract
+                    if (instrument.IsContinuousFuture)
                     {
-                        _aliases[contractID].Remove(instrumentID);
-                        if (_aliases[contractID].Count == 0)
+                        var contractID = _continuousFuturesIDMap[instrumentID];
+                        var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
+
+                        //we must also clear the alias list
+                        lock (_aliasLock)
                         {
-                            _aliases.Remove(contractID);
+                            _aliases[contractID].Remove(instrumentID);
+                            if (_aliases[contractID].Count == 0)
+                            {
+                                _aliases.Remove(contractID);
+                            }
                         }
+
+                        //finally cancel the contract's stream
+                        CancelRTDStream(contractID);
                     }
 
-                    //finally cancel the contract's stream
-                    CancelRTDStream(contractID);
-                }
+                    //log the request
+                    Log(LogLevel.Info,
+                        string.Format("RTD Cancelation request: {0} from {1}",
+                            instrument.Symbol,
+                            instrument.Datasource.Name));
 
-                //log the request
-                Log(LogLevel.Info,
-                    string.Format("RTD Cancelation request: {0} from {1}",
-                        instrument.Symbol,
-                        instrument.Datasource.Name));
-
-                lock (_subscriberCountLock)
-                {
-                    StreamSubscribersCount[streamInfo]--;
-                    if (StreamSubscribersCount[streamInfo] == 0)
+                    lock (_subscriberCountLock)
                     {
-                        //there are no clients subscribed to this stream anymore
-                        //cancel it and remove it from all the places
-                        StreamSubscribersCount.Remove(streamInfo);
-
-                        ActiveStreams.TryRemove(streamInfo);
-
-                        if (!instrument.IsContinuousFuture)
+                        StreamSubscribersCount[streamInfo]--;
+                        if (StreamSubscribersCount[streamInfo] == 0)
                         {
-                            DataSources[streamInfo.Datasource].CancelRealTimeData(streamInfo.RequestID);
+                            //there are no clients subscribed to this stream anymore
+                            //cancel it and remove it from all the places
+                            StreamSubscribersCount.Remove(streamInfo);
+
+                            ActiveStreams.TryRemove(streamInfo);
+
+                            if (!instrument.IsContinuousFuture)
+                            {
+                                DataSources[streamInfo.Datasource].CancelRealTimeData(streamInfo.RequestID);
+                            }
+                            return true;
                         }
-                        return true;
                     }
                 }
+
+                return false;
             }
-
-            return false;
         }
 
         
@@ -405,21 +414,24 @@ namespace QDMSServer
         /// </summary>
         private void IncrementSubscriberCount(Instrument instrument)
         {
-            //Find the KeyValuePair<string, int> from the dictionary that corresponds to this instrument
-            //The KVP consists of key: request ID, value: data source name
-            var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrument.ID);
-
-            //increment the subsriber count
-            lock (_subscriberCountLock)
+            lock (_activeStreamsLock)
             {
-                StreamSubscribersCount[streamInfo]++;
+                //Find the KeyValuePair<string, int> from the dictionary that corresponds to this instrument
+                //The KVP consists of key: request ID, value: data source name
+                var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrument.ID);
 
-                //if it's a continuous future we also need to increment the counter on the actual contract
-                if (instrument.IsContinuousFuture && instrument.ID.HasValue)
+                //increment the subsriber count
+                lock (_subscriberCountLock)
                 {
-                    var contractID = _continuousFuturesIDMap[instrument.ID.Value];
-                    var contractStreamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID);
-                    StreamSubscribersCount[contractStreamInfo]++;
+                    StreamSubscribersCount[streamInfo]++;
+
+                    //if it's a continuous future we also need to increment the counter on the actual contract
+                    if (instrument.IsContinuousFuture && instrument.ID.HasValue)
+                    {
+                        var contractID = _continuousFuturesIDMap[instrument.ID.Value];
+                        var contractStreamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID);
+                        StreamSubscribersCount[contractStreamInfo]++;
+                    }
                 }
             }
         }
@@ -457,7 +469,11 @@ namespace QDMSServer
                 request.Instrument.Datasource.Name,
                 request.Frequency,
                 request.RTHOnly);
-            ActiveStreams.TryAdd(streamInfo);
+
+            lock (_activeStreamsLock)
+            {
+                ActiveStreams.TryAdd(streamInfo);
+            }
 
             lock (_subscriberCountLock)
             {
@@ -510,7 +526,13 @@ namespace QDMSServer
             }
 
             //need to check if there's already a stream of the contract....
-            if (ActiveStreams.Collection.Any(x => x.Instrument.ID == e.Instrument.ID))
+            bool streamExists;
+            lock (_activeStreamsLock)
+            {
+                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == e.Instrument.ID);
+            }
+
+            if (streamExists)
             {
                 //all we need to do in this case is increment the number of subscribers to this stream
                 IncrementSubscriberCount(e.Instrument);
@@ -537,7 +559,11 @@ namespace QDMSServer
                     request.Instrument.Datasource.Name,
                     request.Frequency,
                     request.RTHOnly);
-                ActiveStreams.TryAdd(streamInfo);
+
+                lock (_activeStreamsLock)
+                {
+                    ActiveStreams.TryAdd(streamInfo);
+                }
 
                 lock (_subscriberCountLock)
                 {
