@@ -27,7 +27,7 @@ namespace EntityData.Migrations
             if (provider == "MySql.Data.MySqlClient")
             {
                 SetHistoryContextFactory(MySqlProviderInvariantName.ProviderName,
-                    (existingConnection, defaultSchema) => new EntityData.Migrations.MySqlHistoryContext(existingConnection, defaultSchema));
+                    (existingConnection, defaultSchema) => new MySqlHistoryContext(existingConnection, defaultSchema));
             }
             
         }

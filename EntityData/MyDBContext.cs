@@ -5,7 +5,6 @@
 // -----------------------------------------------------------------------
 
 using System.Data.Entity;
-using System.Data.Entity.Migrations;
 using EntityData.Migrations;
 using QDMS;
 
