@@ -573,7 +573,7 @@ namespace QDMSServer
                 var instrumentTagMenu = (MenuItem)Resources["InstrumentTagMenu"];
                 foreach (MenuItem btn in instrumentTagMenu.Items)
                 {
-                    if (btn.Tag == null) continue;
+                    if (btn.Tag == null || instrument.Tags == null) continue;
 
                     btn.IsChecked = instrument.Tags.Any(x => x.ID == (int)btn.Tag);
                     btn.IsEnabled = true;
