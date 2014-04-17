@@ -153,7 +153,8 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn x:Name="ColTags" Binding="{Binding Path=TagsAsString}" Header="Tags" Width="150" />
+                            <DataGridTextColumn x:Name="ColTags" Binding="{Binding Path=TagsAsString}" Header="Tags" Width="150"
+                                                filterLibrary:DataGridColumnExtensions.ContainsSearchProperty="True" />
                             <DataGridTextColumn x:Name="ColValidExchanges" Binding="{Binding Path=ValidExchanges}" Header="Valid Exch." Width="60"/>
 
                         </DataGrid.Columns>
