@@ -61,25 +61,28 @@ namespace QDMSServer
                 if (existingInstrument == null) //object doesn't exist, so we add it
                 {
                     //attach the datasource, exchanges, etc. so it doesn't try to add them
+                    //also load sessions at the same time
                     context.Datasources.Attach(instrument.Datasource);
                     if (instrument.PrimaryExchange != null)
                     {
                         context.Exchanges.Attach(instrument.PrimaryExchange);
+                        context.Entry(instrument.PrimaryExchange).Collection(x => x.Sessions).Load();
                     }
                     if (instrument.PrimaryExchangeID != instrument.ExchangeID && instrument.Exchange != null)
                     {
                         context.Exchanges.Attach(instrument.Exchange);
+                        context.Entry(instrument.Exchange).Collection(x => x.Sessions).Load();
                     }
 
                     //if necessary, load sessions from teplate or exchange
                     if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange != null)
                     {
+                        instrument.Sessions = instrument.Exchange.Sessions.Select(MyUtils.SessionConverter).ToList();
+                    }
+                    else if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange == null)
+                    {
+                        instrument.SessionsSource = SessionsSource.Custom;
                         instrument.Sessions = new List<InstrumentSession>();
-                        var exchange = context.Exchanges.Include("Sessions").First(x => x.ID == instrument.ExchangeID);
-                        foreach (ExchangeSession s in exchange.Sessions)
-                        {
-                            instrument.Sessions.Add(MyUtils.SessionConverter(s));
-                        }
                     }
                     else if (instrument.SessionsSource == SessionsSource.Template)
                     {
@@ -92,11 +95,6 @@ namespace QDMSServer
                                 instrument.Sessions.Add(MyUtils.SessionConverter(s));
                             }
                         }
-                    }
-                    else if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange == null)
-                    {
-                        instrument.SessionsSource = SessionsSource.Custom;
-                        instrument.Sessions = new List<InstrumentSession>();
                     }
                     
                     context.Instruments.Add(instrument);
