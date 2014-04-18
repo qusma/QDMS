@@ -15,7 +15,6 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Connect()
         {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -23,7 +22,6 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Disconnect()
         {
-            throw new NotImplementedException();
         }
 
         /// <summary>
