@@ -156,12 +156,8 @@
     </Reference>
     <Reference Include="ReachFramework" />
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Printing" />
     <Reference Include="System.Reactive.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Rx-Core.2.2.2\lib\net45\System.Reactive.Core.dll</HintPath>
@@ -174,14 +170,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Rx-Linq.2.2.2\lib\net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reactive.PlatformServices">
-      <HintPath>..\packages\Rx-PlatformServices.2.2.3\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
-    </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.0.13.1.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -248,10 +238,13 @@
     <Compile Include="RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Servers\RealTimeDataServer.cs" />
+    <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\MySQLBackup.cs" />
     <Compile Include="Utils\PriceAdjuster.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
     <Compile Include="Utils\Seed.cs" />
+    <Compile Include="Utils\SqlServerBackup.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
     <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
     <Compile Include="ValueConverters\ExchangeMultiValueConverter.cs" />
