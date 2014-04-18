@@ -62,13 +62,6 @@ namespace QDMSServer
             //set the connection string
             DBUtils.SetConnectionString();
 
-            //dim the backup/restore menu items in case of sql server, which isn't implemented yet
-            if (Properties.Settings.Default.databaseType != "MySql")
-            {
-                BackupMenuItem.IsEnabled = false;
-                RestoreMenuItem.IsEnabled = false;
-            }
-
             InitializeComponent();
             DataContext = this;
 
@@ -656,116 +649,22 @@ namespace QDMSServer
 
         private void BackupMetadataBtn_Click(object sender, RoutedEventArgs e)
         {
-            string path;
-            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog
-            {
-                FileName = "qdms.sql",
-                DefaultExt = ".sql",
-                Filter = @"SQL Scripts (.sql)|*.sql"
-            };
-
-            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                path = file.FileName;
-            }
-            else
-            {
-                return;
-            }
-
-            if (Properties.Settings.Default.databaseType == "MySql")
-            {
-                DBUtils.BackupMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsEntities"].ToString());
-            }
-            else
-            {
-                //sql server
-            }
+            DbBackup.Backup("qdmsEntities", "qdms");
         }
 
         private void BackupDataBtn_Click(object sender, RoutedEventArgs e)
         {
-            string path;
-            System.Windows.Forms.SaveFileDialog file = new System.Windows.Forms.SaveFileDialog
-            {
-                FileName = "qdmsData.sql",
-                DefaultExt = ".sql",
-                Filter = @"SQL Scripts (.sql)|*.sql"
-            };
-
-            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                path = file.FileName;
-            }
-            else
-            {
-                return;
-            }
-
-            if (Properties.Settings.Default.databaseType == "MySql")
-            {
-                DBUtils.BackupMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsDataEntities"].ToString());
-            }
-            else
-            {
-                //sql server
-            }
+            DbBackup.Backup("qdmsDataEntities", "qdmsdata");
         }
 
         private void RestoreMetadataBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            string path;
-            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog
-            {
-                DefaultExt = ".sql",
-                Filter = @"SQL Scripts (.sql)|*.sql"
-            };
-
-            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                path = file.FileName;
-            }
-            else
-            {
-                return;
-            }
-
-            if (Properties.Settings.Default.databaseType == "MySql")
-            {
-                DBUtils.RestoreMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsEntities"].ToString());
-            }
-            else
-            {
-                //sql server
-            }
+            DbBackup.Restore("qdmsEntities", "qdms");
         }
 
         private void RestoreDataBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            string path;
-            System.Windows.Forms.OpenFileDialog file = new System.Windows.Forms.OpenFileDialog
-            {
-                DefaultExt = ".sql",
-                Filter = @"SQL Scripts (.sql)|*.sql"
-            };
-
-            if (file.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                path = file.FileName;
-            }
-            else
-            {
-                return;
-            }
-
-            if (Properties.Settings.Default.databaseType == "MySql")
-            {
-                DBUtils.RestoreMySqlDb(path, ConfigurationManager.ConnectionStrings["qdmsDataEntities"].ToString());
-            }
-            else
-            {
-                //sql server
-            }
+            DbBackup.Restore("qdmsDataEntities", "qdmsdata");
         }
 
         private void DataJobsBtn_OnClick(object sender, RoutedEventArgs e)
