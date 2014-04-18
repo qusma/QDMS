@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -24,8 +25,11 @@ namespace QDMSServer
     public partial class AddInstrumentInteractiveBrokersWindow : MetroWindow
     {
         public ObservableCollection<KeyValuePair<int, string>> Exchanges { get; set; }
+
         public ObservableCollection<InstrumentType> InstrumentTypes { get; set; }
+
         public ObservableCollection<Instrument> Instruments { get; set; }
+
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public List<Instrument> AddedInstruments { get; set; }
@@ -39,7 +43,7 @@ namespace QDMSServer
         {
             Random r = new Random();
             _client = new IBClient();
-            
+
             try
             {
                 //random connection id for this one...
@@ -60,29 +64,25 @@ namespace QDMSServer
             _client.ConnectionClosed += _client_ConnectionClosed;
             _client.ContractDetailsEnd += _client_ContractDetailsEnd;
 
+            Exchanges = new ObservableCollection<KeyValuePair<int, string>> { new KeyValuePair<int, string>(0, "All") };
+            _exchanges = new Dictionary<string, Exchange>();
 
-            Exchanges = new ObservableCollection<KeyValuePair<int, string>> {new KeyValuePair<int, string>(0, "All")};
-
-
-            using (var entityContext = new MyDBContext())
+            using (var context = new MyDBContext())
             {
-                _thisDS = entityContext.Datasources.First(x => x.Name == "Interactive Brokers");
-                _exchanges = entityContext.Exchanges.ToDictionary(x => x.Name, x => x);
+                _thisDS = context.Datasources.First(x => x.Name == "Interactive Brokers");
 
-                foreach (Exchange e in entityContext.Exchanges.AsEnumerable())
+                foreach (Exchange e in context.Exchanges)
                 {
                     Exchanges.Add(new KeyValuePair<int, string>(e.ID, e.Name));
+                    _exchanges.Add(e.Name, e);
                 }
             }
 
             InitializeComponent();
             DataContext = this;
 
-            
-
             Instruments = new ObservableCollection<Instrument>();
             InstrumentTypes = new ObservableCollection<InstrumentType>();
-
 
             //list the available types from our enum
             var values = MyUtils.GetEnumValues<InstrumentType>();
@@ -94,25 +94,25 @@ namespace QDMSServer
             ShowDialog();
         }
 
-        void _client_ContractDetailsEnd(object sender, ContractDetailsEndEventArgs e)
+        private void _client_ContractDetailsEnd(object sender, ContractDetailsEndEventArgs e)
         {
             Dispatcher.Invoke(() => StatusLabel.Content = Instruments.Count + " contracts arrived");
         }
 
-        void _client_ConnectionClosed(object sender, ConnectionClosedEventArgs e)
+        private void _client_ConnectionClosed(object sender, ConnectionClosedEventArgs e)
         {
             Dispatcher.Invoke(() => _logger.Log(NLog.LogLevel.Error, string.Format("Instrument Adder connection closed.")));
         }
 
-        void _client_Error(object sender, ErrorEventArgs e)
+        private void _client_Error(object sender, ErrorEventArgs e)
         {
-            if(e.ErrorMsg == "No security definition has been found for the request")
+            if (e.ErrorMsg == "No security definition has been found for the request")
                 Dispatcher.Invoke(() => StatusLabel.Content = e.ErrorMsg);
             else
                 Dispatcher.Invoke(() => _logger.Log(NLog.LogLevel.Error, string.Format("{0} - {1}", e.ErrorCode, e.ErrorMsg)));
         }
 
-        void _client_ContractDetails(object sender, ContractDetailsEventArgs e)
+        private void _client_ContractDetails(object sender, ContractDetailsEventArgs e)
         {
             var instrument = TWSUtils.ContractDetailsToInstrument(e.ContractDetails);
             instrument.Datasource = _thisDS;
@@ -142,18 +142,16 @@ namespace QDMSServer
             Dispatcher.Invoke(() => Instruments.Add(instrument));
         }
 
-        void _client_NextValidId(object sender, NextValidIdEventArgs e)
+        private void _client_NextValidId(object sender, NextValidIdEventArgs e)
         {
             _nextRequestID = e.OrderId;
         }
-
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)
         {
             _client.Disconnect();
             Hide();
         }
-
 
         private void DXWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -171,7 +169,7 @@ namespace QDMSServer
                         count++;
                     AddedInstruments.Add(newInstrument);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error");
                 }
@@ -196,10 +194,10 @@ namespace QDMSServer
             var contract = new Contract
             {
                 Symbol = SymbolTextBox.Text,
-                SecurityType = TWSUtils.SecurityTypeConverter((InstrumentType) InstrumentTypeBox.SelectedItem),
+                SecurityType = TWSUtils.SecurityTypeConverter((InstrumentType)InstrumentTypeBox.SelectedItem),
                 Exchange = ExchangeBox.Text == "All" ? "" : ExchangeBox.Text,
                 IncludeExpired =
-                    IncludeExpiredCheckBox.IsChecked != null && (bool) IncludeExpiredCheckBox.IsChecked
+                    IncludeExpiredCheckBox.IsChecked != null && (bool)IncludeExpiredCheckBox.IsChecked
             };
 
             if (Expirationpicker.SelectedDate.HasValue)
@@ -209,12 +207,11 @@ namespace QDMSServer
             {
                 double strike;
                 bool success = double.TryParse(StrikeTextBox.Text, out strike);
-                if(success)
+                if (success)
                     contract.Strike = strike;
             }
-            
+
             _client.RequestContractDetails(_nextRequestID, contract);
         }
-
     }
 }
