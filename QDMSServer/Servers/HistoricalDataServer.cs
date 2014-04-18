@@ -115,25 +115,7 @@ namespace QDMSServer
                     //check if there's anything in the queue, if there is we want to send it
                     if (_dataQueue.TryDequeue(out newDataItem))
                     {
-                        //this is a 5 part message
-                        //1st message part: the identity string of the client that we're routing the data to
-                        string clientIdentity = newDataItem.Key.RequesterIdentity;
-
-                        _routerSocket.SendMore(clientIdentity, Encoding.UTF8);
-
-                        //2nd message part: the type of reply we're sending
-                        _routerSocket.SendMore("HISTREQREP", Encoding.UTF8);
-
-                        //3rd message part: the HistoricalDataRequest object that was used to make the request
-                        _routerSocket.SendMore(MyUtils.ProtoBufSerialize(newDataItem.Key, ms)); //TODO make sure that the original request is returned
-
-                        //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
-                        byte[] uncompressed = MyUtils.ProtoBufSerialize(newDataItem.Value, ms);
-                        _routerSocket.SendMore(BitConverter.GetBytes(uncompressed.Length));
-
-                        //5th message part: the compressed serialized data.
-                        byte[] compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); //compress
-                        _routerSocket.Send(compressed);
+                        SendFilledHistoricalRequest(newDataItem.Key, newDataItem.Value, ms);
                     }
                 }
             }
@@ -142,6 +124,33 @@ namespace QDMSServer
             _routerSocket.Dispose();
             _context.Dispose();
             ServerRunning = false;
+        }
+
+        /// <summary>
+        /// Given a historical data request and the data that fill it, 
+        /// send the reply to the client who made the request.
+        /// </summary>
+        private void SendFilledHistoricalRequest(HistoricalDataRequest request, List<OHLCBar> data, MemoryStream ms)
+        {
+            //this is a 5 part message
+            //1st message part: the identity string of the client that we're routing the data to
+            string clientIdentity = request.RequesterIdentity;
+
+            _routerSocket.SendMore(clientIdentity, Encoding.UTF8);
+
+            //2nd message part: the type of reply we're sending
+            _routerSocket.SendMore("HISTREQREP", Encoding.UTF8);
+
+            //3rd message part: the HistoricalDataRequest object that was used to make the request
+            _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms)); //TODO make sure that the original request is returned
+
+            //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
+            byte[] uncompressed = MyUtils.ProtoBufSerialize(data, ms);
+            _routerSocket.SendMore(BitConverter.GetBytes(uncompressed.Length));
+
+            //5th message part: the compressed serialized data.
+            byte[] compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); //compress
+            _routerSocket.Send(compressed);
         }
 
         /// <summary>
@@ -272,19 +281,28 @@ namespace QDMSServer
             }
             catch (Exception ex) //there's some sort of problem with fulfilling the request. Inform the client.
             {
-                //this is a 4 part message
-                //1st message part: the identity string of the client that we're routing the data to
-                _routerSocket.SendMore(requesterIdentity, Encoding.UTF8);
-
-                //2nd message part: the type of reply we're sending
-                _routerSocket.SendMore("ERROR", Encoding.UTF8);
-
-                //3rd message part: the request ID
-                _routerSocket.SendMore(BitConverter.GetBytes(request.RequestID));
-
-                //4th message part: the error
-                _routerSocket.Send(ex.Message, Encoding.UTF8);
+                SendErrorReply(requesterIdentity, request.RequestID, ex.Message);
             }
+        }
+
+        /// <summary>
+        /// If a historical data request can't be filled,
+        /// this method sends a reply with the relevant error.
+        /// </summary>
+        private void SendErrorReply(string requesterIdentity, int requestID, string message)
+        {
+            //this is a 4 part message
+            //1st message part: the identity string of the client that we're routing the data to
+            _routerSocket.SendMore(requesterIdentity, Encoding.UTF8);
+
+            //2nd message part: the type of reply we're sending
+            _routerSocket.SendMore("ERROR", Encoding.UTF8);
+
+            //3rd message part: the request ID
+            _routerSocket.SendMore(BitConverter.GetBytes(requestID));
+
+            //4th message part: the error
+            _routerSocket.Send(message, Encoding.UTF8);
         }
 
         /// <summary>

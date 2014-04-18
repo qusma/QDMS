@@ -47,7 +47,7 @@ namespace QDMSServer
 
             //Multiple jobs may be called simultaneously, so what we do is seed the Random based on the job name
             byte[] bytes = new byte[details.Name.Length * sizeof(char)];
-            System.Buffer.BlockCopy(details.Name.ToCharArray(), 0, bytes, 0, bytes.Length);
+            Buffer.BlockCopy(details.Name.ToCharArray(), 0, bytes, 0, bytes.Length);
             var r = new Random((int)DateTime.Now.TimeOfDay.TotalSeconds ^ BitConverter.ToInt32(bytes, 0));
 
             var im = new InstrumentManager();

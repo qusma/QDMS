@@ -175,7 +175,7 @@ namespace QDMSServer
                 bool doAdjustment = e.Data.Any(x => x.Split.HasValue || x.Dividend.HasValue);
                 lock (_localStorageLock)
                 {
-                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, overwrite:true, adjust: doAdjustment);
+                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, overwrite: true, adjust: doAdjustment);
                 }
 
                 //check if there is a list in the subrequests for this request...
@@ -315,6 +315,16 @@ namespace QDMSServer
                 return;
             }
 
+            //request says to ignore the external data source, just send the request as-is to the local storage
+            if (request.LocalStorageOnly)
+            {
+                lock (_localStorageLock)
+                {
+                    _dataStorage.RequestHistoricalData(request);
+                }
+                return;
+            }
+
             //check if the data source is present and available...
             //if not, simply send the request to local storage and throw an exception
             try
@@ -330,16 +340,6 @@ namespace QDMSServer
 
                 Log(LogLevel.Error, string.Format("Data source problem for request ID {0}, forwarded directly to local storage. Error: {1}", request.AssignedID, ex.Message));
                 throw;
-            }
-
-            //request says to ignore the external data source, just send the request as-is to the local storage
-            if (request.LocalStorageOnly)
-            {
-                lock (_localStorageLock)
-                {
-                    _dataStorage.RequestHistoricalData(request);
-                }
-                return;
             }
 
             //we are allowed to use data from local storage, but want to get any missing data from the external data source
