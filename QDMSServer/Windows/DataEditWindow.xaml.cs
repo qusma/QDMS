@@ -49,7 +49,8 @@ namespace QDMSServer
                 TheInstrument = instrument;
             }
 
-            _tzInfo = TimeZoneInfo.FindSystemTimeZoneById(TheInstrument.Exchange.Timezone);
+            string timezone = TheInstrument.Exchange == null ? "UTC" : TheInstrument.Exchange.Timezone;
+            _tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timezone);
 
             StartTime = new DateTime(1950, 1, 1, 0, 0, 0, 0);
             EndTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0, 0);

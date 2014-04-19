@@ -430,7 +430,8 @@ namespace QDMSServer
         //Sends off a historical data reques to the datasource that needs to fulfill it
         private void ForwardHistoricalRequest(HistoricalDataRequest request)
         {
-            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
+            string timezone = request.Instrument.Exchange == null ? "UTC" : request.Instrument.Exchange.Timezone;
+            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(timezone);
 
             //limit the ending date to the present
             var now = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, exchangeTZ);
