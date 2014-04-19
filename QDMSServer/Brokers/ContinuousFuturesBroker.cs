@@ -302,11 +302,9 @@ namespace QDMSServer
             //filter the futures months, we may not want all of them.
             for (int i = 1; i <= 12; i++)
             {
-                if (!cf.MonthIsUsed(i))
-                {
-                    int i1 = i;
-                    futures = futures.Where(x => x.Expiration.HasValue && x.Expiration.Value.Month != i1).ToList();
-                }
+                if (cf.MonthIsUsed(i)) continue;
+                int i1 = i;
+                futures = futures.Where(x => x.Expiration.HasValue && x.Expiration.Value.Month != i1).ToList();
             }
 
             //nothing found, return with empty hands
@@ -319,11 +317,11 @@ namespace QDMSServer
             var expiringBeforeStart = futures
                 .Where(x => x.Expiration != null && x.Expiration.Value < request.StartingDate)
                 .Select(x => x.Expiration.Value).ToList();
-            DateTime firstExpiration;
-            if (expiringBeforeStart.Count > 0)
-                firstExpiration = expiringBeforeStart.Max();
-            else
-                firstExpiration = futures.Select(x => x.Expiration.Value).Min();
+
+            DateTime firstExpiration = 
+                expiringBeforeStart.Count > 0 
+                    ? expiringBeforeStart.Max() 
+                    : futures.Select(x => x.Expiration.Value).Min();
 
             futures = futures.Where(x => x.Expiration != null && x.Expiration.Value >= firstExpiration).ToList();
 
@@ -775,145 +773,164 @@ namespace QDMSServer
                 request.Instrument.Symbol,
                 request.Date.HasValue ? request.Date.ToString() : "Now"));
 
-            DateTime currentDate = request.Date ?? DateTime.Now;
 
-            var cf = request.Instrument.ContinuousFuture;
-            if (cf.RolloverType == ContinuousFuturesRolloverType.Time)
+            if (request.Instrument.ContinuousFuture.RolloverType == ContinuousFuturesRolloverType.Time)
             {
-                //if the roll-over is time based, we can find the appropriate contract programmatically
-                DateTime selectedDate = currentDate;
-
-                while (!cf.MonthIsUsed(selectedDate.Month))
-                {
-                    selectedDate = selectedDate.AddMonths(1);
-                }
-
-                DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(selectedDate.Year, selectedDate.Month);
-                DateTime switchOverDate = currentMonthsExpirationDate;
-
-                Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
-
-                //the front contract
-                //find the switchover date
-                int daysBack = cf.RolloverDays;
-                while (daysBack > 0)
-                {
-                    switchOverDate = switchOverDate.AddDays(-1);
-                    if (calendar.isBusinessDay(switchOverDate))
-                        daysBack--;
-                }
-
-                //this month's contract has already been switched to the next one
-                int monthsLeft = 1;
-                int count = 0;
-                if (currentDate >= switchOverDate)
-                {
-                    while (monthsLeft > 0)
-                    {
-                        count++;
-                        if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
-                            monthsLeft--;
-                    }
-                    selectedDate = selectedDate.AddMonths(count);
-                }
-
-                //we found the "front" month, no go back the required number of months
-                //while skipping unused months
-                monthsLeft = cf.Month - 1;
-                count = 0;
-                while (monthsLeft > 0)
-                {
-                    if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
-                        monthsLeft--;
-                    count++;
-                }
-                selectedDate = selectedDate.AddMonths(count);
-
-                //we got the month we want! find the contract
-                var searchFunc = new Func<Instrument, bool>(
-                    x =>
-                        x.Expiration.HasValue &&
-                        x.Expiration.Value.Month == selectedDate.Month &&
-                        x.Expiration.Value.Year == selectedDate.Year &&
-                        x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol);
-
-                var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
-
-
-                var timer = new Timer(50) { AutoReset = false };
-                timer.Elapsed += (sender, e) =>
-                    {
-                        lock (_frontContractReturnLock)
-                        {
-                            RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
-                        }
-                    };
-                timer.Start();
+                ProcessTimeBasedFrontContractRequest(request);
             }
             else //otherwise, we have to actually look at the historical data to figure out which contract is selected
             {
-                //this is a tough one, because it needs to be asynchronous (historical
-                //data can take a long time to download).
-                var r = new Random();
+                ProcessDataBasedFrontContractRequest(request);
+            }
+        }
 
-                //we use GetRequiredRequests to get the historical requests we need to make
-                var tmpReq = new HistoricalDataRequest
+        /// <summary>
+        /// Finds the front contract for continuous futures with non-time-based roll.
+        /// </summary>
+        private void ProcessDataBasedFrontContractRequest(FrontContractRequest request)
+        {
+            DateTime currentDate = request.Date ?? DateTime.Now;
+
+            //this is a tough one, because it needs to be asynchronous (historical
+            //data can take a long time to download).
+            var r = new Random();
+
+            //we use GetRequiredRequests to get the historical requests we need to make
+            var tmpReq = new HistoricalDataRequest
+            {
+                Instrument = request.Instrument,
+                StartingDate = currentDate.AddDays(-1),
+                EndingDate = currentDate,
+                Frequency = BarSize.OneDay
+            };
+
+            //give the request a unique id
+            lock (_requestsLock)
+            {
+                int id;
+                do
                 {
-                    Instrument = request.Instrument,
-                    StartingDate = currentDate.AddDays(-1),
-                    EndingDate = currentDate,
-                    Frequency = BarSize.OneDay
-                };
+                    id = r.Next();
+                } while (_requests.ContainsKey(id));
+                tmpReq.AssignedID = id;
+                _requests.Add(tmpReq.AssignedID, tmpReq);
+            }
 
-                //give the request a unique id
+            var reqs = GetRequiredRequests(tmpReq);
+            //make sure the request is fulfillable with the available contracts, otherwise return empty-handed
+            if (reqs.Count == 0 || reqs.Count(x => x.Instrument.Expiration.HasValue && x.Instrument.Expiration.Value >= request.Date) == 0)
+            {
+                lock (_frontContractReturnLock)
+                {
+                    RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, null, currentDate));
+                }
                 lock (_requestsLock)
                 {
-                    int id;
-                    do
-                    {
-                        id = r.Next();
-                    } while (_requests.ContainsKey(id));
-                    tmpReq.AssignedID = id;
-                    _requests.Add(tmpReq.AssignedID, tmpReq);
+                    _requests.Remove(tmpReq.AssignedID);
                 }
-
-                var reqs = GetRequiredRequests(tmpReq);
-                //make sure the request is fulfillable with the available contracts, otherwise return empty-handed
-                if (reqs.Count == 0 || reqs.Count(x => x.Instrument.Expiration.HasValue && x.Instrument.Expiration.Value >= request.Date) == 0)
-                {
-                    lock (_frontContractReturnLock)
-                    {
-                        RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, null, currentDate));
-                    }
-                    lock (_requestsLock)
-                    {
-                        _requests.Remove(tmpReq.AssignedID);
-                    }
-                    return;
-                }
-
-                // add it to the collection of requests so we can access it later
-                _requestTypes.Add(tmpReq.AssignedID, false);
-
-                //add it to the front contract requests map
-                _frontContractRequestMap.Add(tmpReq.AssignedID, request);
-
-                //finally send out a request for all the data...when it arrives,
-                //we process it and return the required front future
-                foreach (HistoricalDataRequest req in reqs)
-                {
-                    lock (_dataUsesLock)
-                    {
-                        var kvp = new KeyValuePair<int, BarSize>(req.Instrument.ID.Value, req.Frequency);
-                        if (_dataUsesPending.ContainsKey(kvp))
-                            _dataUsesPending[kvp]++;
-                        else
-                            _dataUsesPending.Add(kvp, 1);
-                    }
-                    int requestID = _client.RequestHistoricalData(req);
-                    _histReqIDMap.Add(requestID, tmpReq.AssignedID);
-                }
+                return;
             }
+
+            // add it to the collection of requests so we can access it later
+            _requestTypes.Add(tmpReq.AssignedID, false);
+
+            //add it to the front contract requests map
+            _frontContractRequestMap.Add(tmpReq.AssignedID, request);
+
+            //finally send out a request for all the data...when it arrives,
+            //we process it and return the required front future
+            foreach (HistoricalDataRequest req in reqs)
+            {
+                lock (_dataUsesLock)
+                {
+                    var kvp = new KeyValuePair<int, BarSize>(req.Instrument.ID.Value, req.Frequency);
+                    if (_dataUsesPending.ContainsKey(kvp))
+                        _dataUsesPending[kvp]++;
+                    else
+                        _dataUsesPending.Add(kvp, 1);
+                }
+                int requestID = _client.RequestHistoricalData(req);
+                _histReqIDMap.Add(requestID, tmpReq.AssignedID);
+            }
+        }
+
+        /// <summary>
+        /// Finds the front contract for continuous futures with time-based roll.
+        /// </summary>
+        private void ProcessTimeBasedFrontContractRequest(FrontContractRequest request)
+        {
+            DateTime currentDate = request.Date ?? DateTime.Now;
+            var cf = request.Instrument.ContinuousFuture;
+
+            //if the roll-over is time based, we can find the appropriate contract programmatically
+            DateTime selectedDate = currentDate;
+
+            while (!cf.MonthIsUsed(selectedDate.Month))
+            {
+                selectedDate = selectedDate.AddMonths(1);
+            }
+
+            DateTime currentMonthsExpirationDate = cf.UnderlyingSymbol.ExpirationDate(selectedDate.Year, selectedDate.Month);
+            DateTime switchOverDate = currentMonthsExpirationDate;
+
+            Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
+
+            //the front contract
+            //find the switchover date
+            int daysBack = cf.RolloverDays;
+            while (daysBack > 0)
+            {
+                switchOverDate = switchOverDate.AddDays(-1);
+                if (calendar.isBusinessDay(switchOverDate))
+                    daysBack--;
+            }
+
+            //this month's contract has already been switched to the next one
+            int monthsLeft = 1;
+            int count = 0;
+            if (currentDate >= switchOverDate)
+            {
+                while (monthsLeft > 0)
+                {
+                    count++;
+                    if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
+                        monthsLeft--;
+                }
+                selectedDate = selectedDate.AddMonths(count);
+            }
+
+            //we found the "front" month, no go back the required number of months
+            //while skipping unused months
+            monthsLeft = cf.Month - 1;
+            count = 0;
+            while (monthsLeft > 0)
+            {
+                if (cf.MonthIsUsed(selectedDate.AddMonths(count).Month))
+                    monthsLeft--;
+                count++;
+            }
+            selectedDate = selectedDate.AddMonths(count);
+
+            //we got the month we want! find the contract
+            var searchFunc = new Func<Instrument, bool>(
+                x =>
+                    x.Expiration.HasValue &&
+                    x.Expiration.Value.Month == selectedDate.Month &&
+                    x.Expiration.Value.Year == selectedDate.Year &&
+                    x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol);
+
+            var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
+
+
+            var timer = new Timer(50) { AutoReset = false };
+            timer.Elapsed += (sender, e) =>
+            {
+                lock (_frontContractReturnLock)
+                {
+                    RaiseEvent(FoundFrontContract, this, new FoundFrontContractEventArgs(request.ID, contract, currentDate));
+                }
+            };
+            timer.Start();
         }
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;

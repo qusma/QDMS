@@ -297,6 +297,16 @@ namespace QDMSServer
 
             _originalRequests.TryAdd(request.AssignedID, request);
 
+            //request says to ignore the external data source, just send the request as-is to the local storage
+            if (request.LocalStorageOnly)
+            {
+                lock (_localStorageLock)
+                {
+                    _dataStorage.RequestHistoricalData(request);
+                }
+                return;
+            }
+
             //request is for fresh data ONLY -- send the request directly to the external data source
             if (request.ForceFreshData)
             {
@@ -312,16 +322,6 @@ namespace QDMSServer
                 }
 
                 ForwardHistoricalRequest(request);
-                return;
-            }
-
-            //request says to ignore the external data source, just send the request as-is to the local storage
-            if (request.LocalStorageOnly)
-            {
-                lock (_localStorageLock)
-                {
-                    _dataStorage.RequestHistoricalData(request);
-                }
                 return;
             }
 
@@ -388,46 +388,58 @@ namespace QDMSServer
                 }
                 else //we have SOME data available, check how it holds up, possibly split up into subrequests
                 {
-                    _subRequests.TryAdd(request.AssignedID, new List<HistoricalDataRequest>());
-
-                    //earlier data that may be needed
-                    HistoricalDataRequest newBackRequest = null;
-                    if (localDataInfo.EarliestDate > request.StartingDate)
-                    {
-                        newBackRequest = (HistoricalDataRequest)request.Clone();
-                        newBackRequest.EndingDate = localDataInfo.EarliestDate.AddMilliseconds(-request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
-                        newBackRequest.IsSubrequestFor = request.AssignedID;
-                        newBackRequest.AssignedID = GetUniqueRequestID();
-                        _subRequests[newBackRequest.IsSubrequestFor.Value].Add(newBackRequest);
-                    }
-
-                    //later data that may be needed
-                    HistoricalDataRequest newForwardRequest = null;
-                    if (localDataInfo.LatestDate < request.EndingDate)
-                    {
-                        //the local storage is insufficient, so we save the original request, make a copy,
-                        //modify it, and pass it to the external data source
-                        newForwardRequest = (HistoricalDataRequest)request.Clone();
-                        newForwardRequest.StartingDate = localDataInfo.LatestDate.AddMilliseconds(request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
-                        newForwardRequest.IsSubrequestFor = request.AssignedID;
-                        newForwardRequest.AssignedID = GetUniqueRequestID();
-                        _subRequests[newForwardRequest.IsSubrequestFor.Value].Add(newForwardRequest);
-                    }
-
-                    //we send these together, because too large of a delay between the two requests can cause problems
-                    if (newBackRequest != null)
-                    {
-                        ForwardHistoricalRequest(newBackRequest);
-                    }
-                    if (newForwardRequest != null)
-                    {
-                        ForwardHistoricalRequest(newForwardRequest);
-                    }
+                    GenerateSubRequests(request, localDataInfo);
                 }
             }
         }
 
-        //Sends off a historical data reques to the datasource that needs to fulfill it
+        /// <summary>
+        /// When a data request can be partly filled by the local db,
+        /// we need to split it into one or two sub-requests for the parts that
+        /// are not locally available. This method does that and forwards the sub-requests.
+        /// </summary>
+        private void GenerateSubRequests(HistoricalDataRequest request, StoredDataInfo localDataInfo)
+        {
+            _subRequests.TryAdd(request.AssignedID, new List<HistoricalDataRequest>());
+
+            //earlier data that may be needed
+            HistoricalDataRequest newBackRequest = null;
+            if (localDataInfo.EarliestDate > request.StartingDate)
+            {
+                newBackRequest = (HistoricalDataRequest)request.Clone();
+                newBackRequest.EndingDate = localDataInfo.EarliestDate.AddMilliseconds(-request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
+                newBackRequest.IsSubrequestFor = request.AssignedID;
+                newBackRequest.AssignedID = GetUniqueRequestID();
+                _subRequests[newBackRequest.IsSubrequestFor.Value].Add(newBackRequest);
+            }
+
+            //later data that may be needed
+            HistoricalDataRequest newForwardRequest = null;
+            if (localDataInfo.LatestDate < request.EndingDate)
+            {
+                //the local storage is insufficient, so we save the original request, make a copy,
+                //modify it, and pass it to the external data source
+                newForwardRequest = (HistoricalDataRequest)request.Clone();
+                newForwardRequest.StartingDate = localDataInfo.LatestDate.AddMilliseconds(request.Frequency.ToTimeSpan().TotalMilliseconds / 2);
+                newForwardRequest.IsSubrequestFor = request.AssignedID;
+                newForwardRequest.AssignedID = GetUniqueRequestID();
+                _subRequests[newForwardRequest.IsSubrequestFor.Value].Add(newForwardRequest);
+            }
+
+            //we send these together, because too large of a delay between the two requests can cause problems
+            if (newBackRequest != null)
+            {
+                ForwardHistoricalRequest(newBackRequest);
+            }
+            if (newForwardRequest != null)
+            {
+                ForwardHistoricalRequest(newForwardRequest);
+            }
+        }
+
+        /// <summary>
+        /// Sends off a historical data reques to the datasource that needs to fulfill it
+        /// </summary>
         private void ForwardHistoricalRequest(HistoricalDataRequest request)
         {
             string timezone = request.Instrument.Exchange == null ? "UTC" : request.Instrument.Exchange.Timezone;
