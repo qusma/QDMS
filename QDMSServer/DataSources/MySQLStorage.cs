@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using MySql.Data.MySqlClient;
 using NLog;
@@ -132,8 +133,6 @@ namespace QDMSServer.DataSources
                 cmd.Parameters.AddWithValue("Start", startDate);
                 cmd.Parameters.AddWithValue("End", endDate);
 
-                cmd.ExecuteNonQuery();
-
                 var data = new List<OHLCBar>();
 
                 var sessionEndTimes = instrument.SessionEndTimesByDay();
@@ -218,8 +217,10 @@ namespace QDMSServer.DataSources
             bool needsAdjustment = false;
             using (var cmd = new MySqlCommand("", connection))
             {
+                var sb = new StringBuilder();
+                sb.Append("START TRANSACTION;");
                 int tmpCounter = 0;
-                cmd.CommandText = "START TRANSACTION;";
+                
                 for (int i = 0; i < data.Count; i++)
                 {
                     var bar = data[i];
@@ -229,7 +230,7 @@ namespace QDMSServer.DataSources
                         bar.DT = bar.DT.Date; 
                     }
 
-                    cmd.CommandText += string.Format("{15} INTO data " +
+                   sb.AppendFormat("{15} INTO data " +
                                        "(DT, InstrumentID, Frequency, Open, High, Low, Close, AdjOpen, AdjHigh, AdjLow, AdjClose, " +
                                        "Volume, OpenInterest, Dividend, Split) VALUES (" +
                                        "'{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14});",
@@ -259,21 +260,26 @@ namespace QDMSServer.DataSources
                     //periodically insert...not sure what the optimal number of rows is
                     if (tmpCounter > 1000)
                     {
-                        cmd.CommandText += "COMMIT;";
+                        sb.Append("COMMIT;");
+                        cmd.CommandText = sb.ToString();
                         try
                         {
-                            cmd.ExecuteNonQuery();
+                            cmd.ExecuteNonQueryAsync();
                         }
                         catch (Exception ex)
                         {
                             Application.Current.Dispatcher.Invoke(() =>
                                 _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
                         }
-                        cmd.CommandText = "START TRANSACTION;";
+
+                        sb.Clear();
+                        sb.Append("START TRANSACTION;");
                         tmpCounter = 0;
                     }
                 }
-                cmd.CommandText += "COMMIT;";
+
+                sb.Append("COMMIT;");
+                cmd.CommandText = sb.ToString();
                 try
                 {
                     cmd.ExecuteNonQuery();
@@ -414,17 +420,21 @@ namespace QDMSServer.DataSources
 
             using (var cmd = new MySqlCommand("", connection))
             {
-                cmd.CommandText = "START TRANSACTION;";
+                var sb = new StringBuilder();
+
+                sb.Append("START TRANSACTION;");
                 for (int i = 0; i < bars.Count; i++)
                 {
-                    cmd.CommandText += string.Format("DELETE FROM data WHERE InstrumentID = {0} AND Frequency = {1} AND DT = '{2}';", 
+                    sb.AppendFormat("DELETE FROM data WHERE InstrumentID = {0} AND Frequency = {1} AND DT = '{2}';", 
                         instrument.ID, 
                         (int)frequency,
                         frequency < BarSize.OneDay 
                         ? bars[i].DT.ToString("yyyy-MM-dd HH:mm:ss.fff")
                         : bars[i].DT.ToString("yyyy-MM-dd")); //for frequencies greater than a day, we don't care about time
                 }
-                cmd.CommandText += "COMMIT;";
+                sb.Append("COMMIT;");
+
+                cmd.CommandText = sb.ToString();
                 cmd.ExecuteNonQuery();
                 
                 //check if there's any data left
