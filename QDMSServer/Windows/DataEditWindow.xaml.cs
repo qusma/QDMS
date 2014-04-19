@@ -92,7 +92,7 @@ namespace QDMSServer
 
                 //find largest significant decimal by sampling the prices at the start and end of the series
                 var decPlaces = new List<int>();
-                for (int i = 0; i < 20; i++)
+                for (int i = 0; i < Math.Min(bars.Count, 20); i++)
                 {
                     decPlaces.Add(bars[i].Open.CountDecimalPlaces());
                     decPlaces.Add(bars[bars.Count - 1 - i].Close.CountDecimalPlaces());
