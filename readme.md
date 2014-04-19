@@ -36,7 +36,7 @@ Currently Supported Data Sources:
 
 Requirements:
 ------------------------
-* A reasonably recent version of MySQL.
+* MySQL or SQL Server (2008+)
 * .NET 4.5
 
 Planned features/improvements:
