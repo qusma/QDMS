@@ -184,9 +184,9 @@ namespace QDMSClient
         /// </summary>
         public void PushData(DataAdditionRequest request)
         {
-            if (request.Instrument.ID == null)
+            if (request.Instrument == null || request.Instrument.ID == null)
             {
-                RaiseEvent(Error, null, new ErrorArgs(-1, "Instrument must have an ID"));
+                RaiseEvent(Error, null, new ErrorArgs(-1, "Instrument must be set and have an ID."));
                 return;
             }
 
@@ -752,60 +752,63 @@ namespace QDMSClient
         /// <returns>A list of instruments matching these features.</returns>
         public List<Instrument> FindInstruments(Instrument instrument = null)
         {
-            using (var context = ZmqContext.Create())
+            if (!Connected)
             {
-                using (ZmqSocket s = context.CreateSocket(SocketType.REQ))
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request instruments - not connected."));
+                return new List<Instrument>();
+            }
+
+            using (ZmqSocket s = _context.CreateSocket(SocketType.REQ))
+            {
+                s.Connect(string.Format("tcp://{0}:{1}", _host, _instrumentServerPort));
+                var ms = new MemoryStream();
+
+                if (instrument == null) //all contracts
                 {
-                    s.Connect(string.Format("tcp://{0}:{1}", _host, _instrumentServerPort));
-                    var ms = new MemoryStream();
+                    s.Send("ALL", Encoding.UTF8);
+                }
+                else //an actual search
+                {
+                    s.SendMore("SEARCH", Encoding.UTF8); //first we send a search request
 
-                    if (instrument == null) //all contracts
-                    {
-                        s.Send("ALL", Encoding.UTF8);
-                    }
-                    else //an actual search
-                    {
-                        s.SendMore("SEARCH", Encoding.UTF8); //first we send a search request
+                    //then we need to serialize and send the instrument
+                    s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                }
 
-                        //then we need to serialize and send the instrument
-                        s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
-                    }
+                //first we receive the size of the final uncompressed byte[] array
+                int size;
+                byte[] sizeBuffer = s.Receive(null, TimeSpan.FromSeconds(1), out size);
+                if (size <= 0)
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
+                    return new List<Instrument>();
+                }
 
-                    //first we receive the size of the final uncompressed byte[] array
-                    int size;
-                    byte[] sizeBuffer = s.Receive(null, TimeSpan.FromSeconds(1), out size);
-                    if (size <= 0)
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
-                        return new List<Instrument>();
-                    }
+                int outputSize = BitConverter.ToInt32(sizeBuffer, 0);
 
-                    int outputSize = BitConverter.ToInt32(sizeBuffer, 0);
+                //then the actual data
+                byte[] buffer = s.Receive(null, TimeSpan.FromSeconds(1), out size);
+                if (size <= 0)
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
+                    return new List<Instrument>();
+                }
 
-                    //then the actual data
-                    byte[] buffer = s.Receive(null, TimeSpan.FromSeconds(1), out size);
-                    if (size <= 0)
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
-                        return new List<Instrument>();
-                    }
+                try
+                {
+                    //then we process it by first decompressing
+                    ms.SetLength(0);
+                    byte[] decoded = LZ4Codec.Decode(buffer, 0, buffer.Length, outputSize);
+                    ms.Write(decoded, 0, decoded.Length);
+                    ms.Position = 0;
 
-                    try
-                    {
-                        //then we process it by first decompressing
-                        ms.SetLength(0);
-                        byte[] decoded = LZ4Codec.Decode(buffer, 0, buffer.Length, outputSize);
-                        ms.Write(decoded, 0, decoded.Length);
-                        ms.Position = 0;
-
-                        //and finally deserializing
-                        return Serializer.Deserialize<List<Instrument>>(ms);
-                    }
-                    catch (Exception ex)
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Error processing instrument data: " + ex.Message));
-                        return new List<Instrument>();
-                    }
+                    //and finally deserializing
+                    return Serializer.Deserialize<List<Instrument>>(ms);
+                }
+                catch (Exception ex)
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Error processing instrument data: " + ex.Message));
+                    return new List<Instrument>();
                 }
             }
         }
