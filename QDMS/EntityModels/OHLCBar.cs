@@ -62,6 +62,30 @@ namespace QDMS
             }
         }
 
+        [ProtoMember(91)]
+        [NotMapped]
+        public long? LongOpenDate
+        {
+            get
+            {
+                return DTOpen.HasValue ? DTOpen.Value.Ticks : (long?)null;
+            }
+            set
+            {
+                DTOpen = value.HasValue
+                    ? DateTime.FromBinary(value.Value)
+                    : (DateTime?)null;
+            }
+        }
+
+        /// <summary>
+        /// Date/Time of the bar open.
+        /// </summary>
+        public DateTime? DTOpen { get; set; }
+
+        /// <summary>
+        /// Date/Time of the bar close.
+        /// </summary>
         public DateTime DT { get; set; }
 
         [ProtoMember(10)]

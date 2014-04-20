@@ -30,6 +30,7 @@ namespace EntityData
 
 
             modelBuilder.Entity<OHLCBar>().Property(x => x.DT).HasPrecision(3);
+            modelBuilder.Entity<OHLCBar>().Property(x => x.DTOpen).HasPrecision(3);
             modelBuilder.Entity<OHLCBar>().Property(x => x.Open).HasPrecision(16, 8);
             modelBuilder.Entity<OHLCBar>().Property(x => x.High).HasPrecision(16, 8);
             modelBuilder.Entity<OHLCBar>().Property(x => x.Low).HasPrecision(16, 8);

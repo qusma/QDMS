@@ -77,6 +77,10 @@
     <Compile Include="Migrations\201401291813551_AddDataUpdateJobs.Designer.cs">
       <DependentUpon>201401291813551_AddDataUpdateJobs.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201404201506394_AddBarDTOpen.cs" />
+    <Compile Include="Migrations\201404201506394_AddBarDTOpen.Designer.cs">
+      <DependentUpon>201404201506394_AddBarDTOpen.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
     <Compile Include="MyDBContext.cs" />
@@ -110,6 +114,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201401291813551_AddDataUpdateJobs.resx">
       <DependentUpon>201401291813551_AddDataUpdateJobs.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201404201506394_AddBarDTOpen.resx">
+      <DependentUpon>201404201506394_AddBarDTOpen.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
