@@ -61,6 +61,12 @@
     <Compile Include="Enums\RelativeMonth.cs" />
     <Compile Include="Enums\WeekDayCount.cs" />
     <Compile Include="EventArguments\FoundFrontContractEventArgs.cs" />
+    <Compile Include="ExtensionMethods\DateTimeExtensions.cs" />
+    <Compile Include="ExtensionMethods\DayOfWeekExtensions.cs" />
+    <Compile Include="ExtensionMethods\DecimalExtensions.cs" />
+    <Compile Include="ExtensionMethods\GenericExtensions.cs" />
+    <Compile Include="ExtensionMethods\InstrumentExtensions.cs" />
+    <Compile Include="ExtensionMethods\OHLCBarExtensions.cs" />
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
     <Compile Include="Interfaces\IDataClient.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
@@ -93,7 +99,6 @@
     <Compile Include="Interfaces\IHistoricalDataSource.cs" />
     <Compile Include="Interfaces\IDataStorage.cs" />
     <Compile Include="Interfaces\IRealTimeDataSource.cs" />
-    <Compile Include="Utils\MyExtensions.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
