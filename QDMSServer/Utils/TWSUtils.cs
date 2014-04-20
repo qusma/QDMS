@@ -56,7 +56,7 @@ namespace QDMSServer
         {
             var bar = new OHLCBar
             {
-                DT = e.Date,
+                DTOpen = e.Date,
                 Open = e.Open,
                 High = e.High,
                 Low = e.Low,
