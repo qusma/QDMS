@@ -125,7 +125,7 @@ namespace QDMSClient
 
         public void Dispose()
         {
-            if (Connected) Disconnect();
+            Disconnect();
 
             if (_reqSocket != null)
             {
@@ -310,14 +310,25 @@ namespace QDMSClient
             _reqSocket.Connect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
 
             //start off by sending a ping to make sure everything is regular
-            _reqSocket.SendMore("", Encoding.UTF8);
-            _reqSocket.Send("PING", Encoding.UTF8);
+            string reply = "";
+            try
+            {
+                _reqSocket.SendMore("", Encoding.UTF8);
+                _reqSocket.Send("PING", Encoding.UTF8);
 
-            _reqSocket.Receive(Encoding.UTF8, TimeSpan.FromSeconds(1)); //empty frame starts the REP message
-            string reply = _reqSocket.Receive(Encoding.UTF8, TimeSpan.FromMilliseconds(50));
+                _reqSocket.Receive(Encoding.UTF8, TimeSpan.FromSeconds(1)); //empty frame starts the REP message
+                reply = _reqSocket.Receive(Encoding.UTF8, TimeSpan.FromMilliseconds(50));
+            }
+            catch
+            {
+                Dispose();
+            }
+
+            
             if (reply != "PONG") //server didn't reply or replied incorrectly
             {
                 _reqSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
+                _reqSocket.Close();
                 {
                     RaiseEvent(Error, this, new ErrorArgs(-1, "Could not connect to server."));
                     return;
@@ -356,9 +367,16 @@ namespace QDMSClient
 
             using (var poller = new Poller(new[] { _reqSocket }))
             {
-                while (_running)
+                try
                 {
-                    poller.Poll(timeout);
+                    while (_running)
+                    {
+                        poller.Poll(timeout);
+                    }
+                }
+                catch
+                {
+                    Dispose();
                 }
             }
         }
@@ -448,22 +466,52 @@ namespace QDMSClient
                 _heartBeatTimer.Stop();
 
             if(_dealerLoopThread != null && _dealerLoopThread.ThreadState == ThreadState.Running)
-                _dealerLoopThread.Join();
+                _dealerLoopThread.Join(10);
 
             if (_realTimeDataReceiveLoopThread != null && _realTimeDataReceiveLoopThread.ThreadState == ThreadState.Running)
-            _realTimeDataReceiveLoopThread.Join();
+                _realTimeDataReceiveLoopThread.Join(10);
 
             if (_reqLoopThread != null && _reqLoopThread.ThreadState == ThreadState.Running)
-            _reqLoopThread.Join();
-            
-            if(_reqSocket != null)
-                _reqSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
+                _reqLoopThread.Join(10);
+
+            if (_reqSocket != null)
+            {
+                try
+                {
+                    _reqSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimeRequestPort));
+                }
+                catch
+                {
+                    _reqSocket.Dispose();
+                    _reqSocket = null;
+                }
+            }
 
             if (_subSocket != null)
-                _subSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimePublishPort));
+            {
+                try
+                {
+                    _subSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _realTimePublishPort));
+                }
+                catch
+                {
+                    _subSocket.Dispose();
+                    _subSocket = null;
+                }
+            }
 
             if (_dealerSocket != null)
-                _dealerSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _historicalDataPort));
+            {
+                try
+                {
+                    _dealerSocket.Disconnect(string.Format("tcp://{0}:{1}", _host, _historicalDataPort));
+                }
+                catch
+                {
+                    _dealerSocket.Dispose();
+                    _dealerSocket = null;
+                }
+            }
         }
 
         /// <summary>
@@ -477,26 +525,33 @@ namespace QDMSClient
             using (var poller = new Poller(new[] { _dealerSocket }))
             {
                 var ms = new MemoryStream();
-                while (_running)
+                try
                 {
-                    //send any pending historical data requests
-                    if (!_historicalDataRequests.IsEmpty)
+                    while (_running)
                     {
-                        lock (_dealerSocketLock)
+                        //send any pending historical data requests
+                        if (!_historicalDataRequests.IsEmpty)
                         {
-                            HistoricalDataRequest request;
-                            bool success = _historicalDataRequests.TryDequeue(out request);
-                            if (success)
+                            lock (_dealerSocketLock)
                             {
-                                byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
-                                _dealerSocket.SendMore("HISTREQ", Encoding.UTF8);
-                                _dealerSocket.Send(buffer);
+                                HistoricalDataRequest request;
+                                bool success = _historicalDataRequests.TryDequeue(out request);
+                                if (success)
+                                {
+                                    byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
+                                    _dealerSocket.SendMore("HISTREQ", Encoding.UTF8);
+                                    _dealerSocket.Send(buffer);
+                                }
                             }
                         }
-                    }
 
-                    //poller raises event when there's data coming in. See _dealerSocket_ReceiveReady()
-                    poller.Poll(timeout);
+                        //poller raises event when there's data coming in. See _dealerSocket_ReceiveReady()
+                        poller.Poll(timeout);
+                    }
+                }
+                catch
+                {
+                    Dispose();
                 }
             }
         }
@@ -510,9 +565,16 @@ namespace QDMSClient
 
             using (var poller = new Poller(new[] { _subSocket }))
             {
-                while (_running)
+                try
                 {
-                    poller.Poll(timeout);
+                    while (_running)
+                    {
+                        poller.Poll(timeout);
+                    }
+                }
+                catch
+                {
+                    Dispose();
                 }
             }
         }
@@ -759,18 +821,22 @@ namespace QDMSClient
                 return;
             }
 
-            lock (_reqSocketLock)
+            if (_reqSocket != null)
             {
-                //two part message:
-                //1: "CANCEL"
-                //2: serialized Instrument object
-                var ms = new MemoryStream();
-                _reqSocket.SendMore("", Encoding.UTF8);
-                _reqSocket.SendMore("CANCEL", Encoding.UTF8);
-                _reqSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                lock (_reqSocketLock)
+                {
+                    //two part message:
+                    //1: "CANCEL"
+                    //2: serialized Instrument object
+                    var ms = new MemoryStream();
+                    _reqSocket.SendMore("", Encoding.UTF8);
+                    _reqSocket.SendMore("CANCEL", Encoding.UTF8);
+                    _reqSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                }
             }
 
-            _subSocket.Unsubscribe(Encoding.UTF8.GetBytes(instrument.Symbol));
+            if(_subSocket != null)
+                _subSocket.Unsubscribe(Encoding.UTF8.GetBytes(instrument.Symbol));
 
             lock (_realTimeDataStreamsLock)
             {
