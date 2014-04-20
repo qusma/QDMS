@@ -171,7 +171,6 @@ namespace QDMSServer.DataSources
                 {
                     bar.DT = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day, 23, 59, 59);
                 }
-                bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
             }
             else
             {
