@@ -683,5 +683,11 @@ namespace QDMSServer
 
             _scheduler.ResumeAll();
         }
+
+        private void AboutBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new AboutWindow();
+            window.ShowDialog();
+        }
     }
 }

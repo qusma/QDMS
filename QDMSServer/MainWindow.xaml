@@ -108,6 +108,10 @@
                 <Separator/>
                 <MenuItem Header="Settings" x:Name="BtnSettings" Click="BtnSettings_OnItemClick" />
             </MenuItem>
+
+            <MenuItem Header="_Help">
+                <MenuItem Header="About" x:Name="AboutBtn" Click="AboutBtn_Click" />
+            </MenuItem>
         </Menu>
 
 
