@@ -37,7 +37,10 @@ namespace QDMSServer
             SqlServerAuthenticationRadioBtn.IsChecked = !Properties.Settings.Default.sqlServerUseWindowsAuthentication;
 
             SqlServerHostTextBox.Text = Properties.Settings.Default.sqlServerHost;
-            SqlServerUsernameTextBox.Text = Properties.Settings.Default.sqlServerUsername;
+            SqlServerUsernameTextBox.Text = 
+                string.IsNullOrEmpty(Properties.Settings.Default.sqlServerUsername)
+                    ? Properties.Settings.Default.sqlServerUsername
+                    : "localhost\\SQLEXPRESS";
             SqlServerPasswordTextBox.Password = "asdf";
         }
 
