@@ -56,12 +56,12 @@ namespace QDMSServer
 
         public ObservableDictionary()
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>();
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection();
         }
 
         public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> dictionary)
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>();
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection();
 
             foreach (KeyValuePair<TKey, TValue> entry in dictionary)
                 DoAddEntry(entry.Key, entry.Value);
@@ -69,12 +69,12 @@ namespace QDMSServer
 
         public ObservableDictionary(IEqualityComparer<TKey> comparer)
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>(comparer);
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection(comparer);
         }
 
         public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> dictionary, IEqualityComparer<TKey> comparer)
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>(comparer);
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection(comparer);
 
             foreach (KeyValuePair<TKey, TValue> entry in dictionary)
                 DoAddEntry(entry.Key, entry.Value);
@@ -172,7 +172,7 @@ namespace QDMSServer
 
         public IEnumerator GetEnumerator()
         {
-            return new Enumerator<TKey, TValue>(this, false);
+            return new Enumerator(this, false);
         }
 
         public bool Remove(TKey key)
@@ -430,7 +430,7 @@ namespace QDMSServer
 
         IDictionaryEnumerator IDictionary.GetEnumerator()
         {
-            return new Enumerator<TKey, TValue>(this, true);
+            return new Enumerator(this, true);
         }
 
         bool IDictionary.IsFixedSize
@@ -547,7 +547,7 @@ namespace QDMSServer
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
-            return new Enumerator<TKey, TValue>(this, false);
+            return new Enumerator(this, false);
         }
 
         #endregion IEnumerable<KeyValuePair<TKey, TValue>>
@@ -623,7 +623,7 @@ namespace QDMSServer
 
         #region KeyedDictionaryEntryCollection<TKey>
 
-        protected class KeyedDictionaryEntryCollection<TKey> : KeyedCollection<TKey, DictionaryEntry>
+        protected class KeyedDictionaryEntryCollection : KeyedCollection<TKey, DictionaryEntry>
         {
             #region constructors
 
@@ -660,7 +660,7 @@ namespace QDMSServer
         #region Enumerator
 
         [Serializable, StructLayout(LayoutKind.Sequential)]
-        public struct Enumerator<TKey, TValue> : IEnumerator<KeyValuePair<TKey, TValue>>, IDisposable, IDictionaryEnumerator, IEnumerator
+        public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>, IDisposable, IDictionaryEnumerator, IEnumerator
         {
             #region constructors
 
@@ -812,7 +812,7 @@ namespace QDMSServer
 
         #region fields
 
-        protected KeyedDictionaryEntryCollection<TKey> KeyedEntryCollection;
+        protected KeyedDictionaryEntryCollection KeyedEntryCollection;
 
         private int _countCache = 0;
         private Dictionary<TKey, TValue> _dictionaryCache = new Dictionary<TKey, TValue>();
