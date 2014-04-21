@@ -201,7 +201,7 @@
                                Margin="10,12,10,30" VerticalAlignment="Stretch" Grid.Row="1" Grid.RowSpan="2" CanUserAddRows="False">
 
                         <DataGrid.Columns>
-                            <DataGridComboBoxColumn SelectedItemBinding="{Binding Path=OpeningDay}" SortDirection="Ascending" Header="Close" Width="65" ItemsSource="{Binding Source={StaticResource DOTWEnum}}" />
+                            <DataGridComboBoxColumn SelectedItemBinding="{Binding Path=OpeningDay}" SortDirection="Ascending" Header="Open" Width="65" ItemsSource="{Binding Source={StaticResource DOTWEnum}}" />
 
                             <DataGridTemplateColumn  Header="Time" Width="65">
                                 <DataGridTemplateColumn.CellTemplate>
