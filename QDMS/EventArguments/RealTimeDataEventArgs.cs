@@ -16,6 +16,16 @@ namespace QDMS
         /// <summary>
         /// Real time bar event arguments.
         /// </summary>
+        /// <param name="instrumentID"></param>
+        /// <param name="time">The time at the opening of the bar.</param>
+        /// <param name="open"></param>
+        /// <param name="high"></param>
+        /// <param name="low"></param>
+        /// <param name="close"></param>
+        /// <param name="volume"></param>
+        /// <param name="wap"></param>
+        /// <param name="count"></param>
+        /// <param name="requestID"></param>
         public RealTimeDataEventArgs(int instrumentID, long time, decimal open, decimal high, decimal low, decimal close, long volume, double wap, int count, int requestID)
         {
             InstrumentID = instrumentID;
