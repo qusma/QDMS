@@ -15,19 +15,25 @@ using QDMS;
 
 namespace QDMSServer
 {
-    
     public partial class AddInstrumentManuallyWindow
     {
         public Instrument TheInstrument { get; set; }
+
         public ObservableCollection<CheckBoxTag> Tags { get; set; }
-        private readonly Instrument _originalInstrument;
+
         public ObservableCollection<Exchange> Exchanges { get; set; }
+
         public ObservableCollection<KeyValuePair<int, string>> ContractMonths { get; set; }
+
+
+        private List<InstrumentSession> _originalSessions;
         public bool InstrumentAdded = false;
         private readonly bool _addingNew;
+        private MyDBContext _context;
+
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="instrument">If we're updating or cloning an instrument, pass it here.</param>
         /// <param name="addingNew">True if adding a new instrument. False if we're updating an instrument.</param>
@@ -51,32 +57,32 @@ namespace QDMSServer
             DataContext = this;
             _addingNew = addingNew;
 
-            var context = new MyDBContext();
-
-
+            _context = new MyDBContext();
 
             if (instrument != null)
             {
-                context.Instruments.Attach(instrument);
-                context.Entry(instrument).Reload();
-                if(instrument.Exchange != null)
-                    context.Entry(instrument.Exchange).Reload();
+                _context.Instruments.Attach(instrument);
+                _context.Entry(instrument).Reload();
+                if (instrument.Exchange != null)
+                    _context.Entry(instrument.Exchange).Reload();
 
-                TheInstrument = (Instrument)instrument.Clone();
+                TheInstrument = instrument;
                 if (TheInstrument.Tags == null) TheInstrument.Tags = new List<Tag>();
                 if (TheInstrument.Sessions == null) TheInstrument.Sessions = new List<InstrumentSession>();
                 TheInstrument.Sessions = TheInstrument.Sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
 
+                _originalSessions = TheInstrument.Sessions.ToList();
+
                 if (TheInstrument.IsContinuousFuture)
                 {
-                    TheInstrument.ContinuousFuture = (ContinuousFuture) instrument.ContinuousFuture.Clone();
+                    TheInstrument.ContinuousFuture = (ContinuousFuture)instrument.ContinuousFuture.Clone();
                 }
             }
             else
             {
-                TheInstrument = new Instrument 
+                TheInstrument = new Instrument
                 {
-                    Tags = new List<Tag>(), 
+                    Tags = new List<Tag>(),
                     Sessions = new List<InstrumentSession>()
                 };
 
@@ -92,7 +98,7 @@ namespace QDMSServer
             }
 
             Tags = new ObservableCollection<CheckBoxTag>();
-            foreach (Tag t in context.Tags)
+            foreach (Tag t in _context.Tags)
             {
                 Tags.Add(new CheckBoxTag(t, TheInstrument.Tags.Contains(t)));
             }
@@ -106,22 +112,18 @@ namespace QDMSServer
             {
                 Title = "Modify Instrument";
                 AddBtn.Content = "Modify";
-                _originalInstrument = instrument;
             }
-
-            
 
             Exchanges = new ObservableCollection<Exchange>();
 
-            var exchangeList = context.Exchanges.AsEnumerable().OrderBy(x => x.Name);
+            var exchangeList = _context.Exchanges.AsEnumerable().OrderBy(x => x.Name);
             foreach (Exchange e in exchangeList)
             {
                 Exchanges.Add(e);
             }
 
-
             //fill template box
-            var templates = context.SessionTemplates.Include("Sessions").ToList();
+            var templates = _context.SessionTemplates.Include("Sessions").ToList();
             foreach (SessionTemplate t in templates)
             {
                 TemplateComboBox.Items.Add(t);
@@ -150,7 +152,7 @@ namespace QDMSServer
                 OptionTypeComboBox.Items.Add(t);
             }
 
-            var dataSources = context.Datasources.AsEnumerable();
+            var dataSources = _context.Datasources.AsEnumerable();
             foreach (Datasource d in dataSources)
             {
                 DatasourceComboBox.Items.Add(d);
@@ -163,12 +165,12 @@ namespace QDMSServer
             var rolloverTypes = MyUtils.GetEnumValues<ContinuousFuturesRolloverType>();
             foreach (ContinuousFuturesRolloverType t in rolloverTypes)
             {
-                if(t != ContinuousFuturesRolloverType.Time)
+                if (t != ContinuousFuturesRolloverType.Time)
                     RolloverRuleType.Items.Add(t);
             }
 
             //fill the RootSymbolComboBox
-            foreach (UnderlyingSymbol s in context.UnderlyingSymbols)
+            foreach (UnderlyingSymbol s in _context.UnderlyingSymbols)
             {
                 RootSymbolComboBox.Items.Add(s);
             }
@@ -192,131 +194,113 @@ namespace QDMSServer
                     RolloverRule.IsChecked = true;
                 }
             }
-            
-            context.Dispose();
         }
-
 
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
-            using (var context = new MyDBContext())
+            if (_addingNew &&
+                _context.Instruments.Any(
+                    x => x.DatasourceID == TheInstrument.DatasourceID &&
+                            x.ExchangeID == TheInstrument.ExchangeID &&
+                            x.Symbol == TheInstrument.Symbol &&
+                            x.Expiration == TheInstrument.Expiration)
+                )
             {
-                if (_addingNew &&
-                    context.Instruments.Any(
-                        x => x.DatasourceID == TheInstrument.DatasourceID &&
-                             x.ExchangeID == TheInstrument.ExchangeID &&
-                             x.Symbol == TheInstrument.Symbol &&
-                             x.Expiration == TheInstrument.Expiration)
-                    )
+                //there's already an instrument with this key
+                MessageBox.Show("Instrument already exists. Change datasource, exchange, or symbol.");
+                return;
+            }
+
+            //check that if the user picked a template-based session set, he actually selected one of the templates
+            if (TheInstrument.SessionsSource == SessionsSource.Template && TheInstrument.SessionTemplateID == -1)
+            {
+                MessageBox.Show("You must pick a session template.");
+                return;
+            }
+
+            if (TheInstrument.IsContinuousFuture && TheInstrument.Type != InstrumentType.Future)
+            {
+                MessageBox.Show("Continuous futures type must be Future.");
+                return;
+            }
+
+            if (TheInstrument.Datasource == null)
+            {
+                MessageBox.Show("You must select a data source.");
+                return;
+            }
+
+            if (TheInstrument.Multiplier == null)
+            {
+                MessageBox.Show("Must have a multiplier value.");
+                return;
+            }
+
+            TheInstrument.Tags.Clear();
+
+            foreach (Tag t in Tags.Where(x => x.IsChecked).Select(x => x.Item))
+            {
+                _context.Tags.Attach(t);
+                TheInstrument.Tags.Add(t);
+            }
+
+            ContinuousFuture tmpCF = null;
+
+            if (_addingNew)
+            {
+                if (TheInstrument.Exchange != null) _context.Exchanges.Attach(TheInstrument.Exchange);
+                if (TheInstrument.PrimaryExchange != null) _context.Exchanges.Attach(TheInstrument.PrimaryExchange);
+                _context.Datasources.Attach(TheInstrument.Datasource);
+
+                if (TheInstrument.IsContinuousFuture)
                 {
-                    //there's already an instrument with this key
-                    MessageBox.Show("Instrument already exists. Change datasource, exchange, or symbol.");
-                    return;
+                    tmpCF = TheInstrument.ContinuousFuture; //EF can't handle circular references, so we hack around it
+                    TheInstrument.ContinuousFuture = null;
+                    TheInstrument.ContinuousFutureID = null;
+                }
+                _context.Instruments.Add(TheInstrument);
+            }
+            else //simply manipulating an existing instrument
+            {
+                //if (TheInstrument.Exchange != null)
+                //    _context.Exchanges.Attach(TheInstrument.Exchange);
+                //if (TheInstrument.PrimaryExchange != null)
+                //    _context.Exchanges.Attach(TheInstrument.PrimaryExchange);
+
+                //_context.Datasources.Attach(TheInstrument.Datasource);
+
+                //_context.Instruments.Attach(_originalInstrument);
+                //_context.Entry(_originalInstrument).CurrentValues.SetValues(TheInstrument);
+
+                if (TheInstrument.IsContinuousFuture)
+                {
+                    _context.ContinuousFutures.Attach(TheInstrument.ContinuousFuture);
                 }
 
-                //check that if the user picked a template-based session set, he actually selected one of the templates
-                if (TheInstrument.SessionsSource == SessionsSource.Template && TheInstrument.SessionTemplateID == -1)
+                //make sure any "loose" sessions are deleted
+                foreach (InstrumentSession s in _originalSessions.Where(s => TheInstrument.Sessions.All(x => x.ID != s.ID)))
                 {
-                    MessageBox.Show("You must pick a session template.");
-                    return;
-                }
-
-                if (TheInstrument.IsContinuousFuture && TheInstrument.Type != InstrumentType.Future)
-                {
-                    MessageBox.Show("Continuous futures type must be Future.");
-                    return;
-                }
-
-                if (TheInstrument.Datasource == null)
-                {
-                    MessageBox.Show("You must select a data source.");
-                    return;
-                }
-
-                if (TheInstrument.Multiplier == null)
-                {
-                    MessageBox.Show("Must have a multiplier value.");
-                    return;
-                }
-
-                TheInstrument.Tags.Clear();
-            
-                foreach (Tag t in Tags.Where(x=> x.IsChecked).Select(x => x.Item))
-                {
-                    context.Tags.Attach(t);
-                    TheInstrument.Tags.Add(t);
-                }
-
-                ContinuousFuture tmpCF = null;
-
-                if (_addingNew)
-                {
-                    if (TheInstrument.Exchange != null) context.Exchanges.Attach(TheInstrument.Exchange);
-                    if (TheInstrument.PrimaryExchange != null) context.Exchanges.Attach(TheInstrument.PrimaryExchange);
-                    context.Datasources.Attach(TheInstrument.Datasource);
-
-                    if (TheInstrument.IsContinuousFuture)
-                    {
-                        tmpCF = TheInstrument.ContinuousFuture; //EF can't handle circular references, so we hack around it
-                        TheInstrument.ContinuousFuture = null;
-                        TheInstrument.ContinuousFutureID = null;
-                    }
-                    context.Instruments.Add(TheInstrument);
-                }
-                else //simply manipulating an existing instrument
-                {
-                    if (TheInstrument.Exchange != null)
-                        context.Exchanges.Attach(TheInstrument.Exchange);
-                    if(TheInstrument.PrimaryExchange != null)
-                        context.Exchanges.Attach(TheInstrument.PrimaryExchange);
-
-                    context.Datasources.Attach(TheInstrument.Datasource);
-
-                    context.Instruments.Attach(_originalInstrument);
-                    context.Entry(_originalInstrument).CurrentValues.SetValues(TheInstrument);
-
-                    if (TheInstrument.IsContinuousFuture)
-                    {
-                        //TheInstrument.ContinuousFuture.InstrumentID
-                        context.ContinuousFutures.Attach(TheInstrument.ContinuousFuture);
-                    }
-
-                    _originalInstrument.Tags.Clear();
-                    foreach (Tag t in TheInstrument.Tags)
-                    {
-                        _originalInstrument.Tags.Add(t);
-                    }
-
-                    var sessions = _originalInstrument.Sessions.ToList();
-                    foreach (InstrumentSession i in sessions)
-                    {
-                        context.Entry(i).State = System.Data.Entity.EntityState.Deleted;
-                    }
-
-                    _originalInstrument.Sessions.Clear();
-
-                    foreach (InstrumentSession s in TheInstrument.Sessions)
-                    {
-                        _originalInstrument.Sessions.Add(s);
-                    }
-                }
-
-                context.Database.Connection.Open();
-                context.SaveChanges();
-
-                if (tmpCF != null)
-                {
-                    context.UnderlyingSymbols.Attach(tmpCF.UnderlyingSymbol);
-
-                    TheInstrument.ContinuousFuture = tmpCF;
-                    TheInstrument.ContinuousFuture.Instrument = TheInstrument;
-                    TheInstrument.ContinuousFuture.InstrumentID = TheInstrument.ID.Value;
-                    context.SaveChanges();
+                    _context.InstrumentSessions.Remove(s);
                 }
             }
+
+            _context.Database.Connection.Open();
+            _context.SaveChanges();
+
+            if (tmpCF != null)
+            {
+                _context.UnderlyingSymbols.Attach(tmpCF.UnderlyingSymbol);
+
+                TheInstrument.ContinuousFuture = tmpCF;
+                TheInstrument.ContinuousFuture.Instrument = TheInstrument;
+                TheInstrument.ContinuousFuture.InstrumentID = TheInstrument.ID.Value;
+                _context.SaveChanges();
+            }
+
             InstrumentAdded = true;
             Hide();
         }
+
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -343,13 +327,6 @@ namespace QDMSServer
 
             TheInstrument.Sessions.Clear();
             TheInstrument.SessionsSource = SessionsSource.Exchange;
-
-            //if we're changing exchanges, the sessions will not have been loaded, so we need to grab them
-            using (var context = new MyDBContext())
-            {
-                context.Exchanges.Attach(TheInstrument.Exchange);
-                var sessions = context.Exchanges.Include("Sessions").Where(x => x.ID == TheInstrument.Exchange.ID).ToList();
-            }
 
             foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
             {
@@ -378,7 +355,7 @@ namespace QDMSServer
         private void FillSessionsFromTemplate()
         {
             TheInstrument.Sessions.Clear();
-            
+
             var template = (SessionTemplate)TemplateComboBox.SelectedItem;
             if (template == null)
             {
@@ -397,7 +374,7 @@ namespace QDMSServer
 
         private void AddSessionItemBtn_Click(object sender, RoutedEventArgs e)
         {
-            var toAdd = new InstrumentSession {IsSessionEnd = true};
+            var toAdd = new InstrumentSession { IsSessionEnd = true };
 
             if (TheInstrument.Sessions.Count == 0)
             {
@@ -427,28 +404,33 @@ namespace QDMSServer
         {
             if (TheInstrument.SessionsSource == SessionsSource.Exchange)
             {
-                using (var context = new MyDBContext())
+                TheInstrument.Sessions.Clear();
+
+                foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
                 {
-                    TheInstrument.Sessions.Clear();
-                    var exchange = context.Exchanges.First(x => x.Name == TheInstrument.Exchange.Name);
-                    foreach (ExchangeSession s in exchange.Sessions)
-                    {
-                        TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
-                    }
-                    SessionsGrid.ItemsSource = null;
-                    SessionsGrid.ItemsSource = TheInstrument.Sessions;
+                    TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
                 }
+                SessionsGrid.ItemsSource = null;
+                SessionsGrid.ItemsSource = TheInstrument.Sessions;
             }
         }
 
         private void RolloverRule_Checked(object sender, RoutedEventArgs e)
         {
-            TheInstrument.ContinuousFuture.RolloverType = (ContinuousFuturesRolloverType) RolloverRuleType.SelectedItem;
+            TheInstrument.ContinuousFuture.RolloverType = (ContinuousFuturesRolloverType)RolloverRuleType.SelectedItem;
         }
 
         private void RolloverTime_Checked(object sender, RoutedEventArgs e)
         {
             TheInstrument.ContinuousFuture.RolloverType = ContinuousFuturesRolloverType.Time;
+        }
+
+        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_context != null)
+            {
+                _context.Dispose();
+            }
         }
     }
 }

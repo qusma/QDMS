@@ -11,6 +11,7 @@
     ResizeMode="NoResize"
     BorderBrush="Black"
     BorderThickness="1"
+    Closing="MetroWindow_Closing"
     >
     <controls:MetroWindow.Resources>
         <qdmsServer:StringToNullableConverter x:Key="StringToNullableConverter" />
