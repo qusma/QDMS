@@ -166,8 +166,10 @@ namespace QDMSServer
                 try
                 {
                     if (InstrumentManager.AddInstrument(newInstrument))
+                    {
                         count++;
-                    AddedInstruments.Add(newInstrument);
+                        AddedInstruments.Add(newInstrument);
+                    }
                 }
                 catch (Exception ex)
                 {
