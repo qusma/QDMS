@@ -36,5 +36,29 @@ namespace QDMS
             }
             return sessionEndTimes;
         }
+
+        public static Dictionary<int, TimeSpan> SessionStartTimesByDay(this Instrument instrument)
+        {
+            Dictionary<int, TimeSpan> sessionStartTimes = new Dictionary<int, TimeSpan>();
+            if (instrument.Sessions == null) return sessionStartTimes;
+
+            var dotwValues = MyUtils.GetEnumValues<DayOfTheWeek>();
+
+            var sessions = instrument.Sessions.OrderBy(x => x.OpeningTime).ToList();
+
+            foreach (DayOfTheWeek d in dotwValues)
+            {
+                if (instrument.Sessions.Any(x => x.OpeningDay == d))
+                {
+                    var startTime = sessions.First(x => x.OpeningDay == d).OpeningTime;
+                    sessionStartTimes.Add((int)d, startTime);
+                }
+                else
+                {
+                    sessionStartTimes.Add((int)d, TimeSpan.FromSeconds(0));
+                }
+            }
+            return sessionStartTimes;
+        }
     }
 }
