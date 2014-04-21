@@ -248,8 +248,8 @@ namespace QDMS
                 Datasource = Datasource,
                 ContinuousFuture = ContinuousFuture,
                 ContinuousFutureID = ContinuousFutureID,
-                Tags = Tags == null ? null : Tags.Select(x => (Tag)x.Clone()).ToList(),
-                Sessions = Sessions == null ? null : Sessions.Select(x => (InstrumentSession)x.Clone()).ToList(),
+                Tags = Tags == null ? null : Tags.ToList(),
+                Sessions = Sessions == null ? null : Sessions.ToList(),
                 SessionsSource = SessionsSource,
                 SessionTemplateID = SessionTemplateID,
                 DatasourceSymbol = DatasourceSymbol
