@@ -65,6 +65,19 @@ namespace QDMSServer
             InitializeComponent();
             DataContext = this;
 
+            //load datagrid layout
+            string layoutFile = AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml";
+            if (File.Exists(layoutFile))
+            {
+                try
+                {
+                    InstrumentsGrid.DeserializeLayout(File.ReadAllText(layoutFile));
+                }
+                catch 
+                {
+                }
+            }
+
             LogMessages = new ObservableCollection<LogEventInfo>();
 
             //target is where the log managers send their logs, here we grab the memory target which has a Subject to observe
@@ -292,8 +305,16 @@ namespace QDMSServer
         //the application is closing, shut down all the servers and stuff
         private void DXWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            //save grid layout
+            using (StreamWriter file = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml"))
+            {
+                InstrumentsGrid.SerializeLayout(file);
+            }
+
+            //shut down quartz
             _scheduler.Shutdown(true);
 
+            //then take down the client, the servers, and the brokers
             _client.Disconnect();
             _client.Dispose();
 
