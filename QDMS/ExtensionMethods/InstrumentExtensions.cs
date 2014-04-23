@@ -37,6 +37,10 @@ namespace QDMS
             return sessionEndTimes;
         }
 
+        /// <summary>
+        /// Gets the "opening" session's opening time, one for each day of the week.
+        /// Session could potentially be on a previous day.
+        /// </summary>
         public static Dictionary<int, TimeSpan> SessionStartTimesByDay(this Instrument instrument)
         {
             Dictionary<int, TimeSpan> sessionStartTimes = new Dictionary<int, TimeSpan>();
@@ -50,7 +54,7 @@ namespace QDMS
             {
                 if (instrument.Sessions.Any(x => x.OpeningDay == d))
                 {
-                    var startTime = sessions.First(x => x.OpeningDay == d).OpeningTime;
+                    var startTime = sessions.First(x => x.ClosingDay == d).OpeningTime;
                     sessionStartTimes.Add((int)d, startTime);
                 }
                 else
