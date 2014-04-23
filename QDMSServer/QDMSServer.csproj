@@ -215,6 +215,7 @@
     <Compile Include="Brokers\ContinuousFuturesBroker.cs" />
     <Compile Include="Collections\ObservableDictionary.cs" />
     <Compile Include="ColumnOptions.cs" />
+    <Compile Include="DataGridExtensions.cs" />
     <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\SqlServerStorage.cs" />
