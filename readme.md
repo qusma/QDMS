@@ -41,6 +41,7 @@ Requirements:
 
 Planned features/improvements:
 ------------------------
+* Excel plugin.
 * Constructing low-frequency bars from higher frequency data.
 * Support for more data sources.
 * Support for fundamental data.
