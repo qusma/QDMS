@@ -530,20 +530,7 @@ namespace QDMSClient
                     while (_running)
                     {
                         //send any pending historical data requests
-                        if (!_historicalDataRequests.IsEmpty)
-                        {
-                            lock (_dealerSocketLock)
-                            {
-                                HistoricalDataRequest request;
-                                bool success = _historicalDataRequests.TryDequeue(out request);
-                                if (success)
-                                {
-                                    byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
-                                    _dealerSocket.SendMore("HISTREQ", Encoding.UTF8);
-                                    _dealerSocket.Send(buffer);
-                                }
-                            }
-                        }
+                        SendQueuedHistoricalRequests(ms);
 
                         //poller raises event when there's data coming in. See _dealerSocket_ReceiveReady()
                         poller.Poll(timeout);
@@ -552,6 +539,23 @@ namespace QDMSClient
                 catch
                 {
                     Dispose();
+                }
+            }
+        }
+
+        private void SendQueuedHistoricalRequests(MemoryStream ms)
+        {
+            while (!_historicalDataRequests.IsEmpty)
+            {
+                lock (_dealerSocketLock)
+                {
+                    HistoricalDataRequest request;
+                    if (_historicalDataRequests.TryDequeue(out request))
+                    {
+                        byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
+                        _dealerSocket.SendMore("HISTREQ", Encoding.UTF8);
+                        _dealerSocket.Send(buffer);
+                    }
                 }
             }
         }
