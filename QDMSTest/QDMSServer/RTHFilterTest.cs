@@ -240,7 +240,7 @@ namespace QDMSTest
                 ClosingTime = new TimeSpan(15, 0, 0)
             };
 
-            //Sunday, March 31
+            //Monday, March 31
             var dt = new DateTime(2014, 3, 31, 7, 0, 0);
 
             Assert.IsFalse(dt.InSession(session));
@@ -257,8 +257,8 @@ namespace QDMSTest
                 ClosingTime = new TimeSpan(15, 0, 0)
             };
 
-            //Sunday, March 31
-            var dt = new DateTime(2014, 3, 31, 16, 0, 0);
+            //Sunday, March 30
+            var dt = new DateTime(2014, 3, 30, 16, 0, 0);
 
             Assert.IsTrue(dt.InSession(session));
         }
@@ -274,8 +274,8 @@ namespace QDMSTest
                 ClosingTime = new TimeSpan(15, 0, 0)
             };
 
-            //Monday, April 1
-            var dt = new DateTime(2014, 4, 1, 13, 0, 0);
+            //Monday, March 31
+            var dt = new DateTime(2014, 3, 31, 13, 0, 0);
 
             Assert.IsTrue(dt.InSession(session));
         }
@@ -308,8 +308,8 @@ namespace QDMSTest
                 ClosingTime = new TimeSpan(15, 0, 0)
             };
 
-            //Sunday, March 31
-            var dt = new DateTime(2014, 3, 31, 13, 0, 0);
+            //Sunday, March 30
+            var dt = new DateTime(2014, 3, 30, 13, 0, 0);
 
             Assert.IsFalse(dt.InSession(session));
         }
