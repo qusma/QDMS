@@ -264,7 +264,7 @@ namespace QDMSServer.DataSources
                         cmd.CommandText = sb.ToString();
                         try
                         {
-                            cmd.ExecuteNonQueryAsync();
+                            cmd.ExecuteNonQuery();
                         }
                         catch (Exception ex)
                         {
