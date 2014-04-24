@@ -110,6 +110,210 @@ namespace QDMSTest
                 , filteredData.Count);
         }
 
+        [Test]
+        public void InSessionReturnsTrueWhenInsideOneDaySession()
+        {
+            var session = new InstrumentSession
+                {
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(15, 0, 0)
+                };
+
+            //Monday, March 31
+            var dt = new DateTime(2014, 3, 31, 12, 30, 5);
+
+            Assert.IsTrue(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenAfterOneDaySessionOnSameDay()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Monday, March 31
+            var dt = new DateTime(2014, 3, 31, 16, 30, 5);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenBeforeOneDaySessionOnSameDay()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Monday, March 31
+            var dt = new DateTime(2014, 3, 31, 5, 30, 5);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenAfterOneDaySessionOnNextDay()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Tuesday, April 1
+            var dt = new DateTime(2014, 4, 1, 12, 30, 5);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenBeforeOneDaySessionOnPreviousDay()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Sunday, March 30
+            var dt = new DateTime(2014, 3, 30, 12, 30, 5);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsTrueWhenInsideMultiDaySession()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Tuesday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Tuesday, April 1
+            var dt = new DateTime(2014, 4, 1, 7, 0, 0);
+
+            Assert.IsTrue(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenAfterMultiDaySession()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Tuesday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Wednesday, April 2
+            var dt = new DateTime(2014, 4, 2, 7, 0, 0);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenBeforeMultiDaySession()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                ClosingDay = DayOfTheWeek.Tuesday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Sunday, March 31
+            var dt = new DateTime(2014, 3, 31, 7, 0, 0);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsTrueWhenInsideWeekSpanningSessionInFirstWeek()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Sunday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(15, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Sunday, March 31
+            var dt = new DateTime(2014, 3, 31, 16, 0, 0);
+
+            Assert.IsTrue(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsTrueWhenInsideWeekSpanningSessionInSecondWeek()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Sunday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(15, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Monday, April 1
+            var dt = new DateTime(2014, 4, 1, 13, 0, 0);
+
+            Assert.IsTrue(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenAfterWeekSpanningDaySession()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Sunday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(15, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Tuesday, April 2
+            var dt = new DateTime(2014, 4, 2, 13, 0, 0);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
+        [Test]
+        public void InSessionReturnsFalseWhenBeforeWeekSpanningDaySession()
+        {
+            var session = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Sunday,
+                ClosingDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(15, 0, 0),
+                ClosingTime = new TimeSpan(15, 0, 0)
+            };
+
+            //Sunday, March 31
+            var dt = new DateTime(2014, 3, 31, 13, 0, 0);
+
+            Assert.IsFalse(dt.InSession(session));
+        }
+
         private List<OHLCBar> GetDataBetween(DateTime startDate, DateTime endDate)
         {
             var currentDate = startDate;
