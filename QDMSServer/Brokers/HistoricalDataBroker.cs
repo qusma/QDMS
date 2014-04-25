@@ -234,10 +234,12 @@ namespace QDMSServer
         private void ReturnData(HistoricalDataEventArgs e)
         {
             //if needed, we filter out the data outside of regular trading hours
-            RaiseEvent(HistoricalDataArrived, this,
-                e.Request.RTHOnly && e.Request.Instrument.Sessions != null
-                    ? new HistoricalDataEventArgs(e.Request, RTHFilter.Filter(e.Data, e.Request.Instrument.Sessions.ToList()))
-                    : new HistoricalDataEventArgs(e.Request, e.Data));
+            if(e.Request.RTHOnly && e.Request.Frequency < BarSize.OneDay && e.Request.Instrument.Sessions != null)
+            {
+                RTHFilter.Filter(e.Data, e.Request.Instrument.Sessions.ToList());
+            }
+
+            RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(e.Request, e.Data));
         }
 
         /// <summary>
