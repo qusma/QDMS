@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------
 
 // The HistoricalDataBroker sits between the HistoricalDataServer
-// and the external data source adapters. 
+// and the external data source adapters.
 // Requests for data are handled in RequestHistoricalData(),
 // then forwarded to local storage, the appropriate external data source, or both.
 // When data returns, it's sent through the HistoricalDataArrived event.
@@ -35,14 +35,14 @@ namespace QDMSServer
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private Timer _connectionTimer; //tries to reconnect every once in a while if a datasource is disconnected
-        
+
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
 
         /// <summary>
         /// Keeps track of IDs assigned to requests that have already been used, so there are no duplicates.
         /// </summary>
         private List<int> _usedIDs;
-        
+
         private readonly object _localStorageLock = new object();
 
         //when we get a new data request first we check the local storage
@@ -108,7 +108,6 @@ namespace QDMSServer
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
             _connectionTimer.Start();
 
-            
             _originalRequests = new ConcurrentDictionary<int, HistoricalDataRequest>();
             _subRequests = new ConcurrentDictionary<int, List<HistoricalDataRequest>>();
             _usedIDs = new List<int>();
@@ -129,7 +128,7 @@ namespace QDMSServer
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if(Application.Current != null)
+            if (Application.Current != null)
                 Application.Current.Dispatcher.InvokeAsync(() =>
                     _logger.Log(level, message));
         }
@@ -234,7 +233,9 @@ namespace QDMSServer
         private void ReturnData(HistoricalDataEventArgs e)
         {
             //if needed, we filter out the data outside of regular trading hours
-            if(e.Request.RTHOnly && e.Request.Frequency < BarSize.OneDay && e.Request.Instrument.Sessions != null)
+            if (e.Request.RTHOnly &&
+                e.Request.Frequency < BarSize.OneDay &&
+                e.Request.Instrument.Sessions != null)
             {
                 RTHFilter.Filter(e.Data, e.Request.Instrument.Sessions.ToList());
             }
@@ -255,7 +256,7 @@ namespace QDMSServer
         /// </summary>
         private void ConnectionTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if(Application.Current != null)
+            if (Application.Current != null)
                 Application.Current.Dispatcher.InvokeAsync(TryConnect);
         }
 
@@ -285,7 +286,7 @@ namespace QDMSServer
         {
             if (!DataSources.ContainsKey(name))
                 throw new Exception(string.Format("Data source {0} does not exist.", name));
-            if(!DataSources[name].Connected)
+            if (!DataSources[name].Connected)
                 throw new Exception(string.Format("Data source {0} is not connected.", name));
         }
 
