@@ -45,6 +45,9 @@ namespace QDMSTest
             _instrumentsServer.StopServer();
             _instrumentsServer.Dispose();
 
+            _rtdServer.StopServer();
+            _rtdServer.Dispose();
+
             _client.Dispose();
         }
 
