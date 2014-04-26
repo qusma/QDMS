@@ -28,7 +28,7 @@ namespace QDMSServer
             if (sessions == null) throw new NullReferenceException("sessions");
             if (sessions.Count == 0) return;
 
-            sessions = sessions.OrderBy(x => x .OpeningDay).ThenBy(x => x.OpeningTime).ToList();
+            sessions = sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
 
             //start by grabbing the first session
             var firstBar = data[0];
@@ -54,7 +54,7 @@ namespace QDMSServer
                         currentSession = sessions[sessionIndex];
                         // Use the previous bar here, because if we jump over a session and we used the current bar,
                         // it gives us next week's times instead of this week's
-                        SessionToDT(data[i - 1].DT, currentSession, out nextOpeningDT, out nextClosingDT); 
+                        SessionToDT(data[i - 1].DT, currentSession, out nextOpeningDT, out nextClosingDT);
 
                         //Is this bar already inside the next session?
                         if (data[i].DT > nextOpeningDT)
@@ -82,7 +82,7 @@ namespace QDMSServer
                         data.RemoveAt(i);
                         continue;
                     }
-                        
+
                     i++;
                 }
                 else
@@ -136,7 +136,6 @@ namespace QDMSServer
             endingDT = SessionToDT(startingPoint, session, true);
         }
 
-
         private static DateTime SessionToDT(DateTime startingPoint, InstrumentSession session, bool closing)
         {
             DateTime currentDT = startingPoint;
@@ -157,7 +156,7 @@ namespace QDMSServer
 
             return currentDT.Date + time;
         }
-        
+
         /// <summary>
         /// Determine if a datetime falls inside a given session or not.
         /// </summary>
@@ -203,7 +202,6 @@ namespace QDMSServer
 
                 return true;
             }
-
 
             return false;
         }
