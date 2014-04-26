@@ -300,6 +300,13 @@ namespace QDMSServer.DataSources
                         _historicalDataRequests[e.TickerId],
                         new List<OHLCBar>()));
                 }
+                else if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:No market data permissions"))
+                {
+                    //We don't have permission to view this data, return an empty data set
+                    RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
+                        _historicalDataRequests[e.TickerId],
+                        new List<OHLCBar>()));
+                }
                 else
                 {
                     //simply a data pacing violation
