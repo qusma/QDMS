@@ -243,6 +243,11 @@ namespace QDMSClient
                 return -1;
             }
 
+            if (!request.RTHOnly && request.Frequency >= BarSize.OneDay && !request.ForceFreshData)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Warning: Requesting low-frequency data outside RTH should be done with Force Fresh = true, data from local storage will be incorrect."));
+            }
+
             request.RequestID = _requestCount++;
 
             lock (_pendingHistoricalRequestsLock)
