@@ -135,14 +135,14 @@ namespace QDMSServer.DataSources
 
                 var data = new List<OHLCBar>();
 
-                var sessionEndTimes = instrument.SessionEndTimesByDay();
-
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         var bar = new OHLCBar
                         {
+                            DT = reader.GetDateTime(0),
+                            DTOpen = reader.IsDBNull(15) ? null : (DateTime?)reader.GetDateTime(15),
                             Open = reader.GetDecimal("Open"),
                             High = reader.GetDecimal("High"),
                             Low = reader.GetDecimal("Low"),
@@ -157,14 +157,6 @@ namespace QDMSServer.DataSources
                             Split = reader.IsDBNull(14) ? null : (decimal?) reader.GetDecimal("Split")
                         };
 
-                        bar.DT = reader.GetDateTime("DT");
-                        if (frequency >= BarSize.OneDay)
-                        {
-                            //in the case of low frequency data
-                            //we adjust the closing time to use the proper session time
-                            if(sessionEndTimes.ContainsKey(bar.DT.DayOfWeek.ToInt()))
-                                bar.DT = bar.DT.Date + sessionEndTimes[bar.DT.DayOfWeek.ToInt()];  
-                        }
                         data.Add(bar);
                     }
                 }
@@ -230,10 +222,10 @@ namespace QDMSServer.DataSources
                         bar.DT = bar.DT.Date; 
                     }
 
-                   sb.AppendFormat("{15} INTO data " +
+                   sb.AppendFormat("{16} INTO data " +
                                        "(DT, InstrumentID, Frequency, Open, High, Low, Close, AdjOpen, AdjHigh, AdjLow, AdjClose, " +
-                                       "Volume, OpenInterest, Dividend, Split) VALUES (" +
-                                       "'{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14});",
+                                       "Volume, OpenInterest, Dividend, Split, DTOpen) VALUES (" +
+                                       "'{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, '{15}');",
                                        bar.DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                                        instrument.ID,
                                        (int)frequency,
@@ -249,6 +241,7 @@ namespace QDMSServer.DataSources
                                        bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
                                        bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
                                        bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
+                                       bar.DTOpen.HasValue ? bar.DT.ToString("yyyy-MM-dd HH:mm:ss.fff") : "NULL",
                                        overwrite ? "REPLACE" : "INSERT IGNORE"
                                        );
 
