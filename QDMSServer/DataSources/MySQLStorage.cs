@@ -9,14 +9,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Timers;
 using System.Windows;
 using MySql.Data.MySqlClient;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
-using System.Timers;
 
 #pragma warning disable 67
+
 namespace QDMSServer.DataSources
 {
     public class MySQLStorage : IDataStorage
@@ -36,7 +37,7 @@ namespace QDMSServer.DataSources
             _connectionStatusUpdateTimer.Start();
         }
 
-        void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             using (MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata"))
             {
@@ -50,7 +51,6 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Connect()
         {
-            
         }
 
         /// <summary>
@@ -58,7 +58,6 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Disconnect()
         {
-            
         }
 
         private bool _connected;
@@ -147,14 +146,14 @@ namespace QDMSServer.DataSources
                             High = reader.GetDecimal("High"),
                             Low = reader.GetDecimal("Low"),
                             Close = reader.GetDecimal("Close"),
-                            AdjOpen = reader.IsDBNull(7) ? null : (decimal?) reader.GetDecimal("AdjOpen"),
+                            AdjOpen = reader.IsDBNull(7) ? null : (decimal?)reader.GetDecimal("AdjOpen"),
                             AdjHigh = reader.IsDBNull(8) ? null : (decimal?)reader.GetDecimal("AdjHigh"),
                             AdjLow = reader.IsDBNull(9) ? null : (decimal?)reader.GetDecimal("AdjLow"),
                             AdjClose = reader.IsDBNull(10) ? null : (decimal?)reader.GetDecimal("AdjClose"),
-                            Volume = reader.IsDBNull(11) ? null : (long?) reader.GetInt64("Volume"),
-                            OpenInterest = reader.IsDBNull(12) ? null : (int?) reader.GetInt32("OpenInterest"),
-                            Dividend = reader.IsDBNull(13) ? null : (decimal?) reader.GetDecimal("Dividend"),
-                            Split = reader.IsDBNull(14) ? null : (decimal?) reader.GetDecimal("Split")
+                            Volume = reader.IsDBNull(11) ? null : (long?)reader.GetInt64("Volume"),
+                            OpenInterest = reader.IsDBNull(12) ? null : (int?)reader.GetInt32("OpenInterest"),
+                            Dividend = reader.IsDBNull(13) ? null : (decimal?)reader.GetDecimal("Dividend"),
+                            Split = reader.IsDBNull(14) ? null : (decimal?)reader.GetDecimal("Split")
                         };
 
                         data.Add(bar);
@@ -212,17 +211,17 @@ namespace QDMSServer.DataSources
                 var sb = new StringBuilder();
                 sb.Append("START TRANSACTION;");
                 int tmpCounter = 0;
-                
+
                 for (int i = 0; i < data.Count; i++)
                 {
                     var bar = data[i];
                     if (frequency >= BarSize.OneDay)
                     {
                         //we don't save the time when saving this stuff to allow flexibility with changing sessions
-                        bar.DT = bar.DT.Date; 
+                        bar.DT = bar.DT.Date;
                     }
 
-                   sb.AppendFormat("{16} INTO data " +
+                    sb.AppendFormat("{16} INTO data " +
                                        "(DT, InstrumentID, Frequency, Open, High, Low, Close, AdjOpen, AdjHigh, AdjLow, AdjClose, " +
                                        "Volume, OpenInterest, Dividend, Split, DTOpen) VALUES (" +
                                        "'{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, '{15}');",
@@ -280,11 +279,11 @@ namespace QDMSServer.DataSources
                 catch (Exception ex)
                 {
                     //no need to log duplicate key errors if we're not overwriting, it's by design.
-                    if (!ex.Message.Contains("Duplicate")) 
+                    if (!ex.Message.Contains("Duplicate"))
                         Application.Current.Dispatcher.Invoke(() =>
                             _logger.Log(LogLevel.Error, "MySql query error: " + ex.Message));
                 }
-                
+
                 //finally update the instrument info
                 cmd.CommandText = string.Format(
                                     "INSERT INTO instrumentinfo (InstrumentID, Frequency, EarliestDate, LatestDate) VALUES " +
@@ -307,9 +306,9 @@ namespace QDMSServer.DataSources
 
                 Application.Current.Dispatcher.Invoke(() =>
                 _logger.Log(LogLevel.Info, string.Format(
-                    "Saved {0} data points of {1} @ {2} to local storage. {3} {4}", 
-                    data.Count, 
-                    instrument.Symbol, 
+                    "Saved {0} data points of {1} @ {2} to local storage. {3} {4}",
+                    data.Count,
+                    instrument.Symbol,
                     Enum.GetName(typeof(BarSize), frequency),
                     overwrite ? "Overwrite" : "NoOverwrite",
                     adjust ? "Adjust" : "NoAdjust")));
@@ -338,7 +337,7 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void AddDataAsync(OHLCBar data, Instrument instrument, BarSize frequency, bool overwrite = false)
         {
-            AddData(new List<OHLCBar> {data}, instrument, frequency, overwrite);
+            AddData(new List<OHLCBar> { data }, instrument, frequency, overwrite);
         }
 
         /// <summary>
@@ -418,10 +417,10 @@ namespace QDMSServer.DataSources
                 sb.Append("START TRANSACTION;");
                 for (int i = 0; i < bars.Count; i++)
                 {
-                    sb.AppendFormat("DELETE FROM data WHERE InstrumentID = {0} AND Frequency = {1} AND DT = '{2}';", 
-                        instrument.ID, 
+                    sb.AppendFormat("DELETE FROM data WHERE InstrumentID = {0} AND Frequency = {1} AND DT = '{2}';",
+                        instrument.ID,
                         (int)frequency,
-                        frequency < BarSize.OneDay 
+                        frequency < BarSize.OneDay
                         ? bars[i].DT.ToString("yyyy-MM-dd HH:mm:ss.fff")
                         : bars[i].DT.ToString("yyyy-MM-dd")); //for frequencies greater than a day, we don't care about time
                 }
@@ -429,7 +428,7 @@ namespace QDMSServer.DataSources
 
                 cmd.CommandText = sb.ToString();
                 cmd.ExecuteNonQuery();
-                
+
                 //check if there's any data left
                 cmd.CommandText = string.Format("SELECT COUNT(*) FROM data WHERE InstrumentID = {0} AND Frequency = {1}",
                     instrument.ID,
@@ -443,8 +442,8 @@ namespace QDMSServer.DataSources
                     if (count == 0)
                     {
                         //remove from the instrumentinfo table
-                        cmd.CommandText = string.Format("DELETE FROM instrumentinfo WHERE InstrumentID = {0} AND Frequency = {1}", 
-                            instrument.ID, 
+                        cmd.CommandText = string.Format("DELETE FROM instrumentinfo WHERE InstrumentID = {0} AND Frequency = {1}",
+                            instrument.ID,
                             (int)frequency);
                         cmd.ExecuteNonQuery();
                     }
@@ -488,7 +487,7 @@ namespace QDMSServer.DataSources
                         var info = new StoredDataInfo
                         {
                             InstrumentID = instrumentID,
-                            Frequency = (BarSize) reader.GetInt32("Frequency"),
+                            Frequency = (BarSize)reader.GetInt32("Frequency"),
                             EarliestDate = reader.GetDateTime("EarliestDate"),
                             LatestDate = reader.GetDateTime("LatestDate")
                         };
@@ -539,7 +538,6 @@ namespace QDMSServer.DataSources
             return instrumentInfo;
         }
 
-
         ///<summary>
         /// Raise the event in a threadsafe manner
         ///</summary>
@@ -556,7 +554,9 @@ namespace QDMSServer.DataSources
         }
 
         public event EventHandler<ErrorArgs> Error;
+
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
+
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
 
         /// <summary>
@@ -581,4 +581,5 @@ namespace QDMSServer.DataSources
         }
     }
 }
+
 #pragma warning restore 67
