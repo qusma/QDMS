@@ -11,6 +11,7 @@ using QDMS;
 using QDMS.Annotations;
 
 #pragma warning disable 67
+
 namespace QDMSServer.DataSources
 {
     public class SqlServerStorage : IDataStorage
@@ -96,7 +97,6 @@ namespace QDMSServer.DataSources
             return connection.State == System.Data.ConnectionState.Open;
         }
 
-
         /// <summary>
         /// The name of the data source.
         /// </summary>
@@ -127,14 +127,14 @@ namespace QDMSServer.DataSources
 
                 var data = new List<OHLCBar>();
 
-                var sessionEndTimes = instrument.SessionEndTimesByDay();
-
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         var bar = new OHLCBar
                         {
+                            DT = reader.GetDateTime(0),
+                            DTOpen = reader.IsDBNull(15) ? null : (DateTime?)reader.GetDateTime(15),
                             Open = reader.GetDecimal(3),
                             High = reader.GetDecimal(4),
                             Low = reader.GetDecimal(5),
@@ -149,14 +149,6 @@ namespace QDMSServer.DataSources
                             Split = reader.IsDBNull(14) ? null : (decimal?)reader.GetDecimal(14)
                         };
 
-                        bar.DT = reader.GetDateTime(0);
-                        if (frequency >= BarSize.OneDay)
-                        {
-                            //in the case of low frequency data
-                            //we adjust the closing time to use the proper session time
-                            if (sessionEndTimes.ContainsKey(bar.DT.DayOfWeek.ToInt()))
-                                bar.DT = bar.DT.Date + sessionEndTimes[bar.DT.DayOfWeek.ToInt()];
-                        }
                         data.Add(bar);
                     }
                 }
@@ -208,7 +200,7 @@ namespace QDMSServer.DataSources
             {
                 var sb = new StringBuilder();
                 sb.Append("BEGIN TRAN T1;");
-                
+
                 //We create a temporary table which will then be used to merge the data into the data table
                 var r = new Random();
                 string tableName = "tmpdata" + r.Next();
@@ -217,7 +209,7 @@ namespace QDMSServer.DataSources
                 //start the insert
                 sb.AppendFormat("INSERT INTO {0} " +
                                 "(DT, InstrumentID, Frequency, [Open], High, Low, [Close], AdjOpen, AdjHigh, AdjLow, AdjClose, " +
-                                "Volume, OpenInterest, Dividend, Split) VALUES ", tableName);
+                                "Volume, OpenInterest, Dividend, Split, DTOpen) VALUES ", tableName);
 
                 for (int i = 0; i < data.Count; i++)
                 {
@@ -228,7 +220,7 @@ namespace QDMSServer.DataSources
                         bar.DT = bar.DT.Date;
                     }
 
-                    sb.AppendFormat("('{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14})",
+                    sb.AppendFormat("('{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, '{15}')",
                                        bar.DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                                        instrument.ID,
                                        (int)frequency,
@@ -243,29 +235,29 @@ namespace QDMSServer.DataSources
                                        bar.Volume.HasValue ? bar.Volume.Value.ToString() : "NULL",
                                        bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
                                        bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
-                                       bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL"
+                                       bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
+                                       bar.DTOpen.HasValue ? bar.DTOpen.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "NULL"
                                        );
 
                     sb.Append(i < data.Count - 1 ? ", " : ";");
 
                     if (!needsAdjustment && (data[i].Dividend.HasValue || data[i].Split.HasValue))
                         needsAdjustment = true;
-
                 }
 
                 //Merge the temporary table with the data table
-                sb.AppendFormat(@"MERGE INTO 
-                                    dbo.data T 
-                                USING 
+                sb.AppendFormat(@"MERGE INTO
+                                    dbo.data T
+                                USING
                                     (SELECT * FROM {0}) AS S (DT, InstrumentID, Frequency, [Open], High, Low, [Close], AdjOpen, AdjHigh, AdjLow, AdjClose,
-                                        Volume, OpenInterest, Dividend, Split)
-                                ON 
+                                        Volume, OpenInterest, Dividend, Split, DTOpen)
+                                ON
                                     T.InstrumentID = S.InstrumentID AND T.Frequency = S.Frequency AND T.DT = S.DT
-                                WHEN NOT MATCHED THEN 
+                                WHEN NOT MATCHED THEN
                                     INSERT (DT, InstrumentID, Frequency, [Open], High, Low, [Close], AdjOpen, AdjHigh, AdjLow, AdjClose,
-                                        Volume, OpenInterest, Dividend, Split)
+                                        Volume, OpenInterest, Dividend, Split, DTOpen)
                                     VALUES (DT, InstrumentID, Frequency, [Open], High, Low, [Close], AdjOpen, AdjHigh, AdjLow, AdjClose,
-                                        Volume, OpenInterest, Dividend, Split)",
+                                        Volume, OpenInterest, Dividend, Split, DTOpen)",
                               tableName);
 
                 if (overwrite)
@@ -286,7 +278,8 @@ namespace QDMSServer.DataSources
                                         T.Volume = S.Volume,
                                         T.OpenInterest = S.OpenInterest,
                                         T.Dividend = S.Dividend,
-                                        T.Split = S.Split;");
+                                        T.Split = S.Split,
+                                        T.DTOpen = S.DTOpen;");
                 }
                 else
                 {
@@ -310,12 +303,12 @@ namespace QDMSServer.DataSources
 
                 //finally update the instrument info
                 cmd.CommandText = string.Format(@"
-                                                MERGE INTO 
+                                                MERGE INTO
                                                     instrumentinfo T
                                                 USING
                                                     (SELECT * FROM (VALUES ({0}, {1}, '{2}', '{3}'))
 														Dummy(InstrumentID, Frequency, EarliestDate, LatestDate)) S
-                                                ON 
+                                                ON
                                                     T.InstrumentID = S.InstrumentID AND T.Frequency = S.Frequency
                                                 WHEN NOT MATCHED THEN
                                                     INSERT (InstrumentID, Frequency, EarliestDate, LatestDate)
@@ -325,8 +318,8 @@ namespace QDMSServer.DataSources
                                                         T.EarliestDate = (SELECT MIN(mydate) FROM (VALUES (T.EarliestDate), (S.EarliestDate)) AS AllDates(mydate)),
                                                         T.LatestDate = (SELECT MAX(mydate) FROM (VALUES (T.LatestDate), (S.LatestDate)) AS AllDates(mydate));",
                                                 instrument.ID.Value,
-                                                (int)frequency,        
-                                                data[0].DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),               
+                                                (int)frequency,
+                                                data[0].DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                                                 data[data.Count - 1].DT.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
                 try
@@ -461,7 +454,7 @@ namespace QDMSServer.DataSources
                         //update the instrumentinfo table
                         cmd.CommandText = string.Format(
                             @"UPDATE instrumentinfo
-	                            SET 
+	                            SET
 		                            EarliestDate = (SELECT MIN(DT) FROM data WHERE InstrumentID = {0} AND Frequency = {1}),
 		                            LatestDate = (SELECT MAX(DT) FROM data WHERE InstrumentID = {0} AND Frequency = {1})
 	                            WHERE
@@ -581,4 +574,5 @@ namespace QDMSServer.DataSources
         }
     }
 }
+
 #pragma warning restore 67
