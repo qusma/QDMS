@@ -21,6 +21,7 @@ using Krs.Ats.IBNet;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
+using BarSize = QDMS.BarSize;
 using LogLevel = NLog.LogLevel;
 
 namespace QDMSServer.DataSources
@@ -153,35 +154,9 @@ namespace QDMSServer.DataSources
                     : e.RequestId;
             }
 
-            var request = _historicalDataRequests[id];
-
-            //One day or lower frequency means we don't get time data.
-            //Instead we provide our own by using that day's session end...
-            //perhaps this should be moved to the HistoricalDataBroker instead?
-            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
-            if (request.Frequency >= QDMS.BarSize.OneDay && request.Instrument.Sessions != null)
-            {
-                var dotw = bar.DT.DayOfWeek.ToInt();
-                var daysSessionEnd = request.Instrument.Sessions.FirstOrDefault(x => (int)x.ClosingDay == dotw && x.IsSessionEnd);
-                if (daysSessionEnd != null)
-                {
-                    bar.DT = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day) + daysSessionEnd.ClosingTime;
-                }
-                else
-                {
-                    bar.DT = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day, 23, 59, 59);
-                }
-            }
-            else
-            {
-                bar.DT = TimeZoneInfo.ConvertTime(bar.DT, TimeZoneInfo.Local, exchangeTZ);
-            }
-
             //stocks need to have their volumes multiplied by 100, I think all other instrument types do not
-            if (request.Instrument.Type == InstrumentType.Stock)
+            if (_historicalDataRequests[id].Instrument.Type == InstrumentType.Stock)
                 bar.Volume *= 100;
-
-
 
             _arrivedHistoricalData[id].Add(bar);
 
@@ -206,7 +181,7 @@ namespace QDMSServer.DataSources
                         else
                         {
                             //if it is complete, we'll need to sort the data because subrequests may not come in in order
-                            _arrivedHistoricalData[id] = _arrivedHistoricalData[id].OrderBy(x => x.DT).ToList();
+                            _arrivedHistoricalData[id] = _arrivedHistoricalData[id].OrderBy(x => x.DTOpen).ToList();
                         }
                     }
                 }
@@ -224,10 +199,12 @@ namespace QDMSServer.DataSources
         /// <param name="requestID"></param>
         private void HistoricalDataRequestComplete(int requestID)
         {
+            var request = _historicalDataRequests[requestID];
+
             //IB doesn't actually allow us to provide a deterministic starting point for our historical data query
             //so sometimes we get data from earlier than we want
             //here we throw it away
-            var cutoffDate = _historicalDataRequests[requestID].StartingDate.Date;
+            var cutoffDate = request.StartingDate.Date;
 
             List<OHLCBar> bars;
             var removed = _arrivedHistoricalData.TryRemove(requestID, out bars);
@@ -235,11 +212,14 @@ namespace QDMSServer.DataSources
 
             //due to the nature of sub-requests, the list may contain the same points multiple times
             //so we grab unique values only
-            bars = bars.Distinct((x, y) => x.DT == y.DT).ToList();
+            bars = bars.Distinct((x, y) => x.DTOpen == y.DTOpen).ToList();
+
+            //we have to make adjustments to the times as well as derive the bar closing times
+            AdjustBarTimes(bars, request);
 
             //if the data is daily or lower freq, and a stock, set adjusted ohlc values for convenience
-            if (_historicalDataRequests[requestID].Frequency >= QDMS.BarSize.OneDay && 
-                _historicalDataRequests[requestID].Instrument.Type == InstrumentType.Stock)
+            if (request.Frequency >= BarSize.OneDay && 
+                request.Instrument.Type == InstrumentType.Stock)
             {
                 foreach (OHLCBar b in bars)
                 {
@@ -250,9 +230,84 @@ namespace QDMSServer.DataSources
                 }
             }
 
+            //return the data through the HistoricalDataArrived event
             RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
-                _historicalDataRequests[requestID],
+                request,
                 bars.Where(x => x.DT.Date >= cutoffDate).ToList()));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AdjustBarTimes(List<OHLCBar> bars, HistoricalDataRequest request)
+        {
+            //One day or lower frequency means we don't get time data.
+            //Instead we provide our own by using that day's session end...
+            if (request.Frequency < BarSize.OneDay)
+            {
+                AdjustIntradayBarTimes(bars, request);
+                GenerateIntradayBarClosingTimes(bars, request.Frequency);
+            }
+            else
+            {
+                AdjustDailyBarTimes(bars);
+            }
+        }
+
+        /// <summary>
+        /// Simply converts the timezone, from the local to that of the exchange.
+        /// </summary>
+        private void AdjustIntradayBarTimes(IEnumerable<OHLCBar> bars, HistoricalDataRequest request)
+        {
+            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
+            foreach (OHLCBar bar in bars)
+            {
+                bar.DTOpen = TimeZoneInfo.ConvertTime(bar.DTOpen.Value, TimeZoneInfo.Local, exchangeTZ);
+            }
+        }
+
+        /// <summary>
+        /// Simply converts the timezone, from the local to that of the exchange.
+        /// </summary>
+        private void AdjustDailyBarTimes(IEnumerable<OHLCBar> bars)
+        {
+            // For daily data, IB does not provide us with bar opening/closing times.
+            // But the IB client does shift the timezone from UTC to local.
+            // So to get the correct day we have to shift it back to UTC first.
+            foreach (OHLCBar bar in bars)
+            {
+                bar.DTOpen = TimeZoneInfo.ConvertTimeToUtc(bar.DTOpen.Value, TimeZoneInfo.Local);
+                bar.DT = bar.DTOpen.Value;
+            }
+        }
+
+        /// <summary>
+        /// Sets the appropriate closing time for each bar, since IB only gives us the opening time.
+        /// </summary>
+        private void GenerateIntradayBarClosingTimes(List<OHLCBar> bars, BarSize frequency)
+        {
+            TimeSpan freqTS = frequency.ToTimeSpan();
+            for (int i = 0; i < bars.Count; i++)
+            {
+                var bar = bars[i];
+
+                if (i == bars.Count - 1)
+                {
+                    //if it's the last bar we are basically just guessing the 
+                    //closing time by adding the duration of the frequency
+                    bar.DT = bar.DTOpen.Value + freqTS;
+                }
+                else
+                {
+                    //if it's not the last bar, we set the closing time to the
+                    //earliest of the open of the next bar and the period of the frequency
+                    //e.g. if hourly bar opens at 9:30 and the next bar opens at 10:00
+                    //we set the close at the earliest of 10:00 and 10:30
+                    DateTime openPlusBarSize = bar.DTOpen.Value + freqTS;
+                    bar.DT = bars[i + 1].DTOpen.Value < openPlusBarSize ? bars[i + 1].DTOpen.Value : openPlusBarSize;
+                }
+
+            }
         }
 
         //This event is raised when real time data arrives
@@ -336,8 +391,6 @@ namespace QDMSServer.DataSources
                     if (_historicalDataRequests.ContainsKey(e.TickerId))
                         HistoricalDataRequestComplete(e.TickerId);
                 }
-
-
             }
 
             //different messages depending on the type of request
