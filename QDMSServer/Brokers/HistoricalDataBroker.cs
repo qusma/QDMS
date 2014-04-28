@@ -193,7 +193,15 @@ namespace QDMSServer
                 }
                 else //there is not -- this is a standalone request, so just grab the data from the db and return it
                 {
-                    _dataStorage.RequestHistoricalData(originalRequest);
+                    if (e.Request.ForceFreshData)
+                    {
+                        //if the request specifies only fresh data, we don't want to go through local storage
+                        ReturnData(new HistoricalDataEventArgs(e.Request, e.Data));
+                    }
+                    else
+                    {
+                        _dataStorage.RequestHistoricalData(originalRequest);
+                    }
                 }
 
                 Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2}.",
@@ -203,12 +211,16 @@ namespace QDMSServer
             }
             else //the data does NOT go to local storage, so we have to load that stuff and combine it right here
             {
-                //grab the rest of the data from historical storage
+                //grab the rest of the data from historical storage if needed
+                //unless the request specifies fresh data only
                 var storageData = new List<OHLCBar>();
-                lock (_localStorageLock)
+                if (e.Data.Count > 0 && 
+                    e.Data[0].Date.ToDateTime() > originalRequest.StartingDate &&
+                    !e.Request.ForceFreshData)
                 {
-                    if (e.Data.Count > 0 && e.Data[0].Date.ToDateTime() > originalRequest.StartingDate)
+                    lock (_localStorageLock)
                     {
+
                         //we add half a bar to the request limit so that the data we get starts with the next one
                         DateTime correctedDateTime = e.Data[0].Date.Date.ToDateTime().AddMilliseconds(originalRequest.Frequency.ToTimeSpan().TotalMilliseconds / 2);
                         storageData = _dataStorage.GetData(originalRequest.Instrument, originalRequest.StartingDate,
