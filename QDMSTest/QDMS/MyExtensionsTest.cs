@@ -156,5 +156,122 @@ namespace QDMSTest
             Assert.Contains(3, data);
             Assert.Contains(5, data);
         }
+
+        [Test]
+        public void SessionEndTimesByDayReturnsCorrectSessionsForGlobexSessions()
+        {
+            var inst = new Instrument();
+            inst.Sessions = GetGlobexSessions();
+            Dictionary<int, TimeSpan> result = inst.SessionEndTimesByDay();
+            Assert.AreEqual(new TimeSpan(16, 30, 0), result[(int)DayOfTheWeek.Monday]);
+            Assert.AreEqual(new TimeSpan(16, 30, 0), result[(int)DayOfTheWeek.Tuesday]);
+            Assert.AreEqual(new TimeSpan(16, 30, 0), result[(int)DayOfTheWeek.Wednesday]);
+            Assert.AreEqual(new TimeSpan(16, 30, 0), result[(int)DayOfTheWeek.Thursday]);
+            Assert.AreEqual(new TimeSpan(15, 15, 0), result[(int)DayOfTheWeek.Friday]);
+            Assert.IsFalse(result.ContainsKey((int)DayOfTheWeek.Sunday));
+        }
+
+        [Test]
+        public void SessionStartTimesByDayReturnsCorrectSessionsForGlobexSessions()
+        {
+            var inst = new Instrument();
+            inst.Sessions = GetGlobexSessions();
+            Dictionary<int, InstrumentSession> result = inst.SessionStartTimesByDay();
+            Assert.AreEqual(DayOfTheWeek.Sunday, result[(int)DayOfTheWeek.Monday].OpeningDay);
+            Assert.AreEqual(new TimeSpan(17, 00, 0), result[(int)DayOfTheWeek.Monday].OpeningTime);
+
+            Assert.AreEqual(DayOfTheWeek.Monday, result[(int)DayOfTheWeek.Tuesday].OpeningDay);
+            Assert.AreEqual(new TimeSpan(17, 00, 0), result[(int)DayOfTheWeek.Tuesday].OpeningTime);
+
+            Assert.AreEqual(DayOfTheWeek.Tuesday, result[(int)DayOfTheWeek.Wednesday].OpeningDay);
+            Assert.AreEqual(new TimeSpan(17, 00, 0), result[(int)DayOfTheWeek.Wednesday].OpeningTime);
+
+            Assert.AreEqual(DayOfTheWeek.Wednesday, result[(int)DayOfTheWeek.Thursday].OpeningDay);
+            Assert.AreEqual(new TimeSpan(17, 00, 0), result[(int)DayOfTheWeek.Thursday].OpeningTime);
+
+            Assert.AreEqual(DayOfTheWeek.Thursday, result[(int)DayOfTheWeek.Friday].OpeningDay);
+            Assert.AreEqual(new TimeSpan(17, 00, 0), result[(int)DayOfTheWeek.Friday].OpeningTime);
+
+            Assert.IsFalse(result.ContainsKey((int)DayOfTheWeek.Sunday));
+        }
+
+        private List<InstrumentSession> GetGlobexSessions()
+        {
+            return new List<InstrumentSession>
+            {
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Monday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Tuesday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Tuesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Wednesday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Wednesday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(15, 30, 0),
+                    ClosingTime = new TimeSpan(16, 30, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Thursday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = true,
+                    OpeningDay = DayOfTheWeek.Thursday,
+                    ClosingDay = DayOfTheWeek.Friday,
+                },
+                new InstrumentSession
+                {
+                    OpeningTime = new TimeSpan(17, 0, 0),
+                    ClosingTime = new TimeSpan(15, 15, 0),
+                    IsSessionEnd = false,
+                    OpeningDay = DayOfTheWeek.Sunday,
+                    ClosingDay = DayOfTheWeek.Monday,
+                }
+            };
+        }
     }
 }
