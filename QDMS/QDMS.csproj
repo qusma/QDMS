@@ -66,9 +66,11 @@
     <Compile Include="ExtensionMethods\DecimalExtensions.cs" />
     <Compile Include="ExtensionMethods\GenericExtensions.cs" />
     <Compile Include="ExtensionMethods\InstrumentExtensions.cs" />
+    <Compile Include="ExtensionMethods\SessionExtensions.cs" />
     <Compile Include="ExtensionMethods\OHLCBarExtensions.cs" />
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
     <Compile Include="Interfaces\IDataClient.cs" />
+    <Compile Include="Interfaces\ISession.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />
     <Compile Include="EntityModels\ContinuousFuture.cs" />
