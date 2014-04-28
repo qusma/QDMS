@@ -8,7 +8,7 @@
 // Clients send their requests through ZeroMQ. Here they are parsed
 // and then forwarded to the HistoricalDataBroker.
 // Data sent from the HistoricalDataBroker is sent out to the clients.
-// Three types of possible requests: 
+// Three types of possible requests:
 // 1. For historical data
 // 2. To check what data is available in the local database
 // 3. To add data to the local database
@@ -43,9 +43,7 @@ namespace QDMSServer
         private IHistoricalDataBroker _broker;
         private readonly ConcurrentQueue<KeyValuePair<HistoricalDataRequest, List<OHLCBar>>> _dataQueue;
 
-
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
 
         public HistoricalDataServer(int port, IHistoricalDataBroker broker = null)
         {
@@ -60,7 +58,7 @@ namespace QDMSServer
             _serverThread.Name = "HDB Thread";
         }
 
-        void _broker_HistoricalDataArrived(object sender, HistoricalDataEventArgs e)
+        private void _broker_HistoricalDataArrived(object sender, HistoricalDataEventArgs e)
         {
             _dataQueue.Enqueue(new KeyValuePair<HistoricalDataRequest, List<OHLCBar>>(e.Request, e.Data));
         }
@@ -90,11 +88,9 @@ namespace QDMSServer
 
             _runServer = false;
 
-            if(_serverThread != null && _serverThread.ThreadState == ThreadState.Running)
+            if (_serverThread != null && _serverThread.ThreadState == ThreadState.Running)
                 _serverThread.Join();
         }
-
-        
 
         /// <summary>
         /// Receives new requests by polling, and sends data when it has arrived
@@ -127,7 +123,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        /// Given a historical data request and the data that fill it, 
+        /// Given a historical data request and the data that fill it,
         /// send the reply to the client who made the request.
         /// </summary>
         private void SendFilledHistoricalRequest(HistoricalDataRequest request, List<OHLCBar> data, MemoryStream ms)
@@ -135,14 +131,13 @@ namespace QDMSServer
             //this is a 5 part message
             //1st message part: the identity string of the client that we're routing the data to
             string clientIdentity = request.RequesterIdentity;
-
             _routerSocket.SendMore(clientIdentity, Encoding.UTF8);
 
             //2nd message part: the type of reply we're sending
             _routerSocket.SendMore("HISTREQREP", Encoding.UTF8);
 
             //3rd message part: the HistoricalDataRequest object that was used to make the request
-            _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms)); //TODO make sure that the original request is returned
+            _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms));
 
             //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
             byte[] uncompressed = MyUtils.ProtoBufSerialize(data, ms);
@@ -310,7 +305,7 @@ namespace QDMSServer
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if(Application.Current != null)
+            if (Application.Current != null)
                 Application.Current.Dispatcher.InvokeAsync(() =>
                     _logger.Log(level, message));
         }
