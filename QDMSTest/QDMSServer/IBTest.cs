@@ -198,7 +198,7 @@ namespace QDMSTest
 
             _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestID, (ErrorMessage) 162, ""));
 
-            Thread.Sleep(20000);
+            Thread.Sleep(25000);
 
             _ibClientMock.Verify(x => x.RequestHistoricalData(
                     It.IsAny<int>(),
