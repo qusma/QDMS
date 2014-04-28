@@ -52,10 +52,20 @@ namespace QDMS
 
             foreach (DayOfTheWeek d in dotwValues)
             {
-                if (instrument.Sessions.Any(x => x.ClosingDay == d))
+                if (sessions.Any(x => x.ClosingDay == d))
                 {
-                    var session = sessions.First(x => x.ClosingDay == d);
-                    sessionStartTimes.Add((int)d, session);
+                    //if there's a session starting on a different day,
+                    //that's the earliest one no matter the time
+                    InstrumentSession prevDaySession = sessions.FirstOrDefault(x => x.ClosingDay == d && x.OpeningDay != d);
+                    if(prevDaySession != null)
+                    {
+                        sessionStartTimes.Add((int)d, prevDaySession);
+                    }
+                    else
+                    {
+                        var session = sessions.First(x => x.ClosingDay == d);
+                        sessionStartTimes.Add((int)d, session);
+                    }
                 }
             }
             return sessionStartTimes;
