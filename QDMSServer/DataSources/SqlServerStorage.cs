@@ -89,8 +89,7 @@ namespace QDMSServer.DataSources
             }
             catch (Exception ex)
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                    _logger.Log(LogLevel.Error, "Local storage: DB connection failed with error: " + ex.Message));
+                Log(LogLevel.Error, "Local storage: DB connection failed with error: " + ex.Message);
                 return false;
             }
 
@@ -186,8 +185,7 @@ namespace QDMSServer.DataSources
 
             if (data.Count == 0)
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                    _logger.Log(LogLevel.Error, "Local storage: asked to add data of 0 length"));
+                Log(LogLevel.Error, "Local storage: asked to add data of 0 length");
                 return;
             }
 
@@ -298,8 +296,7 @@ namespace QDMSServer.DataSources
                 }
                 catch (Exception ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, "SQL Server query error: " + ex.Message));
+                    Log(LogLevel.Error, "SQL Server query error: " + ex.Message);
                 }
 
                 //finally update the instrument info
@@ -329,18 +326,16 @@ namespace QDMSServer.DataSources
                 }
                 catch (Exception ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, "SQL Server query error: " + ex.Message));
+                    Log(LogLevel.Error, "SQL Server query error: " + ex.Message);
                 }
 
-                Application.Current.Dispatcher.Invoke(() =>
-                _logger.Log(LogLevel.Info, string.Format(
+                Log(LogLevel.Info, string.Format(
                     "Saved {0} data points of {1} @ {2} to local storage. {3} {4}",
                     data.Count,
                     instrument.Symbol,
                     Enum.GetName(typeof(BarSize), frequency),
                     overwrite ? "Overwrite" : "NoOverwrite",
-                    adjust ? "Adjust" : "NoAdjust")));
+                    adjust ? "Adjust" : "NoAdjust"));
             }
 
             connection.Close();
@@ -388,6 +383,8 @@ namespace QDMSServer.DataSources
                 cmd.ExecuteNonQuery();
             }
 
+            Log(LogLevel.Info, string.Format("Deleted all data for instrument {0}", instrument));
+
             connection.Close();
         }
 
@@ -404,6 +401,8 @@ namespace QDMSServer.DataSources
                 cmd.CommandText = string.Format("DELETE FROM instrumentinfo WHERE InstrumentID = {0} AND Frequency = {1}", instrument.ID, (int)frequency);
                 cmd.ExecuteNonQuery();
             }
+
+            Log(LogLevel.Info, string.Format("Deleted all {0} data for instrument {1}", frequency, instrument));
 
             connection.Close();
         }
@@ -464,6 +463,8 @@ namespace QDMSServer.DataSources
                     }
                 }
             }
+
+            Log(LogLevel.Info, string.Format("Deleted {0} {1} bars for instrument {2}", bars.Count, frequency, instrument));
 
             connection.Close();
         }
@@ -551,6 +552,16 @@ namespace QDMSServer.DataSources
             EventHandler<T> handler = @event;
             if (handler == null) return;
             handler(sender, e);
+        }
+
+        /// <summary>
+        /// Add a message to the log.
+        ///</summary>
+        private void Log(LogLevel level, string message)
+        {
+            if (Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    _logger.Log(level, message));
         }
 
         /// <summary>
