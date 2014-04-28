@@ -77,7 +77,7 @@ namespace QDMSServer
                     //if necessary, load sessions from teplate or exchange
                     if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange != null)
                     {
-                        instrument.Sessions = instrument.Exchange.Sessions.Select(MyUtils.SessionConverter).ToList();
+                        instrument.Sessions = instrument.Exchange.Sessions.Select(x => x.ToInstrumentSession()).ToList();
                     }
                     else if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange == null)
                     {
@@ -92,7 +92,7 @@ namespace QDMSServer
                         {
                             foreach (TemplateSession s in template.Sessions)
                             {
-                                instrument.Sessions.Add(MyUtils.SessionConverter(s));
+                                instrument.Sessions.Add(s.ToInstrumentSession());
                             }
                         }
                     }

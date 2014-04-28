@@ -333,7 +333,7 @@ namespace QDMSServer
 
             foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
             {
-                TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
+                TheInstrument.Sessions.Add(s.ToInstrumentSession());
             }
             SessionsGrid.ItemsSource = null;
             SessionsGrid.ItemsSource = TheInstrument.Sessions;
@@ -369,7 +369,7 @@ namespace QDMSServer
             TheInstrument.SessionTemplateID = template.ID;
             foreach (TemplateSession s in template.Sessions.OrderBy(x => x.OpeningDay))
             {
-                TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
+                TheInstrument.Sessions.Add(s.ToInstrumentSession());
             }
             SessionsGrid.ItemsSource = null;
             SessionsGrid.ItemsSource = TheInstrument.Sessions;
@@ -411,7 +411,7 @@ namespace QDMSServer
 
                 foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
                 {
-                    TheInstrument.Sessions.Add(MyUtils.SessionConverter(s));
+                    TheInstrument.Sessions.Add(s.ToInstrumentSession());
                 }
                 SessionsGrid.ItemsSource = null;
                 SessionsGrid.ItemsSource = TheInstrument.Sessions;

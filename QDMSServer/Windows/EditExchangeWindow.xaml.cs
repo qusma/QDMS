@@ -115,7 +115,7 @@ namespace QDMSServer
                     
                         foreach (ExchangeSession s in TheExchange.Sessions)
                         {
-                            i.Sessions.Add(MyUtils.SessionConverter(s));
+                            i.Sessions.Add(s.ToInstrumentSession());
                         }
                     }
                 }

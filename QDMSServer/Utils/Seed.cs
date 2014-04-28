@@ -1043,7 +1043,7 @@ namespace QDMSServer
 
             foreach (TemplateSession t in context.TemplateSessions.Where(x => x.TemplateID == spy.SessionTemplateID))
             {
-                spy.Sessions.Add(MyUtils.SessionConverter(t));
+                spy.Sessions.Add(t.ToInstrumentSession());
             }
 
             context.Instruments.AddOrUpdate(x => new {x.Symbol, x.DatasourceID, x.Expiration, x.ExchangeID}, spy);

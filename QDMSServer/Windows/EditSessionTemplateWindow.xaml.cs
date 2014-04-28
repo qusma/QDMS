@@ -105,7 +105,7 @@ namespace QDMSServer
 
                         foreach (TemplateSession s in TheTemplate.Sessions)
                         {
-                            i.Sessions.Add(MyUtils.SessionConverter(s));
+                            i.Sessions.Add(s.ToInstrumentSession());
                         }
                     }
                 }
