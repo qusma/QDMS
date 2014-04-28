@@ -25,12 +25,11 @@ namespace QDMSServer
 
         public ObservableCollection<KeyValuePair<int, string>> ContractMonths { get; set; }
 
-
-        private List<InstrumentSession> _originalSessions;
         public bool InstrumentAdded = false;
-        private readonly bool _addingNew;
-        private MyDBContext _context;
 
+        private readonly List<InstrumentSession> _originalSessions;
+        private readonly bool _addingNew;
+        private readonly MyDBContext _context;
 
         /// <summary>
         ///
@@ -66,9 +65,10 @@ namespace QDMSServer
                 if (instrument.Exchange != null)
                     _context.Entry(instrument.Exchange).Reload();
 
-                TheInstrument = instrument;
+                TheInstrument = addingNew ? (Instrument)instrument.Clone() : instrument;
                 if (TheInstrument.Tags == null) TheInstrument.Tags = new List<Tag>();
                 if (TheInstrument.Sessions == null) TheInstrument.Sessions = new List<InstrumentSession>();
+
                 TheInstrument.Sessions = TheInstrument.Sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
 
                 _originalSessions = TheInstrument.Sessions.ToList();
@@ -281,9 +281,12 @@ namespace QDMSServer
                 }
 
                 //make sure any "loose" sessions are deleted
-                foreach (InstrumentSession s in _originalSessions.Where(s => TheInstrument.Sessions.All(x => x.ID != s.ID)))
+                if (!_addingNew)
                 {
-                    _context.InstrumentSessions.Remove(s);
+                    foreach (InstrumentSession s in _originalSessions.Where(s => !TheInstrument.Sessions.Any(x => x.ID == s.ID)))
+                    {
+                        _context.InstrumentSessions.Remove(s);
+                    }
                 }
             }
 
