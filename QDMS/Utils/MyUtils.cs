@@ -190,28 +190,6 @@ namespace QDMS
             return Serializer.Deserialize<T>(ms);
         }
 
-        public static InstrumentSession SessionConverter(ExchangeSession session)
-        {
-            var result = new InstrumentSession();
-            result.OpeningDay = session.OpeningDay;
-            result.OpeningTime = TimeSpan.FromSeconds(session.OpeningTime.TotalSeconds);
-            result.ClosingDay = session.ClosingDay;
-            result.ClosingTime = TimeSpan.FromSeconds(session.ClosingTime.TotalSeconds);
-            result.IsSessionEnd = session.IsSessionEnd;
-            return result;
-        }
-
-        public static InstrumentSession SessionConverter(TemplateSession session)
-        {
-            var result = new InstrumentSession();
-            result.OpeningDay = session.OpeningDay;
-            result.OpeningTime = TimeSpan.FromSeconds(session.OpeningTime.TotalSeconds);
-            result.ClosingDay = session.ClosingDay;
-            result.ClosingTime = TimeSpan.FromSeconds(session.ClosingTime.TotalSeconds);
-            result.IsSessionEnd = session.IsSessionEnd;
-            return result;
-        }
-
         /// <summary>
         /// Converts a BarSize to its corresponding timespan.
         /// </summary>
