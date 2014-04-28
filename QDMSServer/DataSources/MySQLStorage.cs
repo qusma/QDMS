@@ -219,6 +219,7 @@ namespace QDMSServer.DataSources
                     {
                         //we don't save the time when saving this stuff to allow flexibility with changing sessions
                         bar.DT = bar.DT.Date;
+                        bar.DTOpen = null;
                     }
 
                     sb.AppendFormat("{16} INTO data " +
