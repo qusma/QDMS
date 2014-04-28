@@ -264,5 +264,60 @@ namespace QDMS
 
             return count;
         }
+
+        /// <summary>
+        /// Sets bar open and closing times to the opening and closing of the day's sessions
+        /// </summary>
+        /// <param name="bars"></param>
+        /// <param name="instrument"></param>
+        public static void SetSessionTimes(IEnumerable<OHLCBar> bars, Instrument instrument)
+        {
+            //  TODO move this method to its own class
+            Dictionary<int, InstrumentSession> openingSessions = instrument.SessionStartTimesByDay();
+            Dictionary<int, TimeSpan> closingSessions = instrument.SessionEndTimesByDay();
+
+            foreach (OHLCBar bar in bars)
+            {
+                int dotw = bar.DT.DayOfWeek.ToInt();
+
+                //set opening time
+                if (openingSessions.ContainsKey(dotw))
+                {
+                    if ((int)openingSessions[dotw].OpeningDay != dotw)
+                    {
+                        //the opening is on a different day, move back
+                        int daysToMoveBack =
+                            (int)openingSessions[dotw].OpeningDay <= dotw
+                            ? dotw - (int)openingSessions[dotw].OpeningDay
+                            : 7 - ((int)openingSessions[dotw].OpeningDay - dotw);
+                        bar.DTOpen = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day).AddDays(-daysToMoveBack) + openingSessions[dotw].OpeningTime;
+                        //TODO write a test for this stuff
+                    }
+                    else
+                    {
+                        bar.DTOpen = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day) + openingSessions[dotw].OpeningTime;
+                    }
+                }
+                else
+                {
+                    bar.DTOpen = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day, 0, 0, 0);
+                }
+
+                //set closing time
+                if (closingSessions.ContainsKey(dotw))
+                {
+                    bar.DT = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day) + closingSessions[dotw];
+                }
+                else
+                {
+                    bar.DT = new DateTime(bar.DT.Year, bar.DT.Month, bar.DT.Day, 23, 59, 59);
+                }
+            }
+        }
+
+        public static void ValidateSessions(List<InstrumentSession> sessions)
+        {
+            //todo write ValidateSessions
+        }
     }
 }
