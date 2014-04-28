@@ -29,10 +29,6 @@ namespace QDMS
                     var endTime = instrument.Sessions.First(x => x.ClosingDay == d && x.IsSessionEnd).ClosingTime;
                     sessionEndTimes.Add((int)d, endTime);
                 }
-                else
-                {
-                    sessionEndTimes.Add((int)d, TimeSpan.FromSeconds(0));
-                }
             }
             return sessionEndTimes;
         }
@@ -41,9 +37,13 @@ namespace QDMS
         /// Gets the "opening" session's opening time, one for each day of the week.
         /// Session could potentially be on a previous day.
         /// </summary>
-        public static Dictionary<int, TimeSpan> SessionStartTimesByDay(this Instrument instrument)
+        /// <returns>
+        /// A dictionary with keys corresponding to DayOfTheWeek,
+        /// and values of the opening session for that day.
+        /// </returns>
+        public static Dictionary<int, InstrumentSession> SessionStartTimesByDay(this Instrument instrument)
         {
-            Dictionary<int, TimeSpan> sessionStartTimes = new Dictionary<int, TimeSpan>();
+            var sessionStartTimes = new Dictionary<int, InstrumentSession>();
             if (instrument.Sessions == null) return sessionStartTimes;
 
             var dotwValues = MyUtils.GetEnumValues<DayOfTheWeek>();
@@ -52,14 +52,10 @@ namespace QDMS
 
             foreach (DayOfTheWeek d in dotwValues)
             {
-                if (instrument.Sessions.Any(x => x.OpeningDay == d))
+                if (instrument.Sessions.Any(x => x.ClosingDay == d))
                 {
-                    var startTime = sessions.First(x => x.ClosingDay == d).OpeningTime;
-                    sessionStartTimes.Add((int)d, startTime);
-                }
-                else
-                {
-                    sessionStartTimes.Add((int)d, TimeSpan.FromSeconds(0));
+                    var session = sessions.First(x => x.ClosingDay == d);
+                    sessionStartTimes.Add((int)d, session);
                 }
             }
             return sessionStartTimes;
