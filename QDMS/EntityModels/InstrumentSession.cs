@@ -13,7 +13,7 @@ namespace QDMS
 {
     [ProtoContract]
     [Serializable]
-    public class InstrumentSession : ICloneable
+    public class InstrumentSession : ISession
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
