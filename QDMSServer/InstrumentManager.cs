@@ -144,7 +144,8 @@ namespace QDMSServer
                 var instruments = query.Where(pred).ToList();
                 foreach (Instrument i in instruments)
                 {
-                    i.Exchange.Sessions.ToList();
+                    if(i.Exchange != null)
+                        i.Exchange.Sessions.ToList();
                 }
                 return instruments;
             }
