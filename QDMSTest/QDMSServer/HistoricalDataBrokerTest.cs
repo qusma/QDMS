@@ -312,7 +312,56 @@ namespace QDMSTest
         [Test]
         public void RegularTradingHoursAreFilteredWhenRTHFlagIsSet()
         {
-            Assert.IsTrue(false);
+            _instrument.Sessions = new List<InstrumentSession>
+            {
+                new InstrumentSession 
+                { 
+                    OpeningDay = DayOfTheWeek.Sunday, 
+                    OpeningTime = new TimeSpan(8,0,0),
+                    ClosingDay = DayOfTheWeek.Sunday,
+                    ClosingTime = new TimeSpan(15, 0, 0)
+                }
+            };
+
+            var request = new HistoricalDataRequest(
+                _instrument, 
+                BarSize.FiveMinutes, 
+                new DateTime(2012, 1, 1, 5, 0, 0), 
+                new DateTime(2012, 1, 1, 18, 0, 0),
+                forceFreshData: true,
+                localStorageOnly: false,
+                saveToLocalStorage: true,
+                rthOnly: true);
+
+            var data = new List<OHLCBar>();
+
+            //generate the data
+            DateTime currentDate = request.StartingDate;
+            while (currentDate < request.EndingDate)
+            {
+                data.Add(new OHLCBar { Open = 1, High = 2, Low = 3, Close = 4, DT = currentDate });
+                currentDate = currentDate.AddMinutes(5);
+            }
+
+            //we need to set up a callback with the request after it has had an AssignedID assigned to it.
+            HistoricalDataRequest newRequest = new HistoricalDataRequest();
+            _dataSourceMock
+                .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
+                .Callback<HistoricalDataRequest>(req => newRequest = req);
+
+            //hook up the data return event
+            var returnedData = new List<OHLCBar>();
+            _broker.HistoricalDataArrived += (a, s) => returnedData.AddRange(s.Data);
+
+            //send in the request
+            _broker.RequestHistoricalData(request);
+
+            //fake the data return from the datasource
+            _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
+
+            //now verify what we get back
+            Assert.AreEqual(0, returnedData.Count(x => x.DT.TimeOfDay < _instrument.Sessions.First().OpeningTime));
+            Assert.AreEqual(0, returnedData.Count(x => x.DT.TimeOfDay > _instrument.Sessions.First().ClosingTime));
         }
 
         [Test]
