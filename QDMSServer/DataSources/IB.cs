@@ -445,9 +445,9 @@ namespace QDMSServer.DataSources
 
                 foreach (HistoricalDataRequest subReq in subRequests)
                 {
-                    _requestCounter++;
                     lock (_subReqMapLock)
                     {
+                        _requestCounter++;
                         _subRequestIDMap.Add(_requestCounter, originalReqID);
                         SendHistoricalRequest(_requestCounter, subReq);
                     }
