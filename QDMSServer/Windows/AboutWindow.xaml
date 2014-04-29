@@ -21,11 +21,21 @@
         <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,10">
             <Label Content="QUSMA Data Management System" />
             <Label Content="Version: " x:Name="VersionLabel" />
-            <TextBlock Margin="6,100,0,0" >    
+            <TextBlock Margin="6,25,0,0" >    
                 Source code available at <LineBreak />
                 <Hyperlink NavigateUri="https://github.com/qusma/qdms" RequestNavigate="Hyperlink_RequestNavigate">
                     https://github.com/qusma/qdms
                 </Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="6,25,0,0" >
+                This product uses the FRED® API but is not <LineBreak />
+                endorsed or certified by the Federal <LineBreak />
+                Reserve Bank of St. Louis.
+                <LineBreak />
+                <Hyperlink NavigateUri="http://api.stlouisfed.org/terms_of_use.html" RequestNavigate="Hyperlink_RequestNavigate">
+                    FRED Terms of Use
+                </Hyperlink>
+                
             </TextBlock>
         </StackPanel>
         <Button Content="Close" Grid.Column="1" Margin="0,5,5,5" Grid.Row="1" x:Name="CloseBtn" Click="CloseBtn_OnClick"
