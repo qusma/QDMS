@@ -272,7 +272,6 @@ namespace QDMS
         /// <param name="instrument"></param>
         public static void SetSessionTimes(IEnumerable<OHLCBar> bars, Instrument instrument)
         {
-            //  TODO move this method to its own class
             Dictionary<int, InstrumentSession> openingSessions = instrument.SessionStartTimesByDay();
             Dictionary<int, TimeSpan> closingSessions = instrument.SessionEndTimesByDay();
 
@@ -315,9 +314,17 @@ namespace QDMS
             }
         }
 
-        public static void ValidateSessions(List<InstrumentSession> sessions)
+        public static void ValidateSessions(List<ISession> sessions)
         {
-            //todo write ValidateSessions
+            sessions = sessions.OrderBy(x => x.ClosingDay).ThenBy(x => x.ClosingTime).ToList();
+            //first test last vs first, then in a row
+            if (sessions.First().Overlaps(sessions.Last())) 
+                throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions.First(), sessions.Last()));
+            for (int i = 0; i < sessions.Count - 1; i++)
+            {
+                if (sessions[i].Overlaps(sessions[i + 1]))
+                    throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions.First(), sessions.Last()));
+            }
         }
     }
 }
