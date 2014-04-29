@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using QDMS;
 
@@ -56,9 +52,61 @@ namespace QDMSTest
         [Test]
         public void OverlapsReturnsTrueForIntradayOverlappingPeriods()
         {
-            //todo write tests
+            var m10To12 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(10,0,0),
+                ClosingDay = DayOfTheWeek.Monday,
+                ClosingTime = new TimeSpan(12, 0, 0),
+            };
+
+            var m8To14 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(8, 0, 0),
+                ClosingDay = DayOfTheWeek.Monday,
+                ClosingTime = new TimeSpan(14, 0, 0),
+            };
+
+            var m12To16 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(12, 0, 0),
+                ClosingDay = DayOfTheWeek.Monday,
+                ClosingTime = new TimeSpan(16, 0, 0),
+            };
+
+            var m12ToT12 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(12, 0, 0),
+                ClosingDay = DayOfTheWeek.Tuesday,
+                ClosingTime = new TimeSpan(12, 0, 0),
+            };
+
+            var s20ToM12 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Sunday,
+                OpeningTime = new TimeSpan(20, 0, 0),
+                ClosingDay = DayOfTheWeek.Monday,
+                ClosingTime = new TimeSpan(12, 0, 0),
+            };
             
-            //across days?
+            //one contains the other
+            Assert.IsTrue(m10To12.Overlaps(m8To14));
+            Assert.IsTrue(m8To14.Overlaps(m10To12));
+
+            //simple overlap
+            Assert.IsTrue(m12To16.Overlaps(m8To14));
+            Assert.IsTrue(m8To14.Overlaps(m12To16));
+
+            //across days
+            Assert.IsTrue(m12ToT12.Overlaps(m8To14));
+            Assert.IsTrue(m8To14.Overlaps(m12ToT12));
+
+            //across days and weeks
+            Assert.IsTrue(s20ToM12.Overlaps(m8To14));
+            Assert.IsTrue(m8To14.Overlaps(s20ToM12));
         }
 
         [Test]
