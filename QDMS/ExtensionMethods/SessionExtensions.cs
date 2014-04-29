@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 
 namespace QDMS
 {
@@ -23,72 +24,77 @@ namespace QDMS
 
         public static bool Overlaps(this ISession session1, ISession session2)
         {
-            //session 1 engulfs session 2
-            if (session1.OpeningDay < session2.OpeningDay &&
-                session1.ClosingDay > session2.ClosingDay &&
-                session2.OpeningDay < session2.ClosingDay)
+            //Create starting and ending DTs for the sessions
+            var arbitraryStartPoint = new DateTime(2014, 1, 1, 0, 0, 0, 0, new GregorianCalendar(), DateTimeKind.Utc);
+            DateTime session1Start, session1End, session2StartBack, session2StartForward, session2EndBack, session2EndForward;
+            
+            SessionToDTs(session1, arbitraryStartPoint, out session1Start, out session1End);
+
+            //to make sure all overlap scenarios are covered, the 2nd session is done both backwards and forwards
+            SessionToDTs(session2, session1Start, out session2StartForward, out session2EndForward);
+            SessionToDTs(session2, session1Start, out session2StartBack, out session2EndBack, false);
+
+            if (DateTimePeriodsOverlap(session1Start, session1End, session2StartBack, session2EndBack))
+                return true;
+            if (DateTimePeriodsOverlap(session1Start, session1End, session2StartForward, session2EndForward))
+                return true;
+
+            return false;
+        }
+
+        private static bool DateTimePeriodsOverlap(DateTime p1start, DateTime p1end, DateTime p2start, DateTime p2end)
+        {
+            //engulfing
+            if (p1start > p2start && p1end < p2end)
             {
                 return true;
             }
 
-            //session 2 engulfs session 1
-            if (session2.OpeningDay < session1.OpeningDay &&
-                session2.ClosingDay > session1.ClosingDay &&
-                session1.OpeningDay < session1.ClosingDay)
+            if (p2start > p1start && p2end < p1end)
             {
                 return true;
             }
 
-            //session 1 engulfs session 2, across weeks
-            if (session1.OpeningDay > session1.ClosingDay &&
-                session1.OpeningDay > session2.OpeningDay &&
-                session1.ClosingDay > session2.ClosingDay)
+            //partial overlap
+            if (p1start < p2end && p1end > p2end)
             {
                 return true;
             }
 
-            //session 2 engulfs session 1, across weeks
-            if (session2.OpeningDay > session2.ClosingDay &&
-                session2.OpeningDay > session1.OpeningDay &&
-                session2.ClosingDay > session1.ClosingDay)
+            if (p1start < p2start && p1end > p2start)
             {
                 return true;
             }
 
-            //partial overlap intraweek, 1 over 2
-            if (session1.OpeningDay < session2.ClosingDay &&
-                session1.ClosingDay > session2.ClosingDay)
+            if (p2start < p1end && p2end > p1end)
             {
                 return true;
             }
 
-            //partial overlap intraweek, 2 over 1
-            if (session2.OpeningDay < session1.ClosingDay &&
-                session2.ClosingDay > session1.ClosingDay)
+            if (p2start < p1start && p2end > p1start)
             {
                 return true;
-            }
-
-            //same day, times overlap
-            if (session1.OpeningDay == session2.OpeningDay &&
-                session1.ClosingDay == session2.ClosingDay)
-            {
-                if (session1.OpeningTime > session2.OpeningTime && session1.ClosingTime < session2.ClosingTime)
-                    return true;
-                if (session1.OpeningTime < session2.OpeningTime && session1.ClosingTime > session2.OpeningTime)
-                    return true;
-                if (session1.OpeningTime < session2.ClosingTime && session1.ClosingTime > session2.ClosingTime)
-                    return true;
-
-                if (session2.OpeningTime > session1.OpeningTime && session2.ClosingTime < session1.ClosingTime)
-                    return true;
-                if (session2.OpeningTime < session1.OpeningTime && session2.ClosingTime > session1.OpeningTime)
-                    return true;
-                if (session2.OpeningTime < session1.ClosingTime && session2.ClosingTime > session1.ClosingTime)
-                    return true;
             }
 
             return false;
+        }
+
+        private static void SessionToDTs(ISession session, DateTime startingPoint, out DateTime start, out DateTime end, bool forwards = true)
+        {
+            start = startingPoint;
+            while (start.DayOfWeek.ToInt() != (int)session.OpeningDay)
+            {
+                start = start.AddDays(forwards ? 1 : -1);
+            }
+
+            end = start;
+            while (end.DayOfWeek.ToInt() != (int)session.ClosingDay)
+            {
+                end = end.AddDays(1);
+            }
+
+            start = start.Date + session.OpeningTime;
+            end = end.Date + session.ClosingTime;
         }
     }
 }
