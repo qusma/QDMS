@@ -61,17 +61,7 @@ namespace QDMS
                 return true;
             }
 
-            if (p1start < p2start && p1end > p2start)
-            {
-                return true;
-            }
-
             if (p2start < p1end && p2end > p1end)
-            {
-                return true;
-            }
-
-            if (p2start < p1start && p2end > p1start)
             {
                 return true;
             }
