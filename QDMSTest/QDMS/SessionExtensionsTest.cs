@@ -112,7 +112,35 @@ namespace QDMSTest
         [Test]
         public void OverlapsReturnsFalseForNonOverlappingIntradayPeriods()
         {
-            //todo write tests
+            var m10To12 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(10, 0, 0),
+                ClosingDay = DayOfTheWeek.Monday,
+                ClosingTime = new TimeSpan(12, 0, 0),
+            };
+
+            var m14To16 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(14, 0, 0),
+                ClosingDay = DayOfTheWeek.Monday,
+                ClosingTime = new TimeSpan(16, 0, 0),
+            };
+
+            var m14ToT11 = new InstrumentSession
+            {
+                OpeningDay = DayOfTheWeek.Monday,
+                OpeningTime = new TimeSpan(14, 0, 0),
+                ClosingDay = DayOfTheWeek.Tuesday,
+                ClosingTime = new TimeSpan(11, 0, 0),
+            };
+
+            Assert.IsFalse(m10To12.Overlaps(m14To16));
+            Assert.IsFalse(m14To16.Overlaps(m10To12));
+
+            Assert.IsFalse(m10To12.Overlaps(m14ToT11));
+            Assert.IsFalse(m14ToT11.Overlaps(m10To12));
         }
     }
 }
