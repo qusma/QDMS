@@ -248,6 +248,7 @@
     <Compile Include="Servers\RealTimeDataServer.cs" />
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\FredUtils.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
     <Compile Include="Utils\PriceAdjuster.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
@@ -274,6 +275,9 @@
     </Compile>
     <Compile Include="Windows\AddInstrumentQuandlWindow.xaml.cs">
       <DependentUpon>AddInstrumentQuandlWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentFredlWindow.xaml.cs">
+      <DependentUpon>AddInstrumentFredlWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\SessionTemplatesWindow.xaml.cs">
       <DependentUpon>SessionTemplatesWindow.xaml</DependentUpon>
@@ -346,6 +350,10 @@
     <Page Include="Windows\AddInstrumentQuandlWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\AddInstrumentFredlWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\SessionTemplatesWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
