@@ -12,10 +12,10 @@ For bug reports, feature requests, and general discussion please use the [google
 
 Features:
 ------------------------
-* Manages metadata on stocks, options, futures, CFDs, etc.
-* Downloads historical and real time data from external data sources.
+* Manage metadata on stocks, options, futures, CFDs, etc.
+* Download historical and real time data from external data sources.
 * Local storage of historical data.
-* Constructs continuous futures data.
+* Continuous futures data.
 * Schedule automatic data updates.
 * CSV import/export.
 
@@ -33,6 +33,7 @@ Currently Supported Data Sources:
 * Yahoo
 * Interactive Brokers
 * Quandl
+* FRED (Federal Reserve Economic Data)
 
 Requirements:
 ------------------------
@@ -47,5 +48,4 @@ Planned features/improvements:
 * Support for fundamental data.
 * Alternative (binary files) storage mechanism for tick data.
 * Some sort of market-wide "snapshot" functionality.
-* Far wider test coverage.
 * Proper docs.
