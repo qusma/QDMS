@@ -19,11 +19,39 @@ namespace QDMSServer
     {
         /// <summary>
         /// Convert a FRED series to a QDMS instrument.
+        /// Datasource needs to be set externally to FRED.
         /// </summary>
         public static Instrument SeriesToInstrument(FredSeries series)
         {
-            //todo write
-            return new Instrument();
+            return new Instrument
+            {
+                Symbol = series.ID,
+                DatasourceSymbol = series.ID,
+                Name = series.Title,
+                Multiplier = 1,
+                Type = InstrumentType.Index
+            };
+        }
+
+        public static string FrequencyToRequestString(BarSize frequency)
+        {
+            switch (frequency)
+            {
+                case BarSize.OneDay:
+                    return "d";
+                    
+                case BarSize.OneWeek:
+                    return "w";
+
+                case BarSize.OneMonth:
+                    return "m";
+
+                case BarSize.OneYear:
+                    return "a";
+
+                default:
+                    return "d";
+            }
         }
 
         /// <summary>
