@@ -368,6 +368,24 @@ namespace QDMSServer
             }
         }
 
+        //show the FRED add instrument window
+        private void AddInstrumentFredBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            using (var context = new MyDBContext())
+            {
+                var window = new AddInstrumentFredWindow(context);
+
+                if (window.AddedInstruments != null)
+                {
+                    foreach (Instrument i in window.AddedInstruments)
+                    {
+                        Instruments.Add(i);
+                    }
+                    window.Close();
+                }
+            }
+        }
+
         //show a window to modify the selected instrument
         private void TableView_RowDoubleClick(object sender, MouseButtonEventArgs mouseButtonEventArgs)
         {
@@ -710,5 +728,7 @@ namespace QDMSServer
             var window = new AboutWindow();
             window.ShowDialog();
         }
+
+
     }
 }
