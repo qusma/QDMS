@@ -15,17 +15,21 @@ namespace QDMSServer
 {
     public static class Seed
     {
-        public static void DoSeed()
+        public static void SeedDatasources(MyDBContext context)
         {
-            var context = new MyDBContext();
-
-            #region datasources
             var ib = new Datasource { Name = "Interactive Brokers" };
             var yahoo = new Datasource { Name = "Yahoo" };
             var quandl = new Datasource { Name = "Quandl" };
+            var fred = new Datasource { Name = "FRED" };
 
-            context.Datasources.AddOrUpdate(x => x.Name, ib, yahoo, quandl);
-            #endregion
+            context.Datasources.AddOrUpdate(x => x.Name, ib, yahoo, quandl, fred);
+
+            context.SaveChanges();
+        }
+
+        public static void DoSeed()
+        {
+            var context = new MyDBContext();
 
             #region underlyingSymbols
             var eur = new UnderlyingSymbol

@@ -104,8 +104,11 @@ namespace QDMSServer
             var entityContext = new MyDBContext();
             entityContext.Database.Initialize(false);
 
-            //check for any datasources, seed the db with initial values if nothing is found
-            if (!entityContext.Datasources.Any())
+            //seed the datasources no matter what, because these are added frequently
+            Seed.SeedDatasources(entityContext);
+
+            //check for any exchanges, seed the db with initial values if nothing is found
+            if (!entityContext.Exchanges.Any())
             {
                 Seed.DoSeed();
             }
