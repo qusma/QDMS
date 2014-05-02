@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="MyUtils.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -34,14 +34,16 @@ namespace QDMS
             {
                 case 1:
                     return num + "st";
+
                 case 2:
                     return num + "nd";
+
                 case 3:
                     return num + "rd";
+
                 default:
                     return num + "th";
             }
-
         }
 
         /// <summary>
@@ -59,40 +61,39 @@ namespace QDMS
             {
                 case 1:
                     return "F";
-                    
+
                 case 2:
                     return "G";
-                    
+
                 case 3:
                     return "H";
-                    
+
                 case 4:
                     return "J";
-                    
+
                 case 5:
                     return "K";
-                    
+
                 case 6:
                     return "M";
-                    
+
                 case 7:
                     return "N";
-                    
+
                 case 8:
                     return "Q";
-                    
+
                 case 9:
                     return "U";
-                    
+
                 case 10:
                     return "V";
-                    
+
                 case 11:
                     return "X";
-                    
+
                 case 12:
                     return "Z";
-                    
             }
             throw new ArgumentOutOfRangeException("month", "Month must be between 1-12");
         }
@@ -106,36 +107,52 @@ namespace QDMS
             {
                 case "CH":
                     return new Switzerland();
+
                 case "US":
                     return new UnitedStates(UnitedStates.Market.NYSE);
+
                 case "SG":
                     return new Singapore();
+
                 case "UK":
                     return new UnitedKingdom(UnitedKingdom.Market.Exchange);
+
                 case "DE":
                     return new Germany(Germany.Market.FrankfurtStockExchange);
+
                 case "HK":
                     return new HongKong();
+
                 case "JP":
                     return new Japan();
+
                 case "SK":
                     return new SouthKorea(SouthKorea.Market.KRX);
+
                 case "BR":
                     return new Brazil(Brazil.Market.Exchange);
+
                 case "AU":
                     return new Australia();
+
                 case "IN":
                     return new India();
+
                 case "CN":
                     return new China();
+
                 case "TW":
                     return new Taiwan();
+
                 case "IT":
                     return new Italy(Italy.Market.Exchange);
+
                 case "CA":
                     return new Canada(Canada.Market.TSX);
+
                 case "ID":
                     return new Indonesia(Indonesia.Market.JSX);
+
                 case "SE":
                     return new Sweden();
             }
@@ -149,14 +166,13 @@ namespace QDMS
         public static long ConvertToTimestamp(DateTime value)
         {
             TimeSpan elapsedTime = value - Epoch;
-            return (long) elapsedTime.TotalSeconds;
+            return (long)elapsedTime.TotalSeconds;
         }
 
         public static DateTime TimestampToDateTime(long timestamp)
         {
             return Epoch.AddSeconds(timestamp);
         }
-
 
         /// <summary>
         /// Returns an IEnumerable of all possible values of an Enum.
@@ -314,11 +330,14 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// Ensure that no sessions in the collection overlap.
+        /// </summary>
         public static void ValidateSessions(List<ISession> sessions)
         {
             sessions = sessions.OrderBy(x => x.ClosingDay).ThenBy(x => x.ClosingTime).ToList();
             //first test last vs first, then in a row
-            if (sessions.First().Overlaps(sessions.Last())) 
+            if (sessions.First().Overlaps(sessions.Last()))
                 throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions.First(), sessions.Last()));
             for (int i = 0; i < sessions.Count - 1; i++)
             {
