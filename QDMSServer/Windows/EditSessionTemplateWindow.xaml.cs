@@ -47,6 +47,18 @@ namespace QDMSServer
 
         private void ModifyBtn_Click(object sender, RoutedEventArgs e)
         {
+            //ensure sessions don't overlap
+            try
+            {
+                MyUtils.ValidateSessions(TheTemplate.Sessions.ToList<ISession>());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+            //save to db
             using (var entityContext = new MyDBContext())
             {
                 bool nameExists = entityContext.SessionTemplates.Any(x => x.Name == TheTemplate.Name);

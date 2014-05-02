@@ -235,10 +235,17 @@ namespace QDMSServer
                 MessageBox.Show("Must have a multiplier value.");
                 return;
             }
-            
-            //TODO add a check here to make sure that the chosen sessions do not overlap
-            //TODO do the same thing for the exchange editor and session editor.
 
+            try
+            {
+                MyUtils.ValidateSessions(TheInstrument.Sessions.ToList<ISession>());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+            
             TheInstrument.Tags.Clear();
 
             foreach (Tag t in Tags.Where(x => x.IsChecked).Select(x => x.Item))
