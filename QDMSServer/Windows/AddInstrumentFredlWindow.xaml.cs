@@ -82,12 +82,10 @@ namespace QDMSServer
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
             int count = 0;
-            foreach (Instrument newInstrument in InstrumentGrid.SelectedItems)
+            foreach (FredUtils.FredSeries series in InstrumentGrid.SelectedItems)
             {
-                if (newInstrument.Exchange != null)
-                    newInstrument.ExchangeID = newInstrument.Exchange.ID;
-                if (newInstrument.PrimaryExchange != null)
-                    newInstrument.PrimaryExchangeID = newInstrument.PrimaryExchange.ID;
+                var newInstrument = FredUtils.SeriesToInstrument(series);
+                newInstrument.Datasource = _thisDS;
 
                 try
                 {
