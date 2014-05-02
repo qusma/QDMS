@@ -12,19 +12,30 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Windows;
+using System.Xml.Linq;
 using NLog;
 using QDMS;
+
+#pragma warning disable 67
 
 namespace QDMSServer.DataSources
 {
     public class FRED : IHistoricalDataSource
     {
-        private string _apiKey = "f8d71bdcf1d7153e157e0baef35f67db";
-        private Logger _logger = LogManager.GetCurrentClassLogger();
+        private const string ApiKey = "f8d71bdcf1d7153e157e0baef35f67db";
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public FRED()
+        {
+            Name = "FRED";
+        }
 
         /// <summary>
         /// Connect to the data source.
@@ -49,6 +60,7 @@ namespace QDMSServer.DataSources
         /// The name of the data source.
         /// </summary>
         public string Name { get; private set; }
+
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
             RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, GetData(request)));
@@ -56,18 +68,21 @@ namespace QDMSServer.DataSources
 
         private List<OHLCBar> GetData(HistoricalDataRequest request)
         {
-            var startDate = request.StartingDate;
-            var endDate = request.EndingDate;
             var instrument = request.Instrument;
             var symbol = string.IsNullOrEmpty(instrument.DatasourceSymbol) ? instrument.Symbol : instrument.DatasourceSymbol;
 
-            var data = new List<OHLCBar>();
+            //todo see what error is returned when asking for too high frequencies
 
-            //todo how to handle frequency? not given in observations query
+            string dataURL = string.Format("http://api.stlouisfed.org/fred/series/observations?series_id={0}&api_key={1}&observation_start={2}&observation_end={3}&frequency={4}",
+                symbol,
+                ApiKey,
+                request.StartingDate.ToString("yyyy-MM-dd"),
+                request.EndingDate.ToString("yyyy-MM-dd"),
+                FredUtils.FrequencyToRequestString(request.Frequency));
+            string contents;
 
             using (WebClient webClient = new WebClient())
             {
-                string dataURL = "", contents = "";
                 try
                 {
                     contents = webClient.DownloadString(dataURL);
@@ -93,10 +108,77 @@ namespace QDMSServer.DataSources
                 }
             }
 
+            XDocument xdoc;
+            using (var sr = new StringReader(contents))
+            {
+                xdoc = XDocument.Load(sr);
+            }
+
+            //check if an error was returned instead of data
+            //format: <error code="400" message="Bad Request. Value of frequency is not one of: 'm', 'q', 'sa', 'a'."/>
+            if (xdoc.Descendants("error").Any())
+            {
+                XElement error = xdoc.Descendants("error").First();
+
+                string errorText = string.Format("Error downloading price data from FRED, symbol: {0}. URL: {1} Error Code: {2} Message: {3}",
+                    symbol,
+                    dataURL,
+                    error.Attribute("code").Value,
+                    error.Attribute("message").Value);
+
+                Log(LogLevel.Error, errorText);
+
+                RaiseEvent(Error, this, new ErrorArgs(0, errorText));
+
+                return new List<OHLCBar>();
+            }
+
+            //Parse the data and return it
+            List<OHLCBar> data = ParseData(xdoc);
+
             Log(LogLevel.Info, string.Format("Downloaded {0} bars from FRED, symbol {1}.",
                 data.Count,
                 instrument.Symbol));
-                    data.Reverse(); //TODO do we neeed to inverse this data?
+
+            return data;
+        }
+
+        /// <summary>
+        /// Parse observations XML into OHLCBars
+        /// </summary>
+        /// <param name="xdoc"></param>
+        /// <returns></returns>
+        private static List<OHLCBar> ParseData(XDocument xdoc)
+        {
+            //format:
+            //<observation realtime_start="2013-08-14" realtime_end="2013-08-14" date="1996-01-01" value="10595.1"/>
+            var data = new List<OHLCBar>();
+            foreach (XElement obs in xdoc.Descendants("observation"))
+            {
+                DateTime date;
+
+                if (!DateTime.TryParseExact(obs.Attribute("date").Value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out date))
+                {
+                    continue;
+                }
+
+                decimal value;
+                if (!decimal.TryParse(obs.Attribute("value").Value, out value))
+                {
+                    continue;
+                }
+
+                var bar = new OHLCBar
+                {
+                    DT = date,
+                    Open = value,
+                    High = value,
+                    Low = value,
+                    Close = value
+                };
+
+                data.Add(bar);
+            }
             return data;
         }
 
@@ -126,7 +208,11 @@ namespace QDMSServer.DataSources
         }
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
+
         public event EventHandler<ErrorArgs> Error;
+
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
     }
 }
+
+#pragma warning restore 67
