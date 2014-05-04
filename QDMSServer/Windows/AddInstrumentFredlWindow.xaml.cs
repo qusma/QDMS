@@ -28,9 +28,8 @@ namespace QDMSServer
         public List<Instrument> AddedInstruments { get; set; }
 
         private readonly Datasource _thisDS;
-        private readonly MyDBContext _context;
 
-        private string _apiKey = "f8d71bdcf1d7153e157e0baef35f67db";
+        private const string ApiKey = "f8d71bdcf1d7153e157e0baef35f67db";
 
         public AddInstrumentFredWindow(MyDBContext context)
         {
@@ -42,19 +41,16 @@ namespace QDMSServer
 
             InitializeComponent();
 
-            _context = context;
-            _thisDS = _context.Datasources.First(x => x.Name == "FRED");
-
-            //TODO need some sort of upgrade procedure that adds datasources
+            _thisDS = context.Datasources.First(x => x.Name == "FRED");
 
             ShowDialog();
         }
 
-        private void Search(int page = 1)
+        private void Search()
         {
             Series.Clear();
             
-            var foundSeries = FredUtils.FindSeries(SymbolTextBox.Text, _apiKey);
+            var foundSeries = FredUtils.FindSeries(SymbolTextBox.Text, ApiKey);
             foreach (var i in foundSeries)
             {
                 Series.Add(i);
