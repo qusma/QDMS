@@ -128,8 +128,8 @@ namespace QDMSServer.DataSources
                                                 "InstrumentID = ?ID AND Frequency = ?Freq AND DT >= ?Start AND DT <= ?End ORDER BY DT ASC";
                 cmd.Parameters.AddWithValue("ID", instrument.ID);
                 cmd.Parameters.AddWithValue("Freq", (int)frequency);
-                cmd.Parameters.AddWithValue("Start", startDate);
-                cmd.Parameters.AddWithValue("End", endDate);
+                cmd.Parameters.AddWithValue("Start", frequency >= BarSize.OneDay ? startDate.Date : startDate);
+                cmd.Parameters.AddWithValue("End", frequency >= BarSize.OneDay ? endDate.Date : endDate);
 
                 var data = new List<OHLCBar>();
 
