@@ -105,13 +105,15 @@ namespace QDMSServer
 
                             //volume and OI are not represented as ints for some reason
                         case "Volume":
-                            if (!isNull && decimal.TryParse(price.Value, out parsedValue))
-                                bar.Volume = (int)parsedValue;
+                            long volume;
+                            if (!isNull && long.TryParse(price.Value, out volume))
+                                bar.Volume = volume;
                             break;
 
                         case "Open Interest":
-                            if (!isNull && decimal.TryParse(price.Value, out parsedValue))
-                                bar.Volume = (int)parsedValue;
+                            int openInterest;
+                            if (!isNull && int.TryParse(price.Value, out openInterest))
+                                bar.OpenInterest = openInterest;
                             break;
 
                         case "Adjusted Close":
