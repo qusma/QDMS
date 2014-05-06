@@ -79,7 +79,8 @@ namespace QDMSServer
                 { "Interactive Brokers", new IB(3) },
                 { "Yahoo", new Yahoo() },
                 { "Quandl", new Quandl() },
-                { "FRED", new FRED() }
+                { "FRED", new FRED() },
+                { "Google", new Google() }
             };
 
             //add the continuous futures broker to the data sources

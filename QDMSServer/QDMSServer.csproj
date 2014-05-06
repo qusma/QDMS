@@ -222,6 +222,7 @@
     <Compile Include="DataGridExtensions.cs" />
     <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\FRED.cs" />
+    <Compile Include="DataSources\Google.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
