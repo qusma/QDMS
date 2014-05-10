@@ -60,6 +60,7 @@
     <Compile Include="EntityModels\DataUpdateJobDetails.cs" />
     <Compile Include="EntityModels\ExpirationRule.cs" />
     <Compile Include="EntityModels\Tick.cs" />
+    <Compile Include="Enums\DataLocation.cs" />
     <Compile Include="Enums\DayType.cs" />
     <Compile Include="Enums\RelativeMonth.cs" />
     <Compile Include="Enums\WeekDayCount.cs" />

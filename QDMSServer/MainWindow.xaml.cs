@@ -286,9 +286,8 @@ namespace QDMSServer
                             frequency,
                             relevantStorageInfo.LatestDate + frequency.ToTimeSpan(),
                             DateTime.Now,
-                            true,
-                            false,
-                            true));
+                            dataLocation: DataLocation.ExternalOnly,
+                            saveToLocalStorage: true));
                         requestCount++;
                     }
                 }

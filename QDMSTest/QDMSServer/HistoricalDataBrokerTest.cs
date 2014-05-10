@@ -83,8 +83,7 @@ namespace QDMSTest
         public void HistoricalDataRequestsAreForwardedToTheCorrectDataSource()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -101,8 +100,7 @@ namespace QDMSTest
                         i.EndingDate.Year == 2013 &&
                         i.EndingDate.Month == 1 &&
                         i.EndingDate.Day == 1 &&
-                        i.ForceFreshData == true &&
-                        i.LocalStorageOnly == false &&
+                        i.DataLocation == DataLocation.ExternalOnly && 
                         i.SaveDataToStorage == false &&
                         i.RTHOnly == true)), Times.Once);
         }
@@ -111,8 +109,7 @@ namespace QDMSTest
         public void RequestEndingTimesAreCorrectlyConstrainedToThePresentTimeInTheInstrumentsTimeZone()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2100, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -137,8 +134,7 @@ namespace QDMSTest
         public void RequestsAreCorrectlySplitIntoSubrequestsWhenOnlyPartOfTheDataIsAvailable()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: false,
-                localStorageOnly: false,
+                dataLocation: DataLocation.Both,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -177,8 +173,7 @@ namespace QDMSTest
         public void ForceFreshDataFlagIsObeyed()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -192,8 +187,7 @@ namespace QDMSTest
         public void LocalStorageOnlyFlagIsObeyed()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: false,
-                localStorageOnly: true,
+                dataLocation: DataLocation.LocalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -211,8 +205,7 @@ namespace QDMSTest
                         i.EndingDate.Year == 2013 &&
                         i.EndingDate.Month == 1 &&
                         i.EndingDate.Day == 1 &&
-                        i.ForceFreshData == false &&
-                        i.LocalStorageOnly == true &&
+                        i.DataLocation == DataLocation.LocalOnly && 
                         i.SaveDataToStorage == false &&
                         i.RTHOnly == true)));
         }
@@ -221,8 +214,7 @@ namespace QDMSTest
         public void SavesToLocalStorageWhenSaveToLocalStorageFlagIsSet()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: true,
                 rthOnly: true);
 
@@ -255,8 +247,7 @@ namespace QDMSTest
         public void DoesNotSaveToLocalStorageWhenSaveToLocalStorageFlagIsNotSet()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -285,8 +276,7 @@ namespace QDMSTest
             _instrument.IsContinuousFuture = true;
 
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -303,8 +293,7 @@ namespace QDMSTest
                         i.EndingDate.Year == 2013 &&
                         i.EndingDate.Month == 1 &&
                         i.EndingDate.Day == 1 &&
-                        i.ForceFreshData == true &&
-                        i.LocalStorageOnly == false &&
+                        i.DataLocation == DataLocation.ExternalOnly &&
                         i.SaveDataToStorage == false &&
                         i.RTHOnly == true)), Times.Once);
         }
@@ -328,8 +317,7 @@ namespace QDMSTest
                 BarSize.FiveMinutes, 
                 new DateTime(2012, 1, 1, 5, 0, 0), 
                 new DateTime(2012, 1, 1, 18, 0, 0),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: true,
                 rthOnly: true);
 
@@ -372,8 +360,7 @@ namespace QDMSTest
             _broker.HistoricalDataArrived += (sender, e) => eventRaised = true;
 
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -406,8 +393,7 @@ namespace QDMSTest
         public void RequestsAreGivenAUniqueAssignedIDGreaterThanZero()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                forceFreshData: true,
-                localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
 
@@ -432,8 +418,7 @@ namespace QDMSTest
         {
             _instrument.Datasource.Name = "ASDfasdf___________________aasdf";
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                 forceFreshData: false,
-                 localStorageOnly: false,
+                 dataLocation: DataLocation.Both,
                  saveToLocalStorage: false,
                  rthOnly: true);
             _broker.RequestHistoricalData(request);
@@ -445,8 +430,7 @@ namespace QDMSTest
         {
             _instrument.Datasource.Name = "ASDfasdf___________________aasdf";
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                 forceFreshData: true,
-                 localStorageOnly: false,
+                 dataLocation: DataLocation.ExternalOnly,
                  saveToLocalStorage: false,
                  rthOnly: true);
             _broker.RequestHistoricalData(request);
@@ -457,8 +441,7 @@ namespace QDMSTest
         public void ThrowsExceptionWhenMakingRequestForInstrumentWithDataSourceThatIsDisconnected()
         {
             var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
-                 forceFreshData: true,
-                 localStorageOnly: false,
+                dataLocation: DataLocation.ExternalOnly,
                  saveToLocalStorage: false,
                  rthOnly: true);
 

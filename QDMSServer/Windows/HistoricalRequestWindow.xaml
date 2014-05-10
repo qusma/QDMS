@@ -16,6 +16,12 @@
                 <x:Type Type="qdms:BarSize"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="DataLocations" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:DataLocation"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
     </controls:MetroWindow.Resources>
 
 
@@ -31,7 +37,8 @@
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
         <Label Content="Resolution: " HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ResolutionComboBox" ItemsSource="{Binding Source={StaticResource BarSizes}}" SelectedIndex="11" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Margin="78,3,0,0" VerticalAlignment="Top" Width="150"/>
+        <ComboBox x:Name="ResolutionComboBox" ItemsSource="{Binding Source={StaticResource BarSizes}}" 
+                  SelectedIndex="11" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Margin="78,3,0,0" VerticalAlignment="Top" Width="150"/>
 
 
         <Label Grid.Column="0" Content="Start: " HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Grid.Row="1"/>
@@ -67,8 +74,17 @@
         <Button Click="ExportBtn_Click" x:Name="ExportBtn" Content="Export..." Grid.Column="1" HorizontalAlignment="Left" Margin="10,26,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75"/>
         <Button Click="CloseBtn_Click" x:Name="CloseBtn" Content="Close" Grid.Column="1" HorizontalAlignment="Left" Margin="10,0,0,10" Grid.Row="3" VerticalAlignment="Bottom" Width="75"/>
         <Label Grid.Column="0" Name="StatusLabel" Content="Ready" HorizontalAlignment="Left" Margin="10,12,0,0" Grid.Row="3" VerticalAlignment="Top"/>
-        <CheckBox Grid.Column="0" Grid.Row="0" Name="ForceFreshDataCheckBox" Content="Force Fresh Data" ToolTip="Download new data from the external data source even if it exists in local storage." HorizontalAlignment="Left" Margin="250,9,0,0" VerticalAlignment="Top"/>
-        <CheckBox Grid.Column="0" Grid.Row="0" Name="LocalStorageOnlyCheckBox" Content="Local Storage Only" ToolTip="Only get data from local storage." HorizontalAlignment="Left" Margin="406,9,0,0" VerticalAlignment="Top"/>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Data Location: " HorizontalAlignment="Left" Margin="250,5,0,0" VerticalAlignment="Top"/>
+        <ComboBox Grid.Column="0" Grid.Row="0" 
+                  Name="DataLocationComboBox" 
+                  HorizontalAlignment="Left" 
+                  Margin="335,3,0,0" 
+                  VerticalAlignment="Top" 
+                  ToolTip="Get data from the external source only, local database only, or both." 
+                  ItemsSource="{Binding Source={StaticResource DataLocations}}"
+                  SelectedIndex="0" />
+            
         <CheckBox Grid.Column="0" Grid.Row="0" x:Name="SaveToLocalStorageCheckBox" Content="Save to Local Storage" IsChecked="True" ToolTip="Save downloaded data to local storage." HorizontalAlignment="Left" Margin="561,9,0,0" VerticalAlignment="Top"/>
         <CheckBox Grid.Column="0" Grid.Row="0" x:Name="RTHOnlyCheckBox" Content="RTH Only" IsChecked="True" ToolTip="Get data only during regular trading hours." HorizontalAlignment="Left" Margin="739,9,0,0" VerticalAlignment="Top"/>
 

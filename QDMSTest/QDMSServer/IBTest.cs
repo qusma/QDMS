@@ -77,7 +77,7 @@ namespace QDMSTest
                     TWSUtils.BarSizeConverter(kvp.Key.Key),
                     DateTime.Now.AddSeconds(-kvp.Key.Value),
                     DateTime.Now,
-                    forceFreshData: true));
+                    dataLocation: DataLocation.ExternalOnly));
 
                 Assert.AreEqual(kvp.Value, requestCount[0], kvp.Key.Key.ToString());
                 requestCount[0] = 0;
@@ -122,7 +122,7 @@ namespace QDMSTest
                     TWSUtils.BarSizeConverter(kvp.Key.Key),
                     DateTime.Now.AddSeconds(-kvp.Key.Value),
                     DateTime.Now,
-                    forceFreshData: true));
+                    dataLocation: DataLocation.ExternalOnly));
 
                 Assert.AreEqual(kvp.Value, requestCount[0], kvp.Key.Key.ToString());
                 requestCount[0] = 0;

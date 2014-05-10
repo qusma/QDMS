@@ -61,17 +61,12 @@ namespace QDMS
         private long _longEndingDate;
 
         /// <summary>
-        /// If this is true, the request will go directly to the instrument's data source.
-        /// If it is false, the request will first go to local storage and only request fresh data if the local storage is unable to fulfill the request.
+        /// Determines where the data will be downloaded from:
+        /// Local only, external only (force fresh download), 
+        /// or both (data not availablle locally will be downloaded)
         /// </summary>
         [ProtoMember(5)]
-        public bool ForceFreshData { get; set; }
-
-        /// <summary>
-        /// If this is true, the request will go directly to local storage and will never query the external data source.
-        /// </summary>
-        [ProtoMember(6)]
-        public bool LocalStorageOnly { get; set; }
+        public DataLocation DataLocation { get; set; }
 
         /// <summary>
         /// If this is true, any data received from the external data source will be saved to local storage.
@@ -113,14 +108,13 @@ namespace QDMS
         {
         }
 
-        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, bool forceFreshData = false, bool localStorageOnly = false, bool saveToLocalStorage = true, bool rthOnly = false, int requestID = 0)
+        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, DataLocation dataLocation = DataLocation.Both, bool saveToLocalStorage = true, bool rthOnly = false, int requestID = 0)
         {
             Frequency = frequency;
             Instrument = instrument;
             StartingDate = startingDate;
             EndingDate = endingDate;
-            ForceFreshData = forceFreshData;
-            LocalStorageOnly = localStorageOnly;
+            DataLocation = dataLocation;
             SaveDataToStorage = saveToLocalStorage;
             RTHOnly = rthOnly;
             RequestID = requestID;
@@ -134,7 +128,7 @@ namespace QDMS
         /// </returns>
         public object Clone()
         {
-            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, ForceFreshData, LocalStorageOnly, SaveDataToStorage, RTHOnly, RequestID);
+            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, DataLocation, SaveDataToStorage, RTHOnly, RequestID);
             clone.AssignedID = AssignedID;
             clone.IsSubrequestFor = IsSubrequestFor;
             clone.RequesterIdentity = RequesterIdentity;

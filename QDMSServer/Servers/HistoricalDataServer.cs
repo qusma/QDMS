@@ -257,14 +257,13 @@ namespace QDMSServer
             HistoricalDataRequest request = Serializer.Deserialize<HistoricalDataRequest>(ms);
 
             //log the request
-            Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {8} {1} @ {2} from {3} to {4} {5:;;ForceFresh} {6:;;LocalOnly} {7:;;SaveToLocal}",
+            Log(LogLevel.Info, string.Format("Historical Data Request from client {0}: {7} {1} @ {2} from {3} to {4} Location: {5} {6:;;SaveToLocal}",
                 requesterIdentity,
                 request.Instrument.Symbol,
                 Enum.GetName(typeof(BarSize), request.Frequency),
                 request.StartingDate,
                 request.EndingDate,
-                request.ForceFreshData ? 0 : 1,
-                request.LocalStorageOnly ? 0 : 1,
+                request.DataLocation,
                 request.SaveDataToStorage ? 0 : 1,
                 request.Instrument.Datasource.Name));
 

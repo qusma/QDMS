@@ -113,10 +113,9 @@ namespace QDMSServer
                 (BarSize)ResolutionComboBox.SelectedItem,
                 start,
                 end,
-                ForceFreshDataCheckBox.IsChecked ?? false,
-                LocalStorageOnlyCheckBox.IsChecked ?? false,
-                SaveToLocalStorageCheckBox.IsChecked ?? true,
-                RTHOnlyCheckBox.IsChecked ?? true));
+                dataLocation: (DataLocation)DataLocationComboBox.SelectedItem,
+                saveToLocalStorage: SaveToLocalStorageCheckBox.IsChecked ?? true,
+                rthOnly: RTHOnlyCheckBox.IsChecked ?? true));
         }
 
         private void ExportBtn_Click(object sender, RoutedEventArgs e)

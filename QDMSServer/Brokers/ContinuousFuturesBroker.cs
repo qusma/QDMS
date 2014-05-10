@@ -373,7 +373,7 @@ namespace QDMSServer
                     i.Expiration.Value.AddDays(-daysBack),
                     i.Expiration.Value,
                     rthOnly: request.RTHOnly,
-                    forceFreshData: request.ForceFreshData);
+                    dataLocation: request.DataLocation);
 
                 requests.Add(req);
 

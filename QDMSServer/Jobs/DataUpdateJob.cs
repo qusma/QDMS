@@ -113,8 +113,7 @@ namespace QDMSServer
                             details.Frequency,
                             startingDT,
                             DateTime.Now, //TODO this should be in the instrument's timezone...
-                            forceFreshData: true,
-                            localStorageOnly: false,
+                            dataLocation: DataLocation.ExternalOnly,
                             saveToLocalStorage: true,
                             rthOnly: true));
                     }

@@ -195,7 +195,7 @@ namespace QDMSServer
                 }
                 else //there is not -- this is a standalone request, so just grab the data from the db and return it
                 {
-                    if (e.Request.ForceFreshData)
+                    if (e.Request.DataLocation == DataLocation.ExternalOnly)
                     {
                         //if the request specifies only fresh data, we don't want to go through local storage
                         ReturnData(new HistoricalDataEventArgs(e.Request, e.Data));
@@ -218,7 +218,7 @@ namespace QDMSServer
                 var storageData = new List<OHLCBar>();
                 if (e.Data.Count > 0 && 
                     e.Data[0].Date.ToDateTime() > originalRequest.StartingDate &&
-                    !e.Request.ForceFreshData)
+                    e.Request.DataLocation != DataLocation.ExternalOnly)
                 {
                     lock (_localStorageLock)
                     {
@@ -321,7 +321,7 @@ namespace QDMSServer
             _originalRequests.TryAdd(request.AssignedID, request);
 
             //request says to ignore the external data source, just send the request as-is to the local storage
-            if (request.LocalStorageOnly)
+            if (request.DataLocation == DataLocation.LocalOnly)
             {
                 lock (_localStorageLock)
                 {
@@ -331,7 +331,7 @@ namespace QDMSServer
             }
 
             //request is for fresh data ONLY -- send the request directly to the external data source
-            if (request.ForceFreshData)
+            if (request.DataLocation == DataLocation.ExternalOnly)
             {
                 //make sure data source is present and available
                 try

@@ -66,8 +66,7 @@ namespace SampleApp
                     BarSize.OneDay,
                     new DateTime(2013, 1, 1),
                     new DateTime(2013, 1, 15),
-                    forceFreshData: false,
-                    localStorageOnly: false,
+                    dataLocation: DataLocation.Both,
                     saveToLocalStorage: true,
                     rthOnly: true);
 
