@@ -34,10 +34,11 @@ Currently Supported Data Sources:
 * Interactive Brokers
 * Quandl
 * FRED (Federal Reserve Economic Data)
+* Google Finance
 
 Requirements:
 ------------------------
-* MySQL or SQL Server (2008+)
+* MySQL/MariaDB or SQL Server (2008+)
 * .NET 4.5
 
 Planned features/improvements:
