@@ -108,7 +108,7 @@ namespace QDMS
         {
         }
 
-        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, DataLocation dataLocation = DataLocation.Both, bool saveToLocalStorage = true, bool rthOnly = false, int requestID = 0)
+        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, DataLocation dataLocation = DataLocation.Both, bool saveToLocalStorage = true, bool rthOnly = true, int requestID = 0)
         {
             Frequency = frequency;
             Instrument = instrument;
