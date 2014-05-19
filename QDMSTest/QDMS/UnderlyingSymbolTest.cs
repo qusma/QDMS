@@ -48,6 +48,9 @@ namespace QDMSTest
 
             DateTime apr14Expiration = vix.ExpirationDate(2014, 4);
             Assert.AreEqual(new DateTime(2014, 4, 16), apr14Expiration);
+
+            DateTime may14Expiration = vix.ExpirationDate(2014, 5);
+            Assert.AreEqual(new DateTime(2014, 5, 21), may14Expiration);
         }
 
         [Test]
