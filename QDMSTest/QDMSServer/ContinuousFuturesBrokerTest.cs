@@ -2153,7 +2153,7 @@ namespace QDMSTest
                 {new DateTime(2013,12,16,15,0, 0),  15.9m },
                 {new DateTime(2013,12,16,15,30, 0),  15.9m },
                 {new DateTime(2013,12,16,16,0, 0),  15.9m },
-                {new DateTime(2013,12,17,2,0, 0),  15.65m },
+                {new DateTime(2013,12,17,2,0, 0),  15.85m },
                 {new DateTime(2013,12,17,3,0, 0),  15.65m },
                 {new DateTime(2013,12,17,4,0, 0),  15.65m },
                 {new DateTime(2013,12,17,5,0, 0),  15.65m },

@@ -450,8 +450,17 @@ namespace QDMSServer
 
             var cf = request.Instrument.ContinuousFuture;
 
-            Instrument frontFuture = futures.First();
+            Instrument frontFuture = futures.FirstOrDefault();
             Instrument backFuture = futures.ElementAt(1);
+
+            if (frontFuture == null)
+            {
+                if (raiseDataEvent)
+                {
+                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, new List<OHLCBar>()));
+                }
+                return null;
+            }
 
             //sometimes the contract will be based on the Xth month
             //this is where we keep track of the actual contract currently being used
@@ -496,6 +505,10 @@ namespace QDMSServer
             //add the first piece of data we have available, and start looping
             cfData.Add(selectedData[0]);
 
+            //the first time we go from one day to the next we don't want to check for switching conditions
+            //because we need to ensure that we use an entire day's worth of volume data.
+            bool firstDaySwitchover = true;
+
             while (currentDate < finalDate)
             {
                 //keep track of total volume "today"
@@ -504,6 +517,13 @@ namespace QDMSServer
 
                 if (frontData.CurrentBar > 0 && frontData[0].DT.Day != frontData[1].DT.Day)
                 {
+                    if (firstDaySwitchover)
+                    {
+                        firstDaySwitchover = false;
+                        frontTodaysVolume = 0;
+                        backTodaysVolume = 0;
+                    }
+
                     frontDailyVolume.Add(frontTodaysVolume);
                     backDailyVolume.Add(backTodaysVolume);
 
