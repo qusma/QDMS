@@ -732,5 +732,9 @@ namespace QDMSServer
         }
 
 
+        private void InstrumentSetSessionMenu_OnSubmenuOpened(object sender, RoutedEventArgs e)
+        {
+            //todo populate with session templates
+        }
     }
 }

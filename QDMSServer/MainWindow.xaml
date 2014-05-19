@@ -32,11 +32,11 @@
             </MenuItem.Header>
         </MenuItem>
 
-        <MenuItem Header="Get New Data" x:Key="UpdateFreqSubMenu">
-        </MenuItem>
+        <MenuItem Header="Get New Data" x:Key="UpdateFreqSubMenu"/>
 
-        <MenuItem Header="Tags" x:Key="InstrumentTagMenu" SubmenuOpened="InstrumentTagMenu_OnSubmenuOpened">
-        </MenuItem>
+        <MenuItem Header="Tags" x:Key="InstrumentTagMenu" SubmenuOpened="InstrumentTagMenu_OnSubmenuOpened"/>
+
+        <MenuItem Header="Tags" x:Key="InstrumentSetSessionMenu" SubmenuOpened="InstrumentSetSessionMenu_OnSubmenuOpened"/>
 
         <ContextMenu x:Key="RowMenu">
             <MenuItem Header="Data Request..." Name="NewDataRequestBtn" Click="NewDataRequestBtn_OnClick"/>
@@ -44,6 +44,7 @@
             <Separator />
 
             <StaticResource ResourceKey="InstrumentTagMenu" />
+            <StaticResource ResourceKey="InstrumentSetSessionMenu" />
 
             <MenuItem Header="Clone" Name="InstrumentContextCloneBtn" Click="InstrumentContextCloneBtn_ItemClick"/>
             <MenuItem Header="Import Data" Name="ImportDataBtn" Click="ImportDataBtn_ItemClick"/>
