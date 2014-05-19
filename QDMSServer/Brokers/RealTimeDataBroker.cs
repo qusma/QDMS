@@ -126,7 +126,7 @@ namespace QDMSServer
             DataSources = new ObservableDictionary<string, IRealTimeDataSource>
             {
                 {"SIM", new RealTimeSim()},
-                {"Interactive Brokers", new IB()}
+                {"Interactive Brokers", new IB(Properties.Settings.Default.rtdClientIBID)}
             };
 
             if (additionalDataSources != null)

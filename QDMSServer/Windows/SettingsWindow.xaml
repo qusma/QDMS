@@ -60,23 +60,27 @@
                     <GroupBox Header="IB Settings" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" Height="187">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="140"/>
                                 <ColumnDefinition Width="293*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="36"/>
                                 <RowDefinition Height="36"/>
                                 <RowDefinition Height="36"/>
+                                <RowDefinition Height="36"/>
                             </Grid.RowDefinitions>
                             <Label Content="Host:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="97"/>
-                            <TextBox Grid.Row="0" Name="IBHostTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="273" Margin="10,10,0,0" Grid.Column="1"/>
+                            <TextBox Grid.Row="0" Name="IBHostTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="253" Margin="10,10,0,0" Grid.Column="1"/>
 
                             <Label  Grid.Column="0" Grid.Row="1" Content="Port:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="97"/>
                             <TextBox Grid.Row="1" Name="IBPortTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
 
 
-                            <Label Grid.Column="0" Grid.Row="2" Content="Client ID:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="97"/>
-                            <TextBox Grid.Row="2" Name="IBClientIDTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+                            <Label Grid.Column="0" Grid.Row="2" Content="Historical Client ID:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="120"/>
+                            <TextBox Grid.Row="2" Name="IBHistClientIDTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
+
+                            <Label Grid.Column="0" Grid.Row="3" Content="Realtime Client ID:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="120"/>
+                            <TextBox Grid.Row="3" Name="IBRTDClientIDTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
 
                         </Grid>
                     </GroupBox>

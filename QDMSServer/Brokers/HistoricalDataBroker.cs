@@ -76,7 +76,7 @@ namespace QDMSServer
 
             DataSources = new ObservableDictionary<string, IHistoricalDataSource>
             {
-                { "Interactive Brokers", new IB(3) },
+                { "Interactive Brokers", new IB(Properties.Settings.Default.histClientIBID) },
                 { "Yahoo", new Yahoo() },
                 { "Quandl", new Quandl() },
                 { "FRED", new FRED() },

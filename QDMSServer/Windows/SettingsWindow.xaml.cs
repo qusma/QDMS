@@ -21,7 +21,6 @@ namespace QDMSServer
         public SettingsWindow()
         {
             InitializeComponent();
-
             //ports for the servers
             RTDPubPortTextBox.Text = Properties.Settings.Default.rtDBPubPort.ToString();
             RTDReqPortTextBox.Text = Properties.Settings.Default.rtDBReqPort.ToString();
@@ -34,7 +33,8 @@ namespace QDMSServer
             //IB Settings
             IBHostTextBox.Text = Properties.Settings.Default.ibClientHost;
             IBPortTextBox.Text = Properties.Settings.Default.ibClientPort.ToString();
-            IBClientIDTextBox.Text = Properties.Settings.Default.ibClientID.ToString();
+            IBHistClientIDTextBox.Text = Properties.Settings.Default.histClientIBID.ToString();
+            IBRTDClientIDTextBox.Text = Properties.Settings.Default.rtdClientIBID.ToString();
 
             //Quandl
             QuandlAPITokenTextBox.Text = Properties.Settings.Default.quandlAuthCode;
@@ -118,10 +118,16 @@ namespace QDMSServer
                 Properties.Settings.Default.ibClientPort = ibPort;
             }
 
-            int ibClientID;
-            if (int.TryParse(IBClientIDTextBox.Text, out ibClientID))
+            int ibHistClientID;
+            if (int.TryParse(IBHistClientIDTextBox.Text, out ibHistClientID))
             {
-                Properties.Settings.Default.ibClientID = ibClientID;
+                Properties.Settings.Default.histClientIBID = ibHistClientID;
+            }
+
+            int ibRTDClientID;
+            if (int.TryParse(IBRTDClientIDTextBox.Text, out ibRTDClientID))
+            {
+                Properties.Settings.Default.rtdClientIBID = ibRTDClientID;
             }
 
             //Quandl

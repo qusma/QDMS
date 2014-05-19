@@ -97,7 +97,7 @@ namespace QDMSServer.DataSources
             Name = "Interactive Brokers";
 
             if (clientID < 0)
-                clientID = Properties.Settings.Default.ibClientID;
+                clientID = 99;
             _clientID = clientID;
 
             _realTimeDataRequests = new Dictionary<int, RealTimeDataRequest>();

@@ -8,9 +8,6 @@
     <Setting Name="ibClientPort" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">7496</Value>
     </Setting>
-    <Setting Name="ibClientID" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">2</Value>
-    </Setting>
     <Setting Name="ibClientRequestCounter" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
@@ -39,6 +36,7 @@
       <Value Profile="(Default)">username</Value>
     </Setting>
     <Setting Name="mySqlPassword" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="quandlAuthCode" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -56,6 +54,13 @@
       <Value Profile="(Default)">username</Value>
     </Setting>
     <Setting Name="sqlServerPassword" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="histClientIBID" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="rtdClientIBID" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
     </Setting>
   </Settings>
 </SettingsFile>
