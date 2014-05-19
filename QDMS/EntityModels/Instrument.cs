@@ -246,14 +246,17 @@ namespace QDMS
                 Exchange = Exchange,
                 PrimaryExchange = PrimaryExchange,
                 Datasource = Datasource,
-                ContinuousFuture = ContinuousFuture,
-                ContinuousFutureID = ContinuousFutureID,
                 Tags = Tags == null ? null : Tags.ToList(),
                 Sessions = Sessions == null ? null : Sessions.Select(x => (InstrumentSession)x.Clone()).ToList(),
                 SessionsSource = SessionsSource,
                 SessionTemplateID = SessionTemplateID,
                 DatasourceSymbol = DatasourceSymbol
             };
+
+            if (ContinuousFuture != null)
+            {
+                clone.ContinuousFuture = (ContinuousFuture)ContinuousFuture.Clone();
+            }
             return clone;
         }
     }
