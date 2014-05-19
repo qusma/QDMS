@@ -113,8 +113,18 @@ namespace QDMS
                 return true;
             }
             
-            
             return false;
+        }
+
+        /// <summary>
+        /// Moves the current bar to the next one. Returns true if successful, false if the series is at its end.
+        /// </summary>
+        /// <returns></returns>
+        public bool NextBar()
+        {
+            if (ReachedEndOfSeries) return false;
+            CurrentBar++;
+            return true;
         }
     }
 }
