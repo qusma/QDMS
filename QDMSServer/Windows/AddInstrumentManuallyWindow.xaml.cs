@@ -65,6 +65,31 @@ namespace QDMSServer
                 if (instrument.Exchange != null)
                     _context.Entry(instrument.Exchange).Reload();
 
+                if (instrument.ContinuousFuture != null)
+                {
+                    _context.ContinuousFutures.Attach(instrument.ContinuousFuture);
+                    _context.Entry(instrument.ContinuousFuture).Reload();
+                }
+
+                if (!addingNew)
+                {
+                    if (instrument.Tags != null)
+                    {
+                        foreach (Tag tag in instrument.Tags)
+                        {
+                            _context.Tags.Attach(tag);
+                        }
+                    }
+
+                    if (instrument.Sessions != null)
+                    {
+                        foreach (InstrumentSession session in instrument.Sessions)
+                        {
+                            _context.InstrumentSessions.Attach(session);
+                        }
+                    }
+                }
+
                 TheInstrument = addingNew ? (Instrument)instrument.Clone() : instrument;
                 if (TheInstrument.Tags == null) TheInstrument.Tags = new List<Tag>();
                 if (TheInstrument.Sessions == null) TheInstrument.Sessions = new List<InstrumentSession>();
@@ -72,11 +97,6 @@ namespace QDMSServer
                 TheInstrument.Sessions = TheInstrument.Sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
 
                 _originalSessions = TheInstrument.Sessions.ToList();
-
-                if (TheInstrument.IsContinuousFuture)
-                {
-                    TheInstrument.ContinuousFuture = (ContinuousFuture)instrument.ContinuousFuture.Clone();
-                }
             }
             else
             {
@@ -236,14 +256,17 @@ namespace QDMSServer
                 return;
             }
 
-            try
+            if (TheInstrument.Sessions != null && TheInstrument.Sessions.Count > 0)
             {
-                MyUtils.ValidateSessions(TheInstrument.Sessions.ToList<ISession>());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return;
+                try
+                {
+                    MyUtils.ValidateSessions(TheInstrument.Sessions.ToList<ISession>());
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    return;
+                }
             }
             
             TheInstrument.Tags.Clear();
@@ -272,21 +295,6 @@ namespace QDMSServer
             }
             else //simply manipulating an existing instrument
             {
-                //if (TheInstrument.Exchange != null)
-                //    _context.Exchanges.Attach(TheInstrument.Exchange);
-                //if (TheInstrument.PrimaryExchange != null)
-                //    _context.Exchanges.Attach(TheInstrument.PrimaryExchange);
-
-                //_context.Datasources.Attach(TheInstrument.Datasource);
-
-                //_context.Instruments.Attach(_originalInstrument);
-                //_context.Entry(_originalInstrument).CurrentValues.SetValues(TheInstrument);
-
-                if (TheInstrument.IsContinuousFuture)
-                {
-                    _context.ContinuousFutures.Attach(TheInstrument.ContinuousFuture);
-                }
-
                 //make sure any "loose" sessions are deleted
                 if (!_addingNew)
                 {
