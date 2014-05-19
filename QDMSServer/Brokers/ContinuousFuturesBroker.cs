@@ -217,7 +217,7 @@ namespace QDMSServer
                     //We already have data on this instrument ID/Frequency combo.
                     //Add the arrived data, then discard any doubles, then order.
                     _data[kvpID].AddRange(e.Data);
-                    _data[kvpID].Distinct((x, y) => x.DT == y.DT);
+                    _data[kvpID] = _data[kvpID].Distinct((x, y) => x.DT == y.DT).ToList();
                     _data[kvpID] = _data[kvpID].OrderBy(x => x.DT).ToList();
                 }
                 else
@@ -367,13 +367,15 @@ namespace QDMSServer
                 }
                 daysBack += 30 * cf.Month;
 
+                var endDate = i.Expiration.Value > DateTime.Now.Date ? DateTime.Now.Date : i.Expiration.Value;
+
                 var req = new HistoricalDataRequest(
                     i,
                     request.Frequency,
-                    i.Expiration.Value.AddDays(-daysBack),
-                    i.Expiration.Value,
+                    endDate.AddDays(-daysBack),
+                    endDate,
                     rthOnly: request.RTHOnly,
-                    dataLocation: request.DataLocation);
+                    dataLocation: request.DataLocation == DataLocation.LocalOnly ? DataLocation.LocalOnly : DataLocation.Both);
 
                 requests.Add(req);
 
@@ -464,16 +466,12 @@ namespace QDMSServer
                 selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
             }
 
-            //starting date: I think it's enough to start a few days before the expiration of the first future
-            //as long as it's before the starting date?
-            DateTime currentDate = frontData[0].DT;
-
             //This is a super dirty hack to make non-time based rollovers actually work.
             //The reason is that the starting point will otherwise be a LONG time before the date we're interested in.
             //And at that time both the front and back futures are really far from expiration.
             //As such volumes can be wonky, and thus result in a rollover far before we ACTUALLY would
             //want to roll over if we had access to even earlier data.
-            currentDate = frontFuture.Expiration.Value.AddDays(-20 - cf.RolloverDays);
+            DateTime currentDate = frontFuture.Expiration.Value.AddDays(-20 - cf.RolloverDays);
 
             frontData.AdvanceTo(currentDate);
             backData.AdvanceTo(currentDate);
@@ -485,8 +483,6 @@ namespace QDMSServer
 
             List<OHLCBar> cfData = new List<OHLCBar>();
 
-            decimal adjustmentFactor = cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Ratio ? 1 : 0;
-
             Calendar calendar = MyUtils.GetCalendarFromCountryCode("US");
 
             bool switchContract = false;
@@ -497,8 +493,6 @@ namespace QDMSServer
             List<int> backDailyOpenInterest = new List<int>();
             long frontTodaysVolume = 0, backTodaysVolume = 0;
 
-            DateTime lastDate = currentDate;
-
             //add the first piece of data we have available, and start looping
             cfData.Add(selectedData[0]);
 
@@ -508,8 +502,7 @@ namespace QDMSServer
                 if (frontData[0].Volume.HasValue) frontTodaysVolume += frontData[0].Volume.Value;
                 if (backData != null && backData[0].Volume.HasValue) backTodaysVolume += backData[0].Volume.Value;
 
-                var nextBar = selectedData.TryGetNextBar();
-                if (nextBar == null || nextBar.DT.Day != currentDate.Day)
+                if (frontData.CurrentBar > 0 && frontData[0].DT.Day != frontData[1].DT.Day)
                 {
                     frontDailyVolume.Add(frontTodaysVolume);
                     backDailyVolume.Add(backTodaysVolume);
@@ -572,17 +565,20 @@ namespace QDMSServer
                     switchContract = true;
                 }
 
-                //finally advance the time and indices...keep moving forward until the selected series has moved
-                bool selectedSeriesProgressed = false;
-                do
+                //finally if we have simply run out of data, we're forced to switch
+                if (frontData.ReachedEndOfSeries)
                 {
-                    currentDate = currentDate.AddSeconds(request.Frequency.ToTimeSpan().TotalSeconds / 2);
-                    selectedSeriesProgressed = selectedData.AdvanceTo(currentDate);
-                    frontData.AdvanceTo(currentDate);
-                    if (backData != null)
-                        backData.AdvanceTo(currentDate);
+                    switchContract = true;
                 }
-                while (!selectedSeriesProgressed && !selectedData.ReachedEndOfSeries);
+
+                //finally advance the time and indices...keep moving forward until the selected series has moved
+                frontData.NextBar();
+                currentDate = frontData[0].DT;
+                if (backData != null)
+                {
+                    backData.AdvanceTo(currentDate);
+                }
+                selectedData.AdvanceTo(currentDate);
 
                 //this next check here is necessary for the time-based switchover to work after weekends or holidays
                 if (cf.RolloverType == ContinuousFuturesRolloverType.Time &&
@@ -595,6 +591,7 @@ namespace QDMSServer
                 if (switchContract)
                 {
                     //make any required price adjustments
+                    decimal adjustmentFactor;
                     if (cf.AdjustmentMode == ContinuousFuturesAdjustmentMode.Difference)
                     {
                         adjustmentFactor = backData[0].Close - frontData[0].Close;
@@ -611,6 +608,13 @@ namespace QDMSServer
                             AdjustBar(bar, adjustmentFactor, cf.AdjustmentMode);
                         }
                     }
+
+                    Log(LogLevel.Info,
+                        string.Format("CFB Filling request for {0}: switching contract from {1} to {2} at {3}",
+                        request.Instrument.Symbol,
+                        frontFuture.Symbol,
+                        backFuture.Symbol,
+                        currentDate.ToString("yyyy-MM-dd")));
 
                     //update the contracts
                     frontFuture = backFuture;
