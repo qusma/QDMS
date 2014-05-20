@@ -467,13 +467,22 @@ namespace QDMSServer
             Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
             Instrument lastUsedSelectedFuture = selectedFuture;
 
+
+            //final date is the earliest of: the last date of data available, or the request's endingdate
+            DateTime lastDateAvailable = new DateTime(1,1,1);
+            
+
             TimeSeries frontData, backData, selectedData;
             lock (_dataLock)
             {
                 frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
                 backData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]);
                 selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+
+                lastDateAvailable = _data[new KeyValuePair<int, BarSize>(futures.Last().ID.Value, request.Frequency)].Last().DT;
             }
+
+            DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
 
             //This is a super dirty hack to make non-time based rollovers actually work.
             //The reason is that the starting point will otherwise be a LONG time before the date we're interested in.
@@ -485,10 +494,6 @@ namespace QDMSServer
             frontData.AdvanceTo(currentDate);
             backData.AdvanceTo(currentDate);
             selectedData.AdvanceTo(currentDate);
-
-            //final date is the earliest of: the last date of data available, or the request's endingdate
-            DateTime lastDateAvailable = futures.Last().Expiration.Value;
-            DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
 
             List<OHLCBar> cfData = new List<OHLCBar>();
 
