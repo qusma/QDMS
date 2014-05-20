@@ -247,6 +247,7 @@
     <Compile Include="RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Servers\RealTimeDataServer.cs" />
+    <Compile Include="UpdateHelper.cs" />
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\FredUtils.cs" />

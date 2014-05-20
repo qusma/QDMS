@@ -736,5 +736,10 @@ namespace QDMSServer
         {
             //todo populate with session templates
         }
+
+        private void UpdateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateHelper.InstallUpdateSyncWithInfo();
+        }
     }
 }
