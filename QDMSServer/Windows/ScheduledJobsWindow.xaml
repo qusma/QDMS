@@ -7,7 +7,7 @@
     xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:qdmsServer="clr-namespace:QDMSServer"
-    Title="Session Templates" Height="553.723" Width="574.568"
+    Title="Schedule Data Updates" Height="553.723" Width="574.568"
     BorderBrush="Black"
     BorderThickness="1"
     >
