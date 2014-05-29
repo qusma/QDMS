@@ -133,7 +133,7 @@ namespace QDMSServer
                 }
 
                 var dr = Data.NewRow();
-                for (int j = 0; j < colCount; j++)
+                for (int j = 0; j < Math.Min(colCount, items.Length); j++)
                 {
                     dr["col" + j] = items[j].Trim();
                 }
