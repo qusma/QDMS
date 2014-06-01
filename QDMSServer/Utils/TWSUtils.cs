@@ -99,12 +99,49 @@ namespace QDMSServer
 
         public static Krs.Ats.IBNet.BarSize BarSizeConverter(QDMS.BarSize freq)
         {
-            if (freq == QDMS.BarSize.Tick) throw new Exception("Bar size conversion impossible, TWS does not suppor tick size");
-            return (Krs.Ats.IBNet.BarSize)(int)freq;
+                switch (freq)
+                {
+                    case QDMS.BarSize.Tick:
+                        throw new Exception("Bar size conversion impossible, TWS does not suppor tick BarSize");
+                	case QDMS.BarSize.OneSecond:
+                        return Krs.Ats.IBNet.BarSize.OneSecond;
+                    case QDMS.BarSize.FiveSeconds:
+                        return Krs.Ats.IBNet.BarSize.FiveSeconds;
+                    case QDMS.BarSize.FifteenSeconds:
+                        return Krs.Ats.IBNet.BarSize.FifteenSeconds;
+                    case QDMS.BarSize.ThirtySeconds:
+                        return Krs.Ats.IBNet.BarSize.ThirtySeconds;
+                    case QDMS.BarSize.OneMinute:
+                        return Krs.Ats.IBNet.BarSize.OneMinute;
+                    case QDMS.BarSize.TwoMinutes:
+                        return Krs.Ats.IBNet.BarSize.TwoMinutes;
+                    case QDMS.BarSize.FiveMinutes:
+                        return Krs.Ats.IBNet.BarSize.FiveMinutes;
+                    case QDMS.BarSize.FifteenMinutes:
+                        return Krs.Ats.IBNet.BarSize.FifteenMinutes;
+                    case QDMS.BarSize.ThirtyMinutes:
+                        return Krs.Ats.IBNet.BarSize.ThirtyMinutes;
+                    case QDMS.BarSize.OneHour:
+                        return Krs.Ats.IBNet.BarSize.OneHour;
+                    case QDMS.BarSize.OneDay:
+                        return Krs.Ats.IBNet.BarSize.OneDay;
+                    case QDMS.BarSize.OneWeek:
+                        return Krs.Ats.IBNet.BarSize.OneWeek;
+                    case QDMS.BarSize.OneMonth:
+                        return Krs.Ats.IBNet.BarSize.OneMonth;
+                    case QDMS.BarSize.OneQuarter:
+                        throw new Exception("Bar size conversion impossible, TWS does not suppor quarter BarSize.");
+                    case QDMS.BarSize.OneYear:
+                        return Krs.Ats.IBNet.BarSize.OneYear;
+
+                    default:
+                        return Krs.Ats.IBNet.BarSize.OneDay;
+                }
         }
 
         public static QDMS.BarSize BarSizeConverter(Krs.Ats.IBNet.BarSize freq)
         {
+            if (freq == Krs.Ats.IBNet.BarSize.OneYear) return QDMS.BarSize.OneYear;
             return (QDMS.BarSize)(int)freq;
         }
 
