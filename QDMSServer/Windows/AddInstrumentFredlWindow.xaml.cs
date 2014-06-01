@@ -46,11 +46,12 @@ namespace QDMSServer
             ShowDialog();
         }
 
-        private void Search()
+        private async void Search()
         {
             Series.Clear();
-            
-            var foundSeries = FredUtils.FindSeries(SymbolTextBox.Text, ApiKey);
+            StatusLabel.Content = "Searching...";
+
+            var foundSeries = await FredUtils.FindSeries(SymbolTextBox.Text, ApiKey);
             foreach (var i in foundSeries)
             {
                 Series.Add(i);

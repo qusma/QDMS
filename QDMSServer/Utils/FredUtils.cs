@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using QDMS;
@@ -60,7 +61,7 @@ namespace QDMSServer
         /// <param name="search">Search string.</param>
         /// <param name="apiKey"></param>
         /// <returns>A list of instruments matching the search parameter.</returns>
-        public static IEnumerable<FredSeries> FindSeries(string search, string apiKey)
+        public async static Task<IEnumerable<FredSeries>> FindSeries(string search, string apiKey)
         {
             string url = string.Format("http://api.stlouisfed.org/fred/series/search?search_text={0}&api_key={1}",
                 search,
@@ -71,7 +72,7 @@ namespace QDMSServer
             using (var webClient = new WebClient())
             {
                 //exceptions should be handled further up
-                xml = webClient.DownloadString(url);
+                xml = await webClient.DownloadStringTaskAsync(url);
             }
 
             return ParseSeriesXML(xml);
