@@ -23,6 +23,8 @@ namespace QDMSServer
 
         public ObservableCollection<Exchange> Exchanges { get; set; }
 
+        public ObservableCollection<InstrumentSession> SelectedSessions { get; set; } //todo implement
+
         public ObservableCollection<KeyValuePair<int, string>> ContractMonths { get; set; }
 
         public bool InstrumentAdded = false;
@@ -96,7 +98,7 @@ namespace QDMSServer
 
                 TheInstrument.Sessions = TheInstrument.Sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
 
-                _originalSessions = TheInstrument.Sessions.ToList();
+                _originalSessions = new List<InstrumentSession>(TheInstrument.Sessions);
             }
             else
             {
@@ -117,12 +119,17 @@ namespace QDMSServer
                 CustomRadioBtn.IsChecked = true;
             }
 
+            //Tags
             Tags = new ObservableCollection<CheckBoxTag>();
             foreach (Tag t in _context.Tags)
             {
                 Tags.Add(new CheckBoxTag(t, TheInstrument.Tags.Contains(t)));
             }
 
+            //Sessions
+            SelectedSessions = new ObservableCollection<InstrumentSession>(TheInstrument.Sessions);
+
+            //Window title
             if (addingNew)
             {
                 Title = "Add New Instrument";
@@ -256,17 +263,26 @@ namespace QDMSServer
                 return;
             }
 
-            if (TheInstrument.Sessions != null && TheInstrument.Sessions.Count > 0)
+            //Validate the sessions
+            if (SelectedSessions.Count > 0)
             {
                 try
                 {
-                    MyUtils.ValidateSessions(TheInstrument.Sessions.ToList<ISession>());
+                    MyUtils.ValidateSessions(SelectedSessions.ToList<ISession>());
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
                     return;
                 }
+            }
+
+            //move selected sessions to the instrument
+            TheInstrument.Sessions.Clear();
+            foreach (InstrumentSession s in SelectedSessions)
+            {
+                //need to attach?
+                TheInstrument.Sessions.Add(s);
             }
             
             TheInstrument.Tags.Clear();
@@ -346,15 +362,13 @@ namespace QDMSServer
             if (TheInstrument.Exchange == null) return;
             if (TheInstrument.SessionsSource == SessionsSource.Exchange) return; //we don't want to re-load them if it's already set
 
-            TheInstrument.Sessions.Clear();
+            SelectedSessions.Clear();
             TheInstrument.SessionsSource = SessionsSource.Exchange;
 
             foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
             {
-                TheInstrument.Sessions.Add(s.ToInstrumentSession());
+                SelectedSessions.Add(s.ToInstrumentSession());
             }
-            SessionsGrid.ItemsSource = null;
-            SessionsGrid.ItemsSource = TheInstrument.Sessions;
         }
 
         private void CustomRadioBtn_Checked(object sender, RoutedEventArgs e)
@@ -375,7 +389,7 @@ namespace QDMSServer
 
         private void FillSessionsFromTemplate()
         {
-            TheInstrument.Sessions.Clear();
+            SelectedSessions.Clear();
 
             var template = (SessionTemplate)TemplateComboBox.SelectedItem;
             if (template == null)
@@ -387,52 +401,44 @@ namespace QDMSServer
             TheInstrument.SessionTemplateID = template.ID;
             foreach (TemplateSession s in template.Sessions.OrderBy(x => x.OpeningDay))
             {
-                TheInstrument.Sessions.Add(s.ToInstrumentSession());
+                SelectedSessions.Add(s.ToInstrumentSession());
             }
-            SessionsGrid.ItemsSource = null;
-            SessionsGrid.ItemsSource = TheInstrument.Sessions;
         }
 
         private void AddSessionItemBtn_Click(object sender, RoutedEventArgs e)
         {
             var toAdd = new InstrumentSession { IsSessionEnd = true };
 
-            if (TheInstrument.Sessions.Count == 0)
+            if (SelectedSessions.Count == 0)
             {
                 toAdd.OpeningDay = DayOfTheWeek.Monday;
                 toAdd.ClosingDay = DayOfTheWeek.Monday;
             }
             else
             {
-                DayOfTheWeek maxDay = (DayOfTheWeek)Math.Min(6, TheInstrument.Sessions.Max(x => (int)x.OpeningDay) + 1);
+                DayOfTheWeek maxDay = (DayOfTheWeek)Math.Min(6, SelectedSessions.Max(x => (int)x.OpeningDay) + 1);
                 toAdd.OpeningDay = maxDay;
                 toAdd.ClosingDay = maxDay;
             }
-            TheInstrument.Sessions.Add(toAdd);
-            SessionsGrid.ItemsSource = null;
-            SessionsGrid.ItemsSource = TheInstrument.Sessions;
+            SelectedSessions.Add(toAdd);
         }
 
         private void DeleteSessionItemBtn_Click(object sender, RoutedEventArgs e)
         {
             var selectedSession = (InstrumentSession)SessionsGrid.SelectedItem;
-            TheInstrument.Sessions.Remove(selectedSession);
-            SessionsGrid.ItemsSource = null;
-            SessionsGrid.ItemsSource = TheInstrument.Sessions;
+            SelectedSessions.Remove(selectedSession);
         }
 
         private void ExchangeComboBox_OnSelectedIndexChanged(object sender, RoutedEventArgs e)
         {
             if (TheInstrument.SessionsSource == SessionsSource.Exchange)
             {
-                TheInstrument.Sessions.Clear();
+                SelectedSessions.Clear();
 
                 foreach (ExchangeSession s in TheInstrument.Exchange.Sessions)
                 {
-                    TheInstrument.Sessions.Add(s.ToInstrumentSession());
+                    SelectedSessions.Add(s.ToInstrumentSession());
                 }
-                SessionsGrid.ItemsSource = null;
-                SessionsGrid.ItemsSource = TheInstrument.Sessions;
             }
         }
 

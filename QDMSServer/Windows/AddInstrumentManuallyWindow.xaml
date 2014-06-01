@@ -199,7 +199,8 @@
                         </Grid>
 
                     </GroupBox>
-                    <DataGrid  Name="SessionsGrid" IsEnabled="{Binding ElementName=CustomRadioBtn,Path=IsChecked}" ItemsSource="{Binding TheInstrument.Sessions}" AutoGenerateColumns="False"  HorizontalAlignment="Stretch" 
+                    <DataGrid  Name="SessionsGrid" IsEnabled="{Binding ElementName=CustomRadioBtn,Path=IsChecked}" 
+                               ItemsSource="{Binding SelectedSessions}" AutoGenerateColumns="False"  HorizontalAlignment="Stretch" 
                                Margin="10,12,10,30" VerticalAlignment="Stretch" Grid.Row="1" Grid.RowSpan="2" CanUserAddRows="False">
 
                         <DataGrid.Columns>
