@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Data.Entity;
+using System.Deployment.Application;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -168,6 +169,18 @@ namespace QDMSServer
             JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.Include(t => t.Instrument).Include(t => t.Tag).ToList());
 
             entityContext.Dispose();
+
+            ShowChangelog();
+        }
+
+        private void ShowChangelog()
+        {
+            if (ApplicationDeployment.IsNetworkDeployed &&
+                ApplicationDeployment.CurrentDeployment.IsFirstRun)
+            {
+                var window = new ChangelogWindow();
+                window.Show();
+            }
         }
 
         //creates a context menu to set tags on instruments
