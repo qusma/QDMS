@@ -1,0 +1,5 @@
+Version 0.8.2
+- Added support for quarterly frequencies. FRED and Quandl can now download quarterly data. 
+	IMPORTANT: if you currently have any data at annual frequencies, it will be re-labeled as quarterly. You will need to clear the data and download it again.
+- Added an item in the instrument context menu allowing you to set a session template for multiple instruments.
+- Various small bugfixes, mostly in the continuous futures broker.
