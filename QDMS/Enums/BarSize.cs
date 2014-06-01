@@ -90,9 +90,14 @@ namespace QDMS
         [Description("1 month")]
         OneMonth = 13,
         /// <summary>
+        /// 1 quarter bars
+        /// </summary>
+        [Description("1 quarter")]
+        OneQuarter = 14,
+        /// <summary>
         /// 1 year bars
         /// </summary>
         [Description("1 year")]
-        OneYear = 14
+        OneYear = 15
     }
 }
