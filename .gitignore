@@ -112,3 +112,4 @@ UpgradeLog*.XML
 Thumbs.db
 *.llblgenproj
 *.tss
+*.VisualState.xml
