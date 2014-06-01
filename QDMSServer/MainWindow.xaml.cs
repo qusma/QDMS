@@ -123,6 +123,9 @@ namespace QDMSServer
             var allTags = entityContext.Tags.ToList();
             BuildTagContextMenu(allTags);
 
+            //build session templates menu
+            BuildSetSessionTemplateMenu();
+
             Instruments = new ObservableCollection<Instrument>();
 
             var mgr = new InstrumentManager();
@@ -514,6 +517,7 @@ namespace QDMSServer
         {
             var window = new SessionTemplatesWindow();
             window.ShowDialog();
+            BuildSetSessionTemplateMenu();
         }
 
         private void RootSymbolsBtn_OnClick(object sender, RoutedEventArgs e)
@@ -744,10 +748,69 @@ namespace QDMSServer
             window.ShowDialog();
         }
 
-
-        private void InstrumentSetSessionMenu_OnSubmenuOpened(object sender, RoutedEventArgs e)
+        private void BuildSetSessionTemplateMenu()
         {
-            //todo populate with session templates
+            var setSessionMenu = (MenuItem)Resources["InstrumentSetSessionMenu"];
+            setSessionMenu.Items.Clear();
+
+            using (var context = new MyDBContext())
+            {
+                foreach (SessionTemplate t in context.SessionTemplates.ToList())
+                {
+                    var button = new MenuItem
+                    {
+                        Header = t.Name,
+                        Tag = t.ID,
+                    };
+
+                    button.Click += SetSession_ItemClick;
+                    setSessionMenu.Items.Add(button);
+                }
+            }
+        }
+
+        private void SetSession_ItemClick(object sender, RoutedEventArgs e)
+        {
+            using (var context = new MyDBContext())
+            {
+                var selectedInstruments = InstrumentsGrid.SelectedItems;
+                var btn = (MenuItem)e.Source;
+
+                int templateID = (int)btn.Tag;
+
+                var templateSessions = context.TemplateSessions.Where(x => x.TemplateID == templateID).ToList();
+
+                //one instrument selected
+                foreach (Instrument instrument in selectedInstruments)
+                {
+                    context.Instruments.Attach(instrument);
+                    instrument.SessionsSource = SessionsSource.Template;
+                    instrument.SessionTemplateID = templateID;
+
+                    if(instrument.Sessions == null)
+                    {
+                        instrument.Sessions = new List<InstrumentSession>();
+                    }
+
+                    //Remove any old sessions
+                    var tmpSessions = new List<InstrumentSession>(instrument.Sessions);
+                    foreach (InstrumentSession isession in tmpSessions)
+                    {
+                        context.InstrumentSessions.Attach(isession);
+                        context.InstrumentSessions.Remove(isession);
+                    }
+
+                    instrument.Sessions.Clear();
+
+                    //Add the new sessions
+                    foreach(TemplateSession ts in templateSessions)
+                    {
+                        instrument.Sessions.Add(ts.ToInstrumentSession());
+                    }
+                }
+
+                context.SaveChanges();
+            }
         }
 
         private void UpdateBtn_Click(object sender, RoutedEventArgs e)

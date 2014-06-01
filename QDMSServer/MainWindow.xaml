@@ -36,7 +36,7 @@
 
         <MenuItem Header="Tags" x:Key="InstrumentTagMenu" SubmenuOpened="InstrumentTagMenu_OnSubmenuOpened"/>
 
-        <MenuItem Header="Tags" x:Key="InstrumentSetSessionMenu" SubmenuOpened="InstrumentSetSessionMenu_OnSubmenuOpened"/>
+        <MenuItem Header="Set Session Template" x:Key="InstrumentSetSessionMenu" />
 
         <ContextMenu x:Key="RowMenu">
             <MenuItem Header="Data Request..." Name="NewDataRequestBtn" Click="NewDataRequestBtn_OnClick"/>
