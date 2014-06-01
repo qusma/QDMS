@@ -47,6 +47,9 @@ namespace QDMSServer
                 case BarSize.OneMonth:
                     return "m";
 
+                case BarSize.OneQuarter:
+                    return "q";
+
                 case BarSize.OneYear:
                     return "a";
 
