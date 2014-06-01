@@ -69,17 +69,20 @@ namespace QDMSServer.DataSources
             }
 
             string freqString = "daily"; //collapse=none|daily|weekly|monthly|quarterly|annual
-            if (request.Frequency == BarSize.OneWeek)
+            switch (request.Frequency)
             {
-                freqString = "weekly";
-            }
-            else if (request.Frequency == BarSize.OneMonth)
-            {
-                freqString = "monthly";
-            }
-            else if (request.Frequency == BarSize.OneYear)
-            {
-                freqString = "annual";
+                case BarSize.OneWeek:
+                    freqString = "weekly";
+                    break;
+                case BarSize.OneMonth:
+                    freqString = "monthly";
+                    break;
+                case BarSize.OneQuarter:
+                    freqString = "quarterly";
+                    break;
+                case BarSize.OneYear:
+                    freqString = "annual";
+                    break;
             }
 
             string requestURL = string.Format(
