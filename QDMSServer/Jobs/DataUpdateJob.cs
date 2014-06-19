@@ -9,13 +9,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows;
-using EntityData;
 using NLog;
 using QDMS;
 using Quartz;
 
 namespace QDMSServer
 {
+    [DisallowConcurrentExecutionAttribute]
     public class DataUpdateJob : IJob
     {
         private Logger _logger;
