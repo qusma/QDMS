@@ -219,7 +219,7 @@ namespace QDMSServer.DataSources
                         bar.DTOpen = null;
                     }
 
-                    sb.AppendFormat("('{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, '{15}')",
+                    sb.AppendFormat("('{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15})",
                                        bar.DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                                        instrument.ID,
                                        (int)frequency,
@@ -235,7 +235,7 @@ namespace QDMSServer.DataSources
                                        bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
                                        bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
                                        bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
-                                       bar.DTOpen.HasValue ? bar.DTOpen.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "NULL"
+                                       bar.DTOpen.HasValue ? String.Format("'{0:yyyy-MM-dd HH:mm:ss.fff}'", bar.DTOpen.Value) : "NULL"
                                        );
 
                     sb.Append(i < data.Count - 1 ? ", " : ";");
