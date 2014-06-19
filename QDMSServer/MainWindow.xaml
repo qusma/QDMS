@@ -113,7 +113,7 @@
 
             <MenuItem Header="_Help">
                 <MenuItem Header="About" x:Name="AboutBtn" Click="AboutBtn_Click" />
-                <MenuItem Header="Check for Updated" x:Name="UpdateBtn" Click="UpdateBtn_Click" />
+                <MenuItem Header="Check for Updates" x:Name="UpdateBtn" Click="UpdateBtn_Click" />
             </MenuItem>
         </Menu>
 
