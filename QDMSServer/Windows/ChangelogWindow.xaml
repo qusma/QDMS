@@ -7,6 +7,6 @@
         BorderThickness="1"
         >
     <Grid>
-        <TextBox Margin="5" Name="ChangelogText"/>
+        <TextBox Margin="5" Name="ChangelogText" TextWrapping="Wrap"/>
     </Grid>
 </controls:MetroWindow>
