@@ -1,3 +1,7 @@
+Versuib 0.8.3
+- Fixed an issue with data storage when a bar opening time was null.
+- Added a workaround for situations when data update jobs run simultaneously, in which case only one of them worked. Now they simply run one after the other.
+
 Version 0.8.2
 - Added support for quarterly frequencies. FRED and Quandl can now download quarterly data. 
 	IMPORTANT: if you currently have any data at annual frequencies, it will be re-labeled as quarterly. You will need to clear the data and download it again.
