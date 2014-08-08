@@ -234,8 +234,11 @@
     <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="DataStorageFactory.cs" />
+    <Compile Include="EmailSender.cs" />
+    <Compile Include="Interfaces\IEmailService.cs" />
     <Compile Include="JobsManager.cs" />
     <Compile Include="Jobs\DataUpdateJob.cs" />
+    <Compile Include="Jobs\DataUpdateJobFactory.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -20,6 +20,17 @@ namespace QDMSServer
     {
         private Logger _logger;
         private string _jobName;
+        private IEmailService _emailService;
+
+        public DataUpdateJob(IEmailService emailService = null)
+        {
+            if(emailService == null)
+            {
+                //TODO write
+            }
+
+            _emailService = emailService;
+        }
 
         /// <summary>
         /// Called by the <see cref="T:Quartz.IScheduler"/> when a <see cref="T:Quartz.ITrigger"/>
