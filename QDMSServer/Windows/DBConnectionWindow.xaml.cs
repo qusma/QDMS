@@ -108,10 +108,12 @@ namespace QDMSServer
 
         private void SqlServerOKBtn_Click(object sender, RoutedEventArgs e)
         {
+            bool windowsAuth = WindowsAuthenticationRadioBtn.IsChecked ?? true;
             SqlConnection connection = DBUtils.CreateSqlServerConnection(
                 server: SqlServerHostTextBox.Text,
                 username: SqlServerUsernameTextBox.Text,
                 password: SqlServerPasswordTextBox.Password,
+                useWindowsAuthentication: windowsAuth,
                 noDB: true);
             try
             {
@@ -124,7 +126,9 @@ namespace QDMSServer
             }
 
             if (WindowsAuthenticationRadioBtn.IsChecked != null)
+            {
                 Properties.Settings.Default.sqlServerUseWindowsAuthentication = WindowsAuthenticationRadioBtn.IsChecked.Value;
+            }
             Properties.Settings.Default.sqlServerHost = SqlServerHostTextBox.Text;
             Properties.Settings.Default.sqlServerUsername = SqlServerUsernameTextBox.Text;
             Properties.Settings.Default.sqlServerPassword = DBUtils.Protect(SqlServerPasswordTextBox.Password);
@@ -137,11 +141,15 @@ namespace QDMSServer
 
         private void SqlServerTestConnectionBtn_Click(object sender, RoutedEventArgs e)
         {
+            bool windowsAuth = WindowsAuthenticationRadioBtn.IsChecked ?? true;
+
             SqlConnection connection = DBUtils.CreateSqlServerConnection(
                 server: SqlServerHostTextBox.Text,
                 username: SqlServerUsernameTextBox.Text,
                 password: SqlServerPasswordTextBox.Password,
+                useWindowsAuthentication: windowsAuth,
                 noDB: true);
+
             try
             {
                 connection.Open();

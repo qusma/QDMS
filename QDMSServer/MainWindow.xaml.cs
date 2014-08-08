@@ -244,7 +244,7 @@ namespace QDMSServer
             else //SQL Server
             {
                 //try to establish a database connection. If not possible, prompt the user to enter details
-                var connection = DBUtils.CreateSqlServerConnection(noDB: true);
+                var connection = DBUtils.CreateSqlServerConnection(noDB: true, useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication);
                 try
                 {
                     connection.Open();

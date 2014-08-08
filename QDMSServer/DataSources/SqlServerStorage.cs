@@ -33,7 +33,7 @@ namespace QDMSServer.DataSources
 
         private void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            using (SqlConnection connection = DBUtils.CreateSqlServerConnection("qdmsdata"))
+            using (SqlConnection connection = DBUtils.CreateSqlServerConnection("qdmsdata", useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication))
             {
                 try
                 {
@@ -82,7 +82,7 @@ namespace QDMSServer.DataSources
 
         private bool TryConnect(out SqlConnection connection)
         {
-            connection = DBUtils.CreateSqlServerConnection("qdmsdata");
+            connection = DBUtils.CreateSqlServerConnection("qdmsdata", useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication);
             try
             {
                 connection.Open();
