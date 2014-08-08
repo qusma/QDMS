@@ -96,6 +96,44 @@ namespace QDMSTest
         }
 
         [Test]
+        public void DoesNotRepeatRequestToSourceWhenARealTimeContinuousFuturesStreamAlreadyExists()
+        {
+            var inst = new Instrument
+            {
+                ID = 1,
+                Symbol = "ContinuousVIXFutures",
+                IsContinuousFuture = true,
+                Type = InstrumentType.Future,
+                Datasource = new Datasource { ID = 999, Name = "MockSource" }
+            };
+
+            var frontContract = new Instrument
+            {
+                ID = 2,
+                Symbol = "VXF3",
+                Type = InstrumentType.Future,
+                Datasource = new Datasource { ID = 999, Name = "MockSource" }
+            };
+
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds);
+
+            _cfBrokerMock.Setup(x => x.RequestFrontContract(It.IsAny<Instrument>(), It.IsAny<DateTime?>())).Returns(1);
+            _broker.RequestRealTimeData(req);
+
+            _cfBrokerMock.Raise(x => x.FoundFrontContract += null, new FoundFrontContractEventArgs(1, frontContract, DateTime.Now));
+
+            _broker.RequestRealTimeData(req);
+
+            _dataSourceMock.Verify(x => x.RequestRealTimeData(
+                It.IsAny<RealTimeDataRequest>()),
+                Times.Once);
+            _cfBrokerMock.Verify(x => x.RequestFrontContract(
+                It.IsAny<Instrument>(),
+                It.IsAny<DateTime?>()),
+                Times.Once);
+        }
+
+        [Test]
         public void RequestsFrontContractFromCFBrokerForContinuousFuturesRequests()
         {
             var cf = new ContinuousFuture()
