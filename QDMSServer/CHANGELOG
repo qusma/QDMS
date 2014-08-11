@@ -1,6 +1,7 @@
-Versuib 0.8.3
+Version 0.8.3
 - Fixed an issue with data storage when a bar opening time was null.
 - Added a workaround for situations when data update jobs run simultaneously, in which case only one of them worked. Now they simply run one after the other.
+- Fixed a bug that cause the SQL Server authentication choice to not be used.
 
 Version 0.8.2
 - Added support for quarterly frequencies. FRED and Quandl can now download quarterly data. 
