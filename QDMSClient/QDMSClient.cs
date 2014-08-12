@@ -11,12 +11,16 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Linq;
 using LZ4;
+using NetMQ.Sockets;
+using NetMQ.zmq;
 using ProtoBuf;
 using QDMS;
-using ZeroMQ;
+using NetMQ;
+using Poller = NetMQ.Poller;
 using Timer = System.Timers.Timer;
 
 namespace QDMSClient
@@ -44,22 +48,22 @@ namespace QDMSClient
         /// </summary>
         public ObservableCollection<RealTimeDataRequest> RealTimeDataStreams { get; set; }
 
-        private ZmqContext _context;
+        private NetMQContext _context;
 
         /// <summary>
         /// This socket sends requests for real time data.
         /// </summary>
-        private ZmqSocket _reqSocket;
+        private DealerSocket _reqSocket;
 
         /// <summary>
         /// This socket receives real time data.
         /// </summary>
-        private ZmqSocket _subSocket;
+        private SubscriberSocket _subSocket;
 
         /// <summary>
         /// This socket sends requests for and receives historical data.
         /// </summary>
-        private ZmqSocket _dealerSocket;
+        private NetMQSocket _dealerSocket;
 
         /// <summary>
         /// Periodically sends heartbeat messages to server to ensure the connection is up.
@@ -77,17 +81,6 @@ namespace QDMSClient
         /// </summary>
         private Thread _dealerLoopThread;
 
-        /// <summary>
-        /// This thread runs the RealTimeDataReceiveLoop() method. Receives data.
-        /// </summary>
-        private Thread _realTimeDataReceiveLoopThread;
-
-        /// <summary>
-        /// This thread runs the RequestRepliesThread() method.
-        /// It polls the _reqSocket, which receives replies to requests:
-        /// heartbeats, errors, successful stream requests, and successful stream cancelations.
-        /// </summary>
-        private Thread _reqLoopThread;
 
         //Where to connect
         private readonly string _host;
@@ -122,6 +115,8 @@ namespace QDMSClient
         /// Used to start and stop the various threads that keep the client running.
         /// </summary>
         private bool _running;
+
+        private Poller _poller;
 
         public void Dispose()
         {
@@ -194,7 +189,7 @@ namespace QDMSClient
 
             lock (_dealerSocketLock)
             {
-                _dealerSocket.SendMore("HISTPUSH", Encoding.UTF8);
+                _dealerSocket.SendMore("HISTPUSH");
                 _dealerSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
             }
         }
@@ -207,7 +202,7 @@ namespace QDMSClient
             var ms = new MemoryStream();
             lock (_dealerSocketLock)
             {
-                _dealerSocket.SendMore("AVAILABLEDATAREQ", Encoding.UTF8);
+                _dealerSocket.SendMore("AVAILABLEDATAREQ");
                 _dealerSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
             }
         }
@@ -285,8 +280,8 @@ namespace QDMSClient
                 //1: "RTD"
                 //2: serialized RealTimeDataRequest
                 var ms = new MemoryStream();
-                _reqSocket.SendMore("", Encoding.UTF8);
-                _reqSocket.SendMore("RTD", Encoding.UTF8);
+                _reqSocket.SendMore("");
+                _reqSocket.SendMore("RTD");
                 _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
             }
             return request.RequestID;
@@ -299,14 +294,14 @@ namespace QDMSClient
         {
             Dispose();
 
-            _context = ZmqContext.Create();
-            _reqSocket = _context.CreateSocket(SocketType.DEALER);
-            _subSocket = _context.CreateSocket(SocketType.SUB);
-            _dealerSocket = _context.CreateSocket(SocketType.DEALER);
+            _context = NetMQContext.Create();
+            _reqSocket = _context.CreateDealerSocket();
+            _subSocket = _context.CreateSubscriberSocket();
+            _dealerSocket = _context.CreateSocket(ZmqSocketType.Dealer);
 
-            _reqSocket.Identity = Encoding.UTF8.GetBytes(_name);
-            _subSocket.Identity = Encoding.UTF8.GetBytes(_name);
-            _dealerSocket.Identity = Encoding.UTF8.GetBytes(_name);
+            _reqSocket.Options.Identity = Encoding.UTF8.GetBytes(_name); //todo issue here, debug with code from project
+            _subSocket.Options.Identity = Encoding.UTF8.GetBytes(_name);
+            _dealerSocket.Options.Identity = Encoding.UTF8.GetBytes(_name);
 
             _dealerSocket.ReceiveReady += _dealerSocket_ReceiveReady;
             _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
@@ -318,11 +313,11 @@ namespace QDMSClient
             string reply = "";
             try
             {
-                _reqSocket.SendMore("", Encoding.UTF8);
-                _reqSocket.Send("PING", Encoding.UTF8);
+                _reqSocket.SendMore("");
+                _reqSocket.Send("PING");
 
-                _reqSocket.Receive(Encoding.UTF8, TimeSpan.FromSeconds(1)); //empty frame starts the REP message
-                reply = _reqSocket.Receive(Encoding.UTF8, TimeSpan.FromMilliseconds(50));
+                _reqSocket.ReceiveString(TimeSpan.FromSeconds(1)); //empty frame starts the REP message //todo receive string?
+                reply = _reqSocket.ReceiveString(TimeSpan.FromMilliseconds(50));
             }
             catch
             {
@@ -350,13 +345,12 @@ namespace QDMSClient
             _dealerLoopThread = new Thread(DealerLoop) { Name = "Client Dealer Loop" };
             _dealerLoopThread.Start();
 
-            //this loop takes care of the real time data requests
-            _realTimeDataReceiveLoopThread = new Thread(RealTimeDataReceiveLoop) { Name = "Client RTD Loop" };
-            _realTimeDataReceiveLoopThread.Start();
-
             //this loop takes care of replies to the request socket: heartbeats and data request status messages
-            _reqLoopThread = new Thread(RequestRepliesThread) { Name = "Client Requests Loop" };
-            _reqLoopThread.Start();
+            _poller = new Poller();
+            _poller.AddSocket(_reqSocket);
+            _poller.AddSocket(_subSocket);
+            _poller.AddSocket(_dealerSocket);
+            Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
 
             _heartBeatTimer = new Timer(1000);
             _heartBeatTimer.Elapsed += _timer_Elapsed;
@@ -364,71 +358,44 @@ namespace QDMSClient
         }
 
         /// <summary>
-        /// Poll for replies on the request socket.
-        /// </summary>
-        private void RequestRepliesThread()
-        {
-            var timeout = TimeSpan.FromMilliseconds(10);
-
-            using (var poller = new Poller(new[] { _reqSocket }))
-            {
-                try
-                {
-                    while (_running)
-                    {
-                        poller.Poll(timeout);
-                    }
-                }
-                catch
-                {
-                    Dispose();
-                }
-            }
-        }
-
-        /// <summary>
         /// Process replies on the request socket.
         /// Heartbeats, errors, and subscribing to real time data streams.
         /// </summary>
-        private void _reqSocket_ReceiveReady(object sender, SocketEventArgs e)
+        private void _reqSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            var timeout = TimeSpan.FromMilliseconds(10);
-            var ms = new MemoryStream();
-
-            //wait for reply to see what happened
-            lock (_reqSocketLock)
+            using (var ms = new MemoryStream())
             {
-                string reply = _reqSocket.Receive(Encoding.UTF8, timeout);
-
-                if (reply == null) return;
-
-                reply = _reqSocket.Receive(Encoding.UTF8, timeout);
-
-                switch (reply)
+                lock (_reqSocketLock)
                 {
-                    case "PONG": //reply to heartbeat message
-                        _lastHeartBeat = DateTime.Now;
-                        break;
+                    string reply = _reqSocket.ReceiveString();
 
-                    case "ERROR": //something went wrong
+                    if (reply == null) return;
+
+                    reply = _reqSocket.ReceiveString();
+
+                    switch (reply)
+                    {
+                        case "PONG": //reply to heartbeat message
+                            _lastHeartBeat = DateTime.Now;
+                            break;
+
+                        case "ERROR": //something went wrong
                         {
                             //first the message
-                            string error = _reqSocket.Receive(Encoding.UTF8);
+                            string error = _reqSocket.ReceiveString();
 
                             //then the request
-                            int size;
-                            byte[] buffer = _reqSocket.Receive(null, TimeSpan.FromSeconds(1), out size);
+                            byte[] buffer = _reqSocket.Receive();
                             var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
                             //error event
                             RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error, request.RequestID));
                             return;
                         }
-                    case "SUCCESS": //successful request to start a new real time data stream
+                        case "SUCCESS": //successful request to start a new real time data stream
                         {
                             //receive the request
-                            int size;
-                            byte[] buffer = _reqSocket.Receive(null, TimeSpan.FromSeconds(1), out size);
+                            byte[] buffer = _reqSocket.Receive();
                             var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
                             //Add it to the active streams
@@ -440,16 +407,17 @@ namespace QDMSClient
                             //request worked, so we subscribe to the stream
                             _subSocket.Subscribe(BitConverter.GetBytes(request.Instrument.ID.Value));
                         }
-                        break;
+                            break;
 
-                    case "CANCELED": //successful cancelation of a real time data stream
+                        case "CANCELED": //successful cancelation of a real time data stream
                         {
                             //also receive the symbol
-                            string symbol = _reqSocket.Receive(Encoding.UTF8);
+                            string symbol = _reqSocket.ReceiveString();
 
                             //nothing to do?
                         }
-                        break;
+                            break;
+                    }
                 }
             }
         }
@@ -457,27 +425,28 @@ namespace QDMSClient
         /// <summary>
         /// Disconnects from the server.
         ///  </summary>
-        public void Disconnect()
+        public void Disconnect(bool cancelStreams = true)
         {
             //start by canceling all active real time streams
-            while (RealTimeDataStreams.Count > 0)
+            if (cancelStreams)
             {
-                CancelRealTimeData(RealTimeDataStreams.First().Instrument);
+                while (RealTimeDataStreams.Count > 0)
+                {
+                    CancelRealTimeData(RealTimeDataStreams.First().Instrument);
+                }
             }
 
             _running = false;
+            if (_poller != null && _poller.IsStarted)
+            {
+                _poller.Stop(true);
+            }
 
             if(_heartBeatTimer != null)
                 _heartBeatTimer.Stop();
 
             if(_dealerLoopThread != null && _dealerLoopThread.ThreadState == ThreadState.Running)
                 _dealerLoopThread.Join(10);
-
-            if (_realTimeDataReceiveLoopThread != null && _realTimeDataReceiveLoopThread.ThreadState == ThreadState.Running)
-                _realTimeDataReceiveLoopThread.Join(10);
-
-            if (_reqLoopThread != null && _reqLoopThread.ThreadState == ThreadState.Running)
-                _reqLoopThread.Join(10);
 
             if (_reqSocket != null)
             {
@@ -524,27 +493,22 @@ namespace QDMSClient
         /// </summary>
         private void DealerLoop()
         {
-            var timeout = TimeSpan.FromMilliseconds(5);
-            _dealerSocket.Identity = Encoding.Unicode.GetBytes(_name);
-
-            using (var poller = new Poller(new[] { _dealerSocket }))
+            var ms = new MemoryStream();
+            try
             {
-                var ms = new MemoryStream();
-                try
+                while (_running)
                 {
-                    while (_running)
+                    //send any pending historical data requests
+                    lock (_dealerSocketLock)
                     {
-                        //send any pending historical data requests
                         SendQueuedHistoricalRequests(ms);
-
-                        //poller raises event when there's data coming in. See _dealerSocket_ReceiveReady()
-                        poller.Poll(timeout);
                     }
+                    Thread.Sleep(10);
                 }
-                catch
-                {
-                    Dispose();
-                }
+            }
+            catch
+            {
+                Dispose();
             }
         }
 
@@ -552,50 +516,24 @@ namespace QDMSClient
         {
             while (!_historicalDataRequests.IsEmpty)
             {
-                lock (_dealerSocketLock)
+                HistoricalDataRequest request;
+                if (_historicalDataRequests.TryDequeue(out request))
                 {
-                    HistoricalDataRequest request;
-                    if (_historicalDataRequests.TryDequeue(out request))
-                    {
-                        byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
-                        _dealerSocket.SendMore("HISTREQ", Encoding.UTF8);
-                        _dealerSocket.Send(buffer);
-                    }
+                    byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
+                    _dealerSocket.SendMore("HISTREQ");
+                    _dealerSocket.Send(buffer);
                 }
             }
         }
 
-        /// <summary>
-        /// This loop waits for real time data to be received on the subscription socket, then raises the RealTimeDataReceived event with it.
-        /// </summary>
-        private void RealTimeDataReceiveLoop()
+        private void _subSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            var timeout = TimeSpan.FromMilliseconds(1);
+            bool hasMore;
+            byte[] instrumentID = _subSocket.Receive(out hasMore);
 
-            using (var poller = new Poller(new[] { _subSocket }))
+            if (hasMore)
             {
-                try
-                {
-                    while (_running)
-                    {
-                        poller.Poll(timeout);
-                    }
-                }
-                catch
-                {
-                    Dispose();
-                }
-            }
-        }
-
-        private void _subSocket_ReceiveReady(object sender, SocketEventArgs e)
-        {
-            int size;
-            byte[] instrumentID = _subSocket.Receive(null, out size);
-
-            if (size > 0)
-            {
-                byte[] buffer = _subSocket.Receive(null, out size);
+                byte[] buffer = _subSocket.Receive();
                 var bar = MyUtils.ProtoBufDeserialize<RealTimeDataEventArgs>(buffer, new MemoryStream());
                 RaiseEvent(RealTimeDataReceived, null, bar);
             }
@@ -604,12 +542,12 @@ namespace QDMSClient
         /// <summary>
         /// Handling replies to a data push, a historical data request, or an available data request
         /// </summary>
-        private void _dealerSocket_ReceiveReady(object sender, SocketEventArgs e)
+        private void _dealerSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
             lock (_dealerSocketLock)
             {
                 //1st message part: what kind of stuff we're receiving
-                string type = _dealerSocket.Receive(Encoding.UTF8);
+                string type = _dealerSocket.ReceiveString();
                 switch (type)
                 {
                     case "PUSHREP":
@@ -637,9 +575,9 @@ namespace QDMSClient
         private void HandleErrorReply()
         {
             //the request ID
-            int size;
-            byte[] buffer = _dealerSocket.Receive(null, TimeSpan.FromMilliseconds(100), out size);
-            if (size <= 0) return;
+            bool hasMore;
+            byte[] buffer = _dealerSocket.Receive(out hasMore);
+            if (!hasMore) return;
             int requestID = BitConverter.ToInt32(buffer, 0);
 
             //remove from pending requests
@@ -649,7 +587,7 @@ namespace QDMSClient
             }
 
             //finally the error message
-            string message = _dealerSocket.Receive(Encoding.UTF8);
+            string message = _dealerSocket.ReceiveString();
 
             //raise the error event
             RaiseEvent(Error, this, new ErrorArgs(-1, message, requestID));
@@ -662,12 +600,11 @@ namespace QDMSClient
         {
             //first the instrument
             var ms = new MemoryStream();
-            int size;
-            byte[] buffer = _dealerSocket.Receive(null, out size);
+            byte[] buffer = _dealerSocket.Receive();
             var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
             //second the number of items
-            buffer = _dealerSocket.Receive(null, out size);
+            buffer = _dealerSocket.Receive();
             int count = BitConverter.ToInt32(buffer, 0);
 
             //then actually get the items, if any
@@ -680,11 +617,11 @@ namespace QDMSClient
                 var storageInfo = new List<StoredDataInfo>();
                 for (int i = 0; i < count; i++)
                 {
-                    buffer = _dealerSocket.Receive(null, out size);
+                    buffer = _dealerSocket.Receive();
                     var info = MyUtils.ProtoBufDeserialize<StoredDataInfo>(buffer, ms);
                     storageInfo.Add(info);
 
-                    if (!_dealerSocket.ReceiveMore) break;
+                    if (!_dealerSocket.Options.ReceiveMore) break;
                 }
 
                 RaiseEvent(LocallyAvailableDataInfoReceived, this, new LocallyAvailableDataInfoReceivedEventArgs(instrument, storageInfo));
@@ -696,7 +633,7 @@ namespace QDMSClient
         /// </summary>
         private void HandleDataPushReply()
         {
-            string result = _dealerSocket.Receive(Encoding.UTF8);
+            string result = _dealerSocket.ReceiveString();
             if (result == "OK") //everything is alright
             {
                 return; //maybe raise an event to report the status of the request instead?
@@ -704,7 +641,7 @@ namespace QDMSClient
             else if (result == "ERROR")
             {
                 //receive the error
-                string error = _dealerSocket.Receive(Encoding.UTF8);
+                string error = _dealerSocket.ReceiveString();
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Data push error: " + error));
             }
         }
@@ -717,21 +654,21 @@ namespace QDMSClient
             var ms = new MemoryStream();
 
             //2nd message part: the HistoricalDataRequest object that was used to make the request
-            int size;
-            byte[] requestBuffer = _dealerSocket.Receive(null, out size);
-            if (size <= 0) return;
+            bool hasMore;
+            byte[] requestBuffer = _dealerSocket.Receive(out hasMore);
+            if (!hasMore) return;
 
             var request = MyUtils.ProtoBufDeserialize<HistoricalDataRequest>(requestBuffer, ms);
 
             //3rd message part: the size of the uncompressed, serialized data. Necessary for decompression.
-            byte[] sizeBuffer = _dealerSocket.Receive(null, out size);
-            if (size <= 0) return;
+            byte[] sizeBuffer = _dealerSocket.Receive(out hasMore);
+            if (!hasMore) return;
 
             int outputSize = BitConverter.ToInt32(sizeBuffer, 0);
 
             //4th message part: the compressed serialized data.
-            byte[] dataBuffer = _dealerSocket.Receive(null, out size);
-            byte[] decompressed = LZ4Codec.Decode(dataBuffer, 0, size, outputSize);
+            byte[] dataBuffer = _dealerSocket.Receive();
+            byte[] decompressed = LZ4Codec.Decode(dataBuffer, 0, dataBuffer.Length, outputSize);
 
             var data = MyUtils.ProtoBufDeserialize<List<OHLCBar>>(decompressed, ms);
 
@@ -749,8 +686,8 @@ namespace QDMSClient
         {
             lock (_reqSocketLock)
             {
-                _reqSocket.SendMore("", Encoding.UTF8);
-                _reqSocket.Send("PING", Encoding.UTF8);
+                _reqSocket.SendMore("");
+                _reqSocket.Send("PING");
             }
         }
 
@@ -767,27 +704,27 @@ namespace QDMSClient
                 return new List<Instrument>();
             }
 
-            using (ZmqSocket s = _context.CreateSocket(SocketType.REQ))
+            using (NetMQSocket s = _context.CreateSocket(ZmqSocketType.Req))
             {
                 s.Connect(string.Format("tcp://{0}:{1}", _host, _instrumentServerPort));
                 var ms = new MemoryStream();
 
                 if (instrument == null) //all contracts
                 {
-                    s.Send("ALL", Encoding.UTF8);
+                    s.Send("ALL");
                 }
                 else //an actual search
                 {
-                    s.SendMore("SEARCH", Encoding.UTF8); //first we send a search request
+                    s.SendMore("SEARCH"); //first we send a search request
 
                     //then we need to serialize and send the instrument
                     s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
                 }
 
                 //first we receive the size of the final uncompressed byte[] array
-                int size;
-                byte[] sizeBuffer = s.Receive(null, TimeSpan.FromSeconds(1), out size);
-                if (size <= 0)
+                bool hasMore;
+                byte[] sizeBuffer = s.Receive(out hasMore);
+                if (sizeBuffer.Length == 0)
                 {
                     RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
                     return new List<Instrument>();
@@ -796,8 +733,8 @@ namespace QDMSClient
                 int outputSize = BitConverter.ToInt32(sizeBuffer, 0);
 
                 //then the actual data
-                byte[] buffer = s.Receive(null, TimeSpan.FromSeconds(1), out size);
-                if (size <= 0)
+                byte[] buffer = s.Receive(out hasMore);
+                if (buffer.Length == 0)
                 {
                     RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
                     return new List<Instrument>();
@@ -841,8 +778,8 @@ namespace QDMSClient
                     //1: "CANCEL"
                     //2: serialized Instrument object
                     var ms = new MemoryStream();
-                    _reqSocket.SendMore("", Encoding.UTF8);
-                    _reqSocket.SendMore("CANCEL", Encoding.UTF8);
+                    _reqSocket.SendMore("");
+                    _reqSocket.SendMore("CANCEL");
                     _reqSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
                 }
             }

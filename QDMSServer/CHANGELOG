@@ -1,4 +1,5 @@
 Version 0.8.3
+- Changed ZeroMQ libraries from clrzmq to NetMQ, streamlining a lot of server code in the process.
 - Fixed an issue with data storage when a bar opening time was null.
 - Added a workaround for situations when data update jobs run simultaneously, in which case only one of them worked. Now they simply run one after the other.
 - Fixed a bug that cause the SQL Server authentication choice to not be used.

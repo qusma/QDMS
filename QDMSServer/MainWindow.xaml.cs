@@ -149,7 +149,7 @@ namespace QDMSServer
             _realTimeServer.StartServer();
             _instrumentsServer.StartServer();
             _historicalDataServer.StartServer();
-
+            
             //we also need a client to make historical data requests with
             _client = new QDMSClient.QDMSClient(
                 "SERVERCLIENT",

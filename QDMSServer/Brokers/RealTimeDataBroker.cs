@@ -285,9 +285,9 @@ namespace QDMSServer
             {
                 if (_aliases.ContainsKey(e.InstrumentID))
                 {
-                    foreach (int alias in _aliases[e.InstrumentID])
+                    for (int i = 0; i < _aliases[e.InstrumentID].Count; i++)
                     {
-                        e.InstrumentID = alias;
+                        e.InstrumentID = _aliases[e.InstrumentID][i];
                         RaiseEvent(RealTimeDataArrived, this, e);
                     }
                 }
@@ -297,13 +297,12 @@ namespace QDMSServer
             //perhaps just add it to a queue and then process in a different thread
             lock(_requestsLock)
             {
-                var req = _requests[e.RequestID];
-                if (req.SaveToLocalStorage)
+                if (_requests[e.RequestID].SaveToLocalStorage)
                 {
                     _localStorage.AddDataAsync(
                         new OHLCBar { Open = e.Open, High = e.High, Low = e.Low, Close = e.Close, Volume = e.Volume, DT = MyUtils.TimestampToDateTime(e.Time) },
-                        req.Instrument,
-                        req.Frequency,
+                        _requests[e.RequestID].Instrument,
+                        _requests[e.RequestID].Frequency,
                         overwrite: false);
                 }
             }

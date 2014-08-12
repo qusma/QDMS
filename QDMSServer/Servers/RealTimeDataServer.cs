@@ -15,13 +15,14 @@
 
 using System;
 using System.IO;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using NetMQ.zmq;
 using NLog;
 using ProtoBuf;
 using QDMS;
-using ZeroMQ;
+using NetMQ;
+using Poller = NetMQ.Poller;
 
 namespace QDMSServer
 {
@@ -44,17 +45,15 @@ namespace QDMSServer
 
         public IRealTimeDataBroker Broker { get; set; }
 
-        private Thread _requestThread;
-
-        private bool _runServer = true;
-        private ZmqContext _context;
-        private ZmqSocket _pubSocket;
-        private ZmqSocket _reqSocket;
+        private NetMQContext _context;
+        private NetMQSocket _pubSocket;
+        private NetMQSocket _reqSocket;
         
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly object _pubSocketLock = new object();
+        private Poller _poller;
 
         public RealTimeDataServer(int pubPort, int reqPort, IRealTimeDataBroker broker = null)
         {
@@ -87,13 +86,17 @@ namespace QDMSServer
         //tells the servers to stop running and waits for the threads to shut down.
         public void StopServer()
         {
-            _runServer = false;
+            if (_poller != null && _poller.IsStarted)
+            {
+                _poller.Stop(true);
+            }
 
             //clear the socket and context and say it's not running any more
             if (_pubSocket != null)
+            {
                 _pubSocket.Dispose();
-
-            _requestThread.Join();
+            }
+            ServerRunning = false;
         }
 
         /// <summary>
@@ -101,76 +104,57 @@ namespace QDMSServer
         /// </summary>
         public void StartServer()
         {
-            if (!ServerRunning) //only start if it isn't running already
+            if (!ServerRunning)
             {
-                _runServer = true;
-                _context = ZmqContext.Create();
+                _context = NetMQContext.Create();
 
                 //the publisher socket
-                _pubSocket = _context.CreateSocket(SocketType.PUB);
+                _pubSocket = _context.CreatePublisherSocket();
                 _pubSocket.Bind("tcp://*:" + PublisherPort);
 
                 //the request socket
-                _reqSocket = _context.CreateSocket(SocketType.REP);
+                _reqSocket = _context.CreateSocket(ZmqSocketType.Rep);
                 _reqSocket.Bind("tcp://*:" + RequestPort);
+                _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
 
-                _requestThread = new Thread(RequestServer) { Name = "RTDB Request Thread" };
-
-                //clear queue before starting?
-                _requestThread.Start();
+                _poller = new Poller(new[] { _reqSocket });
+                Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
             }
             ServerRunning = true;
         }
 
-        /// <summary>
-        /// This method runs on its own thread. The loop receives requests and sends the appropriate reply.
-        /// Can request a ping or to open a new real time data stream.
-        /// </summary>
-        private void RequestServer()
+        void _reqSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            TimeSpan timeout = new TimeSpan(50000);
+            string requestType = _reqSocket.ReceiveString();
+            if (requestType == null) return;
 
-            MemoryStream ms = new MemoryStream();
-            while (_runServer)
+            //handle ping requests
+            if (requestType == "PING")
             {
-                string requestType = _reqSocket.Receive(Encoding.UTF8, timeout);
-                if (requestType == null) continue;
-
-                //handle ping requests
-                if (requestType == "PING")
-                {
-                    _reqSocket.Send("PONG", Encoding.UTF8);
-                    continue;
-                }
-
-                //Handle real time data requests
-                if (requestType == "RTD") //Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
-                {
-                    HandleRTDataRequest(timeout, ms);
-                }
-
-                //manage cancellation requests
-                //two part message: first: "CANCEL". Second: the instrument
-                if (requestType == "CANCEL")
-                {
-                    HandleRTDataCancelRequest(timeout);
-                }
+                _reqSocket.Send("PONG");
+                return;
             }
 
-            //clear the socket and context and say it's not running any more
-            _reqSocket.Dispose();
+            //Handle real time data requests
+            if (requestType == "RTD") //Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
+            {
+                HandleRTDataRequest();
+            }
 
-            ms.Dispose();
-            ServerRunning = false;
+            //manage cancellation requests
+            //two part message: first: "CANCEL". Second: the instrument
+            if (requestType == "CANCEL")
+            {
+                HandleRTDataCancelRequest();
+            }
         }
 
         // Accept a request to cancel a real time data stream
         // Obviously we only actually cancel it if
-        private void HandleRTDataCancelRequest(TimeSpan timeout)
+        private void HandleRTDataCancelRequest()
         {
-            int receivedBytes;
-            byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
-            if (receivedBytes <= 0) return;
+            bool hasMore;
+            byte[] buffer = _reqSocket.Receive(out hasMore);
 
             //receive the instrument
             var ms = new MemoryStream();
@@ -182,71 +166,77 @@ namespace QDMSServer
             //two part message:
             //1: "CANCELED"
             //2: the symbol
-            _reqSocket.SendMore("CANCELED", Encoding.UTF8);
-            _reqSocket.Send(instrument.Symbol, Encoding.UTF8);
+            _reqSocket.SendMore("CANCELED");
+            _reqSocket.Send(instrument.Symbol);
+        }
+
+        /// <summary>
+        /// Send an error reply to a real time data request.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="serializedRequest"></param>
+        private void SendErrorReply(string message, byte[] serializedRequest)
+        {
+            _reqSocket.SendMore("ERROR");
+            _reqSocket.SendMore(message);
+            _reqSocket.Send(serializedRequest);
         }
 
         // Accept a real time data request
-        private void HandleRTDataRequest(TimeSpan timeout, MemoryStream ms)
+        private void HandleRTDataRequest()
         {
-            int receivedBytes;
-            byte[] buffer = _reqSocket.Receive(null, timeout, out receivedBytes);
-            if (receivedBytes <= 0) return;
-
-            var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
-
-            //make sure the ID and data sources are set
-            if (!request.Instrument.ID.HasValue)
+            using (var ms = new MemoryStream())
             {
-                _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                _reqSocket.Send("Instrument had no ID set.", Encoding.UTF8);
+                bool hasMore;
+                byte[] buffer = _reqSocket.Receive(out hasMore);
 
-                Log(LogLevel.Error, "Instrument with no ID requested.");
-                return;
-            }
+                var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
-            if (request.Instrument.Datasource == null)
-            {
-                _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                _reqSocket.Send("Instrument had no data source set.", Encoding.UTF8);
-
-                Log(LogLevel.Error, "Instrument with no data source requested.");
-                return;
-            }
-
-            //with the current approach we can't handle multiple real time data streams from
-            //the same symbol and data source, but at different frequencies
-
-            //forward the request to the broker
-            try
-            {
-                if (Broker.RequestRealTimeData(request))
+                //make sure the ID and data sources are set
+                if (!request.Instrument.ID.HasValue)
                 {
-                    //and report success back to the requesting client
-                    _reqSocket.SendMore("SUCCESS", Encoding.UTF8);
-                    //along with the request
-                    _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
+                    SendErrorReply("Instrument had no ID set.", buffer);
+
+                    Log(LogLevel.Error, "Instrument with no ID requested.");
+                    return;
                 }
-                else
+
+                if (request.Instrument.Datasource == null)
                 {
-                    throw new Exception("Unknown error.");
+                    SendErrorReply("Instrument had no data source set.", buffer);
+
+                    Log(LogLevel.Error, "Instrument with no data source requested.");
+                    return;
+                }
+
+                //with the current approach we can't handle multiple real time data streams from
+                //the same symbol and data source, but at different frequencies
+
+                //forward the request to the broker
+                try
+                {
+                    if (Broker.RequestRealTimeData(request))
+                    {
+                        //and report success back to the requesting client
+                        _reqSocket.SendMore("SUCCESS");
+                        //along with the request
+                        _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
+                    }
+                    else
+                    {
+                        throw new Exception("Unknown error.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //there was a problem with requesting the feed
+                    SendErrorReply(ex.Message, buffer);
+
+                    //log the error
+                    Log(LogLevel.Error, string.Format("RTDS: Error handling RTD request {0} @ {1} ({2}): {3}", 
+                        request.Instrument.Symbol, request.Instrument.Datasource, request.Frequency, ex.Message));
                 }
             }
-            catch (Exception ex)
-            {
-                //log the error
-                Log(LogLevel.Error, string.Format("RTDS: Error handling RTD request {0} @ {1} ({2}): {3}", 
-                    request.Instrument.Symbol, request.Instrument.Datasource, request.Frequency, ex.Message));
-
-                //there was a problem with requesting the feed
-                _reqSocket.SendMore("ERROR", Encoding.UTF8);
-                //error message
-                _reqSocket.SendMore(ex.Message, Encoding.UTF8);
-                //request
-                _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
-            }
-
-            
         }
 
         /// <summary>

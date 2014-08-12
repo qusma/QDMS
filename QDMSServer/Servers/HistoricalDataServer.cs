@@ -17,14 +17,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using LZ4;
 using NLog;
 using ProtoBuf;
 using QDMS;
-using ZeroMQ;
+using NetMQ;
 
 namespace QDMSServer
 {
@@ -35,15 +34,15 @@ namespace QDMSServer
         /// </summary>
         public bool ServerRunning { get; set; }
 
-        private readonly Thread _serverThread;
-        private ZmqContext _context;
-        private ZmqSocket _routerSocket;
-        private bool _runServer = true;
+        private NetMQContext _context;
+        private NetMQSocket _routerSocket;
         private readonly int _listenPort;
         private IHistoricalDataBroker _broker;
         private readonly ConcurrentQueue<KeyValuePair<HistoricalDataRequest, List<OHLCBar>>> _dataQueue;
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private Poller _poller;
+        private readonly object _socketLock = new object();
 
         public HistoricalDataServer(int port, IHistoricalDataBroker broker = null)
         {
@@ -53,14 +52,14 @@ namespace QDMSServer
 
             _broker = broker ?? new HistoricalDataBroker();
             _broker.HistoricalDataArrived += _broker_HistoricalDataArrived;
-
-            _serverThread = new Thread(Server);
-            _serverThread.Name = "HDB Thread";
         }
 
         private void _broker_HistoricalDataArrived(object sender, HistoricalDataEventArgs e)
         {
-            _dataQueue.Enqueue(new KeyValuePair<HistoricalDataRequest, List<OHLCBar>>(e.Request, e.Data));
+            lock (_socketLock)
+            {
+                SendFilledHistoricalRequest(e.Request, e.Data);
+            }
         }
 
         /// <summary>
@@ -70,12 +69,16 @@ namespace QDMSServer
         {
             //check that it's not already running
             if (ServerRunning) return;
-            _context = ZmqContext.Create();
-            _routerSocket = _context.CreateSocket(SocketType.ROUTER);
-            _routerSocket.Bind("tcp://*:" + _listenPort);
+            _context = NetMQContext.Create();
 
-            _runServer = true;
-            _serverThread.Start();
+            _routerSocket = _context.CreateSocket(NetMQ.zmq.ZmqSocketType.Router);
+            _routerSocket.Bind("tcp://*:" + _listenPort);
+            _routerSocket.ReceiveReady += socket_ReceiveReady;
+
+            _poller = new Poller(new[] { _routerSocket });
+
+            Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
+
             ServerRunning = true;
         }
 
@@ -85,107 +88,83 @@ namespace QDMSServer
         public void StopServer()
         {
             if (!ServerRunning) return;
-
-            _runServer = false;
-
-            if (_serverThread != null && _serverThread.ThreadState == ThreadState.Running)
-                _serverThread.Join();
-        }
-
-        /// <summary>
-        /// Receives new requests by polling, and sends data when it has arrived
-        /// </summary>
-        private void Server()
-        {
-            var timeout = TimeSpan.FromMilliseconds(10);
-            _routerSocket.ReceiveReady += socket_ReceiveReady;
-            KeyValuePair<HistoricalDataRequest, List<OHLCBar>> newDataItem;
-            var ms = new MemoryStream();
-
-            using (var poller = new Poller(new[] { _routerSocket }))
+            if (_poller != null && _poller.IsStarted)
             {
-                while (_runServer)
-                {
-                    poller.Poll(timeout); //this'll trigger the ReceiveReady event when we've got an incoming request
-
-                    //check if there's anything in the queue, if there is we want to send it
-                    if (_dataQueue.TryDequeue(out newDataItem))
-                    {
-                        SendFilledHistoricalRequest(newDataItem.Key, newDataItem.Value, ms);
-                    }
-                }
+                _poller.Stop(true);
             }
-
-            ms.Dispose();
-            _routerSocket.Dispose();
-            _context.Dispose();
             ServerRunning = false;
         }
+
 
         /// <summary>
         /// Given a historical data request and the data that fill it,
         /// send the reply to the client who made the request.
         /// </summary>
-        private void SendFilledHistoricalRequest(HistoricalDataRequest request, List<OHLCBar> data, MemoryStream ms)
+        private void SendFilledHistoricalRequest(HistoricalDataRequest request, List<OHLCBar> data)
         {
-            //this is a 5 part message
-            //1st message part: the identity string of the client that we're routing the data to
-            string clientIdentity = request.RequesterIdentity;
-            _routerSocket.SendMore(clientIdentity, Encoding.UTF8);
+            using (var ms = new MemoryStream())
+            {
+                //this is a 5 part message
+                //1st message part: the identity string of the client that we're routing the data to
+                string clientIdentity = request.RequesterIdentity;
+                _routerSocket.SendMore(clientIdentity);
 
-            //2nd message part: the type of reply we're sending
-            _routerSocket.SendMore("HISTREQREP", Encoding.UTF8);
+                //2nd message part: the type of reply we're sending
+                _routerSocket.SendMore("HISTREQREP");
 
-            //3rd message part: the HistoricalDataRequest object that was used to make the request
-            _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms));
+                //3rd message part: the HistoricalDataRequest object that was used to make the request
+                _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms));
 
-            //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
-            byte[] uncompressed = MyUtils.ProtoBufSerialize(data, ms);
-            _routerSocket.SendMore(BitConverter.GetBytes(uncompressed.Length));
+                //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
+                byte[] uncompressed = MyUtils.ProtoBufSerialize(data, ms);
+                _routerSocket.SendMore(BitConverter.GetBytes(uncompressed.Length));
 
-            //5th message part: the compressed serialized data.
-            byte[] compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); //compress
-            _routerSocket.Send(compressed);
+                //5th message part: the compressed serialized data.
+                byte[] compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); //compress
+                _routerSocket.Send(compressed);
+            }
         }
 
         /// <summary>
         /// This is called when a new historical data request or data push request is made.
         /// </summary>
-        private void socket_ReceiveReady(object sender, SocketEventArgs e)
+        private void socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            //Here we process the first two message parts: first, the identity string of the client
-            string requesterIdentity = e.Socket.Receive(Encoding.UTF8);
+            lock (_socketLock)
+            {
+                //Here we process the first two message parts: first, the identity string of the client
+                string requesterIdentity = e.Socket.ReceiveString();
 
-            //second: the string specifying the type of request
-            string text = e.Socket.Receive(Encoding.UTF8);
-            if (text == "HISTREQ") //the client wants to request some data
-            {
-                AcceptHistoricalDataRequest(requesterIdentity, e.Socket);
-            }
-            else if (text == "HISTPUSH") //the client wants to push some data into the db
-            {
-                AcceptDataAdditionRequest(requesterIdentity, e.Socket);
-            }
-            else if (text == "AVAILABLEDATAREQ") //client wants to know what kind of data we have stored locally
-            {
-                AcceptAvailableDataRequest(requesterIdentity, e.Socket);
-            }
-            else
-            {
-                Log(LogLevel.Info, "Unrecognized request to historical data broker: " + text);
+                //second: the string specifying the type of request
+                string text = e.Socket.ReceiveString();
+                if (text == "HISTREQ") //the client wants to request some data
+                {
+                    AcceptHistoricalDataRequest(requesterIdentity, e.Socket);
+                }
+                else if (text == "HISTPUSH") //the client wants to push some data into the db
+                {
+                    AcceptDataAdditionRequest(requesterIdentity, e.Socket);
+                }
+                else if (text == "AVAILABLEDATAREQ") //client wants to know what kind of data we have stored locally
+                {
+                    AcceptAvailableDataRequest(requesterIdentity, e.Socket);
+                }
+                else
+                {
+                    Log(LogLevel.Info, "Unrecognized request to historical data broker: " + text);
+                }
             }
         }
 
         /// <summary>
         /// Handles requests for information on data that is available in local storage
         /// </summary>
-        private void AcceptAvailableDataRequest(string requesterIdentity, ZmqSocket socket)
+        private void AcceptAvailableDataRequest(string requesterIdentity, NetMQSocket socket)
         {
             //get the instrument
-            int size;
+            bool hasMore;
             var ms = new MemoryStream();
-            byte[] buffer = socket.Receive(null, TimeSpan.FromMilliseconds(10), out size);
-            if (size <= 0) return;
+            byte[] buffer = socket.Receive(out hasMore);
 
             var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
@@ -196,8 +175,8 @@ namespace QDMSServer
             //and send the reply
 
             var storageInfo = _broker.GetAvailableDataInfo(instrument);
-            socket.SendMore(requesterIdentity, Encoding.UTF8);
-            socket.SendMore("AVAILABLEDATAREP", Encoding.UTF8);
+            socket.SendMore(requesterIdentity);
+            socket.SendMore("AVAILABLEDATAREP");
 
             socket.SendMore(MyUtils.ProtoBufSerialize(instrument, ms));
 
@@ -206,19 +185,18 @@ namespace QDMSServer
             {
                 socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
             }
-            socket.Send("END", Encoding.UTF8);
+            socket.Send("END");
         }
 
         /// <summary>
         /// Handles incoming data "push" requests: the client sends data for us to add to local storage.
         /// </summary>
-        private void AcceptDataAdditionRequest(string requesterIdentity, ZmqSocket socket)
+        private void AcceptDataAdditionRequest(string requesterIdentity, NetMQSocket socket)
         {
             //final message part: receive the DataAdditionRequest object
-            int size;
+            bool hasMore;
             var ms = new MemoryStream();
-            byte[] buffer = socket.Receive(null, TimeSpan.FromMilliseconds(10), out size);
-            if (size <= 0) return;
+            byte[] buffer = socket.Receive(out hasMore);
 
             var request = MyUtils.ProtoBufDeserialize<DataAdditionRequest>(buffer, ms);
 
@@ -227,32 +205,32 @@ namespace QDMSServer
                 request.Instrument.Symbol));
 
             //start building the reply
-            socket.SendMore(requesterIdentity, Encoding.UTF8);
-            socket.SendMore("PUSHREP", Encoding.UTF8);
+            socket.SendMore(requesterIdentity);
+            socket.SendMore("PUSHREP");
             try
             {
                 _broker.AddData(request);
-                socket.Send("OK", Encoding.UTF8);
+                socket.Send("OK");
             }
             catch (Exception ex)
             {
-                socket.SendMore("ERROR", Encoding.UTF8);
-                socket.Send(ex.Message, Encoding.UTF8);
+                socket.SendMore("ERROR");
+                socket.Send(ex.Message);
             }
         }
 
         /// <summary>
         /// Processes incoming historical data requests.
         /// </summary>
-        private void AcceptHistoricalDataRequest(string requesterIdentity, ZmqSocket socket)
+        private void AcceptHistoricalDataRequest(string requesterIdentity, NetMQSocket socket)
         {
             //third: a serialized HistoricalDataRequest object which contains the details of the request
-            int size;
-            byte[] buffer = socket.Receive(null, out size);
-            if (size <= 0) return; //empty request object
+            bool hasMore;
+            byte[] buffer = socket.Receive(out hasMore);
+
 
             var ms = new MemoryStream();
-            ms.Write(buffer, 0, size);
+            ms.Write(buffer, 0, buffer.Length);
             ms.Position = 0;
             HistoricalDataRequest request = Serializer.Deserialize<HistoricalDataRequest>(ms);
 
@@ -287,16 +265,16 @@ namespace QDMSServer
         {
             //this is a 4 part message
             //1st message part: the identity string of the client that we're routing the data to
-            _routerSocket.SendMore(requesterIdentity, Encoding.UTF8);
+            _routerSocket.SendMore(requesterIdentity);
 
             //2nd message part: the type of reply we're sending
-            _routerSocket.SendMore("ERROR", Encoding.UTF8);
+            _routerSocket.SendMore("ERROR");
 
             //3rd message part: the request ID
             _routerSocket.SendMore(BitConverter.GetBytes(requestID));
 
             //4th message part: the error
-            _routerSocket.Send(message, Encoding.UTF8);
+            _routerSocket.Send(message);
         }
 
         /// <summary>

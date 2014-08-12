@@ -90,10 +90,6 @@
     <Reference Include="Bloomberglp.Blpapi">
       <HintPath>..\Libraries\BLPAPI\Bloomberglp.Blpapi.dll</HintPath>
     </Reference>
-    <Reference Include="clrzmq, Version=2.2.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\clrzmq.3.0.0-rc1\lib\net40\clrzmq.dll</HintPath>
-    </Reference>
     <Reference Include="CommLib">
       <HintPath>..\Libraries\OEC\CommLib.dll</HintPath>
     </Reference>
@@ -142,6 +138,10 @@
     </Reference>
     <Reference Include="MySqlBackup">
       <HintPath>..\Libraries\MySqlBackup\MySqlBackup.dll</HintPath>
+    </Reference>
+    <Reference Include="NetMQ, Version=3.3.0.10, Culture=neutral, PublicKeyToken=a6decef4ddc58b3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NetMQ.3.3.0.10\lib\net40\NetMQ.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=3.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

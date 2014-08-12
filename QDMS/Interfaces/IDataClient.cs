@@ -41,7 +41,7 @@ namespace QDMS
         /// <summary>
         /// Disconnects from the server.
         /// </summary>
-        void Disconnect();
+        void Disconnect(bool cancelStreams);
         /// <summary>
         /// Query the server for contracts matching a particular set of features.
         /// </summary>
