@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using EntityData;
 using Moq;
 using NUnit.Framework;
@@ -70,6 +71,7 @@ namespace QDMSTest
         public void RequestForAllInstrumentsIsForwardedCorrectly()
         {
             _client.FindInstruments();
+            Thread.Sleep(50);
 
             _instrumentSourceMock.Verify(
                 x => x.FindInstruments(
