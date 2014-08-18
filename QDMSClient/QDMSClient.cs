@@ -299,7 +299,7 @@ namespace QDMSClient
             _subSocket = _context.CreateSubscriberSocket();
             _dealerSocket = _context.CreateSocket(ZmqSocketType.Dealer);
 
-            _reqSocket.Options.Identity = Encoding.UTF8.GetBytes(_name); //todo issue here, debug with code from project
+            _reqSocket.Options.Identity = Encoding.UTF8.GetBytes(_name);
             _subSocket.Options.Identity = Encoding.UTF8.GetBytes(_name);
             _dealerSocket.Options.Identity = Encoding.UTF8.GetBytes(_name);
 
@@ -756,6 +756,42 @@ namespace QDMSClient
                     RaiseEvent(Error, this, new ErrorArgs(-1, "Error processing instrument data: " + ex.Message));
                     return new List<Instrument>();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Add an instrument to QDMS.
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <returns>True if the operation succeeded.</returns>
+        public bool AddInstrument(Instrument instrument)
+        {
+            if (!Connected)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not add instrument - not connected."));
+                return false;
+            }
+
+            if(instrument == null)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not add instrument - instrument is null."));
+                return false;
+            }
+
+            using (NetMQSocket s = _context.CreateSocket(ZmqSocketType.Req))
+            {
+                s.Connect(string.Format("tcp://{0}:{1}", _host, _instrumentServerPort));
+                var ms = new MemoryStream();
+
+                s.SendMore("ADD"); //first we send an "ADD" request
+
+                //then we need to serialize and send the instrument
+                s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+
+                //then get the reply
+                string result = s.ReceiveString(TimeSpan.FromSeconds(1));
+
+                return result == "SUCCESS";
             }
         }
 
