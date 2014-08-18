@@ -283,11 +283,12 @@ namespace QDMSServer
             //continuous futures aliases
             lock (_aliasLock)
             {
-                if (_aliases.ContainsKey(e.InstrumentID))
+                int instrumentID = e.InstrumentID;
+                if (_aliases.ContainsKey(instrumentID))
                 {
-                    for (int i = 0; i < _aliases[e.InstrumentID].Count; i++)
+                    for (int i = 0; i < _aliases[instrumentID].Count; i++)
                     {
-                        e.InstrumentID = _aliases[e.InstrumentID][i];
+                        e.InstrumentID = _aliases[instrumentID][i];
                         RaiseEvent(RealTimeDataArrived, this, e);
                     }
                 }
