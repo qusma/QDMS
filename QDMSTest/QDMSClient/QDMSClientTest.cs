@@ -5,8 +5,12 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using Moq;
 using NUnit.Framework;
 using QDMS;
+using QDMSServer;
 
 namespace QDMSTest
 {
@@ -18,13 +22,57 @@ namespace QDMSTest
         [SetUp]
         public void SetUp()
         {
-            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5555, 5556, 5557, 5558);
+            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5553, 5554, 5555, 5556);
         }
 
         [TearDown]
         public void TearDown()
         {
             _client.Dispose();
+        }
+
+        [Test]
+        public void InstrumentAdditionRequestsAreSentCorrectly()
+        {
+            var instrumentSourceMock = new Mock<IInstrumentSource>();
+            var instrumentsServer = new InstrumentsServer(5555, instrumentSourceMock.Object);
+            instrumentsServer.StartServer();
+
+            var rtdBrokerMock = new Mock<IRealTimeDataBroker>();
+            var rtdServer = new RealTimeDataServer(5554, 5553, rtdBrokerMock.Object);
+            rtdServer.StartServer();
+
+            instrumentSourceMock.Setup(x => x.AddInstrument(It.IsAny<Instrument>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(true);
+
+            _client.Connect();
+
+            var exchange = new Exchange() { ID = 1, Name = "NYSE", Sessions = new List<ExchangeSession>(), Timezone = "Eastern Standard Time" };
+            var datasource = new Datasource() { ID = 1, Name = "Yahoo" };
+            var instrument = new Instrument() { Symbol = "SPY", UnderlyingSymbol = "SPY", Type = InstrumentType.Stock, Currency = "USD", Exchange = exchange, Datasource = datasource, Multiplier = 1 };
+            bool result = _client.AddInstrument(instrument);
+
+            Thread.Sleep(50);
+
+            Assert.IsTrue(result);
+
+            instrumentSourceMock.Verify(x => x.AddInstrument(
+                It.Is<Instrument>(y =>
+                    y.Symbol == "SPY" &&
+                    y.Exchange != null &&
+                    y.Exchange.Name == "NYSE" &&
+                    y.Datasource != null &&
+                    y.Datasource.Name == "Yahoo" &&
+                    y.Type == InstrumentType.Stock &&
+                    y.Currency == "USD" &&
+                    y.Multiplier == 1),
+                It.Is<bool>(y => y == false),
+                It.Is<bool>(y => y == true)));
+
+            rtdServer.StopServer();
+            rtdServer.Dispose();
+
+            instrumentsServer.StopServer();
+            instrumentsServer.Dispose();
         }
 
         [Test]
