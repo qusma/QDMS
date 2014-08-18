@@ -163,7 +163,7 @@ namespace QDMSServer
         {
             if((int)type >= 13)
             {
-                throw new Exception(string.Format("Can not convert InstrumentType {0} to SecurityType", type))
+                throw new Exception(string.Format("Can not convert InstrumentType {0} to SecurityType", type));
             }
             return (SecurityType)(int)type;
         }
