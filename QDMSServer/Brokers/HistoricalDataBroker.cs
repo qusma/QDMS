@@ -174,10 +174,7 @@ namespace QDMSServer
             if (e.Request.SaveDataToStorage) //the request asked to save newly arrived data in local storage
             {
                 bool doAdjustment = e.Data.Any(x => x.Split.HasValue || x.Dividend.HasValue);
-                lock (_localStorageLock)
-                {
-                    _dataStorage.AddData(e.Data, e.Request.Instrument, e.Request.Frequency, overwrite: true, adjust: doAdjustment);
-                }
+                AddData(new DataAdditionRequest(e.Request.Frequency, e.Request.Instrument, e.Data, true, doAdjustment));
 
                 //check if there is a list in the subrequests for this request...
                 if (e.Request.IsSubrequestFor.HasValue && _subRequests.ContainsKey(e.Request.IsSubrequestFor.Value))
@@ -268,6 +265,7 @@ namespace QDMSServer
         /// </summary>
         private void DatasourceError(object sender, ErrorArgs e)
         {
+            //todo escalate it
             Log(LogLevel.Error, string.Format("HDB: {0} - {1}", e.ErrorCode, e.ErrorMessage));
         }
 
@@ -505,6 +503,12 @@ namespace QDMSServer
         /// </summary>
         public void AddData(DataAdditionRequest request)
         {
+            if(request.Data.Count == 0)
+            {
+                Log(LogLevel.Info, string.Format("HDB: AddData called with zero bars, request: {0}", request));
+                return;
+            }
+
             lock (_localStorageLock)
             {
                 _dataStorage.AddData(request.Data, request.Instrument, request.Frequency, request.Overwrite);
