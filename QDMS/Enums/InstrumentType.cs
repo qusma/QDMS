@@ -79,7 +79,12 @@ namespace QDMS
         /// Undefined Security Type
         /// </summary>
         [Description("")]
-        Undefined = 12
+        Undefined = 12,
+        /// <summary>
+        /// Backtest result
+        /// </summary>
+        [Description("Backtest")]
+        Backtest = 13
     }
 
 }

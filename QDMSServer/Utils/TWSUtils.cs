@@ -161,6 +161,10 @@ namespace QDMSServer
 
         public static SecurityType SecurityTypeConverter(InstrumentType type)
         {
+            if((int)type >= 13)
+            {
+                throw new Exception(string.Format("Can not convert InstrumentType {0} to SecurityType", type))
+            }
             return (SecurityType)(int)type;
         }
 

@@ -493,16 +493,24 @@ namespace QDMSServer.DataSources
             var startingDate = TimeZoneInfo.ConvertTime(request.StartingDate, exchangeTZ, TimeZoneInfo.Local);
             var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Local);
 
-            _client.RequestHistoricalData
-            (
-                id,
-                TWSUtils.InstrumentToContract(request.Instrument),
-                endingDate,
-                TWSUtils.TimespanToDurationString((endingDate - startingDate), request.Frequency),
-                TWSUtils.BarSizeConverter(request.Frequency),
-                HistoricalDataType.Trades,
-                request.RTHOnly ? 1 : 0
-            );
+            try
+            {
+                _client.RequestHistoricalData
+                (
+                    id,
+                    TWSUtils.InstrumentToContract(request.Instrument),
+                    endingDate,
+                    TWSUtils.TimespanToDurationString((endingDate - startingDate), request.Frequency),
+                    TWSUtils.BarSizeConverter(request.Frequency),
+                    HistoricalDataType.Trades,
+                    request.RTHOnly ? 1 : 0
+                );
+            }
+            catch(Exception ex)
+            {
+                Log(LogLevel.Error, "IB: Could not send historical data request: " + ex.Message);
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not send historical data request: " + ex.Message, id));
+            }
         }
 
         public void Connect()
@@ -535,13 +543,22 @@ namespace QDMSServer.DataSources
                 _realTimeDataRequests.Add(_requestCounter, request);
                 _requestIDMap.Add(_requestCounter, request.AssignedID);
             }
-            Contract contract = TWSUtils.InstrumentToContract(request.Instrument);
 
-            _client.RequestRealTimeBars(
-                _requestCounter,
-                contract,
-                (int)TWSUtils.BarSizeConverter(request.Frequency),
-                RealTimeBarType.Trades, request.RTHOnly);
+            try
+            {
+                Contract contract = TWSUtils.InstrumentToContract(request.Instrument);
+
+                _client.RequestRealTimeBars(
+                    _requestCounter,
+                    contract,
+                    (int)TWSUtils.BarSizeConverter(request.Frequency),
+                    RealTimeBarType.Trades, request.RTHOnly);
+            }
+            catch(Exception ex)
+            {
+                Log(LogLevel.Error, "IB: Could not send real time data request: " + ex.Message);
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not send real time data request: " + ex.Message));
+            }
             return _requestCounter;
         }
 
