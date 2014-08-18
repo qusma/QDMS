@@ -118,7 +118,7 @@ namespace QDMSServer
                 bool addResult;
                 try
                 {
-                    addResult = InstrumentManager.AddInstrument(instrument);
+                    addResult = _instrumentManager.AddInstrument(instrument);
                 }
                 catch (Exception ex)
                 {

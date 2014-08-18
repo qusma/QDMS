@@ -79,6 +79,9 @@ namespace QDMSServer
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
             int count = 0;
+
+            var instrumentSource = new InstrumentManager();
+
             foreach (FredUtils.FredSeries series in InstrumentGrid.SelectedItems)
             {
                 var newInstrument = FredUtils.SeriesToInstrument(series);
@@ -86,7 +89,7 @@ namespace QDMSServer
 
                 try
                 {
-                    if (InstrumentManager.AddInstrument(newInstrument))
+                    if (instrumentSource.AddInstrument(newInstrument))
                         count++;
                     AddedInstruments.Add(newInstrument);
                 }

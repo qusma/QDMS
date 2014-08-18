@@ -95,6 +95,8 @@ namespace QDMSServer
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
             int count = 0;
+            var instrumentSource = new InstrumentManager();
+
             foreach (Instrument newInstrument in InstrumentGrid.SelectedItems)
             {
                 if (newInstrument.Exchange != null)
@@ -104,7 +106,7 @@ namespace QDMSServer
 
                 try
                 {
-                    if (InstrumentManager.AddInstrument(newInstrument))
+                    if (instrumentSource.AddInstrument(newInstrument))
                         count++;
                     AddedInstruments.Add(newInstrument);
                 }

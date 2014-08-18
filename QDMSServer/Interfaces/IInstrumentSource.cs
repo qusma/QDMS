@@ -21,5 +21,20 @@ namespace QDMSServer
         /// If null, all instruments are returned.</param>
         /// <returns>A list of instruments matching the criteria.</returns>
         List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null, Func<Instrument, bool> pred = null);
+
+        /// <summary>
+        /// Tries to add multiple instruments to the database.
+        /// </summary>
+        /// <returns>The number of instruments that were successfully added.</returns>
+        int AddInstruments(IList<Instrument> instruments, bool updateIfExists = false);
+
+        /// <summary>
+        /// Add a new instrument or update an existing instrument in the database.
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <param name="updateIfExists"></param>
+        /// <param name="saveChanges">Set to true if saving to db should be done.</param>
+        /// <returns>True if the insertion or update succeeded. False if it did not.</returns>
+        bool AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true);
     }
 }

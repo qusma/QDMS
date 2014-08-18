@@ -28,7 +28,7 @@ namespace QDMSServer
         /// Tries to add multiple instruments to the database.
         /// </summary>
         /// <returns>The number of instruments that were successfully added.</returns>
-        public static int AddInstruments(IList<Instrument> instruments, bool updateIfExists = false)
+        public int AddInstruments(IList<Instrument> instruments, bool updateIfExists = false)
         {
             int count =  instruments.Count(s => AddInstrument(s, updateIfExists, false));
             return count;
@@ -41,15 +41,31 @@ namespace QDMSServer
         /// <param name="updateIfExists"></param>
         /// <param name="saveChanges">Set to true if saving to db should be done.</param>
         /// <returns>True if the insertion or update succeeded. False if it did not.</returns>
-        public static bool AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true)
+        public bool AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true)
         {
             if (instrument.IsContinuousFuture)
             {
-                throw new Exception("Cannot add continuous futures using this method");
+                throw new Exception("Cannot add continuous futures using this method.");
             }
 
             using (var context = new MyDBContext())
             {
+                //make sure data source is set and exists
+                if(instrument.Datasource == null || !context.Datasources.Any(x => x.Name == instrument.Datasource.Name))
+                {
+                    throw new Exception("Failed to add instrument: invalid datasource.");
+                }
+
+                //make sure exchange exists, if it is set
+                if(instrument.Exchange != null && !context.Exchanges.Any(x => x.Name == instrument.Exchange.Name))
+                {
+                    throw new Exception("Failed to add instrument: exchange does not exist.");
+                }
+                if (instrument.PrimaryExchange != null && !context.Exchanges.Any(x => x.Name == instrument.PrimaryExchange.Name))
+                {
+                    throw new Exception("Failed to add instrument: primary exchange does not exist.");
+                }
+
                 //check if the instrument already exists in the database or not
                 var existingInstrument = context.Instruments.SingleOrDefault(x =>
                     (x.ID == instrument.ID) ||
