@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NLog;
 using QDMS;
 using Quartz;
 
@@ -33,7 +34,15 @@ namespace QDMSServer
                     .WithIdentity(job.Name)
                     .UsingJobData(new JobDataMap(map))
                     .Build();
-                scheduler.ScheduleJob(quartzJob, CreateTrigger(job));
+                try
+                {
+                    scheduler.ScheduleJob(quartzJob, CreateTrigger(job));
+                }
+                catch(Exception ex)
+                {
+                    var logger = LogManager.GetCurrentClassLogger();
+                    logger.Log(LogLevel.Error, "Quartz Error scheduling job: " + ex.Message);
+                }
             }
         }
 
