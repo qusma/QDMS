@@ -53,13 +53,16 @@ namespace QDMSServer
 
             MySqlHost.Text = Properties.Settings.Default.mySqlHost;
             MySqlUsername.Text = Properties.Settings.Default.mySqlUsername;
-            MySqlPassword.Password = DBUtils.Unprotect(Properties.Settings.Default.mySqlPassword);
+            MySqlPassword.Password = EncryptionUtils.Unprotect(Properties.Settings.Default.mySqlPassword);
 
             SqlServerAuthenticationWindowsRadioBtn.IsChecked = Properties.Settings.Default.sqlServerUseWindowsAuthentication;
             SqlServerAuthenticationServerRadioBtn.IsChecked = !Properties.Settings.Default.sqlServerUseWindowsAuthentication;
             SqlServerHost.Text = Properties.Settings.Default.sqlServerHost;
             SqlServerUsername.Text = Properties.Settings.Default.sqlServerUsername;
-            SqlServerPassword.Password = DBUtils.Unprotect(Properties.Settings.Default.sqlServerPassword);
+            SqlServerPassword.Password = EncryptionUtils.Unprotect(Properties.Settings.Default.sqlServerPassword);
+            
+            //Data jobs
+
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
@@ -145,14 +148,14 @@ namespace QDMSServer
 
             Properties.Settings.Default.mySqlHost = MySqlHost.Text;
             Properties.Settings.Default.mySqlUsername = MySqlUsername.Text;
-            Properties.Settings.Default.mySqlPassword = DBUtils.Protect(MySqlPassword.Password);
+            Properties.Settings.Default.mySqlPassword = EncryptionUtils.Protect(MySqlPassword.Password);
 
             if (SqlServerAuthenticationWindowsRadioBtn.IsChecked != null)
                 Properties.Settings.Default.sqlServerUseWindowsAuthentication = SqlServerAuthenticationWindowsRadioBtn.IsChecked.Value;
 
             Properties.Settings.Default.sqlServerHost = SqlServerHost.Text;
             Properties.Settings.Default.sqlServerUsername = SqlServerUsername.Text;
-            Properties.Settings.Default.sqlServerPassword = DBUtils.Protect(SqlServerPassword.Password);
+            Properties.Settings.Default.sqlServerPassword = EncryptionUtils.Protect(SqlServerPassword.Password);
 
             Properties.Settings.Default.Save();
 

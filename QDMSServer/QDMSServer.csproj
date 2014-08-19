@@ -272,6 +272,7 @@
     <Compile Include="UpdateHelper.cs" />
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\EncryptionUtils.cs" />
     <Compile Include="Utils\FredUtils.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
     <Compile Include="Utils\PriceAdjuster.cs" />

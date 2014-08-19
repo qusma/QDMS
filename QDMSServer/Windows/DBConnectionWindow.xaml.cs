@@ -85,7 +85,7 @@ namespace QDMSServer
 
             Properties.Settings.Default.mySqlHost = MySqlHostTextBox.Text;
             Properties.Settings.Default.mySqlUsername = MySqlUsernameTextBox.Text;
-            Properties.Settings.Default.mySqlPassword = DBUtils.Protect(MySqlPasswordTextBox.Password);
+            Properties.Settings.Default.mySqlPassword = EncryptionUtils.Protect(MySqlPasswordTextBox.Password);
             Properties.Settings.Default.databaseType = "MySql";
 
             Properties.Settings.Default.Save();
@@ -131,7 +131,7 @@ namespace QDMSServer
             }
             Properties.Settings.Default.sqlServerHost = SqlServerHostTextBox.Text;
             Properties.Settings.Default.sqlServerUsername = SqlServerUsernameTextBox.Text;
-            Properties.Settings.Default.sqlServerPassword = DBUtils.Protect(SqlServerPasswordTextBox.Password);
+            Properties.Settings.Default.sqlServerPassword = EncryptionUtils.Protect(SqlServerPasswordTextBox.Password);
             Properties.Settings.Default.databaseType = "SqlServer";
 
             Properties.Settings.Default.Save();

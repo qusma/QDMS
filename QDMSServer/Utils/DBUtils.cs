@@ -47,7 +47,7 @@ namespace QDMSServer
                 dbName,
                 Settings.Default.sqlServerHost,
                 Settings.Default.sqlServerUsername,
-                Unprotect(Settings.Default.sqlServerPassword),
+                EncryptionUtils.Unprotect(Settings.Default.sqlServerPassword),
                 useWindowsAuthentication: Settings.Default.sqlServerUseWindowsAuthentication);
             conSettings.ProviderName = "System.Data.SqlClient";
 
@@ -65,40 +65,12 @@ namespace QDMSServer
 
             conSettings.ConnectionString = string.Format("User Id={0};Password={1};Host={2};Database={3};Persist Security Info=True",
                 Settings.Default.mySqlUsername,
-                Unprotect(Settings.Default.mySqlPassword),
+                EncryptionUtils.Unprotect(Settings.Default.mySqlPassword),
                 Settings.Default.mySqlHost,
                 dbName);
             conSettings.ProviderName = "MySql.Data.MySqlClient";
 
             config.Save();
-        }
-
-        /// <summary>
-        /// Used for decrypting db passwords.
-        /// </summary>
-        public static string Unprotect(string encryptedString)
-        {
-            byte[] buffer;
-            try
-            {
-                buffer = ProtectedData.Unprotect(Convert.FromBase64String(encryptedString), null, DataProtectionScope.CurrentUser);
-            }
-            catch (Exception ex)
-            {
-                //if it's empty or incorrectly formatted, we get an exception. Just return an empty string.
-                return "";
-            }
-            return Encoding.Unicode.GetString(buffer);
-        }
-
-        /// <summary>
-        /// Used for encrypting db passwords.
-        /// </summary>
-        public static string Protect(string unprotectedString)
-        {
-            byte[] buffer = ProtectedData.Protect(Encoding.Unicode.GetBytes(unprotectedString), null, DataProtectionScope.CurrentUser);
-
-            return Convert.ToBase64String(buffer);
         }
 
         public static SqlConnection CreateSqlServerConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false, bool useWindowsAuthentication = true)
@@ -124,7 +96,7 @@ namespace QDMSServer
                 {
                     try
                     {
-                        password = Unprotect(Settings.Default.sqlServerPassword);
+                        password = EncryptionUtils.Unprotect(Settings.Default.sqlServerPassword);
                     }
                     catch
                     {
@@ -146,7 +118,7 @@ namespace QDMSServer
             {
                 try
                 {
-                    password = Unprotect(Settings.Default.mySqlPassword);
+                    password = EncryptionUtils.Unprotect(Settings.Default.mySqlPassword);
                 }
                 catch
                 {
