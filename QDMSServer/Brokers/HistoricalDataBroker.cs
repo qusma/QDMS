@@ -60,6 +60,12 @@ namespace QDMSServer
                 _connectionTimer.Dispose();
                 _connectionTimer = null;
             }
+
+            foreach(var ds in DataSources.Values)
+            {
+                ds.Disconnect();
+            }
+
             if (DataSources.ContainsKey("Interactive Brokers"))
             {
                 ((IB)DataSources["Interactive Brokers"]).Dispose();
