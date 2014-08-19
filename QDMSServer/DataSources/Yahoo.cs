@@ -5,12 +5,14 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows;
 using NLog;
 using QDMS;
@@ -19,13 +21,32 @@ using QDMS.Annotations;
 #pragma warning disable 67
 namespace QDMSServer.DataSources
 {
-    public class Yahoo : IHistoricalDataSource
+    public sealed class Yahoo : IHistoricalDataSource
     {
-        readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        private Thread _downloaderThread;
+        private ConcurrentQueue<HistoricalDataRequest> _queuedRequests;
+        private bool _runDownloader;
 
         public Yahoo()
         {
             Name = "Yahoo";
+            _queuedRequests = new ConcurrentQueue<HistoricalDataRequest>();
+            _downloaderThread = new Thread(DownloaderLoop);
+        }
+
+        private void DownloaderLoop()
+        {
+            HistoricalDataRequest req;
+            while(_runDownloader)
+            {
+                while(_queuedRequests.TryDequeue(out req))
+                {
+                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(req, GetData(req)));
+                }
+                Thread.Sleep(15);
+            }
         }
 
         /// <summary>
@@ -33,7 +54,8 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Connect()
         {
-            //no point in implementing these for yahoo
+            _runDownloader = true;
+            _downloaderThread.Start();
         }
 
         /// <summary>
@@ -41,13 +63,14 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void Disconnect()
         {
-            //no point in implementing these for yahoo
+            _runDownloader = false;
+            _downloaderThread.Join();
         }
 
         /// <summary>
         /// Whether the connection to the data source is up or not.
         /// </summary>
-        public bool Connected { get { return true; } }
+        public bool Connected { get { return _runDownloader; } }
 
         /// <summary>
         /// The name of the data source.
@@ -56,7 +79,7 @@ namespace QDMSServer.DataSources
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
-            RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, GetData(request)));
+            _queuedRequests.Enqueue(request);
         }
 
         //Downloads data from yahoo. First dividends and splits, then actual price data
@@ -241,7 +264,7 @@ namespace QDMSServer.DataSources
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
