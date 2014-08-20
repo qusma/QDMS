@@ -49,7 +49,7 @@ namespace QDMSTest
         [Test]
         public void EmailReportSentOnBrokerError()
         {
-            var settings = new UpdateJobSettings(errors: true, timeout: 1, toEmail: "test@test.test");
+            var settings = new UpdateJobSettings(errors: true, timeout: 1, toEmail: "test@test.test", fromEmail: "test@test.test");
             var job = new DataUpdateJob(_brokerMock.Object, _mailMock.Object, settings, _localStorageMock.Object, _instrumentManagerMock.Object);
 
             _brokerMock
@@ -120,7 +120,7 @@ namespace QDMSTest
         [Test]
         public void EmailReportSentOnUnfulfilledRequests()
         {
-            var settings = new UpdateJobSettings(errors: true, timeout: 1, toEmail: "test@test.test");
+            var settings = new UpdateJobSettings(errors: true, timeout: 1, toEmail: "test@test.test", fromEmail: "test@test.test");
             var job = new DataUpdateJob(_brokerMock.Object, _mailMock.Object, settings, _localStorageMock.Object, _instrumentManagerMock.Object);
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
@@ -151,7 +151,7 @@ namespace QDMSTest
         [Test]
         public void EmailReportSentOnNoData()
         {
-            var settings = new UpdateJobSettings(errors: true, timeout: 5, toEmail: "test@test.test");
+            var settings = new UpdateJobSettings(errors: true, timeout: 5, toEmail: "test@test.test", fromEmail: "test@test.test");
             var job = new DataUpdateJob(_brokerMock.Object, _mailMock.Object, settings, _localStorageMock.Object, _instrumentManagerMock.Object);
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
@@ -193,7 +193,7 @@ namespace QDMSTest
         [Test]
         public void EmailReportSentOnAbnormalData()
         {
-            var settings = new UpdateJobSettings(errors: true, timeout: 5, toEmail: "test@test.test");
+            var settings = new UpdateJobSettings(errors: true, timeout: 5, toEmail: "test@test.test", fromEmail: "test@test.test");
             var job = new DataUpdateJob(_brokerMock.Object, _mailMock.Object, settings, _localStorageMock.Object, _instrumentManagerMock.Object);
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
