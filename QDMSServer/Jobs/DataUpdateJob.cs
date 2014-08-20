@@ -286,7 +286,7 @@ namespace QDMSServer
             var lows = data.Select(x => x.AdjLow.HasValue ? x.AdjLow.Value : x.Low);
             var ranges = highs.Zip(lows, (h, l) => (double) (h - l));
 
-            double stDev = ranges.StandardDeviation();
+            double stDev = ranges.QDMSStandardDeviation();
             double mean = ranges.Average();
 
             if(ranges.Skip(toSkip).Any(x => x > mean + stDev * abnormalStDevRange))
