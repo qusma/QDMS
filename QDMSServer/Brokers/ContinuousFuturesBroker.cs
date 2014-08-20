@@ -335,6 +335,11 @@ namespace QDMSServer
                     (x.Expiration.Value.Year == limitDate.Year && x.Expiration.Value.Month <= limitDate.Month)).ToList();
             }
 
+            //Make sure each month's contract is allowed only once, even if there are multiple copies in the db
+            //Sometimes you might get two versions of the same contract with 1 day difference in expiration date
+            //so this step is necessary to clean that up
+            futures = futures.Distinct(x => x.Expiration.Value.ToString("yyyyMM").GetHashCode()).ToList();
+
             //save the number of requests we're gonna make
             lock (_reqCountLock)
             {
@@ -634,17 +639,25 @@ namespace QDMSServer
                         }
                     }
 
-                    Log(LogLevel.Info,
-                        string.Format("CFB Filling request for {0}: switching contract from {1} to {2} at {3}",
-                        request.Instrument.Symbol,
-                        frontFuture.Symbol,
-                        backFuture.Symbol,
-                        currentDate.ToString("yyyy-MM-dd")));
-
                     //update the contracts
+                    var prevFront = frontFuture;
                     frontFuture = backFuture;
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
+                    var prevSelected = selectedFuture;
                     selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAtOrDefault(cf.Month - 1);
+                    
+                    Log(LogLevel.Info,
+                        string.Format("CFB Filling request for {0}: switching front contract from {1} to {2} (selected contract from {3} to {4}) at {5}",
+                        request.Instrument.Symbol,
+                        prevFront.Symbol,
+                        frontFuture.Symbol,
+                        prevSelected.Symbol,
+                        selectedFuture == null
+                            ? ""
+                            : selectedFuture.Symbol,
+                        currentDate.ToString("yyyy-MM-dd")));
+
+
 
                     if (frontFuture == null) break; //no other futures left, get out
                     if (selectedFuture == null) break;
