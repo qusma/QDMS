@@ -62,7 +62,18 @@ namespace QDMSServer
             SqlServerPassword.Password = EncryptionUtils.Unprotect(Properties.Settings.Default.sqlServerPassword);
             
             //Data jobs
+            UpdateJobEmailHost.Text = Properties.Settings.Default.updateJobEmailHost;
+            UpdateJobEmailPort.Text = Properties.Settings.Default.updateJobEmailPort.ToString();
+            UpdateJobEmailUsername.Text = Properties.Settings.Default.updateJobEmailUsername;
+            UpdateJobEmailSender.Text = Properties.Settings.Default.updateJobEmailSender;
+            UpdateJobEmail.Text = Properties.Settings.Default.updateJobEmail;
+            UpdateJobEmailPassword.Password = EncryptionUtils.Unprotect(Properties.Settings.Default.updateJobEmailPassword);
+            UpdateJobTimeout.Text = Properties.Settings.Default.updateJobTimeout.ToString();
 
+            UpdateJobAbnormalities.IsChecked = Properties.Settings.Default.updateJobReportOutliers;
+            UpdateJobTimeouts.IsChecked = Properties.Settings.Default.updateJobTimeouts;
+            UpdateJobDatasourceErrors.IsChecked = Properties.Settings.Default.updateJobReportErrors;
+            UpdateJobNoData.IsChecked = Properties.Settings.Default.updateJobReportNoData;
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
@@ -156,6 +167,30 @@ namespace QDMSServer
             Properties.Settings.Default.sqlServerHost = SqlServerHost.Text;
             Properties.Settings.Default.sqlServerUsername = SqlServerUsername.Text;
             Properties.Settings.Default.sqlServerPassword = EncryptionUtils.Protect(SqlServerPassword.Password);
+
+            //Data jobs
+            Properties.Settings.Default.updateJobEmailHost = UpdateJobEmailHost.Text;
+            int port;
+            if (int.TryParse(UpdateJobEmailPort.Text, out port))
+            {
+                Properties.Settings.Default.updateJobEmailPort = port;
+            }
+
+            Properties.Settings.Default.updateJobEmailUsername = UpdateJobEmailUsername.Text;
+            Properties.Settings.Default.updateJobEmailSender = UpdateJobEmailSender.Text;
+            Properties.Settings.Default.updateJobEmail = UpdateJobEmail.Text;
+            Properties.Settings.Default.updateJobEmailPassword = EncryptionUtils.Protect(UpdateJobEmailPassword.Password);
+
+            int timeout;
+            if(int.TryParse(UpdateJobTimeout.Text, out timeout) && timeout > 0)
+            {
+                Properties.Settings.Default.updateJobTimeout = timeout;
+            }
+
+            Properties.Settings.Default.updateJobReportOutliers = UpdateJobAbnormalities.IsChecked.Value;
+            Properties.Settings.Default.updateJobTimeouts = UpdateJobTimeouts.IsChecked.Value;
+            Properties.Settings.Default.updateJobReportErrors = UpdateJobDatasourceErrors.IsChecked.Value;
+            Properties.Settings.Default.updateJobReportNoData = UpdateJobNoData.IsChecked.Value;
 
             Properties.Settings.Default.Save();
 

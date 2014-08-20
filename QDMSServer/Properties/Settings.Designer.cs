@@ -12,7 +12,7 @@ namespace QDMSServer.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "11.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "12.0.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -255,6 +255,138 @@ namespace QDMSServer.Properties {
             }
             set {
                 this["rtdClientIBID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool updateJobReportErrors {
+            get {
+                return ((bool)(this["updateJobReportErrors"]));
+            }
+            set {
+                this["updateJobReportErrors"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool updateJobReportOutliers {
+            get {
+                return ((bool)(this["updateJobReportOutliers"]));
+            }
+            set {
+                this["updateJobReportOutliers"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool updateJobReportNoData {
+            get {
+                return ((bool)(this["updateJobReportNoData"]));
+            }
+            set {
+                this["updateJobReportNoData"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("300")]
+        public int updateJobTimeout {
+            get {
+                return ((int)(this["updateJobTimeout"]));
+            }
+            set {
+                this["updateJobTimeout"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string updateJobEmail {
+            get {
+                return ((string)(this["updateJobEmail"]));
+            }
+            set {
+                this["updateJobEmail"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("smtp.gmail.com")]
+        public string updateJobEmailHost {
+            get {
+                return ((string)(this["updateJobEmailHost"]));
+            }
+            set {
+                this["updateJobEmailHost"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string updateJobEmailUsername {
+            get {
+                return ((string)(this["updateJobEmailUsername"]));
+            }
+            set {
+                this["updateJobEmailUsername"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string updateJobEmailPassword {
+            get {
+                return ((string)(this["updateJobEmailPassword"]));
+            }
+            set {
+                this["updateJobEmailPassword"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("25")]
+        public int updateJobEmailPort {
+            get {
+                return ((int)(this["updateJobEmailPort"]));
+            }
+            set {
+                this["updateJobEmailPort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string updateJobEmailSender {
+            get {
+                return ((string)(this["updateJobEmailSender"]));
+            }
+            set {
+                this["updateJobEmailSender"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool updateJobTimeouts {
+            get {
+                return ((bool)(this["updateJobTimeouts"]));
+            }
+            set {
+                this["updateJobTimeouts"] = value;
             }
         }
     }

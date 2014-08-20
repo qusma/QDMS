@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-    Title="Settings" Height="488.091" Width="458"
+    Title="Settings" Height="520" Width="458"
     ResizeMode="NoResize"
     BorderBrush="Black"
     BorderThickness="1"
@@ -121,8 +121,6 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Label Grid.Row="0" Content="Host:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="118"/>
                                 <TextBox Grid.Row="1" Name="MySqlHost" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="179"/>
@@ -135,7 +133,7 @@
                         <GroupBox Grid.Column="1" Header="SQL Server Settings" HorizontalAlignment="Stretch" Margin="5" VerticalAlignment="Stretch">
                             <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="0.75*"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
@@ -144,20 +142,66 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Label Grid.Row="0" Content="Authentication:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="118"/>
+                                <Label Grid.Row="0" Content="Authentication:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Width="118"/>
                                 <RadioButton Name="SqlServerAuthenticationWindowsRadioBtn" Content="Windows" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top"/>
                                 <RadioButton Name="SqlServerAuthenticationServerRadioBtn" Content="SQL Server" HorizontalAlignment="Left" Margin="108,10,0,0" Grid.Row="1" VerticalAlignment="Top"/>
-                                
+
                                 <Label Grid.Row="2" Content="Host:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="118"/>
                                 <TextBox Grid.Row="3" Name="SqlServerHost" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="179"/>
                                 <Label Grid.Row="4" Content="Username:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="118"/>
                                 <TextBox Name="SqlServerUsername" IsEnabled="{Binding ElementName=SqlServerAuthenticationServerRadioBtn,Path=IsChecked}" Grid.Row="5" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="179"/>
                                 <Label Grid.Row="6" Content="Password:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="118"/>
                                 <PasswordBox Name="SqlServerPassword" IsEnabled="{Binding ElementName=SqlServerAuthenticationServerRadioBtn,Path=IsChecked}" Grid.Row="7" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" VerticalAlignment="Top" Width="179"/>
-                                
+
                             </Grid>
                         </GroupBox>
                     </Grid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="AutomatedUpdates">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Header="Email Settings" Grid.RowSpan="2">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Host Address:" />
+                            <TextBox Name="UpdateJobEmailHost" />
+                            <Label Content="Host Port:" />
+                            <TextBox Name="UpdateJobEmailPort" />
+                            <Label Content="Username:" />
+                            <TextBox Name="UpdateJobEmailUsername" />
+                            <Label Content="Password:" />
+                            <PasswordBox Name="UpdateJobEmailPassword" />
+                            <Label Content="Sender Address:" />
+                            <TextBox Name="UpdateJobEmailSender" />
+                            <Label Content="Send Mail to:" />
+                            <TextBox Name="UpdateJobEmail" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Notification Settings" Grid.Column="1" Grid.Row="0">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Send notifications for:" />
+                            <CheckBox Margin="5" Name="UpdateJobAbnormalities" Content="Data abnormalities" ToolTip="You will be notified when abnormally large returns or intrabar ranges are detected." />
+                            <CheckBox Margin="5" Name="UpdateJobNoData" Content="No data downloaded" ToolTip="You will be notified when a request returns zero bars of data." />
+                            <CheckBox Margin="5" Name="UpdateJobTimeouts" Content="Timed out requests" ToolTip="You will be notified if there are pending requests when the job times out." />
+                            <CheckBox Margin="5" Name="UpdateJobDatasourceErrors" Content="Datasource Errors" ToolTip="You will be notified if there are any errors in the underlying datasources during the update." />
+                        </StackPanel>
+                    </GroupBox>
+                    
+                    <GroupBox Header="Job Settings" Grid.Column="1" Grid.Row="1">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Timeout (in seconds):" />
+                            <TextBox Name="UpdateJobTimeout" ToolTip="The job will be killed after this time, even if there are pending requests." />
+                        </StackPanel>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 
