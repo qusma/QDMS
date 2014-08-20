@@ -1,8 +1,10 @@
-Version 0.8.3
+Version 0.9.0
 - Changed ZeroMQ libraries from clrzmq to NetMQ, streamlining a lot of server code in the process.
+	ATTENTION! If you are using the NuGet QDMS Client package you need to update it to work with the latest version of the server.
+- Rewrote the automated data update system. You can now receive email notifications if something went wrong during the update, or if abnormal data is detected. Check the settings window for details. This system is still slightly experimental so please report any bugs.
+- You can now add instruments to the server from the client. Simply use the AddInstrument() method.
 - Fixed an issue with data storage when a bar opening time was null.
-- Added a workaround for situations when data update jobs run simultaneously, in which case only one of them worked. Now they simply run one after the other.
-- Fixed a bug that cause the SQL Server authentication choice to not be used.
+- Fixed a bug that caused the SQL Server authentication choice to not be used.
 
 Version 0.8.2
 - Added support for quarterly frequencies. FRED and Quandl can now download quarterly data. 
