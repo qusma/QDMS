@@ -22,6 +22,7 @@ namespace QDMSServer
         List<StoredDataInfo> GetAvailableDataInfo(Instrument instrument);
 
         event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
+        event EventHandler<ErrorArgs> Error;
         void Dispose();
     }
 }

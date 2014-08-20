@@ -37,6 +37,7 @@ namespace QDMSServer
         private Timer _connectionTimer; //tries to reconnect every once in a while if a datasource is disconnected
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
+        public event EventHandler<ErrorArgs> Error;
 
         /// <summary>
         /// Keeps track of IDs assigned to requests that have already been used, so there are no duplicates.
@@ -271,7 +272,7 @@ namespace QDMSServer
         /// </summary>
         private void DatasourceError(object sender, ErrorArgs e)
         {
-            //todo escalate it
+            RaiseEvent(Error, sender, new ErrorArgs(-1, "HDB Client Error: " + e.ErrorMessage, e.RequestID));
             Log(LogLevel.Error, string.Format("HDB: {0} - {1}", e.ErrorCode, e.ErrorMessage));
         }
 
