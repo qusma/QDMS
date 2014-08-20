@@ -22,15 +22,16 @@ namespace QDMSServer
             }
         }
 
-        public EmailSender(string host, string username, string password)
+        public EmailSender(string host, string username, string password, int port)
         {
             _client = new SmtpClient
             {
-                Port = 25,
+                Port = port,
                 DeliveryMethod = SmtpDeliveryMethod.Network,
+                EnableSsl = true,
                 UseDefaultCredentials = false,
                 Host = host,
-                Credentials = new System.Net.NetworkCredential(username, password)
+                Credentials = new System.Net.NetworkCredential(username, EncryptionUtils.Unprotect(password))
             };
         }
 
