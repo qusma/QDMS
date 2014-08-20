@@ -69,6 +69,7 @@
     <Compile Include="ExtensionMethods\InstrumentExtensions.cs" />
     <Compile Include="ExtensionMethods\SessionExtensions.cs" />
     <Compile Include="ExtensionMethods\OHLCBarExtensions.cs" />
+    <Compile Include="ExtensionMethods\StatsExtensions.cs" />
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
     <Compile Include="Interfaces\IDataClient.cs" />
     <Compile Include="Interfaces\ISession.cs" />
