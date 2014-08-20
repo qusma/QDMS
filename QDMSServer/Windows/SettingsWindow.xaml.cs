@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using MahApps.Metro.Controls;
@@ -195,6 +196,11 @@ namespace QDMSServer
             Properties.Settings.Default.Save();
 
             Close();
+        }
+
+        private void NotificationHelpBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(@"http://qusma.com/qpasdocs/index.php/Setting_Up_QDMS_Email_Notifications"));
         }
     }
 }

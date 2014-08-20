@@ -171,7 +171,7 @@
                     </Grid.ColumnDefinitions>
                     <GroupBox Header="Email Settings" Grid.RowSpan="2">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="Host Address:" />
+                                <Label Content="Host Address:" />
                             <TextBox Name="UpdateJobEmailHost" />
                             <Label Content="Host Port:" />
                             <TextBox Name="UpdateJobEmailPort" />
@@ -183,6 +183,8 @@
                             <TextBox Name="UpdateJobEmailSender" />
                             <Label Content="Send Mail to:" />
                             <TextBox Name="UpdateJobEmail" />
+                            <Button Grid.Row="0" Grid.Column="1" Margin="5" 
+                            HorizontalAlignment="Center" Name="NotificationHelpBtn" Click="NotificationHelpBtn_Click" Content="Settings Documentation" />
                         </StackPanel>
                     </GroupBox>
 
