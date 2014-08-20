@@ -251,6 +251,7 @@
     <Compile Include="JobsManager.cs" />
     <Compile Include="Jobs\DataUpdateJob.cs" />
     <Compile Include="Jobs\DataUpdateJobFactory.cs" />
+    <Compile Include="Jobs\UpdateJobSettings.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

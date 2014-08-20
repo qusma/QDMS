@@ -23,6 +23,11 @@ namespace QDMSServer
         /// </summary>
         public bool Outliers { get; set; }
 
+        /// <summary>
+        /// Send a notification when requests are still pending when the job times out.
+        /// </summary>
+        public bool RequestTimeouts { get; set; }
+
         public int Timeout { get; set; }
 
         public string ToEmail { get; set; }
@@ -33,6 +38,7 @@ namespace QDMSServer
             bool noDataReceived = true, 
             bool errors = true, 
             bool outliers = true, 
+            bool requestTimeouts = true,
             int timeout = 5,
             string toEmail = "",
             string fromEmail = "")
@@ -40,6 +46,7 @@ namespace QDMSServer
             NoDataReceived = noDataReceived;
             Errors = errors;
             Outliers = outliers;
+            RequestTimeouts = requestTimeouts;
             Timeout = timeout;
             ToEmail = toEmail;
             FromEmail = fromEmail;
