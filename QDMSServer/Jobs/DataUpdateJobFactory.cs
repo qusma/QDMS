@@ -12,6 +12,13 @@ namespace QDMSServer
 {
     public class DataUpdateJobFactory : IJobFactory
     {
+        private readonly HistoricalDataBroker _hdb;
+
+        public DataUpdateJobFactory(HistoricalDataBroker broker) : base()
+        {
+            _hdb = broker;
+        }
+
         /// <summary>
         /// Called by the scheduler at the time of the trigger firing, in order to
         ///             produce a <see cref="T:Quartz.IJob"/> instance on which to call Execute.
@@ -33,8 +40,23 @@ namespace QDMSServer
         /// </returns>
         public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
-            return new DataUpdateJob(new EmailSender("","",""));
-            //TODO provide email client implementation thing
+            //only provide the email sender if data exists to properly initialize it with
+            if (!string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailHost) &&
+                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailUsername) &&
+                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailPassword) &&
+                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailSender) &&
+                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmail))
+            {
+                return new DataUpdateJob(_hdb, new EmailSender(
+                    Properties.Settings.Default.updateJobEmailHost,
+                    Properties.Settings.Default.updateJobEmailUsername,
+                    Properties.Settings.Default.updateJobEmailPassword,
+                    Properties.Settings.Default.updateJobEmailPort));
+            }
+            else
+            {
+                return new DataUpdateJob(_hdb, null);
+            }
         }
 
         /// <summary>

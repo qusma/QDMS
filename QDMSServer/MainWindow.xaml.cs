@@ -166,7 +166,7 @@ namespace QDMSServer
             //create the scheduler
             ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
             _scheduler = schedulerFactory.GetScheduler();
-            _scheduler.JobFactory = new DataUpdateJobFactory();
+            _scheduler.JobFactory = new DataUpdateJobFactory(HistoricalBroker);
             _scheduler.Start();
 
             //Grab jobs and schedule them
