@@ -247,7 +247,7 @@ namespace QDMSServer
             //see comment above, we can't include these in the original query due to a bug
             //and we can't allow lazy loading of the sessions
             //so we force them to be loaded right now
-            foreach (Instrument i in instrumentList) 
+            foreach (Instrument i in instrumentList.Where((x => x.Exchange != null && x.Exchange.Sessions != null))) 
             {
                 i.Exchange.Sessions.ToList();
             }
