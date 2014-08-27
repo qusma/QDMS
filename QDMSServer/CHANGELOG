@@ -1,6 +1,12 @@
+Version 0.9.2
+- Slight change to the way adding new instruments works. You now received the added instrument in response to the addition request.
+
+Version 0.9.1
+- Client update: renamed extension method to prevent naming clash with Math.NET Numerics library.
+
 Version 0.9.0
 - Changed ZeroMQ libraries from clrzmq to NetMQ, streamlining a lot of server code in the process.
-	ATTENTION! If you are using the NuGet QDMS Client package you need to update it to work with the latest version of the server.
+	ATTENTION! If you are using the NuGet QDMS Client package you need to update it to work with the latest version of the server. Note that it is a prerelease version.
 - Rewrote the automated data update system. You can now receive email notifications if something went wrong during the update, or if abnormal data is detected. Check the settings window for details. This system is still slightly experimental so please report any bugs.
 - You can now add instruments to the server from the client. Simply use the AddInstrument() method.
 - Fixed an issue with data storage when a bar opening time was null.
