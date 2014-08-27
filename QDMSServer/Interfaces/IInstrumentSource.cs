@@ -35,6 +35,6 @@ namespace QDMSServer
         /// <param name="updateIfExists"></param>
         /// <param name="saveChanges">Set to true if saving to db should be done.</param>
         /// <returns>True if the insertion or update succeeded. False if it did not.</returns>
-        bool AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true);
+        Instrument AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true);
     }
 }

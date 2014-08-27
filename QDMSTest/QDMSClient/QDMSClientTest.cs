@@ -42,18 +42,21 @@ namespace QDMSTest
             var rtdServer = new RealTimeDataServer(5554, 5553, rtdBrokerMock.Object);
             rtdServer.StartServer();
 
-            instrumentSourceMock.Setup(x => x.AddInstrument(It.IsAny<Instrument>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(true);
+            
 
             _client.Connect();
 
             var exchange = new Exchange() { ID = 1, Name = "NYSE", Sessions = new List<ExchangeSession>(), Timezone = "Eastern Standard Time" };
             var datasource = new Datasource() { ID = 1, Name = "Yahoo" };
             var instrument = new Instrument() { Symbol = "SPY", UnderlyingSymbol = "SPY", Type = InstrumentType.Stock, Currency = "USD", Exchange = exchange, Datasource = datasource, Multiplier = 1 };
-            bool result = _client.AddInstrument(instrument);
+
+            instrumentSourceMock.Setup(x => x.AddInstrument(It.IsAny<Instrument>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(instrument);
+            
+            Instrument result = _client.AddInstrument(instrument);
 
             Thread.Sleep(50);
 
-            Assert.IsTrue(result);
+            Assert.IsTrue(result != null);
 
             instrumentSourceMock.Verify(x => x.AddInstrument(
                 It.Is<Instrument>(y =>

@@ -115,18 +115,23 @@ namespace QDMSServer
                 byte[] buffer = _socket.Receive();
                 var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
-                bool addResult;
+                Log(LogLevel.Info, string.Format("Instruments Server: Received instrument addition request. Instrument: {0}",
+                    instrument));
+
+                Instrument addedInstrument;
                 try
                 {
-                    addResult = _instrumentManager.AddInstrument(instrument);
+                    addedInstrument = _instrumentManager.AddInstrument(instrument);
                 }
                 catch (Exception ex)
                 {
-                    addResult = false;
+                    addedInstrument = null;
                     Log(LogLevel.Error, string.Format("Instruments Server: Instrument addition error: {0}",
                         ex.Message));
                 }
-                _socket.Send(addResult ? "SUCCESS" : "FAILURE");
+                _socket.SendMore(addedInstrument != null ? "SUCCESS" : "FAILURE");
+
+                _socket.Send(MyUtils.ProtoBufSerialize(addedInstrument, ms));
 
                 return;
             }

@@ -89,7 +89,7 @@ namespace QDMSServer
 
                 try
                 {
-                    if (instrumentSource.AddInstrument(newInstrument))
+                    if (instrumentSource.AddInstrument(newInstrument) != null)
                         count++;
                     AddedInstruments.Add(newInstrument);
                 }

@@ -763,19 +763,19 @@ namespace QDMSClient
         /// Add an instrument to QDMS.
         /// </summary>
         /// <param name="instrument"></param>
-        /// <returns>True if the operation succeeded.</returns>
-        public bool AddInstrument(Instrument instrument)
+        /// <returns>The instrument with its ID set if successful, null otherwise.</returns>
+        public Instrument AddInstrument(Instrument instrument)
         {
             if (!Connected)
             {
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Could not add instrument - not connected."));
-                return false;
+                return null;
             }
 
             if(instrument == null)
             {
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Could not add instrument - instrument is null."));
-                return false;
+                return null;
             }
 
             using (NetMQSocket s = _context.CreateSocket(ZmqSocketType.Req))
@@ -791,7 +791,16 @@ namespace QDMSClient
                 //then get the reply
                 string result = s.ReceiveString(TimeSpan.FromSeconds(1));
 
-                return result == "SUCCESS";
+                if(result != "SUCCESS")
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Instrument addition failed: received no reply."));
+                    return null;
+                }
+
+                //Addition was successful, receive the instrument and return it
+                byte[] serializedInstrument = s.Receive();
+
+                return MyUtils.ProtoBufDeserialize<Instrument>(serializedInstrument, ms);
             }
         }
 

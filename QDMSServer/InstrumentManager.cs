@@ -12,6 +12,7 @@ using System.Linq;
 using System.Windows;
 using System.Data.Entity;
 using EntityData;
+using NLog;
 using QDMS;
 using QDMSServer.DataSources;
 
@@ -19,6 +20,8 @@ namespace QDMSServer
 {
     public class InstrumentManager : IInstrumentSource
     {
+        private Logger _logger = LogManager.GetCurrentClassLogger();
+
         public static bool AddContinuousFuture()
         {
             return true;
@@ -30,7 +33,7 @@ namespace QDMSServer
         /// <returns>The number of instruments that were successfully added.</returns>
         public int AddInstruments(IList<Instrument> instruments, bool updateIfExists = false)
         {
-            int count =  instruments.Count(s => AddInstrument(s, updateIfExists, false));
+            int count =  instruments.Count(s => AddInstrument(s, updateIfExists, false) != null);
             return count;
         }
 
@@ -41,7 +44,7 @@ namespace QDMSServer
         /// <param name="updateIfExists"></param>
         /// <param name="saveChanges">Set to true if saving to db should be done.</param>
         /// <returns>True if the insertion or update succeeded. False if it did not.</returns>
-        public bool AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true)
+        public Instrument AddInstrument(Instrument instrument, bool updateIfExists = false, bool saveChanges = true)
         {
             if (instrument.IsContinuousFuture)
             {
@@ -116,16 +119,23 @@ namespace QDMSServer
                     context.Instruments.Add(instrument);
                     context.Database.Connection.Open();
                     if (saveChanges) context.SaveChanges();
-                    return true;
+
+                    Log(LogLevel.Info, string.Format("Instrument Manager: successfully added instrument {0}", instrument));
+
+                    return instrument;
                 }
                 else if (updateIfExists) //object exist, but we want to update it
                 {
+                    Log(LogLevel.Info, string.Format("Instrument Manager: updating existing instrument ID {0} with the following details: {1}",
+                        existingInstrument.ID,
+                        instrument));
+
                     context.Entry(existingInstrument).CurrentValues.SetValues(instrument);
                     if (saveChanges) context.SaveChanges();
-                    return true;
+                    return existingInstrument;
                 }
             }
-            return false; //object exists and we don't update it
+            return null; //object exists and we don't update it
         }
 
         /// <summary>
@@ -157,19 +167,11 @@ namespace QDMSServer
 
             if (pred != null)
             {
-                var instruments = query.Where(pred).ToList();
-                foreach (Instrument i in instruments)
-                {
-                    if(i.Exchange != null)
-                        i.Exchange.Sessions.ToList();
-                }
-                return instruments;
+                return FindInstrumentsWithPredicate(pred, query);
             }
             else if (search == null)
             {
-                var allExchanges = context.Exchanges.Include(x => x.Sessions).ToList();
-                var allInstruments = query.ToList();
-                return allInstruments;
+                return FindAllInstruments(context, query);
             }
             else
             {
@@ -191,56 +193,7 @@ namespace QDMSServer
                 }
                 else //no unique cases, so just add the restrictions where applicable
                 {
-                    if (!string.IsNullOrEmpty(search.Symbol))
-                        query = query.Where(x => x.Symbol.Contains(search.Symbol));
-
-                    if (!string.IsNullOrEmpty(search.UnderlyingSymbol))
-                        query = query.Where(x => x.UnderlyingSymbol.Contains(search.UnderlyingSymbol));
-
-                    if (!string.IsNullOrEmpty(search.Name))
-                        query = query.Where(x => x.Name.Contains(search.Name));
-
-                    if (search.PrimaryExchangeID.HasValue)
-                        query = query.Where(x => x.PrimaryExchangeID == search.PrimaryExchangeID.Value);
-
-                    if (search.ExchangeID.HasValue)
-                        query = query.Where(x => x.ExchangeID == search.ExchangeID.Value);
-
-                    if(search.DatasourceID.HasValue)
-                        query = query.Where(x => x.DatasourceID == search.DatasourceID.Value);
-
-                    if (search.Type != InstrumentType.Undefined)
-                        query = query.Where(x => x.Type == search.Type);
-
-                    if (search.Multiplier.HasValue)
-                        query = query.Where(x => x.Multiplier == search.Multiplier.Value);
-
-                    if (search.OptionType.HasValue)
-                        query = query.Where(x => x.OptionType == search.OptionType.Value);
-
-                    if (search.Strike.HasValue)
-                        query = query.Where(x => x.Strike == search.Strike.Value);
-
-                    if (!string.IsNullOrEmpty(search.Currency))
-                        query = query.Where(x => x.Currency == search.Currency);
-
-                    if (search.MinTick.HasValue)
-                        query = query.Where(x => x.MinTick == search.MinTick.Value);
-
-                    if (!string.IsNullOrEmpty(search.Industry))
-                        query = query.Where(x => x.Industry.Contains(search.Industry));
-
-                    if (!string.IsNullOrEmpty(search.Category))
-                        query = query.Where(x => x.Category.Contains(search.Category));
-
-                    if (!string.IsNullOrEmpty(search.Subcategory))
-                        query = query.Where(x => x.Subcategory.Contains(search.Subcategory));
-
-                    if (!string.IsNullOrEmpty(search.ValidExchanges))
-                        query = query.Where(x => x.ValidExchanges.Contains(search.ValidExchanges));
-
-                    if (search.IsContinuousFuture)
-                        query = query.Where(x => x.IsContinuousFuture);
+                    BuildQueryFromSearchInstrument(search, ref query);
                 }
             }
             var instrumentList =  query.ToList();
@@ -252,6 +205,78 @@ namespace QDMSServer
                 i.Exchange.Sessions.ToList();
             }
             return instrumentList;
+        }
+
+        private static void BuildQueryFromSearchInstrument(Instrument search, ref IQueryable<Instrument> query)
+        {
+            if (!string.IsNullOrEmpty(search.Symbol))
+                query = query.Where(x => x.Symbol.Contains(search.Symbol));
+
+            if (!string.IsNullOrEmpty(search.UnderlyingSymbol))
+                query = query.Where(x => x.UnderlyingSymbol.Contains(search.UnderlyingSymbol));
+
+            if (!string.IsNullOrEmpty(search.Name))
+                query = query.Where(x => x.Name.Contains(search.Name));
+
+            if (search.PrimaryExchangeID.HasValue)
+                query = query.Where(x => x.PrimaryExchangeID == search.PrimaryExchangeID.Value);
+
+            if (search.ExchangeID.HasValue)
+                query = query.Where(x => x.ExchangeID == search.ExchangeID.Value);
+
+            if (search.DatasourceID.HasValue)
+                query = query.Where(x => x.DatasourceID == search.DatasourceID.Value);
+
+            if (search.Type != InstrumentType.Undefined)
+                query = query.Where(x => x.Type == search.Type);
+
+            if (search.Multiplier.HasValue)
+                query = query.Where(x => x.Multiplier == search.Multiplier.Value);
+
+            if (search.OptionType.HasValue)
+                query = query.Where(x => x.OptionType == search.OptionType.Value);
+
+            if (search.Strike.HasValue)
+                query = query.Where(x => x.Strike == search.Strike.Value);
+
+            if (!string.IsNullOrEmpty(search.Currency))
+                query = query.Where(x => x.Currency == search.Currency);
+
+            if (search.MinTick.HasValue)
+                query = query.Where(x => x.MinTick == search.MinTick.Value);
+
+            if (!string.IsNullOrEmpty(search.Industry))
+                query = query.Where(x => x.Industry.Contains(search.Industry));
+
+            if (!string.IsNullOrEmpty(search.Category))
+                query = query.Where(x => x.Category.Contains(search.Category));
+
+            if (!string.IsNullOrEmpty(search.Subcategory))
+                query = query.Where(x => x.Subcategory.Contains(search.Subcategory));
+
+            if (!string.IsNullOrEmpty(search.ValidExchanges))
+                query = query.Where(x => x.ValidExchanges.Contains(search.ValidExchanges));
+
+            if (search.IsContinuousFuture)
+                query = query.Where(x => x.IsContinuousFuture);
+        }
+
+        private static List<Instrument> FindInstrumentsWithPredicate(Func<Instrument, bool> pred, IQueryable<Instrument> query)
+        {
+            var instruments = query.Where(pred).ToList();
+            foreach (Instrument i in instruments)
+            {
+                if (i.Exchange != null)
+                    i.Exchange.Sessions.ToList();
+            }
+            return instruments;
+        }
+
+        private static List<Instrument> FindAllInstruments(MyDBContext context, IQueryable<Instrument> query)
+        {
+            var allExchanges = context.Exchanges.Include(x => x.Sessions).ToList();
+            var allInstruments = query.ToList();
+            return allInstruments;
         }
 
         /// <summary>
@@ -316,5 +341,15 @@ namespace QDMSServer
             }
         }
 
+
+        /// <summary>
+        /// Add a log item.
+        /// </summary>
+        private void Log(LogLevel level, string message)
+        {
+            if (Application.Current != null)
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    _logger.Log(level, message));
+        }
     }
 }
