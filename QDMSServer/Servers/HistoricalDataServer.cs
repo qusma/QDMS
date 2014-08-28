@@ -182,9 +182,17 @@ namespace QDMSServer
 
             socket.SendMore(BitConverter.GetBytes(storageInfo.Count));
 
-            foreach (StoredDataInfo sdi in storageInfo)
+            for (int i = 0; i < storageInfo.Count; i++ )
             {
-                socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
+                var sdi = storageInfo[i];
+                if (i < storageInfo.Count - 1)
+                {
+                    socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
+                }
+                else
+                {
+                    socket.Send(MyUtils.ProtoBufSerialize(sdi, ms));
+                }
             }
         }
 
