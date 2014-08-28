@@ -79,8 +79,6 @@ namespace QDMSServer
 
         void _socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            var ms = new MemoryStream();
-            List<Instrument> instruments;
             bool hasMore;
             string request = _socket.ReceiveString(SendReceiveOptions.DontWait, out hasMore);
             if (request == null) return;
@@ -88,61 +86,79 @@ namespace QDMSServer
             //if the request is for a search, receive the instrument w/ the search parameters and pass it to the searcher
             if (request == "SEARCH" && hasMore)
             {
-                byte[] buffer = _socket.Receive();
-                var searchInstrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
-
-                Log(LogLevel.Info, string.Format("Instruments Server: Received search request: {0}",
-                    searchInstrument));
-
-                try
-                {
-                    instruments = _instrumentManager.FindInstruments(null, searchInstrument);
-                }
-                catch (Exception ex)
-                {
-                    Log(LogLevel.Error, string.Format("Instruments Server: Instrument search error: {0}",
-                        ex.Message));
-                    instruments = new List<Instrument>();
-                }
+                HandleSearchRequest();
             }
             else if (request == "ALL") //if the request is for all the instruments, we don't need to receive anything else
             {
-                Log(LogLevel.Info, "Instruments Server: received request for list of all instruments.");
-                instruments = _instrumentManager.FindInstruments();
+                HandleAllInstrumentsRequest();
             }
             else if (request == "ADD" && hasMore) //request to add instrument
             {
-                byte[] buffer = _socket.Receive();
-                var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
-
-                Log(LogLevel.Info, string.Format("Instruments Server: Received instrument addition request. Instrument: {0}",
-                    instrument));
-
-                Instrument addedInstrument;
-                try
-                {
-                    addedInstrument = _instrumentManager.AddInstrument(instrument);
-                }
-                catch (Exception ex)
-                {
-                    addedInstrument = null;
-                    Log(LogLevel.Error, string.Format("Instruments Server: Instrument addition error: {0}",
-                        ex.Message));
-                }
-                _socket.SendMore(addedInstrument != null ? "SUCCESS" : "FAILURE");
-
-                _socket.Send(MyUtils.ProtoBufSerialize(addedInstrument, ms));
-
-                return;
+                HandleInstrumentAdditionRequest();
             }
-            else //no request = loop again
+        }
+
+        private void HandleInstrumentAdditionRequest()
+        {
+            var ms = new MemoryStream();
+            byte[] buffer = _socket.Receive();
+            var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
+
+            Log(LogLevel.Info, string.Format("Instruments Server: Received instrument addition request. Instrument: {0}",
+                instrument));
+
+            Instrument addedInstrument;
+            try
             {
-                return;
+                addedInstrument = _instrumentManager.AddInstrument(instrument);
+            }
+            catch (Exception ex)
+            {
+                addedInstrument = null;
+                Log(LogLevel.Error, string.Format("Instruments Server: Instrument addition error: {0}",
+                    ex.Message));
+            }
+            _socket.SendMore(addedInstrument != null ? "SUCCESS" : "FAILURE");
+
+            _socket.Send(MyUtils.ProtoBufSerialize(addedInstrument, ms));
+        }
+
+        private void HandleAllInstrumentsRequest()
+        {
+            Log(LogLevel.Info, "Instruments Server: received request for list of all instruments.");
+            var instruments  = _instrumentManager.FindInstruments();
+            ReplyWithFoundInstruments(new MemoryStream(), instruments);
+        }
+
+        private void HandleSearchRequest()
+        {
+            var ms = new MemoryStream();
+            List<Instrument> instruments;
+            byte[] buffer = _socket.Receive();
+            var searchInstrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
+
+            Log(LogLevel.Info, string.Format("Instruments Server: Received search request: {0}",
+                searchInstrument));
+
+            try
+            {
+                instruments = _instrumentManager.FindInstruments(null, searchInstrument);
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, string.Format("Instruments Server: Instrument search error: {0}",
+                    ex.Message));
+                instruments = new List<Instrument>();
             }
 
-            byte[] uncompressed = MyUtils.ProtoBufSerialize(instruments, ms);//serialize the list of instruments
-            ms.Read(uncompressed, 0, (int)ms.Length); //get the uncompressed data
-            byte[] result = LZ4Codec.Encode(uncompressed, 0, (int)ms.Length); //compress it
+            ReplyWithFoundInstruments(ms, instruments);
+        }
+
+        private void ReplyWithFoundInstruments(MemoryStream ms, List<Instrument> instruments)
+        {
+            byte[] uncompressed = MyUtils.ProtoBufSerialize(instruments, ms); //serialize the list of instruments
+            ms.Read(uncompressed, 0, (int) ms.Length); //get the uncompressed data
+            byte[] result = LZ4Codec.Encode(uncompressed, 0, (int) ms.Length); //compress it
 
             //before we send the result we must send the length of the uncompressed array, because it's needed for decompression
             _socket.SendMore(BitConverter.GetBytes(uncompressed.Length));
