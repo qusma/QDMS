@@ -1,3 +1,6 @@
+Version 0.9.3
+- Fixed a bug that caused requests for locally stored data info to fail.
+
 Version 0.9.2
 - Slight change to the way adding new instruments works. You now received the added instrument in response to the addition request.
 
