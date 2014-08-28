@@ -617,11 +617,12 @@ namespace QDMSClient
                 var storageInfo = new List<StoredDataInfo>();
                 for (int i = 0; i < count; i++)
                 {
-                    buffer = _dealerSocket.Receive();
+                    bool hasMore;
+                    buffer = _dealerSocket.Receive(out hasMore);
                     var info = MyUtils.ProtoBufDeserialize<StoredDataInfo>(buffer, ms);
                     storageInfo.Add(info);
 
-                    if (!_dealerSocket.Options.ReceiveMore) break;
+                    if (!hasMore) break;
                 }
 
                 RaiseEvent(LocallyAvailableDataInfoReceived, this, new LocallyAvailableDataInfoReceivedEventArgs(instrument, storageInfo));

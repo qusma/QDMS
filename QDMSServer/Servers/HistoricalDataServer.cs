@@ -181,11 +181,11 @@ namespace QDMSServer
             socket.SendMore(MyUtils.ProtoBufSerialize(instrument, ms));
 
             socket.SendMore(BitConverter.GetBytes(storageInfo.Count));
+
             foreach (StoredDataInfo sdi in storageInfo)
             {
                 socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
             }
-            socket.Send("END");
         }
 
         /// <summary>
