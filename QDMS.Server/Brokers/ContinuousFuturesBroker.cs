@@ -117,31 +117,18 @@ namespace QDMSServer
 
         private readonly Timer _reconnectTimer;
 
-        public ContinuousFuturesBroker(IDataClient client = null, IInstrumentSource instrumentMgr = null, string clientName = "")
+        public ContinuousFuturesBroker(IDataClient client, IInstrumentSource instrumentMgr, bool connectImmediately = true)
         {
             if (client == null)
-            {
-                if (string.IsNullOrEmpty(clientName))
-                    clientName = "CONTFUTCLIENT";
+                throw new ArgumentNullException("client");
+            _client = client;
 
-                _client = new QDMSClient.QDMSClient(
-                    clientName,
-                    "127.0.0.1",
-                    Properties.Settings.Default.rtDBReqPort,
-                    Properties.Settings.Default.rtDBPubPort,
-                    Properties.Settings.Default.instrumentServerPort,
-                    Properties.Settings.Default.hDBPort);
-            }
-            else
-            {
-                _client = client;
-            }
-
-            _instrumentMgr = instrumentMgr ?? new InstrumentManager();
+            _instrumentMgr = instrumentMgr;
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
-            _client.Connect();
+            if(connectImmediately)
+                _client.Connect();
 
             
             _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
@@ -719,9 +706,7 @@ namespace QDMSServer
 
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.Invoke(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         private void AdjustBar(OHLCBar bar, decimal adjustmentFactor, ContinuousFuturesAdjustmentMode mode)
