@@ -14,11 +14,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
-using System.Windows;
 using NLog;
 using QDMS;
 using QDMSServer.DataSources;
 using Timer = System.Timers.Timer;
+#if !DEBUG
+using System.Net;
+#endif
 
 namespace QDMSServer
 {
@@ -104,10 +106,15 @@ namespace QDMSServer
                 _connectionTimer.Dispose();
                 _connectionTimer = null;
             }
-            if (DataSources.ContainsKey("Interactive Brokers"))
+            foreach(var dataSource in DataSources.Where(ds => ds.Value is IDisposable))
+            {
+                ((IDisposable)dataSource.Value).Dispose();
+            }
+            /*if (DataSources.ContainsKey("Interactive Brokers"))
             {
                 ((IB)DataSources["Interactive Brokers"]).Dispose();
-            }
+            }*/
+
             if (_arrivedBars != null)
                 _arrivedBars.Dispose();
         }
@@ -116,17 +123,20 @@ namespace QDMSServer
         /// Constructor
         /// </summary>
         /// <param name="additionalDataSources">Optional. Pass any additional data sources (for testing purposes).</param>
-        /// <param name="cfBroker">Optional. IContinuousFuturesBroker (for testing purposes).</param>
-        public RealTimeDataBroker(IEnumerable<IRealTimeDataSource> additionalDataSources = null, IContinuousFuturesBroker cfBroker = null, IDataStorage localStorage = null)
+        /// <param name="cfBroker">IContinuousFuturesBroker (for testing purposes).</param>
+        public RealTimeDataBroker(IContinuousFuturesBroker cfBroker, IDataStorage localStorage, IEnumerable<IRealTimeDataSource> additionalDataSources = null)
         {
+            if (cfBroker == null)
+                throw new ArgumentNullException("cfBroker");
+
             _connectionTimer = new Timer(10000);
             _connectionTimer.Elapsed += ConnectionTimerElapsed;
             _connectionTimer.Start();
 
             DataSources = new ObservableDictionary<string, IRealTimeDataSource>
             {
-                {"SIM", new RealTimeSim()},
-                {"Interactive Brokers", new IB(Properties.Settings.Default.rtdClientIBID)}
+                {"SIM", new RealTimeSim()}/*,
+                {"Interactive Brokers", new IB(Properties.Settings.Default.rtdClientIBID)}*/
             };
 
             if (additionalDataSources != null)
@@ -158,10 +168,10 @@ namespace QDMSServer
             TryConnect();
 
             //local storage
-            _localStorage = localStorage ?? DataStorageFactory.Get();
+            _localStorage = localStorage;
 
             //start up the continuous futures broker
-            _cfBroker = cfBroker ?? new ContinuousFuturesBroker(clientName: "RTDBCFClient");
+            _cfBroker = cfBroker;
             _cfBroker.FoundFrontContract += _cfBroker_FoundFrontContract;
         }
 
@@ -326,9 +336,7 @@ namespace QDMSServer
         /// </summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null) 
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
 
@@ -593,8 +601,7 @@ namespace QDMSServer
         /// </summary>
         private void ConnectionTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if(Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(TryConnect);
+            TryConnect();
         }
 
         /// <summary>
@@ -607,8 +614,21 @@ namespace QDMSServer
                 if (!s.Value.Connected)
                 {
                     Log(LogLevel.Info, string.Format("Real Time Data Broker: Trying to connect to data source {0}", s.Key));
+
+#if !DEBUG
+                    try
+                    {
+#endif
                     s.Value.Connect();
-                }
+#if !DEBUG
+                    }
+                    catch (WebException ex)
+                    {
+                        _logger.Error(ex, "Real Time Data Broker: Error while connecting to data source {0}", s.Key);
+                    }
+#endif
+
+                    }
             }
         }
 

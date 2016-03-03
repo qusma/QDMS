@@ -70,8 +70,8 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.mocks, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -138,6 +138,10 @@
     <ProjectReference Include="..\EntityData\EntityData.csproj">
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
+      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
+      <Name>QDMS.Server</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMSClient\QDMSClient.csproj">
       <Project>{28833ee8-5a50-4772-9071-3d16fbf21134}</Project>

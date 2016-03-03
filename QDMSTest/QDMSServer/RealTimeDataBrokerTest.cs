@@ -35,7 +35,7 @@ namespace QDMSTest
             _localStorageMock = new Mock<IDataStorage>();
             _localStorageMock.Setup(x => x.Connected).Returns(true);
 
-            _broker = new RealTimeDataBroker(new List<IRealTimeDataSource> { _dataSourceMock.Object }, _cfBrokerMock.Object, _localStorageMock.Object);
+            _broker = new RealTimeDataBroker(_cfBrokerMock.Object, _localStorageMock.Object, new List <IRealTimeDataSource> { _dataSourceMock.Object });
 
             _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
         }

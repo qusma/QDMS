@@ -77,7 +77,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>appbar.box.layered.ico</ApplicationIcon>
@@ -239,7 +239,6 @@
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
-    <Compile Include="DataSources\Bloomberg.cs" />
     <Compile Include="DataSources\FRED.cs" />
     <Compile Include="DataSources\Google.cs" />
     <Compile Include="DataSources\OpenECry.cs" />
@@ -457,6 +456,14 @@
     <ProjectReference Include="..\EntityData\EntityData.csproj">
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
+      <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
+      <Name>QDMS.Server.DataSources.Bloomberg</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
+      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
+      <Name>QDMS.Server</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMSClient\QDMSClient.csproj">
       <Project>{28833ee8-5a50-4772-9071-3d16fbf21134}</Project>

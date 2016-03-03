@@ -300,6 +300,7 @@ namespace QDMSServer
                 }
                 catch (Exception ex)
                 {
+                    Logger _logger = LogManager.GetCurrentClassLogger();
                     _logger.Log(LogLevel.Error, "Update instrument error: " + ex.Message);
                 }
                 

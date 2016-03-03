@@ -18,7 +18,6 @@ namespace QDMSTest
     public class HistoricalDataServerTest
     {
         private HistoricalDataServer _hdServer;
-        private RealTimeDataServer _rtServer;
         private QDMSClient.QDMSClient _client;
         private Mock<IHistoricalDataBroker> _brokerMock;
 
@@ -26,11 +25,7 @@ namespace QDMSTest
         public void SetUp()
         {
             _brokerMock = new Mock<IHistoricalDataBroker>();
-
-            //also need the real time server to keep the "heartbeat" going
-            _rtServer = new RealTimeDataServer(5555, 5554);
-            _rtServer.StartServer();
-
+            
             _hdServer = new HistoricalDataServer(5557, _brokerMock.Object);
             _hdServer.StartServer();
 
@@ -42,7 +37,6 @@ namespace QDMSTest
         public void TearDown()
         {
             _hdServer.Dispose();
-            _rtServer.Dispose();
             _client.Dispose();
         }
 

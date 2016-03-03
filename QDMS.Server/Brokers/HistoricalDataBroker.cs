@@ -67,31 +67,40 @@ namespace QDMSServer
                 ds.Disconnect();
             }
 
+            /*
             if (DataSources.ContainsKey("Interactive Brokers"))
             {
                 ((IB)DataSources["Interactive Brokers"]).Dispose();
             }
+            */
             if (DataSources.ContainsKey("ContinuousFuturesBroker"))
             {
                 ((IContinuousFuturesBroker)DataSources["ContinuousFuturesBroker"]).Dispose();
             }
         }
 
-        public HistoricalDataBroker(IDataStorage localStorage = null, IEnumerable<IHistoricalDataSource> additionalSources = null, IContinuousFuturesBroker cfBroker = null)
+        public HistoricalDataBroker(IContinuousFuturesBroker cfBroker, IDataStorage localStorage, IEnumerable<QDMS.IHistoricalDataSource> additionalSources = null)
         {
-            _dataStorage = localStorage ?? DataStorageFactory.Get();
+            if (cfBroker == null)
+                throw new ArgumentNullException("cfBroker");
+            if (localStorage == null)
+                throw new ArgumentNullException("localStorage");
 
-            DataSources = new ObservableDictionary<string, IHistoricalDataSource>
+            _dataStorage = localStorage;
+
+            DataSources = new ObservableDictionary<string, QDMS.IHistoricalDataSource>
             {
+                /*
                 { "Interactive Brokers", new IB(Properties.Settings.Default.histClientIBID) },
                 { "Yahoo", new Yahoo() },
                 { "Quandl", new Quandl() },
                 { "FRED", new FRED() },
                 { "Google", new Google() }
+                */
             };
 
             //add the continuous futures broker to the data sources
-            DataSources.Add("ContinuousFuturesBroker", cfBroker ?? new ContinuousFuturesBroker(clientName: "HDBCFClient"));
+            DataSources.Add("ContinuousFuturesBroker", cfBroker);
 
             //add additional sources
             if (additionalSources != null)
@@ -137,9 +146,7 @@ namespace QDMSServer
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         /// <summary>
@@ -281,8 +288,7 @@ namespace QDMSServer
         /// </summary>
         private void ConnectionTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(TryConnect);
+            TryConnect();
         }
 
         /// <summary>

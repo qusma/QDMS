@@ -56,9 +56,12 @@ namespace QDMSServer.DataSources
     {
         readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public Quandl()
+        private string authToken;
+
+        public Quandl(string authToken)
         {
             Name = "Quandl";
+            this.authToken = authToken;
         }
 
         public void RequestHistoricalData(HistoricalDataRequest request)
@@ -94,7 +97,7 @@ namespace QDMSServer.DataSources
 
             //if the user has provided an authentication code, we slap it on at the end
             if (!string.IsNullOrEmpty(Properties.Settings.Default.quandlAuthCode))
-                requestURL += string.Format("&auth_token={0}", Properties.Settings.Default.quandlAuthCode);
+                requestURL += string.Format("&auth_token={0}", authToken);
 
             //download the data
             string data;

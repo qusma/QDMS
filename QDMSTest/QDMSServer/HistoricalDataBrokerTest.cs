@@ -49,7 +49,7 @@ namespace QDMSTest
             _cfBrokerMock = new Mock<IContinuousFuturesBroker>();
             _cfBrokerMock.SetupGet(x => x.Connected).Returns(true);
 
-            _broker = new HistoricalDataBroker(_localStorageMock.Object, new List<IHistoricalDataSource> { _dataSourceMock.Object }, _cfBrokerMock.Object);
+            _broker = new HistoricalDataBroker(_cfBrokerMock.Object, _localStorageMock.Object, new List<IHistoricalDataSource> { _dataSourceMock.Object });
 
             _dataSourceMock.SetupGet(x => x.Connected).Returns(true);
         }

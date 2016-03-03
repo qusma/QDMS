@@ -26,6 +26,7 @@ using QDMS;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
+using QDMSServer.DataSources;
 
 namespace QDMSServer
 {
@@ -137,12 +138,41 @@ namespace QDMSServer
             }
 
             //create brokers
-            RealTimeBroker = new RealTimeDataBroker();
-            HistoricalBroker = new HistoricalDataBroker();
+            var cfRealtimeBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
+                "RTDBCFClient",
+                "127.0.0.1",
+                Properties.Settings.Default.rtDBReqPort,
+                Properties.Settings.Default.rtDBPubPort,
+                Properties.Settings.Default.instrumentServerPort,
+                Properties.Settings.Default.hDBPort), new InstrumentManager(), connectImmediately: false);
+            var cfHistoricalBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
+                "HDBCFClient",
+                "127.0.0.1",
+                Properties.Settings.Default.rtDBReqPort,
+                Properties.Settings.Default.rtDBPubPort,
+                Properties.Settings.Default.instrumentServerPort,
+                Properties.Settings.Default.hDBPort), new InstrumentManager(), connectImmediately: false);
+            var localStorage = DataStorageFactory.Get();
+            RealTimeBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage,
+                new IRealTimeDataSource[] {
+                    //new Xignite(Properties.Settings.Default.xigniteApiToken),
+                    //new Oanda(Properties.Settings.Default.oandaAccountId, Properties.Settings.Default.oandaAccessToken),
+                    new IB(Properties.Settings.Default.rtdClientIBID),
+                    //new ForexFeed(Properties.Settings.Default.forexFeedAccessKey, ForexFeed.PriceType.Mid)
+                });
+            HistoricalBroker = new HistoricalDataBroker(cfHistoricalBroker, localStorage,
+                new IHistoricalDataSource[] {
+                    new Yahoo(),
+                    new FRED(),
+                    new Google(),
+                    //new Forexite(),
+                    new IB(Properties.Settings.Default.histClientIBID),
+                    new Quandl(Properties.Settings.Default.quandlAuthCode),
+                });
 
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
-            _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort);
+            _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort, mgr);
             _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, HistoricalBroker);
 
             //and start them
@@ -166,7 +196,22 @@ namespace QDMSServer
             //create the scheduler
             ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
             _scheduler = schedulerFactory.GetScheduler();
-            _scheduler.JobFactory = new DataUpdateJobFactory(HistoricalBroker);
+            _scheduler.JobFactory = new DataUpdateJobFactory(HistoricalBroker,
+                Properties.Settings.Default.updateJobEmailHost,
+                Properties.Settings.Default.updateJobEmailPort,
+                Properties.Settings.Default.updateJobEmailUsername,
+                Properties.Settings.Default.updateJobEmailPassword,
+                Properties.Settings.Default.updateJobEmailSender,
+                Properties.Settings.Default.updateJobEmail,
+                new UpdateJobSettings(
+                    noDataReceived: Properties.Settings.Default.updateJobReportNoData,
+                    errors: Properties.Settings.Default.updateJobReportErrors,
+                    outliers: Properties.Settings.Default.updateJobReportOutliers,
+                    requestTimeouts: Properties.Settings.Default.updateJobTimeouts,
+                    timeout: Properties.Settings.Default.updateJobTimeout,
+                    toEmail: Properties.Settings.Default.updateJobEmail,
+                    fromEmail: Properties.Settings.Default.updateJobEmailSender),
+                localStorage, new InstrumentManager());
             _scheduler.Start();
 
             //Grab jobs and schedule them
@@ -477,7 +522,7 @@ namespace QDMSServer
 
             foreach (Instrument i in InstrumentsGrid.SelectedItems)
             {
-                InstrumentManager.RemoveInstrument(i);
+                InstrumentManager.RemoveInstrument(i, DataStorageFactory.Get());
                 toRemove.Add(i);
             }
 
