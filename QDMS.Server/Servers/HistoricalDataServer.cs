@@ -44,13 +44,16 @@ namespace QDMSServer
         private Poller _poller;
         private readonly object _socketLock = new object();
 
-        public HistoricalDataServer(int port, IHistoricalDataBroker broker = null)
+        public HistoricalDataServer(int port, IHistoricalDataBroker broker)
         {
+            if (broker == null)
+                throw new ArgumentNullException("broker");
+
             _listenPort = port;
 
             _dataQueue = new ConcurrentQueue<KeyValuePair<HistoricalDataRequest, List<OHLCBar>>>();
 
-            _broker = broker ?? new HistoricalDataBroker();
+            _broker = broker;
             _broker.HistoricalDataArrived += _broker_HistoricalDataArrived;
         }
 
@@ -71,13 +74,13 @@ namespace QDMSServer
             if (ServerRunning) return;
             _context = NetMQContext.Create();
 
-            _routerSocket = _context.CreateSocket(NetMQ.zmq.ZmqSocketType.Router);
+            _routerSocket = _context.CreateSocket(ZmqSocketType.Router);
             _routerSocket.Bind("tcp://*:" + _listenPort);
             _routerSocket.ReceiveReady += socket_ReceiveReady;
 
             _poller = new Poller(new[] { _routerSocket });
 
-            Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(_poller.PollTillCancelled, TaskCreationOptions.LongRunning);
 
             ServerRunning = true;
         }
@@ -90,7 +93,7 @@ namespace QDMSServer
             if (!ServerRunning) return;
             if (_poller != null && _poller.IsStarted)
             {
-                _poller.Stop(true);
+                _poller.CancelAndJoin();
             }
             ServerRunning = false;
         }
@@ -107,21 +110,24 @@ namespace QDMSServer
                 //this is a 5 part message
                 //1st message part: the identity string of the client that we're routing the data to
                 string clientIdentity = request.RequesterIdentity;
-                _routerSocket.SendMore(clientIdentity);
+                if (clientIdentity == null)
+                    _routerSocket.SendMoreFrame(string.Empty);
+                else
+                    _routerSocket.SendMoreFrame(clientIdentity);
 
                 //2nd message part: the type of reply we're sending
-                _routerSocket.SendMore("HISTREQREP");
+                _routerSocket.SendMoreFrame("HISTREQREP");
 
                 //3rd message part: the HistoricalDataRequest object that was used to make the request
-                _routerSocket.SendMore(MyUtils.ProtoBufSerialize(request, ms));
+                _routerSocket.SendMoreFrame(MyUtils.ProtoBufSerialize(request, ms));
 
                 //4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
                 byte[] uncompressed = MyUtils.ProtoBufSerialize(data, ms);
-                _routerSocket.SendMore(BitConverter.GetBytes(uncompressed.Length));
+                _routerSocket.SendMoreFrame(BitConverter.GetBytes(uncompressed.Length));
 
                 //5th message part: the compressed serialized data.
                 byte[] compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); //compress
-                _routerSocket.Send(compressed);
+                _routerSocket.SendFrame(compressed);
             }
         }
 
@@ -164,7 +170,7 @@ namespace QDMSServer
             //get the instrument
             bool hasMore;
             var ms = new MemoryStream();
-            byte[] buffer = socket.Receive(out hasMore);
+            byte[] buffer = socket.ReceiveFrameBytes(out hasMore);
 
             var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
@@ -175,17 +181,17 @@ namespace QDMSServer
             //and send the reply
 
             var storageInfo = _broker.GetAvailableDataInfo(instrument);
-            socket.SendMore(requesterIdentity);
-            socket.SendMore("AVAILABLEDATAREP");
+            socket.SendMoreFrame(requesterIdentity);
+            socket.SendMoreFrame("AVAILABLEDATAREP");
 
-            socket.SendMore(MyUtils.ProtoBufSerialize(instrument, ms));
+            socket.SendMoreFrame(MyUtils.ProtoBufSerialize(instrument, ms));
 
-            socket.SendMore(BitConverter.GetBytes(storageInfo.Count));
+            socket.SendMoreFrame(BitConverter.GetBytes(storageInfo.Count));
             foreach (StoredDataInfo sdi in storageInfo)
             {
-                socket.SendMore(MyUtils.ProtoBufSerialize(sdi, ms));
+                socket.SendMoreFrame(MyUtils.ProtoBufSerialize(sdi, ms));
             }
-            socket.Send("END");
+            socket.SendFrame("END");
         }
 
         /// <summary>
@@ -196,7 +202,7 @@ namespace QDMSServer
             //final message part: receive the DataAdditionRequest object
             bool hasMore;
             var ms = new MemoryStream();
-            byte[] buffer = socket.Receive(out hasMore);
+            byte[] buffer = socket.ReceiveFrameBytes(out hasMore);
 
             var request = MyUtils.ProtoBufDeserialize<DataAdditionRequest>(buffer, ms);
 
@@ -205,17 +211,17 @@ namespace QDMSServer
                 request.Instrument.Symbol));
 
             //start building the reply
-            socket.SendMore(requesterIdentity);
-            socket.SendMore("PUSHREP");
+            socket.SendMoreFrame(requesterIdentity);
+            socket.SendMoreFrame("PUSHREP");
             try
             {
                 _broker.AddData(request);
-                socket.Send("OK");
+                socket.SendFrame("OK");
             }
             catch (Exception ex)
             {
-                socket.SendMore("ERROR");
-                socket.Send(ex.Message);
+                socket.SendMoreFrame("ERROR");
+                socket.SendFrame(ex.Message);
             }
         }
 
@@ -226,7 +232,7 @@ namespace QDMSServer
         {
             //third: a serialized HistoricalDataRequest object which contains the details of the request
             bool hasMore;
-            byte[] buffer = socket.Receive(out hasMore);
+            byte[] buffer = socket.ReceiveFrameBytes(out hasMore);
 
 
             var ms = new MemoryStream();
@@ -265,16 +271,16 @@ namespace QDMSServer
         {
             //this is a 4 part message
             //1st message part: the identity string of the client that we're routing the data to
-            _routerSocket.SendMore(requesterIdentity);
+            _routerSocket.SendMoreFrame(requesterIdentity);
 
             //2nd message part: the type of reply we're sending
-            _routerSocket.SendMore("ERROR");
+            _routerSocket.SendMoreFrame("ERROR");
 
             //3rd message part: the request ID
-            _routerSocket.SendMore(BitConverter.GetBytes(requestID));
+            _routerSocket.SendMoreFrame(BitConverter.GetBytes(requestID));
 
             //4th message part: the error
-            _routerSocket.Send(message);
+            _routerSocket.SendFrame(message);
         }
 
         /// <summary>
@@ -282,9 +288,7 @@ namespace QDMSServer
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         public void Dispose()

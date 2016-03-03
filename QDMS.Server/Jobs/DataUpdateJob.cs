@@ -29,16 +29,20 @@ namespace QDMSServer
         private object _reqIDLock = new object();
         private IInstrumentSource _instrumentManager;
 
-        public DataUpdateJob(IHistoricalDataBroker broker, IEmailService emailService, UpdateJobSettings settings = null, IDataStorage localStorage = null, IInstrumentSource instrumentManager = null)
+        public DataUpdateJob(IHistoricalDataBroker broker, IEmailService emailService, UpdateJobSettings settings, IDataStorage localStorage, IInstrumentSource instrumentManager)
         {
+            if (settings == null) throw new ArgumentNullException("settings");
+            if (localStorage == null) throw new ArgumentNullException("localStorage");
+            if (instrumentManager == null) throw new ArgumentNullException("instrumentManager");
+
             _broker = broker;
             _emailService = emailService;
             _errors = new List<string>();
             _pendingRequests = new List<HistoricalDataRequest>();
 
-            _settings = settings ?? GetSettings();
-            _localStorage = localStorage ?? DataStorageFactory.Get();
-            _instrumentManager = instrumentManager ?? new InstrumentManager();
+            _settings = settings;
+            _localStorage = localStorage;
+            _instrumentManager = instrumentManager;
         }
 
         /// <summary>
@@ -155,19 +159,7 @@ namespace QDMSServer
 
             Log(LogLevel.Info, string.Format("Data Update job {0} completed.", details.Name));
         }
-
-        private UpdateJobSettings GetSettings()
-        {
-            return new UpdateJobSettings(
-                noDataReceived: Properties.Settings.Default.updateJobReportNoData,
-                errors: Properties.Settings.Default.updateJobReportErrors,
-                outliers: Properties.Settings.Default.updateJobReportOutliers,
-                requestTimeouts: Properties.Settings.Default.updateJobTimeouts,
-                timeout: Properties.Settings.Default.updateJobTimeout,
-                toEmail: Properties.Settings.Default.updateJobEmail,
-                fromEmail: Properties.Settings.Default.updateJobEmailSender);
-        }
-
+        
         /// <summary>
         /// Any errors coming up from the broker are added to a list of errors to be emailed at the end of the job
         /// </summary>
@@ -299,9 +291,7 @@ namespace QDMSServer
 
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.Invoke(()
-                    => _logger.Log(level, message));
+            _logger.Log(level, message);
         }
     }
 }

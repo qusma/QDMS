@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMSServer", "QDMSServer\QDMSServer.csproj", "{1AD82972-FD44-4ED2-B909-A0738F6C03FE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMSClient", "QDMSClient\QDMSClient.csproj", "{28833EE8-5A50-4772-9071-3D16FBF21134}"
@@ -21,42 +23,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1EC111
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "SampleApp\SampleApp.csproj", "{ACD7D9F6-0BC0-4FBD-81F2-86341002FFB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server", "QDMS.Server\QDMS.Server.csproj", "{C5427849-6011-4198-BCA4-D7CDCF971E7C}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 6
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://qusma.visualstudio.com/defaultcollection
-		SccProjectUniqueName0 = QDMS\\QDMS.csproj
-		SccProjectName0 = QDMS
-		SccAuxPath0 = https://qusma.visualstudio.com/defaultcollection
-		SccLocalPath0 = QDMS
-		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName1 = EntityData\\EntityData.csproj
-		SccProjectName1 = EntityData
-		SccAuxPath1 = https://qusma.visualstudio.com/defaultcollection
-		SccLocalPath1 = EntityData
-		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName2 = QDMSClient\\QDMSClient.csproj
-		SccProjectName2 = QDMSClient
-		SccAuxPath2 = https://qusma.visualstudio.com/defaultcollection
-		SccLocalPath2 = QDMSClient
-		SccProvider2 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName3 = QDMSServer\\QDMSServer.csproj
-		SccProjectName3 = QDMSServer
-		SccAuxPath3 = https://qusma.visualstudio.com/defaultcollection
-		SccLocalPath3 = QDMSServer
-		SccProvider3 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName4 = QDMSTest\\QDMSTest.csproj
-		SccProjectName4 = QDMSTest
-		SccAuxPath4 = https://qusma.visualstudio.com/defaultcollection
-		SccLocalPath4 = QDMSTest
-		SccProvider4 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName5 = SampleApp\\SampleApp.csproj
-		SccProjectName5 = SampleApp
-		SccAuxPath5 = https://qusma.visualstudio.com/defaultcollection
-		SccLocalPath5 = SampleApp
-		SccProvider5 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -126,6 +95,18 @@ Global
 		{ACD7D9F6-0BC0-4FBD-81F2-86341002FFB9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{ACD7D9F6-0BC0-4FBD-81F2-86341002FFB9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{ACD7D9F6-0BC0-4FBD-81F2-86341002FFB9}.Release|x86.ActiveCfg = Release|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Debug|x86.Build.0 = Debug|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Release|x86.ActiveCfg = Release|Any CPU
+		{C5427849-6011-4198-BCA4-D7CDCF971E7C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

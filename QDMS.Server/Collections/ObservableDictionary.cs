@@ -35,6 +35,7 @@ using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
 
+//namespace DrWPF.Windows.Data
 namespace QDMSServer
 {
     [Serializable]
@@ -56,28 +57,28 @@ namespace QDMSServer
 
         public ObservableDictionary()
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection();
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>();
         }
 
         public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> dictionary)
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection();
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>();
 
             foreach (KeyValuePair<TKey, TValue> entry in dictionary)
-                DoAddEntry(entry.Key, entry.Value);
+                DoAddEntry((TKey)entry.Key, (TValue)entry.Value);
         }
 
         public ObservableDictionary(IEqualityComparer<TKey> comparer)
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection(comparer);
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>(comparer);
         }
 
-        public ObservableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> dictionary, IEqualityComparer<TKey> comparer)
+        public ObservableDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey> comparer)
         {
-            KeyedEntryCollection = new KeyedDictionaryEntryCollection(comparer);
+            KeyedEntryCollection = new KeyedDictionaryEntryCollection<TKey>(comparer);
 
             foreach (KeyValuePair<TKey, TValue> entry in dictionary)
-                DoAddEntry(entry.Key, entry.Value);
+                DoAddEntry((TKey)entry.Key, (TValue)entry.Value);
         }
 
         #endregion public
@@ -115,7 +116,11 @@ namespace QDMSServer
         public TValue this[TKey key]
         {
             get { return (TValue)KeyedEntryCollection[key].Value; }
-            set { DoSetEntry(key, value); }
+            set
+            {
+                DoSetEntry(key, value);
+                OnPropertyChanged("Item[]");
+            }
         }
 
         public Dictionary<TKey, TValue>.ValueCollection Values
@@ -172,7 +177,7 @@ namespace QDMSServer
 
         public IEnumerator GetEnumerator()
         {
-            return new Enumerator(this, false);
+            return new Enumerator<TKey, TValue>(this, false);
         }
 
         public bool Remove(TKey key)
@@ -328,9 +333,10 @@ namespace QDMSServer
             FirePropertyChangedNotifications();
 
             // fire CollectionChanged notification
-            OnCollectionChanged(index > -1
-                ? new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new KeyValuePair<TKey, TValue>((TKey) entry.Key, (TValue) entry.Value), index)
-                : new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            if (index > -1)
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new KeyValuePair<TKey, TValue>((TKey)entry.Key, (TValue)entry.Value), index));
+            else
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         private void FireEntryRemovedNotifications(DictionaryEntry entry, int index)
@@ -339,9 +345,10 @@ namespace QDMSServer
             FirePropertyChangedNotifications();
 
             // fire CollectionChanged notification
-            OnCollectionChanged(index > -1
-                ? new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new KeyValuePair<TKey, TValue>((TKey) entry.Key, (TValue) entry.Value), index)
-                : new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            if (index > -1)
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new KeyValuePair<TKey, TValue>((TKey)entry.Key, (TValue)entry.Value), index));
+            else
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         private void FirePropertyChangedNotifications()
@@ -430,7 +437,7 @@ namespace QDMSServer
 
         IDictionaryEnumerator IDictionary.GetEnumerator()
         {
-            return new Enumerator(this, true);
+            return new Enumerator<TKey, TValue>(this, true);
         }
 
         bool IDictionary.IsFixedSize
@@ -547,7 +554,7 @@ namespace QDMSServer
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
-            return new Enumerator(this, false);
+            return new Enumerator<TKey, TValue>(this, false);
         }
 
         #endregion IEnumerable<KeyValuePair<TKey, TValue>>
@@ -623,7 +630,7 @@ namespace QDMSServer
 
         #region KeyedDictionaryEntryCollection<TKey>
 
-        protected class KeyedDictionaryEntryCollection : KeyedCollection<TKey, DictionaryEntry>
+        protected class KeyedDictionaryEntryCollection<TKey> : KeyedCollection<TKey, DictionaryEntry>
         {
             #region constructors
 
@@ -660,7 +667,7 @@ namespace QDMSServer
         #region Enumerator
 
         [Serializable, StructLayout(LayoutKind.Sequential)]
-        public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>, IDisposable, IDictionaryEnumerator, IEnumerator
+        public struct Enumerator<TKey, TValue> : IEnumerator<KeyValuePair<TKey, TValue>>, IDisposable, IDictionaryEnumerator, IEnumerator
         {
             #region constructors
 
@@ -812,7 +819,7 @@ namespace QDMSServer
 
         #region fields
 
-        protected KeyedDictionaryEntryCollection KeyedEntryCollection;
+        protected KeyedDictionaryEntryCollection<TKey> KeyedEntryCollection;
 
         private int _countCache = 0;
         private Dictionary<TKey, TValue> _dictionaryCache = new Dictionary<TKey, TValue>();

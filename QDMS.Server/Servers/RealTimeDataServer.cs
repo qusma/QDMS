@@ -16,8 +16,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows;
-using NetMQ.zmq;
 using NLog;
 using ProtoBuf;
 using QDMS;
@@ -55,13 +53,14 @@ namespace QDMSServer
         private readonly object _pubSocketLock = new object();
         private Poller _poller;
 
-        public RealTimeDataServer(int pubPort, int reqPort, IRealTimeDataBroker broker = null)
+        public RealTimeDataServer(int pubPort, int reqPort, IRealTimeDataBroker broker)
         {
+            if (broker == null) throw new ArgumentNullException(nameof(broker));
             if (pubPort == reqPort) throw new Exception("Publish and request ports must be different");
             PublisherPort = pubPort;
             RequestPort = reqPort;
 
-            Broker = broker ?? new RealTimeDataBroker();
+            Broker = broker;
             Broker.RealTimeDataArrived += _broker_RealTimeDataArrived;
         }
 
@@ -70,6 +69,8 @@ namespace QDMSServer
         /// </summary>
         void _broker_RealTimeDataArrived(object sender, RealTimeDataEventArgs e)
         {
+            if (_pubSocket == null) return;
+
             using (var ms = new MemoryStream())
             {
                 Serializer.Serialize(ms, e);
@@ -77,8 +78,8 @@ namespace QDMSServer
                 //the thread of each DataSource in the broker
                 lock (_pubSocketLock) 
                 {
-                    _pubSocket.SendMore(BitConverter.GetBytes(e.InstrumentID)); //start by sending the ticker before the data
-                    _pubSocket.Send(ms.ToArray()); //then send the serialized bar
+                    _pubSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); //start by sending the ticker before the data
+                    _pubSocket.SendFrame(ms.ToArray()); //then send the serialized bar
                 }
             }
         }
@@ -88,7 +89,7 @@ namespace QDMSServer
         {
             if (_poller != null && _poller.IsStarted)
             {
-                _poller.Stop(true);
+                _poller.CancelAndJoin();
             }
 
             //clear the socket and context and say it's not running any more
@@ -118,20 +119,20 @@ namespace QDMSServer
                 _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
 
                 _poller = new Poller(new[] { _reqSocket });
-                Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
+                Task.Factory.StartNew(_poller.PollTillCancelled, TaskCreationOptions.LongRunning);
             }
             ServerRunning = true;
         }
 
         void _reqSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            string requestType = _reqSocket.ReceiveString();
+            string requestType = _reqSocket.ReceiveFrameString();
             if (requestType == null) return;
 
             //handle ping requests
             if (requestType == "PING")
             {
-                _reqSocket.Send("PONG");
+                _reqSocket.SendFrame("PONG");
                 return;
             }
 
@@ -154,7 +155,7 @@ namespace QDMSServer
         private void HandleRTDataCancelRequest()
         {
             bool hasMore;
-            byte[] buffer = _reqSocket.Receive(out hasMore);
+            byte[] buffer = _reqSocket.ReceiveFrameBytes(out hasMore);
 
             //receive the instrument
             var ms = new MemoryStream();
@@ -166,8 +167,8 @@ namespace QDMSServer
             //two part message:
             //1: "CANCELED"
             //2: the symbol
-            _reqSocket.SendMore("CANCELED");
-            _reqSocket.Send(instrument.Symbol);
+            _reqSocket.SendMoreFrame("CANCELED");
+            _reqSocket.SendFrame(instrument.Symbol);
         }
 
         /// <summary>
@@ -177,9 +178,9 @@ namespace QDMSServer
         /// <param name="serializedRequest"></param>
         private void SendErrorReply(string message, byte[] serializedRequest)
         {
-            _reqSocket.SendMore("ERROR");
-            _reqSocket.SendMore(message);
-            _reqSocket.Send(serializedRequest);
+            _reqSocket.SendMoreFrame("ERROR");
+            _reqSocket.SendMoreFrame(message);
+            _reqSocket.SendFrame(serializedRequest);
         }
 
         // Accept a real time data request
@@ -188,7 +189,7 @@ namespace QDMSServer
             using (var ms = new MemoryStream())
             {
                 bool hasMore;
-                byte[] buffer = _reqSocket.Receive(out hasMore);
+                byte[] buffer = _reqSocket.ReceiveFrameBytes(out hasMore);
 
                 var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
@@ -218,9 +219,9 @@ namespace QDMSServer
                     if (Broker.RequestRealTimeData(request))
                     {
                         //and report success back to the requesting client
-                        _reqSocket.SendMore("SUCCESS");
+                        _reqSocket.SendMoreFrame("SUCCESS");
                         //along with the request
-                        _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
+                        _reqSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
                     }
                     else
                     {
@@ -244,9 +245,7 @@ namespace QDMSServer
         /// </summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         public void Dispose()

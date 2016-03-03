@@ -13,7 +13,7 @@ namespace QDMSServer
     public interface IHistoricalDataBroker
     {
         /// <summary>
-        /// Holds the real time data sources.
+        /// Holds the historical data sources.
         /// </summary>
         ObservableDictionary<string, IHistoricalDataSource> DataSources { get; }
 

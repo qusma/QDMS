@@ -21,7 +21,7 @@ namespace QDMSServer
     public class InstrumentManager : IInstrumentSource
     {
         private Logger _logger = LogManager.GetCurrentClassLogger();
-
+        
         public static bool AddContinuousFuture()
         {
             return true;
@@ -300,7 +300,7 @@ namespace QDMSServer
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Update instrument error: " + ex.Message);
+                    _logger.Log(LogLevel.Error, "Update instrument error: " + ex.Message);
                 }
                 
 
@@ -310,7 +310,7 @@ namespace QDMSServer
         /// <summary>
         /// Delete an instrument and all locally stored data.
         /// </summary>
-        public static void RemoveInstrument(Instrument instrument)
+        public static void RemoveInstrument(Instrument instrument, IDataStorage localStorage)
         {
             using (var entityContext = new MyDBContext())
             {
@@ -333,12 +333,9 @@ namespace QDMSServer
                 entityContext.SaveChanges();
             }
 
-            using (var localStorage = DataStorageFactory.Get())
-            {
-                localStorage.Connect();
+            localStorage.Connect();
 
-                localStorage.DeleteAllInstrumentData(instrument);
-            }
+            localStorage.DeleteAllInstrumentData(instrument);
         }
 
 
@@ -347,9 +344,7 @@ namespace QDMSServer
         /// </summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
     }
 }

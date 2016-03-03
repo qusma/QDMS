@@ -205,5 +205,22 @@ namespace QDMSServer
 
             return false;
         }
+
+        /// <summary>
+        /// Determine if a datetime falls inside a given session list or not.
+        /// </summary>
+        /// <returns>
+        /// Returns true, if the datetime falls into one of the given session list.
+        /// </returns>
+        public static bool InSession(this DateTime dt, IEnumerable<InstrumentSession> sessions)
+        {
+            foreach(InstrumentSession session in sessions)
+            {
+                if (InSession(dt, session))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

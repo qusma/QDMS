@@ -237,8 +237,6 @@
     </ApplicationDefinition>
     <Compile Include="CheckBoxItem.cs" />
     <Compile Include="CheckBoxTag.cs" />
-    <Compile Include="Brokers\ContinuousFuturesBroker.cs" />
-    <Compile Include="Collections\ObservableDictionary.cs" />
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
     <Compile Include="DataSources\Bloomberg.cs" />
@@ -247,39 +245,18 @@
     <Compile Include="DataSources\OpenECry.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\SqlServerStorage.cs" />
-    <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="DataStorageFactory.cs" />
-    <Compile Include="EmailSender.cs" />
-    <Compile Include="Interfaces\IEmailService.cs" />
-    <Compile Include="JobsManager.cs" />
-    <Compile Include="Jobs\DataUpdateJob.cs" />
-    <Compile Include="Jobs\DataUpdateJobFactory.cs" />
-    <Compile Include="Jobs\UpdateJobSettings.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Servers\InstrumentsServer.cs" />
-    <Compile Include="Brokers\HistoricalDataBroker.cs" />
-    <Compile Include="InstrumentManager.cs" />
-    <Compile Include="Collections\ConcurrentNotifierBlockingList.cs" />
-    <Compile Include="Interfaces\IHistoricalDataBroker.cs" />
-    <Compile Include="Interfaces\IInstrumentSource.cs" />
-    <Compile Include="Interfaces\IRealTimeDataBroker.cs" />
     <Compile Include="ListBoxExt.cs" />
-    <Compile Include="Brokers\RealTimeDataBroker.cs" />
-    <Compile Include="RealTimeStreamInfo.cs" />
-    <Compile Include="RTHFilter.cs" />
-    <Compile Include="Servers\HistoricalDataServer.cs" />
-    <Compile Include="Servers\RealTimeDataServer.cs" />
     <Compile Include="UpdateHelper.cs" />
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
-    <Compile Include="Utils\EncryptionUtils.cs" />
     <Compile Include="Utils\FredUtils.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
-    <Compile Include="Utils\PriceAdjuster.cs" />
     <Compile Include="Utils\QuandlUtils.cs" />
     <Compile Include="Utils\Seed.cs" />
     <Compile Include="Utils\SqlServerBackup.cs" />
@@ -357,7 +334,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataSources\MySQLStorage.cs" />
-    <Compile Include="DataSources\RealTimeSim.cs" />
     <Compile Include="DataSources\IB.cs" />
     <Compile Include="DataSources\Yahoo.cs" />
     <Compile Include="Utils\TWSUtils.cs" />
@@ -461,9 +437,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="CHANGELOG" />
-    <None Include="job_scheduling_data_2_0.xsd">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>

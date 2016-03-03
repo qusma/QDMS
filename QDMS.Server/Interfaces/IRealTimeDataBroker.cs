@@ -11,6 +11,11 @@ namespace QDMSServer
 {
     public interface IRealTimeDataBroker
     {
+        /// <summary>
+        /// Holds the real time data sources.
+        /// </summary>
+        ObservableDictionary<string, IRealTimeDataSource> DataSources { get; }
+
         event EventHandler<RealTimeDataEventArgs> RealTimeDataArrived;
 
         bool RequestRealTimeData(RealTimeDataRequest request);

@@ -14,9 +14,39 @@ namespace QDMSServer
     {
         private readonly HistoricalDataBroker _hdb;
 
-        public DataUpdateJobFactory(HistoricalDataBroker broker) : base()
+        private string _host;
+        private int _port;
+        private string _username;
+        private string _password;
+        private string _sender;
+        private string _email;
+
+        private UpdateJobSettings _updateJobSettings;
+        private QDMS.IDataStorage _localStorage;
+        private IInstrumentSource _instrumentSource;
+
+        public DataUpdateJobFactory(HistoricalDataBroker broker,
+            string host,
+            int port,
+            string username,
+            string password,
+            string sender,
+            string email,
+            UpdateJobSettings updateJobSettings,
+            QDMS.IDataStorage localStorage,
+            IInstrumentSource instrumentSource) : base()
         {
             _hdb = broker;
+
+            _host = host;
+            _port = port;
+            _username = username;
+            _password = password;
+            _sender = sender;
+            _email = email;
+            _updateJobSettings = updateJobSettings;
+            _localStorage = localStorage;
+            _instrumentSource = instrumentSource;
         }
 
         /// <summary>
@@ -41,21 +71,21 @@ namespace QDMSServer
         public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
             //only provide the email sender if data exists to properly initialize it with
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailHost) &&
-                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailUsername) &&
-                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailPassword) &&
-                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmailSender) &&
-                !string.IsNullOrEmpty(Properties.Settings.Default.updateJobEmail))
+            if (!string.IsNullOrEmpty(_host) &&
+                !string.IsNullOrEmpty(_username) &&
+                !string.IsNullOrEmpty(_password) &&
+                !string.IsNullOrEmpty(_sender) &&
+                !string.IsNullOrEmpty(_email))
             {
                 return new DataUpdateJob(_hdb, new EmailSender(
-                    Properties.Settings.Default.updateJobEmailHost,
-                    Properties.Settings.Default.updateJobEmailUsername,
-                    Properties.Settings.Default.updateJobEmailPassword,
-                    Properties.Settings.Default.updateJobEmailPort));
+                    _host,
+                    _username,
+                    _password,
+                    _port), _updateJobSettings, _localStorage, _instrumentSource);
             }
             else
             {
-                return new DataUpdateJob(_hdb, null);
+                return new DataUpdateJob(_hdb, null, _updateJobSettings, _localStorage, _instrumentSource);
             }
         }
 

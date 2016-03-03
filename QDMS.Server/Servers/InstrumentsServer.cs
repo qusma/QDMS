@@ -52,11 +52,14 @@ namespace QDMSServer
             }
         }
 
-        public InstrumentsServer(int port, IInstrumentSource instrumentManager = null)
+        public InstrumentsServer(int port, IInstrumentSource instrumentManager)
         {
+            if (instrumentManager == null)
+                throw new ArgumentNullException("instrumentManager");
+
             _socketPort = port;
             
-            _instrumentManager = instrumentManager ?? new InstrumentManager();
+            _instrumentManager = instrumentManager;
         }
 
         /// <summary>
@@ -69,12 +72,12 @@ namespace QDMSServer
             _runServer = true;
             _context = NetMQContext.Create();
 
-            _socket = _context.CreateSocket(NetMQ.zmq.ZmqSocketType.Rep);
+            _socket = _context.CreateSocket(ZmqSocketType.Rep);
             _socket.Bind("tcp://*:" + _socketPort);
             _socket.ReceiveReady += _socket_ReceiveReady;
             _poller = new Poller(new[] { _socket });
 
-            Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(_poller.PollTillCancelled, TaskCreationOptions.LongRunning);
         }
 
         void _socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
@@ -88,7 +91,7 @@ namespace QDMSServer
             //if the request is for a search, receive the instrument w/ the search parameters and pass it to the searcher
             if (request == "SEARCH" && hasMore)
             {
-                byte[] buffer = _socket.Receive();
+                byte[] buffer = _socket.ReceiveFrameBytes();
                 var searchInstrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
                 Log(LogLevel.Info, string.Format("Instruments Server: Received search request: {0}",
@@ -112,7 +115,7 @@ namespace QDMSServer
             }
             else if (request == "ADD" && hasMore) //request to add instrument
             {
-                byte[] buffer = _socket.Receive();
+                byte[] buffer = _socket.ReceiveFrameBytes();
                 var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
                 Log(LogLevel.Info, string.Format("Instruments Server: Received instrument addition request. Instrument: {0}",
@@ -129,9 +132,9 @@ namespace QDMSServer
                     Log(LogLevel.Error, string.Format("Instruments Server: Instrument addition error: {0}",
                         ex.Message));
                 }
-                _socket.SendMore(addedInstrument != null ? "SUCCESS" : "FAILURE");
+                _socket.SendMoreFrame(addedInstrument != null ? "SUCCESS" : "FAILURE");
 
-                _socket.Send(MyUtils.ProtoBufSerialize(addedInstrument, ms));
+                _socket.SendFrame(MyUtils.ProtoBufSerialize(addedInstrument, ms));
 
                 return;
             }
@@ -145,10 +148,10 @@ namespace QDMSServer
             byte[] result = LZ4Codec.Encode(uncompressed, 0, (int)ms.Length); //compress it
 
             //before we send the result we must send the length of the uncompressed array, because it's needed for decompression
-            _socket.SendMore(BitConverter.GetBytes(uncompressed.Length));
+            _socket.SendMoreFrame(BitConverter.GetBytes(uncompressed.Length));
 
             //then finally send the results
-            _socket.Send(result);
+            _socket.SendFrame(result);
         }
 
         /// <summary>
@@ -159,7 +162,7 @@ namespace QDMSServer
             _runServer = false;
             if (_poller != null && _poller.IsStarted)
             {
-                _poller.Stop(true);
+                _poller.CancelAndJoin();
             }
         }
 
@@ -168,9 +171,7 @@ namespace QDMSServer
         /// </summary>
         private void Log(LogLevel level, string message)
         {
-            if(Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
     }
 }
