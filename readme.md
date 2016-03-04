@@ -1,3 +1,12 @@
+Note:
+This is a fork of the QDMS from QUSMA. In general, my plan was not to make my own fork. I would gladly see my changes in the origin fork. But the fact that QUSMA seems to be dead forced me to make my own fork.
+
+My maior changes to the origin fork are:
+* refactoring, seperating logic to seperate assemblies (to make it more flexible to the individual need)
+* minor improvements
+
+---- 
+
 The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
 The server acts as a broker between clients and external data sources, as well as a local database of historical data. The server UI allows its use without the need for a client application. [Here's a rough view of how the systems are connected to each other](http://i.imgur.com/oRbwoiG.png).
@@ -30,18 +39,23 @@ Screenshots:
 
 Currently Supported Data Sources:
 ------------------------
-* Yahoo
-* Interactive Brokers
-* Quandl
-* FRED (Federal Reserve Economic Data)
-* Google Finance
+
+| Data Source | Historical Data supported | Real Time Data supported | Verified and Tested |
+| ----------- | ------------------------- | ------------------------ | ------------------- |
+| Yahoo       | [x] | [ ] | [ ] |
+| Interactive Brokers | [x] | [ ] | [ ] |
+| Quandl | [x] | [ ] | [ ] |
+| FRED (Federal Reserve Economic Data) | [x] | [ ] | [ ] |
+| Google Finance | [x] | [ ] | [ ] |
+| Bloomberg | [x] | [x] | [ ] |
 
 Requirements:
 ------------------------
 * MySQL/MariaDB or SQL Server (2008+)
+* Windows Client (currently no Mono suport)
 * .NET 4.5
 
-Planned features/improvements:
+Planned features/improvements (from QUSMA):
 ------------------------
 * Excel plugin.
 * Constructing low-frequency bars from higher frequency data.
