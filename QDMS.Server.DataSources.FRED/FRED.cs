@@ -87,11 +87,10 @@ namespace QDMSServer.DataSources
                 }
                 catch (WebException ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, string.Format("Error downloading price data from FRED, symbol {0}: {1} ({2})",
-                            instrument.Symbol,
-                            ex.Message,
-                            dataURL)));
+                    _logger.Log(LogLevel.Error, string.Format("Error downloading price data from FRED, symbol {0}: {1} ({2})",
+                        instrument.Symbol,
+                        ex.Message,
+                        dataURL));
 
                     if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
                     {
@@ -185,9 +184,7 @@ namespace QDMSServer.DataSources
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         ///<summary>
