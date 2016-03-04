@@ -189,8 +189,8 @@ namespace QDMSClient
 
             lock (_dealerSocketLock)
             {
-                _dealerSocket.SendMore("HISTPUSH");
-                _dealerSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
+                _dealerSocket.SendMoreFrame("HISTPUSH");
+                _dealerSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
             }
         }
 
@@ -202,8 +202,8 @@ namespace QDMSClient
             var ms = new MemoryStream();
             lock (_dealerSocketLock)
             {
-                _dealerSocket.SendMore("AVAILABLEDATAREQ");
-                _dealerSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                _dealerSocket.SendMoreFrame("AVAILABLEDATAREQ");
+                _dealerSocket.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
             }
         }
 
@@ -280,9 +280,9 @@ namespace QDMSClient
                 //1: "RTD"
                 //2: serialized RealTimeDataRequest
                 var ms = new MemoryStream();
-                _reqSocket.SendMore("");
-                _reqSocket.SendMore("RTD");
-                _reqSocket.Send(MyUtils.ProtoBufSerialize(request, ms));
+                _reqSocket.SendMoreFrame("");
+                _reqSocket.SendMoreFrame("RTD");
+                _reqSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
             }
             return request.RequestID;
         }
@@ -313,8 +313,8 @@ namespace QDMSClient
             string reply = "";
             try
             {
-                _reqSocket.SendMore("");
-                _reqSocket.Send("PING");
+                _reqSocket.SendMoreFrame("");
+                _reqSocket.SendFrame("PING");
 
                 _reqSocket.ReceiveString(TimeSpan.FromSeconds(1)); //empty frame starts the REP message //todo receive string?
                 reply = _reqSocket.ReceiveString(TimeSpan.FromMilliseconds(50));
@@ -350,7 +350,7 @@ namespace QDMSClient
             _poller.AddSocket(_reqSocket);
             _poller.AddSocket(_subSocket);
             _poller.AddSocket(_dealerSocket);
-            Task.Factory.StartNew(_poller.Start, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(_poller.PollTillCancelled, TaskCreationOptions.LongRunning);
 
             _heartBeatTimer = new Timer(1000);
             _heartBeatTimer.Elapsed += _timer_Elapsed;
@@ -367,11 +367,11 @@ namespace QDMSClient
             {
                 lock (_reqSocketLock)
                 {
-                    string reply = _reqSocket.ReceiveString();
+                    string reply = _reqSocket.ReceiveFrameString();
 
                     if (reply == null) return;
 
-                    reply = _reqSocket.ReceiveString();
+                    reply = _reqSocket.ReceiveFrameString();
 
                     switch (reply)
                     {
@@ -382,10 +382,10 @@ namespace QDMSClient
                         case "ERROR": //something went wrong
                         {
                             //first the message
-                            string error = _reqSocket.ReceiveString();
+                            string error = _reqSocket.ReceiveFrameString();
 
                             //then the request
-                            byte[] buffer = _reqSocket.Receive();
+                            byte[] buffer = _reqSocket.ReceiveFrameBytes();
                             var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
                             //error event
@@ -395,7 +395,7 @@ namespace QDMSClient
                         case "SUCCESS": //successful request to start a new real time data stream
                         {
                             //receive the request
-                            byte[] buffer = _reqSocket.Receive();
+                            byte[] buffer = _reqSocket.ReceiveFrameBytes();
                             var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
 
                             //Add it to the active streams
@@ -412,7 +412,7 @@ namespace QDMSClient
                         case "CANCELED": //successful cancelation of a real time data stream
                         {
                             //also receive the symbol
-                            string symbol = _reqSocket.ReceiveString();
+                            string symbol = _reqSocket.ReceiveFrameString();
 
                             //nothing to do?
                         }
@@ -439,7 +439,7 @@ namespace QDMSClient
             _running = false;
             if (_poller != null && _poller.IsStarted)
             {
-                _poller.Stop(true);
+                _poller.CancelAndJoin();
             }
 
             if(_heartBeatTimer != null)
@@ -520,8 +520,8 @@ namespace QDMSClient
                 if (_historicalDataRequests.TryDequeue(out request))
                 {
                     byte[] buffer = MyUtils.ProtoBufSerialize(request, ms);
-                    _dealerSocket.SendMore("HISTREQ");
-                    _dealerSocket.Send(buffer);
+                    _dealerSocket.SendMoreFrame("HISTREQ");
+                    _dealerSocket.SendFrame(buffer);
                 }
             }
         }
@@ -529,11 +529,11 @@ namespace QDMSClient
         private void _subSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
             bool hasMore;
-            byte[] instrumentID = _subSocket.Receive(out hasMore);
+            byte[] instrumentID = _subSocket.ReceiveFrameBytes(out hasMore);
 
             if (hasMore)
             {
-                byte[] buffer = _subSocket.Receive();
+                byte[] buffer = _subSocket.ReceiveFrameBytes();
                 var bar = MyUtils.ProtoBufDeserialize<RealTimeDataEventArgs>(buffer, new MemoryStream());
                 RaiseEvent(RealTimeDataReceived, null, bar);
             }
@@ -547,7 +547,7 @@ namespace QDMSClient
             lock (_dealerSocketLock)
             {
                 //1st message part: what kind of stuff we're receiving
-                string type = _dealerSocket.ReceiveString();
+                string type = _dealerSocket.ReceiveFrameString();
                 switch (type)
                 {
                     case "PUSHREP":
@@ -576,7 +576,7 @@ namespace QDMSClient
         {
             //the request ID
             bool hasMore;
-            byte[] buffer = _dealerSocket.Receive(out hasMore);
+            byte[] buffer = _dealerSocket.ReceiveFrameBytes(out hasMore);
             if (!hasMore) return;
             int requestID = BitConverter.ToInt32(buffer, 0);
 
@@ -587,7 +587,7 @@ namespace QDMSClient
             }
 
             //finally the error message
-            string message = _dealerSocket.ReceiveString();
+            string message = _dealerSocket.ReceiveFrameString();
 
             //raise the error event
             RaiseEvent(Error, this, new ErrorArgs(-1, message, requestID));
@@ -600,11 +600,11 @@ namespace QDMSClient
         {
             //first the instrument
             var ms = new MemoryStream();
-            byte[] buffer = _dealerSocket.Receive();
+            byte[] buffer = _dealerSocket.ReceiveFrameBytes();
             var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
             //second the number of items
-            buffer = _dealerSocket.Receive();
+            buffer = _dealerSocket.ReceiveFrameBytes();
             int count = BitConverter.ToInt32(buffer, 0);
 
             //then actually get the items, if any
@@ -617,7 +617,7 @@ namespace QDMSClient
                 var storageInfo = new List<StoredDataInfo>();
                 for (int i = 0; i < count; i++)
                 {
-                    buffer = _dealerSocket.Receive();
+                    buffer = _dealerSocket.ReceiveFrameBytes();
                     var info = MyUtils.ProtoBufDeserialize<StoredDataInfo>(buffer, ms);
                     storageInfo.Add(info);
 
@@ -633,7 +633,7 @@ namespace QDMSClient
         /// </summary>
         private void HandleDataPushReply()
         {
-            string result = _dealerSocket.ReceiveString();
+            string result = _dealerSocket.ReceiveFrameString();
             if (result == "OK") //everything is alright
             {
                 return; //maybe raise an event to report the status of the request instead?
@@ -641,7 +641,7 @@ namespace QDMSClient
             else if (result == "ERROR")
             {
                 //receive the error
-                string error = _dealerSocket.ReceiveString();
+                string error = _dealerSocket.ReceiveFrameString();
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Data push error: " + error));
             }
         }
@@ -655,19 +655,19 @@ namespace QDMSClient
 
             //2nd message part: the HistoricalDataRequest object that was used to make the request
             bool hasMore;
-            byte[] requestBuffer = _dealerSocket.Receive(out hasMore);
+            byte[] requestBuffer = _dealerSocket.ReceiveFrameBytes(out hasMore);
             if (!hasMore) return;
 
             var request = MyUtils.ProtoBufDeserialize<HistoricalDataRequest>(requestBuffer, ms);
 
             //3rd message part: the size of the uncompressed, serialized data. Necessary for decompression.
-            byte[] sizeBuffer = _dealerSocket.Receive(out hasMore);
+            byte[] sizeBuffer = _dealerSocket.ReceiveFrameBytes(out hasMore);
             if (!hasMore) return;
 
             int outputSize = BitConverter.ToInt32(sizeBuffer, 0);
 
             //4th message part: the compressed serialized data.
-            byte[] dataBuffer = _dealerSocket.Receive();
+            byte[] dataBuffer = _dealerSocket.ReceiveFrameBytes();
             byte[] decompressed = LZ4Codec.Decode(dataBuffer, 0, dataBuffer.Length, outputSize);
 
             var data = MyUtils.ProtoBufDeserialize<List<OHLCBar>>(decompressed, ms);
@@ -686,8 +686,8 @@ namespace QDMSClient
         {
             lock (_reqSocketLock)
             {
-                _reqSocket.SendMore("");
-                _reqSocket.Send("PING");
+                _reqSocket.SendMoreFrame("");
+                _reqSocket.SendFrame("PING");
             }
         }
 
@@ -711,19 +711,19 @@ namespace QDMSClient
 
                 if (instrument == null) //all contracts
                 {
-                    s.Send("ALL");
+                    s.SendFrame("ALL");
                 }
                 else //an actual search
                 {
-                    s.SendMore("SEARCH"); //first we send a search request
+                    s.SendMoreFrame("SEARCH"); //first we send a search request
 
                     //then we need to serialize and send the instrument
-                    s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                    s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                 }
 
                 //first we receive the size of the final uncompressed byte[] array
                 bool hasMore;
-                byte[] sizeBuffer = s.Receive(out hasMore);
+                byte[] sizeBuffer = s.ReceiveFrameBytes(out hasMore);
                 if (sizeBuffer.Length == 0)
                 {
                     RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
@@ -733,7 +733,7 @@ namespace QDMSClient
                 int outputSize = BitConverter.ToInt32(sizeBuffer, 0);
 
                 //then the actual data
-                byte[] buffer = s.Receive(out hasMore);
+                byte[] buffer = s.ReceiveFrameBytes(out hasMore);
                 if (buffer.Length == 0)
                 {
                     RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
@@ -783,10 +783,10 @@ namespace QDMSClient
                 s.Connect(string.Format("tcp://{0}:{1}", _host, _instrumentServerPort));
                 var ms = new MemoryStream();
 
-                s.SendMore("ADD"); //first we send an "ADD" request
+                s.SendMoreFrame("ADD"); //first we send an "ADD" request
 
                 //then we need to serialize and send the instrument
-                s.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
 
                 //then get the reply
                 string result = s.ReceiveString(TimeSpan.FromSeconds(1));
@@ -798,7 +798,7 @@ namespace QDMSClient
                 }
 
                 //Addition was successful, receive the instrument and return it
-                byte[] serializedInstrument = s.Receive();
+                byte[] serializedInstrument = s.ReceiveFrameBytes();
 
                 return MyUtils.ProtoBufDeserialize<Instrument>(serializedInstrument, ms);
             }
@@ -823,9 +823,9 @@ namespace QDMSClient
                     //1: "CANCEL"
                     //2: serialized Instrument object
                     var ms = new MemoryStream();
-                    _reqSocket.SendMore("");
-                    _reqSocket.SendMore("CANCEL");
-                    _reqSocket.Send(MyUtils.ProtoBufSerialize(instrument, ms));
+                    _reqSocket.SendMoreFrame("");
+                    _reqSocket.SendMoreFrame("CANCEL");
+                    _reqSocket.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                 }
             }
 

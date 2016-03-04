@@ -139,10 +139,10 @@ namespace QDMSServer
             lock (_socketLock)
             {
                 //Here we process the first two message parts: first, the identity string of the client
-                string requesterIdentity = e.Socket.ReceiveString();
+                string requesterIdentity = e.Socket.ReceiveFrameString();
 
                 //second: the string specifying the type of request
-                string text = e.Socket.ReceiveString();
+                string text = e.Socket.ReceiveFrameString();
                 if (text == "HISTREQ") //the client wants to request some data
                 {
                     AcceptHistoricalDataRequest(requesterIdentity, e.Socket);
