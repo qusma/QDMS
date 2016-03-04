@@ -115,11 +115,11 @@ namespace QDMSServer.DataSources
                 }
                 catch (WebException ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Yahoo, symbol {0}: {1} ({2})",
-                            instrument.Symbol,
-                            ex.Message,
-                            splitURL)));
+                    _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Yahoo, symbol {0}: {1} ({2})",
+                        instrument.Symbol,
+                        ex.Message,
+                        splitURL));
+
                     if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
                     {
                         var resp = (HttpWebResponse)ex.Response;
@@ -187,11 +187,10 @@ namespace QDMSServer.DataSources
                 }
                 catch (WebException ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Yahoo, symbol {0}: {1} ({2})",
-                            instrument.Symbol,
-                            ex.Message,
-                            dataURL)));
+                    _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Yahoo, symbol {0}: {1} ({2})",
+                        instrument.Symbol,
+                        ex.Message,
+                        dataURL));
 
                     if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
                     {
@@ -235,10 +234,9 @@ namespace QDMSServer.DataSources
                 }
             }
 
-            Application.Current.Dispatcher.Invoke(() =>
-                _logger.Log(LogLevel.Info, string.Format("Downloaded {0} bars from Yahoo, symbol {1}.",
-                    data.Count,
-                    instrument.Symbol)));
+            _logger.Log(LogLevel.Info, string.Format("Downloaded {0} bars from Yahoo, symbol {1}.",
+                data.Count,
+                instrument.Symbol));
             data.Reverse(); //data comes sorted newest first, so we need to inverse the order
             return data;
         }

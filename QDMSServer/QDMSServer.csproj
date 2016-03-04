@@ -334,7 +334,6 @@
     </Compile>
     <Compile Include="DataSources\MySQLStorage.cs" />
     <Compile Include="DataSources\IB.cs" />
-    <Compile Include="DataSources\Yahoo.cs" />
     <Compile Include="Utils\TWSUtils.cs" />
     <Compile Include="ValueConverters\LogEventInfoToStringConverter.cs" />
     <Compile Include="ValueConverters\LogItemToColorConverter.cs" />
@@ -460,6 +459,10 @@
     <ProjectReference Include="..\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
       <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
       <Name>QDMS.Server.DataSources.Bloomberg</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj">
+      <Project>{5c2c845c-0d1c-46ef-9b8f-66502dcde8ca}</Project>
+      <Name>QDMS.Server.DataSources.Yahoo</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
       <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
