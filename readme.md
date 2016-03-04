@@ -49,6 +49,7 @@ Currently Supported Data Sources:
 | Google Finance | [x] | [ ] | [ ] |
 | Bloomberg | [x] | [x] | [ ] |
 | [OpenECry](http://futuresonline.com/) | [x] | [x] | [ ] |
+| ForexFeed | [ ] | [x] | [x] |
 
 Requirements:
 ------------------------

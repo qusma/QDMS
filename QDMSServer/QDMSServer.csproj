@@ -464,6 +464,10 @@
       <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
       <Name>QDMS.Server.DataSources.Bloomberg</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.ForexFeed\QDMS.Server.DataSources.ForexFeed.csproj">
+      <Project>{55180c6d-a985-4171-bc78-e9b161164785}</Project>
+      <Name>QDMS.Server.DataSources.ForexFeed</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
       <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
       <Name>QDMS.Server.DataSources.FRED</Name>
