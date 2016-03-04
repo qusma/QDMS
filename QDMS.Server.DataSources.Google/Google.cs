@@ -85,11 +85,10 @@ namespace QDMSServer.DataSources
                 }
                 catch (WebException ex)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                        _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Google, symbol {0}: {1} ({2})",
-                            instrument.Symbol,
-                            ex.Message,
-                            dataURL)));
+                    _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Google, symbol {0}: {1} ({2})",
+                        instrument.Symbol,
+                        ex.Message,
+                        dataURL));
 
                     if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
                     {
@@ -121,11 +120,10 @@ namespace QDMSServer.DataSources
                     data.Add(bar);
                 }
             }
-
-            Application.Current.Dispatcher.Invoke(() =>
-                _logger.Log(LogLevel.Info, string.Format("Downloaded {0} bars from Google, symbol {1}.",
-                    data.Count,
-                    instrument.Symbol)));
+            
+            _logger.Log(LogLevel.Info, string.Format("Downloaded {0} bars from Google, symbol {1}.",
+                data.Count,
+                instrument.Symbol));
             data.Reverse(); //data comes sorted newest first, so we need to inverse the order
             return data;
         }

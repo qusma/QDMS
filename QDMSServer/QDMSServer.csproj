@@ -246,7 +246,6 @@
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
-    <Compile Include="DataSources\Google.cs" />
     <Compile Include="DataSources\OpenECry.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataSources\SqlServerStorage.cs" />
@@ -468,6 +467,10 @@
     <ProjectReference Include="..\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
       <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
       <Name>QDMS.Server.DataSources.FRED</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Google\QDMS.Server.DataSources.Google.csproj">
+      <Project>{cf22c9c8-6c2f-487c-bdf5-6aed57b10bb0}</Project>
+      <Name>QDMS.Server.DataSources.Google</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj">
       <Project>{5c2c845c-0d1c-46ef-9b8f-66502dcde8ca}</Project>

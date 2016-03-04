@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Yah
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.FRED", "QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj", "{F83D3D20-6554-44D2-862D-C64F1EC3062B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Google", "QDMS.Server.DataSources.Google\QDMS.Server.DataSources.Google.csproj", "{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +151,18 @@ Global
 		{F83D3D20-6554-44D2-862D-C64F1EC3062B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F83D3D20-6554-44D2-862D-C64F1EC3062B}.Release|x86.ActiveCfg = Release|Any CPU
 		{F83D3D20-6554-44D2-862D-C64F1EC3062B}.Release|x86.Build.0 = Release|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Debug|x86.Build.0 = Debug|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Release|x86.ActiveCfg = Release|Any CPU
+		{CF22C9C8-6C2F-487C-BDF5-6AED57B10BB0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
