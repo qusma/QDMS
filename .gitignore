@@ -113,3 +113,7 @@ Thumbs.db
 *.llblgenproj
 *.tss
 *.VisualState.xml
+
+# JetBrains Rider (C# IDE)
+.idea/
+*.sln.iml
