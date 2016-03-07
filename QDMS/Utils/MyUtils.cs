@@ -174,6 +174,11 @@ namespace QDMS
             return Epoch.AddSeconds(timestamp);
         }
 
+        public static DateTime TimestampToDateTimeByMillisecound(long timestamp)
+        {
+            return Epoch.AddMilliseconds(timestamp);
+        }
+
         /// <summary>
         /// Returns an IEnumerable of all possible values of an Enum.
         /// </summary>
@@ -261,6 +266,59 @@ namespace QDMS
                 default:
                     return TimeSpan.FromDays(1);
             }
+        }
+
+        /// <summary>
+        /// Converts a timespan to its corresponding BarSize, if possible.
+        /// </summary>
+        public static BarSize ToBarSize(this TimeSpan span)
+        {
+            if (span <= TimeSpan.FromTicks(1))
+                return BarSize.Tick;
+
+            if (span <= TimeSpan.FromSeconds(1))
+                return BarSize.OneSecond;
+
+            if (span <= TimeSpan.FromSeconds(5))
+                return BarSize.FiveSeconds;
+
+            if (span <= TimeSpan.FromSeconds(15))
+                return BarSize.FifteenSeconds;
+
+            if (span <= TimeSpan.FromSeconds(30))
+                return BarSize.ThirtySeconds;
+
+            if (span <= TimeSpan.FromMinutes(1))
+                return BarSize.OneMinute;
+
+            if (span <= TimeSpan.FromMinutes(2))
+                return BarSize.TwoMinutes;
+
+            if (span <= TimeSpan.FromMinutes(5))
+                return BarSize.FiveMinutes;
+
+            if (span <= TimeSpan.FromMinutes(15))
+                return BarSize.FifteenMinutes;
+
+            if (span <= TimeSpan.FromMinutes(30))
+                return BarSize.ThirtyMinutes;
+
+            if (span <= TimeSpan.FromHours(1))
+                return BarSize.OneHour;
+            
+            if (span <= TimeSpan.FromDays(1))
+                return BarSize.OneDay;
+
+            if (span <= TimeSpan.FromDays(7))
+                return BarSize.OneWeek;
+
+            if (span <= TimeSpan.FromDays(30))
+                return BarSize.OneMonth;
+
+            if (span <= TimeSpan.FromDays(365))
+                return BarSize.OneYear;
+
+            throw new ArgumentException("The timespan " + span + " is not supported for the function ToBarSize(this Timespan)");
         }
 
         /// <summary>
