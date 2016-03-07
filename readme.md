@@ -3,7 +3,8 @@ This is a fork of the QDMS from QUSMA. In general, my plan was not to make my ow
 
 My maior changes to the origin fork are:
 * refactoring, seperating logic to seperate assemblies (to make it more flexible to the individual need)
-* minor improvements
+* adding new data sources.
+* minor improvements.
 
 ---- 
 
