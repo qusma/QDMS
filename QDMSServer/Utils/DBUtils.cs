@@ -79,7 +79,7 @@ namespace QDMSServer
             return new SqlConnection(connectionString);
         }
 
-        private static string GetSqlServerConnectionString(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false, bool useWindowsAuthentication = true)
+        internal static string GetSqlServerConnectionString(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false, bool useWindowsAuthentication = true)
         {
             string connectionString = String.Format(
                 "Data Source={0};",
@@ -112,7 +112,13 @@ namespace QDMSServer
             return connectionString;
         }
 
-        public static MySqlConnection CreateMySqlConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
+        public static MySqlConnection CreateMySqlConnection(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false, bool useWindowsAuthentication = true)
+        {
+            string connectionString = GetMySqlServerConnectionString(database, server, username, password, noDB);
+            return new MySqlConnection(connectionString);
+        }
+        
+        internal static string GetMySqlServerConnectionString(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
         {
             if (password == null)
             {
@@ -134,7 +140,7 @@ namespace QDMSServer
                 username ?? Settings.Default.mySqlUsername,
                 password
                 );
-            
+
             if (!noDB)
             {
                 connectionString += String.Format("database={0};", database);
@@ -145,7 +151,7 @@ namespace QDMSServer
                 "persist security info=true;" +
                 "Convert Zero Datetime=True";
 
-            return new MySqlConnection(connectionString);
+            return connectionString;
         }
     }
 }

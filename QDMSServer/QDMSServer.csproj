@@ -248,7 +248,6 @@
     <Compile Include="DataGridExtensions.cs" />
     <Compile Include="DataSources\OpenECry.cs" />
     <Compile Include="DataSources\Quandl.cs" />
-    <Compile Include="DataSources\SqlServerStorage.cs" />
     <Compile Include="DataStorageFactory.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -336,7 +335,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataSources\MySQLStorage.cs" />
     <Compile Include="DataSources\IB.cs" />
     <Compile Include="Utils\TWSUtils.cs" />
     <Compile Include="ValueConverters\LogEventInfoToStringConverter.cs" />
@@ -479,6 +477,14 @@
     <ProjectReference Include="..\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj">
       <Project>{5c2c845c-0d1c-46ef-9b8f-66502dcde8ca}</Project>
       <Name>QDMS.Server.DataSources.Yahoo</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj">
+      <Project>{0197ea02-a2ad-475f-9a73-7a0bcfc18891}</Project>
+      <Name>QDMS.Server.DataStorage.MySql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataStorage.SqlServer\QDMS.Server.DataStorage.SqlServer.csproj">
+      <Project>{17ade009-cab6-4389-93e1-afe1a2dbb18c}</Project>
+      <Name>QDMS.Server.DataStorage.SqlServer</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
       <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>

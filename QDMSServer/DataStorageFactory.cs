@@ -16,13 +16,13 @@ namespace QDMSServer
             switch(Properties.Settings.Default.databaseType)
             {
                 case "MySql":
-                    return new MySQLStorage();
+                    return new MySQLStorage(DBUtils.GetMySqlServerConnectionString("qdmsdata"));
 
                 case "SqlServer":
-                    return new SqlServerStorage();
+                    return new SqlServerStorage(DBUtils.GetSqlServerConnectionString("qdmsdata", useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication));
 
                 default:
-                    return new MySQLStorage();
+                    return new MySQLStorage(DBUtils.GetMySqlServerConnectionString("qdmsdata"));
             }
         }
     }

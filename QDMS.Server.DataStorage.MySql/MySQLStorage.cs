@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Timers;
@@ -29,17 +30,22 @@ namespace QDMSServer.DataSources
         /// </summary>
         private Timer _connectionStatusUpdateTimer;
 
-        public MySQLStorage()
+        private string _connectionString;
+
+        public MySQLStorage(string connectionString)
         {
+            if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException("connectionString");
+
             Name = "Local Storage";
+            _connectionString = connectionString;
             _connectionStatusUpdateTimer = new Timer(1000);
             _connectionStatusUpdateTimer.Elapsed += _connectionStatusUpdateTimer_Elapsed;
             _connectionStatusUpdateTimer.Start();
         }
-
+        
         private void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            using (MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata"))
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
                 bool result = connection.Ping();
                 Connected = result;
@@ -91,7 +97,7 @@ namespace QDMSServer.DataSources
         /// <returns></returns>
         private MySqlConnection TryConnect(out bool succeeded)
         {
-            MySqlConnection connection = DBUtils.CreateMySqlConnection("qdmsdata");
+            MySqlConnection connection = new MySqlConnection(_connectionString);
             try
             {
                 connection.Open();
@@ -227,18 +233,18 @@ namespace QDMSServer.DataSources
                                        bar.DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                                        instrument.ID,
                                        (int)frequency,
-                                       bar.Open,
-                                       bar.High,
-                                       bar.Low,
-                                       bar.Close,
-                                       bar.AdjOpen.HasValue ? bar.AdjOpen.Value.ToString() : "NULL",
-                                       bar.AdjHigh.HasValue ? bar.AdjHigh.Value.ToString() : "NULL",
-                                       bar.AdjLow.HasValue ? bar.AdjLow.Value.ToString() : "NULL",
-                                       bar.AdjClose.HasValue ? bar.AdjClose.Value.ToString() : "NULL",
-                                       bar.Volume.HasValue ? bar.Volume.Value.ToString() : "NULL",
-                                       bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
-                                       bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
-                                       bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
+                                       bar.Open.ToString(CultureInfo.InvariantCulture),
+                                       bar.High.ToString(CultureInfo.InvariantCulture),
+                                       bar.Low.ToString(CultureInfo.InvariantCulture),
+                                       bar.Close.ToString(CultureInfo.InvariantCulture),
+                                       bar.AdjOpen.HasValue ? bar.AdjOpen.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.AdjHigh.HasValue ? bar.AdjHigh.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.AdjLow.HasValue ? bar.AdjLow.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.AdjClose.HasValue ? bar.AdjClose.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.Volume.HasValue ? bar.Volume.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.Dividend.HasValue ? bar.Dividend.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.Split.HasValue ? bar.Split.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
                                        bar.DTOpen.HasValue ? String.Format("'{0:yyyy-MM-dd HH:mm:ss.fff}'", bar.DTOpen.Value) : "NULL",
                                        overwrite ? "REPLACE" : "INSERT IGNORE"
                                        );
@@ -559,9 +565,7 @@ namespace QDMSServer.DataSources
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         public event EventHandler<ErrorArgs> Error;

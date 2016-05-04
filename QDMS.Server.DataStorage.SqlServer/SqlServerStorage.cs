@@ -9,6 +9,7 @@ using System.Windows;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
+using System.Globalization;
 
 #pragma warning disable 67
 
@@ -22,10 +23,14 @@ namespace QDMSServer.DataSources
         private Timer _connectionStatusUpdateTimer;
 
         private Logger _logger = LogManager.GetCurrentClassLogger();
+        
+        private string _connectionString;
 
-        public SqlServerStorage()
+        public SqlServerStorage(string connectionString)
         {
             Name = "Local Storage";
+            _connectionString = connectionString;
+
             _connectionStatusUpdateTimer = new Timer(1000);
             _connectionStatusUpdateTimer.Elapsed += _connectionStatusUpdateTimer_Elapsed;
             _connectionStatusUpdateTimer.Start();
@@ -33,7 +38,7 @@ namespace QDMSServer.DataSources
 
         private void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            using (SqlConnection connection = DBUtils.CreateSqlServerConnection("qdmsdata", useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication))
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 try
                 {
@@ -82,7 +87,7 @@ namespace QDMSServer.DataSources
 
         private bool TryConnect(out SqlConnection connection)
         {
-            connection = DBUtils.CreateSqlServerConnection("qdmsdata", useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication);
+            connection = new SqlConnection(_connectionString);
             try
             {
                 connection.Open();
@@ -196,6 +201,8 @@ namespace QDMSServer.DataSources
             bool needsAdjustment = false;
             using (var cmd = new SqlCommand("", connection))
             {
+                cmd.CommandTimeout = 0;
+
                 var sb = new StringBuilder();
                 sb.Append("BEGIN TRAN T1;");
 
@@ -205,10 +212,6 @@ namespace QDMSServer.DataSources
                 sb.AppendFormat("SELECT * INTO {0} from data where 1=2;", tableName);
 
                 //start the insert
-                sb.AppendFormat("INSERT INTO {0} " +
-                                "(DT, InstrumentID, Frequency, [Open], High, Low, [Close], AdjOpen, AdjHigh, AdjLow, AdjClose, " +
-                                "Volume, OpenInterest, Dividend, Split, DTOpen) VALUES ", tableName);
-
                 for (int i = 0; i < data.Count; i++)
                 {
                     var bar = data[i];
@@ -219,27 +222,32 @@ namespace QDMSServer.DataSources
                         bar.DTOpen = null;
                     }
 
+                    if(i == 0 || (i-1) % 500 == 0)
+                    sb.AppendFormat("INSERT INTO {0} " +
+                                "(DT, InstrumentID, Frequency, [Open], High, Low, [Close], AdjOpen, AdjHigh, AdjLow, AdjClose, " +
+                                "Volume, OpenInterest, Dividend, Split, DTOpen) VALUES ", tableName);
+
                     sb.AppendFormat("('{0}', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15})",
-                                       bar.DT.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                                       bar.DT.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
                                        instrument.ID,
                                        (int)frequency,
-                                       bar.Open,
-                                       bar.High,
-                                       bar.Low,
-                                       bar.Close,
-                                       bar.AdjOpen.HasValue ? bar.AdjOpen.Value.ToString() : "NULL",
-                                       bar.AdjHigh.HasValue ? bar.AdjHigh.Value.ToString() : "NULL",
-                                       bar.AdjLow.HasValue ? bar.AdjLow.Value.ToString() : "NULL",
-                                       bar.AdjClose.HasValue ? bar.AdjClose.Value.ToString() : "NULL",
-                                       bar.Volume.HasValue ? bar.Volume.Value.ToString() : "NULL",
-                                       bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString() : "NULL",
-                                       bar.Dividend.HasValue ? bar.Dividend.Value.ToString() : "NULL",
-                                       bar.Split.HasValue ? bar.Split.Value.ToString() : "NULL",
-                                       bar.DTOpen.HasValue ? String.Format("'{0:yyyy-MM-dd HH:mm:ss.fff}'", bar.DTOpen.Value) : "NULL"
+                                       bar.Open.ToString(CultureInfo.InvariantCulture),
+                                       bar.High.ToString(CultureInfo.InvariantCulture),
+                                       bar.Low.ToString(CultureInfo.InvariantCulture),
+                                       bar.Close.ToString(CultureInfo.InvariantCulture),
+                                       bar.AdjOpen.HasValue ? bar.AdjOpen.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.AdjHigh.HasValue ? bar.AdjHigh.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.AdjLow.HasValue ? bar.AdjLow.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.AdjClose.HasValue ? bar.AdjClose.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.Volume.HasValue ? bar.Volume.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.OpenInterest.HasValue ? bar.OpenInterest.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.Dividend.HasValue ? bar.Dividend.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.Split.HasValue ? bar.Split.Value.ToString(CultureInfo.InvariantCulture) : "NULL",
+                                       bar.DTOpen.HasValue ? String.Format("'{0:yyyy-MM-ddTHH:mm:ss.fff}'", bar.DTOpen.Value) : "NULL"
                                        );
 
-                    sb.Append(i < data.Count - 1 ? ", " : ";");
-
+                    sb.Append((i % 500 != 0 && i < data.Count - 1) ? ", " : ";");
+                    
                     if (!needsAdjustment && (data[i].Dividend.HasValue || data[i].Split.HasValue))
                         needsAdjustment = true;
                 }
@@ -559,9 +567,7 @@ namespace QDMSServer.DataSources
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         /// <summary>
