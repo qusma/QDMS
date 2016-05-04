@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Goo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.ForexFeed", "QDMS.Server.DataSources.ForexFeed\QDMS.Server.DataSources.ForexFeed.csproj", "{55180C6D-A985-4171-BC78-E9B161164785}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMSService", "QDMSService\QDMSService.csproj", "{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataStorage.MySql", "QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj", "{0197EA02-A2AD-475F-9A73-7A0BCFC18891}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataStorage.SqlServer", "QDMS.Server.DataStorage.SqlServer\QDMS.Server.DataStorage.SqlServer.csproj", "{17ADE009-CAB6-4389-93E1-AFE1A2DBB18C}"
@@ -181,6 +183,18 @@ Global
 		{55180C6D-A985-4171-BC78-E9B161164785}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{55180C6D-A985-4171-BC78-E9B161164785}.Release|x86.ActiveCfg = Release|Any CPU
 		{55180C6D-A985-4171-BC78-E9B161164785}.Release|x86.Build.0 = Release|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Debug|x86.Build.0 = Debug|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Release|x86.ActiveCfg = Release|Any CPU
+		{2B975F31-9F0F-4BBB-8BC2-8E014336B0FF}.Release|x86.Build.0 = Release|Any CPU
 		{0197EA02-A2AD-475F-9A73-7A0BCFC18891}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0197EA02-A2AD-475F-9A73-7A0BCFC18891}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0197EA02-A2AD-475F-9A73-7A0BCFC18891}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
