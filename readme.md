@@ -57,7 +57,7 @@ Requirements:
 
 ## Roadmap
 
-Take a look at [Roadmap](Roadmap.md), the github [issues](https://github.com/leo90skk/qdms/labels/enhancement) and the [milestones](https://github.com/leo90skk/qdms/milestones).
+Take a look at [Roadmap](roadmap.md), the github [issues](https://github.com/leo90skk/qdms/labels/enhancement) and the [milestones](https://github.com/leo90skk/qdms/milestones).
 
 
 ## Contributing
