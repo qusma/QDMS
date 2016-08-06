@@ -1,4 +1,5 @@
 # QUSMA Data Management System (QDMS) fork
+[![Build Status](https://travis-ci.org/leo90skk/qdms.svg?branch=master)](https://travis-ci.org/leo90skk/qdms)
 
 The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
@@ -57,7 +58,7 @@ Requirements:
 
 ## Roadmap
 
-Take a look at [Roadmap](Roadmap.md), the github [issues](https://github.com/leo90skk/qdms/labels/enhancement) and the [milestones](https://github.com/leo90skk/qdms/milestones).
+Take a look at [Roadmap](roadmap.md), the github [issues](https://github.com/leo90skk/qdms/labels/enhancement) and the [milestones](https://github.com/leo90skk/qdms/milestones).
 
 
 ## Contributing
