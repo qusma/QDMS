@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server", "QDMS.Server\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Bloomberg", "QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj", "{7979D0DB-E6B4-410C-B3BB-CBA4C2888CF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Yahoo", "C:\git\github\leo90skk\qdms\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj", "{5C2C845C-0D1C-46EF-9B8F-66502DCDE8CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Yahoo", "QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj", "{5C2C845C-0D1C-46EF-9B8F-66502DCDE8CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.FRED", "QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj", "{F83D3D20-6554-44D2-862D-C64F1EC3062B}"
 EndProject
