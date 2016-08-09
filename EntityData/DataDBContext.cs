@@ -17,6 +17,11 @@ namespace EntityData
             : base("Name=qdmsDataEntities")
         {
         }
+
+        public DataDBContext(string connectionString)
+        {
+            Database.Connection.ConnectionString = connectionString;
+        }
  
         public DbSet<OHLCBar> Data { get; set; }
         public DbSet<StoredDataInfo> StoredDataInfo { get; set; }

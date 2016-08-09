@@ -9,6 +9,13 @@ namespace QDMSService.Config
 {
     public class DataService : ConfigurationSection
     {
+        [ConfigurationProperty("DataStorage")]
+        public LocalStorageElement DataStorage
+        {
+            get { return (LocalStorageElement)this["DataStorage"]; }
+            set { this["DataStorage"] = value; }
+        }
+
         [ConfigurationProperty("LocalStorage")]
         public LocalStorageElement LocalStorage
         {

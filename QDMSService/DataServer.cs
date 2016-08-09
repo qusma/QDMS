@@ -35,7 +35,7 @@ namespace QDMSService
             DataDBContext dataContext;
             try
             {
-                dataContext = new DataDBContext();
+                dataContext = new DataDBContext(_config.LocalStorage.ConnectionString);
                 dataContext.Database.Initialize(false);
             }
             catch (System.Data.Entity.Core.ProviderIncompatibleException ex)
@@ -47,7 +47,7 @@ namespace QDMSService
             MyDBContext entityContext;
             try
             {
-                entityContext = new MyDBContext();
+                entityContext = new MyDBContext(_config.DataStorage.ConnectionString);
                 entityContext.Database.Initialize(false);
             }
             catch (System.Data.Entity.Core.ProviderIncompatibleException ex)
@@ -80,8 +80,12 @@ namespace QDMSService
             }
 
             // create brokers
-            _historicalDataBroker = new HistoricalDataBroker(cfHistoricalBroker, localStorage, new IHistoricalDataSource[] { });
-            _realTimeDataBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage, new IRealTimeDataSource[] { });
+            _historicalDataBroker = new HistoricalDataBroker(cfHistoricalBroker, localStorage, new IHistoricalDataSource[] {
+                // @todo please add here some historical data sources the service should provide
+            });
+            _realTimeDataBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage, new IRealTimeDataSource[] {
+                // @todo please add here some real time data sources the service should provide
+            });
 
             // create servers
             _instrumentsServer = new InstrumentsServer(_config.InstrumentService.Port, _instrumentManager);
@@ -93,10 +97,7 @@ namespace QDMSService
             _historicalDataServer.StartServer();
             _realTimeDataServer.StartServer();
 
-            _log.Info($"Server is ready. Fall into sleep mode.");
-
-            while (true)
-            { System.Threading.Thread.Sleep(60000); }
+            _log.Info($"Server is ready.");
         }
 
         public void Stop()
