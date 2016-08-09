@@ -84,7 +84,6 @@
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
     <Compile Include="MyDBContext.cs" />
-    <Compile Include="Migrations\MySqlHistoryContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EntityConfigs\SessionTemplateConfig.cs" />
     <Compile Include="EntityConfigs\TagConfig.cs" />

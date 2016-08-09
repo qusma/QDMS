@@ -164,7 +164,6 @@ namespace QDMSServer
                 new IHistoricalDataSource[] {
                     new Yahoo(),
                     new FRED(),
-                    new Google(),
                     //new Forexite(),
                     new IB(Properties.Settings.Default.histClientIBID),
                     new Quandl(Properties.Settings.Default.quandlAuthCode),
