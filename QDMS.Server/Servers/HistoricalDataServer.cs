@@ -135,15 +135,15 @@ namespace QDMSServer
                 text = _socket?.ReceiveFrameString() ?? string.Empty;
             }
 
-            if (text.Equals("HISTREQ", StringComparison.InvariantCultureIgnoreCase)) // The client wants to request some data
+            if (text.Equals(MessageType.HistRequest, StringComparison.InvariantCultureIgnoreCase)) // The client wants to request some data
             {
                 AcceptHistoricalDataRequest(requesterIdentity);
             }
-            else if (text.Equals("HISTPUSH", StringComparison.InvariantCultureIgnoreCase)) // The client wants to push some data into the db
+            else if (text.Equals(MessageType.HistPush, StringComparison.InvariantCultureIgnoreCase)) // The client wants to push some data into the db
             {
                 AcceptDataAdditionRequest(requesterIdentity);
             }
-            else if (text.Equals("AVAILABLEDATAREQ", StringComparison.InvariantCultureIgnoreCase)) // Client wants to know what kind of data we have stored locally
+            else if (text.Equals(MessageType.AvailableDataRequest, StringComparison.InvariantCultureIgnoreCase)) // Client wants to know what kind of data we have stored locally
             {
                 AcceptAvailableDataRequest(requesterIdentity);
             }
@@ -172,7 +172,7 @@ namespace QDMSServer
 
                         _socket.SendMoreFrame(clientIdentity ?? string.Empty);
                         // 2nd message part: the type of reply we're sending
-                        _socket.SendMoreFrame("HISTREQREP");
+                        _socket.SendMoreFrame(MessageType.HistReply);
                         // 3rd message part: the HistoricalDataRequest object that was used to make the request
                         _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(request, ms));
                         // 4th message part: the size of the uncompressed, serialized data. Necessary for decompression on the client end.
@@ -209,7 +209,7 @@ namespace QDMSServer
                         var storageInfo = _broker.GetAvailableDataInfo(instrument);
 
                         _socket.SendMoreFrame(requesterIdentity);
-                        _socket.SendMoreFrame("AVAILABLEDATAREP");
+                        _socket.SendMoreFrame(MessageType.AvailableDataReply);
                         _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                         _socket.SendMoreFrame(BitConverter.GetBytes(storageInfo.Count));
 
@@ -249,17 +249,17 @@ namespace QDMSServer
                         _logger.Info($"Received data push request for {request.Instrument.Symbol}.");
                         // Start building the reply
                         _socket.SendMoreFrame(requesterIdentity);
-                        _socket.SendMoreFrame("PUSHREP");
+                        _socket.SendMoreFrame(MessageType.HistPushReply);
 
                         try
                         {
                             _broker.AddData(request);
 
-                            _socket.SendFrame("OK");
+                            _socket.SendFrame(MessageType.Success);
                         }
                         catch (Exception ex)
                         {
-                            _socket.SendMoreFrame("ERROR");
+                            _socket.SendMoreFrame(MessageType.Error);
                             _socket.SendFrame(ex.Message);
                         }
                     }
@@ -328,7 +328,7 @@ namespace QDMSServer
                     // 1st message part: the identity string of the client that we're routing the data to
                     _socket.SendMoreFrame(requesterIdentity);
                     // 2nd message part: the type of reply we're sending
-                    _socket.SendMoreFrame("ERROR");
+                    _socket.SendMoreFrame(MessageType.Error);
                     // 3rd message part: the request ID
                     _socket.SendMoreFrame(BitConverter.GetBytes(requestId));
                     // 4th message part: the error

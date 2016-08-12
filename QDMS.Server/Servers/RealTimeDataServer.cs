@@ -175,20 +175,20 @@ namespace QDMSServer
                         return;
                     }
                     // Handle ping requests
-                    if (requestType.Equals("PING", StringComparison.InvariantCultureIgnoreCase))
+                    if (requestType.Equals(MessageType.Ping, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        _requestSocket.SendFrame("PONG");
+                        _requestSocket.SendFrame(MessageType.Pong);
 
                         return;
                     }
                     // Handle real time data requests
-                    if (requestType.Equals("RTD", StringComparison.InvariantCultureIgnoreCase)) // Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
+                    if (requestType.Equals(MessageType.RTDRequest, StringComparison.InvariantCultureIgnoreCase)) // Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
                     {
                         HandleRealTimeDataRequest();
                     }
                     // Manage cancellation requests
-                    // Two part message: first: "CANCEL". Second: the instrument
-                    if (requestType.Equals("CANCEL", StringComparison.InvariantCultureIgnoreCase))
+                    // Two part message: first: MessageType.CancelRTD. Second: the instrument
+                    if (requestType.Equals(MessageType.CancelRTD, StringComparison.InvariantCultureIgnoreCase))
                     {
                         HandleRealTtimeDataCancelRequest();
                     }
@@ -232,7 +232,7 @@ namespace QDMSServer
                     if (_broker.RequestRealTimeData(request))
                     {
                         // And report success back to the requesting client
-                        _requestSocket.SendMoreFrame("SUCCESS");
+                        _requestSocket.SendMoreFrame(MessageType.Success);
                         // Along with the request
                         _requestSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
                     }
@@ -266,9 +266,9 @@ namespace QDMSServer
                     _broker.CancelRTDStream(instrument.ID.Value);
                 }
                 // Two part message:
-                // 1: "CANCELED"
+                // 1: MessageType.RTDCanceled
                 // 2: the symbol
-                _requestSocket.SendMoreFrame("CANCELED");
+                _requestSocket.SendMoreFrame(MessageType.RTDCanceled);
                 _requestSocket.SendFrame(instrument.Symbol);
             }
         }
@@ -280,7 +280,7 @@ namespace QDMSServer
         /// <param name="serializedRequest"></param>
         private void SendErrorReply(string message, byte[] serializedRequest)
         {
-            _requestSocket.SendMoreFrame("ERROR");
+            _requestSocket.SendMoreFrame(MessageType.Error);
             _requestSocket.SendMoreFrame(message);
             _requestSocket.SendFrame(serializedRequest);
         }

@@ -12,14 +12,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 using LZ4;
-
 using NetMQ;
 using NetMQ.Sockets;
-
 using NLog;
-
 using QDMS;
 
 // ReSharper disable once CheckNamespace
@@ -131,7 +127,7 @@ namespace QDMSServer
             using (var ms = new MemoryStream())
             {
                 // If the request is for a search, receive the instrument w/ the search parameters and pass it to the searcher
-                if (request == "SEARCH" && hasMore)
+                if (request == MessageType.Search && hasMore)
                 {
                     var buffer = _socket.ReceiveFrameBytes();
                     var searchInstrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
@@ -147,7 +143,7 @@ namespace QDMSServer
                         _logger.Error($"Instruments Server: Instrument search error: {ex.Message}");
                     }
                 }
-                else if (request == "ALL") // If the request is for all the instruments, we don't need to receive anything else
+                else if (request == MessageType.AllInstruments) // If the request is for all the instruments, we don't need to receive anything else
                 {
                     _logger.Info("Instruments Server: received request for list of all instruments.");
 
@@ -160,7 +156,7 @@ namespace QDMSServer
                         _logger.Error($"Instruments Server: Instrument search error: {ex.Message}");
                     }
                 }
-                else if (request == "ADD" && hasMore) // Request to add instrument
+                else if (request == MessageType.AddInstrument && hasMore) // Request to add instrument
                 {
                     var buffer = _socket.ReceiveFrameBytes();
                     var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
@@ -180,7 +176,7 @@ namespace QDMSServer
                         _logger.Error($"Instruments Server: Instrument addition error: {ex.Message}");
                     }
 
-                    _socket.SendMoreFrame(addedInstrument != null ? "SUCCESS" : "FAILURE");
+                    _socket.SendMoreFrame(addedInstrument != null ? MessageType.Success : MessageType.Error);
 
                     _socket.SendFrame(MyUtils.ProtoBufSerialize(addedInstrument, ms));
 

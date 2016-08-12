@@ -142,7 +142,7 @@ namespace QDMSClient
             {
                 if (_historicalDataSocket != null)
                 {
-                    _historicalDataSocket.SendMoreFrame("HISTPUSH");
+                    _historicalDataSocket.SendMoreFrame(MessageType.HistPush);
 
                     using (var ms = new MemoryStream())
                     {
@@ -175,7 +175,7 @@ namespace QDMSClient
             {
                 if (_historicalDataSocket != null)
                 {
-                    _historicalDataSocket.SendMoreFrame("AVAILABLEDATAREQ");
+                    _historicalDataSocket.SendMoreFrame(MessageType.AvailableDataRequest);
 
                     using (var ms = new MemoryStream())
                     {
@@ -278,7 +278,7 @@ namespace QDMSClient
                     // 1: "RTD"
                     // 2: serialized RealTimeDataRequest
                     _realTimeRequestSocket.SendMoreFrame(string.Empty);
-                    _realTimeRequestSocket.SendMoreFrame("RTD");
+                    _realTimeRequestSocket.SendMoreFrame(MessageType.RTDRequest);
 
                     using (var ms = new MemoryStream())
                     {
@@ -309,7 +309,7 @@ namespace QDMSClient
 
                 try
                 {
-                    _realTimeRequestSocket.SendMoreFrame(string.Empty).SendFrame("PING");
+                    _realTimeRequestSocket.SendMoreFrame(string.Empty).SendFrame(MessageType.Ping);
 
                     if (_realTimeRequestSocket.TryReceiveFrameString(TimeSpan.FromSeconds(1), out reply))
                     {
@@ -321,7 +321,7 @@ namespace QDMSClient
                     Disconnect();
                 }
 
-                if (reply == null || !reply.Equals("PONG", StringComparison.InvariantCultureIgnoreCase))
+                if (reply == null || !reply.Equals(MessageType.Pong, StringComparison.InvariantCultureIgnoreCase))
                 {
                     try
                     {
@@ -463,11 +463,11 @@ namespace QDMSClient
                 {
                     if (instrument == null) // All contracts
                     {
-                        s.SendFrame("ALL");
+                        s.SendFrame(MessageType.AllInstruments);
                     }
                     else // An actual search
                     {
-                        s.SendMoreFrame("SEARCH"); // First we send a search request
+                        s.SendMoreFrame(MessageType.Search); // First we send a search request
                         // Then we need to serialize and send the instrument
                         s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                     }
@@ -540,7 +540,7 @@ namespace QDMSClient
                     // 1: "CANCEL"
                     // 2: serialized Instrument object
                     _realTimeRequestSocket.SendMoreFrame(string.Empty);
-                    _realTimeRequestSocket.SendMoreFrame("CANCEL");
+                    _realTimeRequestSocket.SendMoreFrame(MessageType.CancelRTD);
 
                     using (var ms = new MemoryStream())
                     {
@@ -616,13 +616,13 @@ namespace QDMSClient
             {
                 using (var ms = new MemoryStream())
                 {
-                    s.SendMoreFrame("ADD"); // First we send an "ADD" request
+                    s.SendMoreFrame(MessageType.AddInstrument); // First we send an "ADD" request
                     // Then we need to serialize and send the instrument
                     s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                     // Then get the reply
                     var result = s.ReceiveFrameString();
 
-                    if (!result.Equals("SUCCESS", StringComparison.InvariantCultureIgnoreCase))
+                    if (!result.Equals(MessageType.Success, StringComparison.InvariantCultureIgnoreCase))
                     {
                         RaiseEvent(Error, this, new ErrorArgs(-1, "Instrument addition failed: received no reply."));
 
@@ -656,12 +656,12 @@ namespace QDMSClient
 
                     reply = _realTimeRequestSocket.ReceiveFrameString();
 
-                    if (reply.Equals("PONG", StringComparison.InvariantCultureIgnoreCase))
+                    if (reply.Equals(MessageType.Pong, StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Reply to heartbeat message
                         _lastHeartBeat = DateTime.Now;
                     }
-                    else if (reply.Equals("ERROR", StringComparison.InvariantCultureIgnoreCase))
+                    else if (reply.Equals(MessageType.Error, StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Something went wrong
                         // First the message
@@ -672,7 +672,7 @@ namespace QDMSClient
                         // Error event
                         RaiseEvent(Error, this, new ErrorArgs(-1, "Real time data request error: " + error, request.RequestID));
                     }
-                    else if (reply.Equals("SUCCESS", StringComparison.InvariantCultureIgnoreCase))
+                    else if (reply.Equals(MessageType.Success, StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Successful request to start a new real time data stream
                         // Receive the request
@@ -687,7 +687,7 @@ namespace QDMSClient
                         // Request worked, so we subscribe to the stream
                         _realTimeDataSocket.Subscribe(BitConverter.GetBytes(request.Instrument.ID.Value));
                     }
-                    else if (reply.Equals("CANCELED", StringComparison.InvariantCultureIgnoreCase))
+                    else if (reply.Equals(MessageType.RTDCanceled, StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Successful cancelation of a real time data stream
                         // Also receive the symbol
@@ -739,19 +739,19 @@ namespace QDMSClient
                 // 1st message part: what kind of stuff we're receiving
                 var type = _historicalDataSocket.ReceiveFrameString();
 
-                if (type.Equals("PUSHREP", StringComparison.InvariantCultureIgnoreCase))
+                if (type.Equals(MessageType.HistPushReply, StringComparison.InvariantCultureIgnoreCase))
                 {
                     HandleDataPushReply();
                 }
-                else if (type.Equals("HISTREQREP", StringComparison.InvariantCultureIgnoreCase))
+                else if (type.Equals(MessageType.HistReply, StringComparison.InvariantCultureIgnoreCase))
                 {
                     HandleHistoricalDataRequestReply();
                 }
-                else if (type.Equals("AVAILABLEDATAREP", StringComparison.InvariantCultureIgnoreCase))
+                else if (type.Equals(MessageType.AvailableDataReply, StringComparison.InvariantCultureIgnoreCase))
                 {
                     HandleAvailabledataReply();
                 }
-                else if (type.Equals("ERROR", StringComparison.InvariantCultureIgnoreCase))
+                else if (type.Equals(MessageType.Error, StringComparison.InvariantCultureIgnoreCase))
                 {
                     HandleErrorReply();
                 }
@@ -770,7 +770,7 @@ namespace QDMSClient
                 if (PollerRunning && _realTimeRequestSocket != null)
                 {
                     _realTimeRequestSocket.SendMoreFrame(string.Empty);
-                    _realTimeRequestSocket.SendFrame("PING");
+                    _realTimeRequestSocket.SendFrame(MessageType.Ping);
                 }
             }
         }
@@ -799,7 +799,7 @@ namespace QDMSClient
                         {
                             if (PollerRunning && _historicalDataSocket != null)
                             {
-                                _historicalDataSocket.SendMoreFrame("HISTREQ");
+                                _historicalDataSocket.SendMoreFrame(MessageType.HistRequest);
                                 _historicalDataSocket.SendFrame(buffer);
                             }
                             else
@@ -878,9 +878,9 @@ namespace QDMSClient
         {
             var result = _historicalDataSocket.ReceiveFrameString();
 
-            if (result == "OK") // Everything is alright
+            if (result == MessageType.Success) // Everything is alright
             { }
-            else if (result == "ERROR")
+            else if (result == MessageType.Error)
             {
                 // Receive the error
                 var error = _historicalDataSocket.ReceiveFrameString();
