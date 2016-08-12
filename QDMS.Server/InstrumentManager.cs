@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Linq.Expressions;
 using System.Data.Entity;
 using EntityData;
 using NLog;
@@ -138,38 +139,32 @@ namespace QDMSServer
             return null; //object exists and we don't update it
         }
 
+        public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred, MyDBContext context = null)
+        {
+            var query = GetIQueryable(ref context);
+
+            var instruments = query.Where(pred).ToList();
+            foreach (Instrument i in instruments)
+            {
+                //hack because we can't load these in the normal way, see comment below
+                if (i.Exchange != null)
+                    i.Exchange.Sessions.ToList();
+            }
+            return instruments;
+        }
+
         /// <summary>
         /// Search for instruments.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="search">Any properties set on this instrument are used as search parameters.
         /// If null, all instruments are returned.</param>
-        /// <param name="pred">A predicate to use directly in the instrument search.</param>
         /// <returns>A list of instruments matching the criteria.</returns>
-        public List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null, Func<Instrument, bool> pred = null)
+        public List<Instrument> FindInstruments(MyDBContext context = null, Instrument search = null)
         {
-            if (context == null) context = new MyDBContext();
+            var query = GetIQueryable(ref context);
 
-            IQueryable<Instrument> query = context.Instruments
-                .Include(x => x.Tags)
-                .Include(x => x.Exchange)
-                .Include(x => x.PrimaryExchange)
-                .Include(x => x.Datasource)
-                .Include(x => x.Sessions)
-                //.Include(x => x.Exchange.Sessions)
-                //.Include(x => x.PrimaryExchange.Sessions)
-                .Include(x => x.ContinuousFuture)
-                .Include(x => x.ContinuousFuture.UnderlyingSymbol)
-                .AsQueryable();
-            //there's a bug in the mysql connector that prevents us from including those session collections right here
-            //it just crashes if you do. Devart connector works perfectly fine.
-            //We just hack around it by loading up the session collections separately.
-
-            if (pred != null)
-            {
-                return FindInstrumentsWithPredicate(pred, query);
-            }
-            else if (search == null)
+            if (search == null)
             {
                 return FindAllInstruments(context, query);
             }
@@ -205,6 +200,27 @@ namespace QDMSServer
                 i.Exchange.Sessions.ToList();
             }
             return instrumentList;
+        }
+
+        private static IQueryable<Instrument> GetIQueryable(ref MyDBContext context)
+        {
+            if (context == null) context = new MyDBContext();
+
+            IQueryable<Instrument> query = context.Instruments
+                .Include(x => x.Tags)
+                .Include(x => x.Exchange)
+                .Include(x => x.PrimaryExchange)
+                .Include(x => x.Datasource)
+                .Include(x => x.Sessions)
+                //.Include(x => x.Exchange.Sessions)
+                //.Include(x => x.PrimaryExchange.Sessions)
+                .Include(x => x.ContinuousFuture)
+                .Include(x => x.ContinuousFuture.UnderlyingSymbol)
+                .AsQueryable();
+            //there's a bug in the mysql connector that prevents us from including those session collections right here
+            //it just crashes if you do. Devart connector works perfectly fine.
+            //We just hack around it by loading up the session collections separately.
+            return query;
         }
 
         private static void BuildQueryFromSearchInstrument(Instrument search, ref IQueryable<Instrument> query)
@@ -259,17 +275,6 @@ namespace QDMSServer
 
             if (search.IsContinuousFuture)
                 query = query.Where(x => x.IsContinuousFuture);
-        }
-
-        private static List<Instrument> FindInstrumentsWithPredicate(Func<Instrument, bool> pred, IQueryable<Instrument> query)
-        {
-            var instruments = query.Where(pred).ToList();
-            foreach (Instrument i in instruments)
-            {
-                if (i.Exchange != null)
-                    i.Exchange.Sessions.ToList();
-            }
-            return instruments;
         }
 
         private static List<Instrument> FindAllInstruments(MyDBContext context, IQueryable<Instrument> query)

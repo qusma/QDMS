@@ -27,6 +27,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Timers;
 using System.Windows;
@@ -939,14 +940,14 @@ namespace QDMSServer
             selectedDate = selectedDate.AddMonths(count);
 
             //we got the month we want! find the contract
-            var searchFunc = new Func<Instrument, bool>(
+            Expression<Func<Instrument, bool>> searchFunc = 
                 x =>
                     x.Expiration.HasValue &&
                     x.Expiration.Value.Month == selectedDate.Month &&
                     x.Expiration.Value.Year == selectedDate.Year &&
-                    x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol);
+                    x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol;
 
-            var contract = _instrumentMgr.FindInstruments(pred: searchFunc).FirstOrDefault();
+            var contract = _instrumentMgr.FindInstruments(searchFunc).FirstOrDefault();
 
 
             var timer = new Timer(50) { AutoReset = false };
