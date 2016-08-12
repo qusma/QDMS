@@ -40,6 +40,9 @@ namespace QDMSServer
             //Quandl
             QuandlAPITokenTextBox.Text = Properties.Settings.Default.quandlAuthCode;
 
+            //BarChart
+            BarChartAPITokenTextBox.Text = Properties.Settings.Default.barChartApiKey;
+
             //Database
             if (Properties.Settings.Default.databaseType == "MySql")
             {
@@ -147,6 +150,9 @@ namespace QDMSServer
 
             //Quandl
             Properties.Settings.Default.quandlAuthCode = QuandlAPITokenTextBox.Text;
+
+            //BarChart
+            Properties.Settings.Default.barChartApiKey = BarChartAPITokenTextBox.Text;
 
             //Database
             if (DbTypeMySql.IsChecked.HasValue && DbTypeMySql.IsChecked.Value)

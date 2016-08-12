@@ -70,6 +70,10 @@
       <HintPath>..\packages\Moq.4.5.19\lib\net45\Moq.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.core, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnitTestAdapter.2.0.0\lib\nunit.core.dll</HintPath>
       <Private>True</Private>
@@ -113,6 +117,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="QDMSClient\QDMSClientTest.cs" />
+    <Compile Include="QDMSServer\BarChartUtilsTest.cs" />
     <Compile Include="QDMSServer\ConcurrentNotifierBlockingListTest.cs" />
     <Compile Include="QDMSServer\ContinuousFuturesBrokerTest.cs" />
     <Compile Include="QDMSServer\ContinuousFuturesBrokerTestData.cs" />
@@ -146,6 +151,10 @@
     <ProjectReference Include="..\EntityData\EntityData.csproj">
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
+      <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
+      <Name>QDMS.Server.DataSources.BarChart</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
       <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>

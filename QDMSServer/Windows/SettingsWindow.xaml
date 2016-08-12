@@ -92,6 +92,12 @@
                     <TextBox Name="QuandlAPITokenTextBox" HorizontalAlignment="Left" Height="23" Margin="181,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="251"/>
                 </Grid>
             </TabItem>
+            <TabItem Header="BarChart">
+                <Grid>
+                    <Label Content="API Authentication Token:" Margin="10,10,266,268" />
+                    <TextBox Name="BarChartAPITokenTextBox" HorizontalAlignment="Left" Height="23" Margin="181,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="251"/>
+                </Grid>
+            </TabItem>
 
             <TabItem Header="Database">
                 <Grid>

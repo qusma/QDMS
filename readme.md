@@ -42,6 +42,7 @@ QDMS uses MySQL or SQL Server for storage, ZeroMQ and Protocol Buffers for clien
 | Interactive Brokers                   | :white_check_mark:    |                    | :grey_question: |
 | Quandl                                | :white_check_mark:    |                    | :grey_question: |
 | FRED (Federal Reserve Economic Data)  | :white_check_mark:    |                    | :grey_question: |
+| BarChart                              | :white_check_mark:    |                    | :grey_question: |
 | Bloomberg                             | :white_check_mark:    | :white_check_mark: | :grey_question: |
 | [OpenECry](http://futuresonline.com/) | :white_check_mark:    | :white_check_mark: | :grey_question: |
 | [ForexFeed](http://forexfeed.net/)    | (not implemented yet) | :white_check_mark: | :white_check_mark: |
