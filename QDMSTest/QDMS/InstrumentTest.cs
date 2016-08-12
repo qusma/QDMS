@@ -30,11 +30,13 @@ namespace QDMSTest
         }
 
         [Test]
-        [ExpectedException]
         public void GetTZInfoThrowsExceptionIfNonExistingTimezoneIsSpecified()
         {
             var inst = new Instrument { Exchange = new Exchange { Timezone = "asdf____" } };
-            TimeZoneInfo tz = inst.GetTZInfo();
+            Assert.Throws<TimeZoneNotFoundException>(() =>
+            {
+                TimeZoneInfo tz = inst.GetTZInfo();
+            });
         }
     }
 }
