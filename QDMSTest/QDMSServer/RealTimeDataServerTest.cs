@@ -6,9 +6,13 @@
 
 using System;
 using System.Threading;
+
 using Moq;
+
 using NUnit.Framework;
+
 using QDMS;
+
 using QDMSServer;
 
 namespace QDMSTest
@@ -16,6 +20,8 @@ namespace QDMSTest
     [TestFixture]
     public class RealTimeDataServerTest
     {
+        private const int DefaultDelayInMilliseconds = 100;
+
         private RealTimeDataServer _rtServer;
         private QDMSClient.QDMSClient _client;
         private Mock<IRealTimeDataBroker> _brokerMock;
@@ -24,8 +30,7 @@ namespace QDMSTest
         public void SetUp()
         {
             _brokerMock = new Mock<IRealTimeDataBroker>();
-
-            //also need the real time server to keep the "heartbeat" going
+            // Also need the real time server to keep the "heartbeat" going
             _rtServer = new RealTimeDataServer(5555, 5554, _brokerMock.Object);
             _rtServer.StartServer();
 
@@ -36,33 +41,41 @@ namespace QDMSTest
         [TearDown]
         public void TearDown()
         {
-            _rtServer.Dispose();
             _client.Dispose();
+            _rtServer.Dispose();
         }
 
         [Test]
         public void ServerCorrectlyForwardsRealTimeDataRequestsToBroker()
         {
-            var ds = new Datasource() { ID = 1, Name = "TestDS" };
-            var inst = new Instrument() { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
-            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, rthOnly: false, savetoLocalStorage: false);
+            var ds = new Datasource { ID = 1, Name = "TestDS" };
+            var inst = new Instrument { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, false);
+
             _client.RequestRealTimeData(req);
 
-            _brokerMock.Verify(x => x.RequestRealTimeData(It.Is<RealTimeDataRequest>(
-                y => y.Frequency == BarSize.FiveSeconds &&
-                y.RTHOnly == false &&
-                y.SaveToLocalStorage == false &&
-                y.Instrument.ID == 15 &&
-                y.Instrument.Symbol == "SPY" &&
-                y.Instrument.Datasource.Name == "TestDS")));
+            Thread.Sleep(DefaultDelayInMilliseconds);
+
+            _brokerMock.Verify(
+                x => x.RequestRealTimeData(
+                    It.Is<RealTimeDataRequest>(
+                        y => y.Frequency == BarSize.FiveSeconds &&
+                             y.RTHOnly == false &&
+                             y.SaveToLocalStorage == false &&
+                             y.Instrument.ID == 15 &&
+                             y.Instrument.Symbol == "SPY" &&
+                             y.Instrument.Datasource.Name == "TestDS")));
         }
 
         [Test]
         public void ServerCorrectlyForwardsCancellationRequestsToBroker()
         {
-            var ds = new Datasource() { ID = 1, Name = "TestDS" };
-            var inst = new Instrument() { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
+            var ds = new Datasource { ID = 1, Name = "TestDS" };
+            var inst = new Instrument { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
+
             _client.CancelRealTimeData(inst);
+
+            Thread.Sleep(DefaultDelayInMilliseconds);
 
             _brokerMock.Verify(x => x.CancelRTDStream(It.Is<int>(y => y == 15)));
         }
@@ -70,90 +83,98 @@ namespace QDMSTest
         [Test]
         public void ServerReturnsErrorToClientIfNoInstrumentIdIsSet()
         {
-            var ds = new Datasource() { ID = 1, Name = "TestDS" };
-            var inst = new Instrument() { ID = null, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
-            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, rthOnly: false, savetoLocalStorage: false);
+            var ds = new Datasource { ID = 1, Name = "TestDS" };
+            var inst = new Instrument { ID = null, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, false);
 
             string error = null;
-            int? requestID = -1;
+            int? requestId = null;
+
             _client.Error += (s, e) =>
             {
                 error = e.ErrorMessage;
-                requestID = e.RequestID;
+                requestId = e.RequestID;
             };
 
             _client.RequestRealTimeData(req);
 
-            Thread.Sleep(100);
+            Thread.Sleep(DefaultDelayInMilliseconds);
 
-            Assert.AreEqual("Real time data request error: Instrument had no ID set.", error);
+            Assert.IsTrue(!string.IsNullOrEmpty(error));
+            Assert.IsTrue(requestId.HasValue);
         }
 
         [Test]
         public void ServerReturnsErrorToClientIfNoInstrumentDatasourceIsSet()
         {
-            var inst = new Instrument() { ID = 1, Datasource = null, Symbol = "SPY", Type = InstrumentType.Stock };
-            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, rthOnly: false, savetoLocalStorage: false);
+            var inst = new Instrument { ID = 1, Datasource = null, Symbol = "SPY", Type = InstrumentType.Stock };
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, false);
 
             string error = null;
-            int? requestID = -1;
+            int? requestId = null;
+
             _client.Error += (s, e) =>
             {
                 error = e.ErrorMessage;
-                requestID = e.RequestID;
+                requestId = e.RequestID;
             };
 
             _client.RequestRealTimeData(req);
 
-            Thread.Sleep(100);
+            Thread.Sleep(DefaultDelayInMilliseconds);
 
-            Assert.AreEqual("Real time data request error: Instrument had no data source set.", error);
+            Assert.IsTrue(!string.IsNullOrEmpty(error));
+            Assert.IsTrue(requestId.HasValue);
         }
 
         [Test]
         public void ServerForwardsErrorToClientIfExceptionIsThrownInRequestRealTimeData()
         {
-            var ds = new Datasource() { ID = 1, Name = "TestDS" };
-            var inst = new Instrument() { ID = 1, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
-            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, rthOnly: false, savetoLocalStorage: false);
+            var ds = new Datasource { ID = 1, Name = "TestDS" };
+            var inst = new Instrument { ID = 1, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, false);
 
             string error = null;
-            int? requestID = -1;
+            int? requestId = null;
+
             _client.Error += (s, e) =>
             {
                 error = e.ErrorMessage;
-                requestID = e.RequestID;
+                requestId = e.RequestID;
             };
 
             _brokerMock.Setup(x => x.RequestRealTimeData(It.IsAny<RealTimeDataRequest>())).Throws(new Exception("testerror"));
 
             _client.RequestRealTimeData(req);
 
-            Thread.Sleep(100);
+            Thread.Sleep(DefaultDelayInMilliseconds);
 
-            Assert.AreEqual("Real time data request error: testerror", error);
+            Assert.IsTrue(!string.IsNullOrEmpty(error));
+            Assert.IsTrue(requestId.HasValue);
         }
 
         [Test]
         public void ServerCorrectlyForwardsRealTimeData()
         {
-            var ds = new Datasource() { ID = 1, Name = "TestDS" };
-            var inst = new Instrument() { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
-            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, rthOnly: false, savetoLocalStorage: false);
+            var ds = new Datasource { ID = 1, Name = "TestDS" };
+            var inst = new Instrument { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
+            var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, false);
 
             _brokerMock.Setup(x => x.RequestRealTimeData(It.IsAny<RealTimeDataRequest>())).Returns(true);
 
             _client.RequestRealTimeData(req);
 
-            Thread.Sleep(50);
+            Thread.Sleep(DefaultDelayInMilliseconds);
 
             RealTimeDataEventArgs receivedData = null;
-            _client.RealTimeDataReceived += (s,e) => receivedData = e;
 
-            long dt = DateTime.Now.ToBinary();
+            _client.RealTimeDataReceived += (s, e) => receivedData = e;
+
+            var dt = DateTime.Now.ToBinary();
+
             _brokerMock.Raise(x => x.RealTimeDataArrived += null, new RealTimeDataEventArgs(15, dt, 100m, 105m, 95m, 99m, 10000000, 101, 500, 1));
 
-            Thread.Sleep(50);
+            Thread.Sleep(DefaultDelayInMilliseconds);
 
             Assert.IsNotNull(receivedData);
             Assert.AreEqual(15, receivedData.InstrumentID);

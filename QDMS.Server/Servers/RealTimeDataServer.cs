@@ -12,193 +12,206 @@
 // 1. To start receiving real time data
 // 2. To cancel a real time data stream
 
-
 using System;
 using System.IO;
-using System.Threading.Tasks;
+using NetMQ;
+using NetMQ.Sockets;
 using NLog;
 using ProtoBuf;
 using QDMS;
-using NetMQ;
-using Poller = NetMQ.Poller;
 
+// ReSharper disable once CheckNamespace
 namespace QDMSServer
 {
     public class RealTimeDataServer : IDisposable
     {
-        /// <summary>
-        /// This property determines the port used to send out real time data on the publish socket.
-        /// </summary>
-        public int PublisherPort { get; private set; }
-
-        /// <summary>
-        /// This property determines the port used to receive new requests.
-        /// </summary>
-        public int RequestPort { get; private set; }
-
-        /// <summary>
-        /// Is true if the server is running
-        /// </summary>
-        public bool ServerRunning { get; private set; }
-
-        public IRealTimeDataBroker Broker { get; set; }
-
-        private NetMQContext _context;
-        private NetMQSocket _pubSocket;
-        private NetMQSocket _reqSocket;
-        
-
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IRealTimeDataBroker _broker;
+        private readonly string _publisherConnectionString;
+        private readonly string _requestConnectionString;
+        private readonly object _publisherSocketLock = new object();
+        private readonly object _requestSocketLock = new object();
 
-        private readonly object _pubSocketLock = new object();
-        private Poller _poller;
+        private NetMQSocket _publisherSocket;
+        private NetMQSocket _requestSocket;
+        private NetMQPoller _poller;
 
-        public RealTimeDataServer(int pubPort, int reqPort, IRealTimeDataBroker broker)
+        /// <summary>
+        ///     Whether the server is running or not.
+        /// </summary>
+        public bool ServerRunning => _poller != null && _poller.IsRunning;
+
+        #region IDisposable implementation
+        public void Dispose()
         {
-            if (broker == null) throw new ArgumentNullException(nameof(broker));
-            if (pubPort == reqPort) throw new Exception("Publish and request ports must be different");
-            PublisherPort = pubPort;
-            RequestPort = reqPort;
+            StopServer();
+        }
+        #endregion
 
-            Broker = broker;
-            Broker.RealTimeDataArrived += _broker_RealTimeDataArrived;
+        public RealTimeDataServer(int publisherPort, int requestPort, IRealTimeDataBroker broker)
+        {
+            if (broker == null)
+            {
+                throw new ArgumentNullException(nameof(broker), $"{nameof(broker)} cannot be null");
+            }
+
+            if (publisherPort == requestPort)
+            {
+                throw new ArgumentException("Publish and request ports must be different");
+            }
+
+            _publisherConnectionString = $"tcp://*:{publisherPort}";
+            _requestConnectionString = $"tcp://*:{requestPort}";
+
+            _broker = broker;
+            _broker.RealTimeDataArrived += BrokerRealTimeDataArrived;
         }
 
         /// <summary>
-        /// When data arrives from an external data source to the broker, this event is fired.
+        ///     Starts the server.
         /// </summary>
-        void _broker_RealTimeDataArrived(object sender, RealTimeDataEventArgs e)
+        public void StartServer()
         {
-            if (_pubSocket == null) return;
-
-            using (var ms = new MemoryStream())
+            if (ServerRunning)
             {
-                Serializer.Serialize(ms, e);
-                //this lock is needed because this method will be called from 
-                //the thread of each DataSource in the broker
-                lock (_pubSocketLock) 
+                return;
+            }
+
+            lock (_publisherSocketLock)
+            {
+                _publisherSocket = new PublisherSocket(_publisherConnectionString);
+            }
+
+            lock (_requestSocketLock)
+            {
+                _requestSocket = new ResponseSocket(_requestConnectionString);
+                _requestSocket.ReceiveReady += RequestSocketReceiveReady;
+            }
+
+            _poller = new NetMQPoller { _requestSocket };
+            _poller.RunAsync();
+        }
+
+        /// <summary>
+        ///     Stops the server.
+        /// </summary>
+        public void StopServer()
+        {
+            if (!ServerRunning)
+            {
+                return;
+            }
+
+            _poller?.Stop();
+            _poller?.Dispose();
+
+            lock (_publisherSocketLock)
+            {
+                if (_publisherSocket != null)
                 {
-                    _pubSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); //start by sending the ticker before the data
-                    _pubSocket.SendFrame(ms.ToArray()); //then send the serialized bar
+                    try
+                    {
+                        _publisherSocket.Disconnect(_publisherConnectionString);
+                    }
+                    finally
+                    {
+                        _publisherSocket.Close();
+                        _publisherSocket = null;
+                    }
+                }
+            }
+
+            lock (_requestSocketLock)
+            {
+                if (_requestSocket != null)
+                {
+                    try
+                    {
+                        _requestSocket.Disconnect(_requestConnectionString);
+                    }
+                    finally
+                    {
+                        _requestSocket.ReceiveReady -= RequestSocketReceiveReady;
+                        _requestSocket.Close();
+                        _requestSocket = null;
+                    }
+                }
+            }
+
+            _poller = null;
+        }
+
+        #region Event handlers
+        /// <summary>
+        ///     When data arrives from an external data source to the broker, this event is fired.
+        /// </summary>
+        private void BrokerRealTimeDataArrived(object sender, RealTimeDataEventArgs e)
+        {
+            lock (_publisherSocketLock)
+            {
+                if (_publisherSocket != null)
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        Serializer.Serialize(ms, e);
+                        _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); // Start by sending the ticker before the data
+                        _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
+
+                    }
                 }
             }
         }
 
-        //tells the servers to stop running and waits for the threads to shut down.
-        public void StopServer()
+        private void RequestSocketReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            if (_poller != null && _poller.IsStarted)
+            lock (_requestConnectionString)
             {
-                _poller.CancelAndJoin();
-            }
+                if (_requestSocket != null)
+                {
+                    var requestType = _requestSocket.ReceiveFrameString();
 
-            //clear the socket and context and say it's not running any more
-            if (_pubSocket != null)
-            {
-                _pubSocket.Dispose();
-            }
-            ServerRunning = false;
-        }
+                    if (requestType == null)
+                    {
+                        return;
+                    }
+                    // Handle ping requests
+                    if (requestType.Equals("PING", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        _requestSocket.SendFrame("PONG");
 
-        /// <summary>
-        /// Starts the publishing and request servers.
-        /// </summary>
-        public void StartServer()
-        {
-            if (!ServerRunning)
-            {
-                _context = NetMQContext.Create();
-
-                //the publisher socket
-                _pubSocket = _context.CreatePublisherSocket();
-                _pubSocket.Bind("tcp://*:" + PublisherPort);
-
-                //the request socket
-                _reqSocket = _context.CreateSocket(ZmqSocketType.Rep);
-                _reqSocket.Bind("tcp://*:" + RequestPort);
-                _reqSocket.ReceiveReady += _reqSocket_ReceiveReady;
-
-                _poller = new Poller(new[] { _reqSocket });
-                Task.Factory.StartNew(_poller.PollTillCancelled, TaskCreationOptions.LongRunning);
-            }
-            ServerRunning = true;
-        }
-
-        void _reqSocket_ReceiveReady(object sender, NetMQSocketEventArgs e)
-        {
-            string requestType = _reqSocket.ReceiveFrameString();
-            if (requestType == null) return;
-
-            //handle ping requests
-            if (requestType == "PING")
-            {
-                _reqSocket.SendFrame("PONG");
-                return;
-            }
-
-            //Handle real time data requests
-            if (requestType == "RTD") //Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
-            {
-                HandleRTDataRequest();
-            }
-
-            //manage cancellation requests
-            //two part message: first: "CANCEL". Second: the instrument
-            if (requestType == "CANCEL")
-            {
-                HandleRTDataCancelRequest();
+                        return;
+                    }
+                    // Handle real time data requests
+                    if (requestType.Equals("RTD", StringComparison.InvariantCultureIgnoreCase)) // Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
+                    {
+                        HandleRealTimeDataRequest();
+                    }
+                    // Manage cancellation requests
+                    // Two part message: first: "CANCEL". Second: the instrument
+                    if (requestType.Equals("CANCEL", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        HandleRealTtimeDataCancelRequest();
+                    }
+                }
             }
         }
-
-        // Accept a request to cancel a real time data stream
-        // Obviously we only actually cancel it if
-        private void HandleRTDataCancelRequest()
-        {
-            bool hasMore;
-            byte[] buffer = _reqSocket.ReceiveFrameBytes(out hasMore);
-
-            //receive the instrument
-            var ms = new MemoryStream();
-            var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
-
-            if (instrument.ID != null)
-                Broker.CancelRTDStream(instrument.ID.Value);
-
-            //two part message:
-            //1: "CANCELED"
-            //2: the symbol
-            _reqSocket.SendMoreFrame("CANCELED");
-            _reqSocket.SendFrame(instrument.Symbol);
-        }
-
-        /// <summary>
-        /// Send an error reply to a real time data request.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="serializedRequest"></param>
-        private void SendErrorReply(string message, byte[] serializedRequest)
-        {
-            _reqSocket.SendMoreFrame("ERROR");
-            _reqSocket.SendMoreFrame(message);
-            _reqSocket.SendFrame(serializedRequest);
-        }
+        #endregion
 
         // Accept a real time data request
-        private void HandleRTDataRequest()
+        private void HandleRealTimeDataRequest()
         {
             using (var ms = new MemoryStream())
             {
                 bool hasMore;
-                byte[] buffer = _reqSocket.ReceiveFrameBytes(out hasMore);
-
+                var buffer = _requestSocket.ReceiveFrameBytes(out hasMore);
                 var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
-
-                //make sure the ID and data sources are set
+                // Make sure the ID and data sources are set
                 if (!request.Instrument.ID.HasValue)
                 {
                     SendErrorReply("Instrument had no ID set.", buffer);
 
-                    Log(LogLevel.Error, "Instrument with no ID requested.");
+                    _logger.Error("Instrument with no ID requested.");
+
                     return;
                 }
 
@@ -206,22 +219,22 @@ namespace QDMSServer
                 {
                     SendErrorReply("Instrument had no data source set.", buffer);
 
-                    Log(LogLevel.Error, "Instrument with no data source requested.");
+                    _logger.Error("Instrument with no data source requested.");
+
                     return;
                 }
+                // With the current approach we can't handle multiple real time data streams from
+                // the same symbol and data source, but at different frequencies
 
-                //with the current approach we can't handle multiple real time data streams from
-                //the same symbol and data source, but at different frequencies
-
-                //forward the request to the broker
+                // Forward the request to the broker
                 try
                 {
-                    if (Broker.RequestRealTimeData(request))
+                    if (_broker.RequestRealTimeData(request))
                     {
-                        //and report success back to the requesting client
-                        _reqSocket.SendMoreFrame("SUCCESS");
-                        //along with the request
-                        _reqSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
+                        // And report success back to the requesting client
+                        _requestSocket.SendMoreFrame("SUCCESS");
+                        // Along with the request
+                        _requestSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
                     }
                     else
                     {
@@ -230,43 +243,46 @@ namespace QDMSServer
                 }
                 catch (Exception ex)
                 {
-                    //there was a problem with requesting the feed
                     SendErrorReply(ex.Message, buffer);
 
-                    //log the error
-                    Log(LogLevel.Error, string.Format("RTDS: Error handling RTD request {0} @ {1} ({2}): {3}", 
-                        request.Instrument.Symbol, request.Instrument.Datasource, request.Frequency, ex.Message));
+                    _logger.Error($"RTDS: Error handling RTD request {request.Instrument.Symbol} @ {request.Instrument.Datasource} ({request.Frequency}): {ex.Message}");
                 }
             }
         }
 
-        /// <summary>
-        /// Log stuff.
-        /// </summary>
-        private void Log(LogLevel level, string message)
+        // Accept a request to cancel a real time data stream
+        // Obviously we only actually cancel it if
+        private void HandleRealTtimeDataCancelRequest()
         {
-            _logger.Log(level, message);
+            bool hasMore;
+            var buffer = _requestSocket.ReceiveFrameBytes(out hasMore);
+            // Receive the instrument
+            using (var ms = new MemoryStream())
+            {
+                var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
+
+                if (instrument.ID != null)
+                {
+                    _broker.CancelRTDStream(instrument.ID.Value);
+                }
+                // Two part message:
+                // 1: "CANCELED"
+                // 2: the symbol
+                _requestSocket.SendMoreFrame("CANCELED");
+                _requestSocket.SendFrame(instrument.Symbol);
+            }
         }
 
-        public void Dispose()
+        /// <summary>
+        ///     Send an error reply to a real time data request.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="serializedRequest"></param>
+        private void SendErrorReply(string message, byte[] serializedRequest)
         {
-            StopServer();
-
-            if (_pubSocket != null)
-            {
-                _pubSocket.Dispose();
-                _pubSocket = null;
-            }
-            if (_reqSocket != null)
-            {
-                _reqSocket.Dispose();
-                _reqSocket = null;
-            }
-            if (_context != null)
-            {
-                _context.Dispose();
-                _context = null;
-            }
+            _requestSocket.SendMoreFrame("ERROR");
+            _requestSocket.SendMoreFrame(message);
+            _requestSocket.SendFrame(serializedRequest);
         }
     }
 }
