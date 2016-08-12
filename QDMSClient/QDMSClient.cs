@@ -858,11 +858,12 @@ namespace QDMSClient
 
                     for (var i = 0; i < count; i++)
                     {
-                        buffer = _historicalDataSocket.ReceiveFrameBytes();
+                        bool hasMore;
+                        buffer = _historicalDataSocket.ReceiveFrameBytes(out hasMore);
                         var info = MyUtils.ProtoBufDeserialize<StoredDataInfo>(buffer, ms);
                         storageInfo.Add(info);
 
-                        if (!_historicalDataSocket.Options.ReceiveMore) break;
+                        if (!hasMore) break;
                     }
 
                     RaiseEvent(LocallyAvailableDataInfoReceived, this, new LocallyAvailableDataInfoReceivedEventArgs(instrument, storageInfo));

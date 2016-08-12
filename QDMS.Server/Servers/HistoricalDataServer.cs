@@ -213,12 +213,18 @@ namespace QDMSServer
                         _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                         _socket.SendMoreFrame(BitConverter.GetBytes(storageInfo.Count));
 
-                        foreach (var sdi in storageInfo)
+                        for (int i = 0; i < storageInfo.Count; i++)
                         {
-                            _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(sdi, ms));
+                            var sdi = storageInfo[i];
+                            if (i < storageInfo.Count - 1)
+                            {
+                                _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(sdi, ms));
+                            }
+                            else
+                            {
+                                _socket.SendFrame(MyUtils.ProtoBufSerialize(sdi, ms));
+                            }
                         }
-
-                        _socket.SendFrame("END");
                     }
                 }
             }
