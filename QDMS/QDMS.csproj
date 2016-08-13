@@ -74,6 +74,7 @@
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
     <Compile Include="Interfaces\IDataClient.cs" />
     <Compile Include="Interfaces\ISession.cs" />
+    <Compile Include="MessageType.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />
     <Compile Include="EntityModels\ContinuousFuture.cs" />
