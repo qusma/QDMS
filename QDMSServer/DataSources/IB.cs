@@ -502,7 +502,7 @@ namespace QDMSServer.DataSources
                     endingDate,
                     TWSUtils.TimespanToDurationString((endingDate - startingDate), request.Frequency),
                     TWSUtils.BarSizeConverter(request.Frequency),
-                    HistoricalDataType.Trades,
+                    GetDataType(request.Instrument),
                     request.RTHOnly ? 1 : 0
                 );
             }
@@ -511,6 +511,17 @@ namespace QDMSServer.DataSources
                 Log(LogLevel.Error, "IB: Could not send historical data request: " + ex.Message);
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Could not send historical data request: " + ex.Message, id));
             }
+        }
+
+        private HistoricalDataType GetDataType(Instrument instrument)
+        {
+            //when it comes to FOREX, IB doesn't return any data if you request Trades, you have to ask for Bid/Ask/Mid
+            if (instrument.Type == InstrumentType.Cash)
+            {
+                return HistoricalDataType.Midpoint;
+            }
+
+            return HistoricalDataType.Trades;
         }
 
         public void Connect()

@@ -295,7 +295,7 @@ namespace QDMSServer
                         break;
 
                     case "Volume":
-                        bar.Volume = volumeMultiplier * int.Parse(items[i]);
+                        bar.Volume = volumeMultiplier * long.Parse(items[i]);
                         break;
 
                     case "OpenInterest":
