@@ -10,9 +10,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
+using System.Xml.Serialization;
 using LZ4;
+using MetaLinq;
 using NetMQ;
 using NetMQ.Sockets;
 using ProtoBuf;
@@ -471,44 +474,85 @@ namespace QDMSClient
                         // Then we need to serialize and send the instrument
                         s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
                     }
-                    // First we receive the size of the final uncompressed byte[] array
-                    bool hasMore;
-                    var sizeBuffer = s.ReceiveFrameBytes(out hasMore);
 
-                    if (sizeBuffer.Length == 0)
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
+                    return ReceiveInstrumentSearchResults(s);
+                }
+            }
+        }
 
-                        return new List<Instrument>();
-                    }
+        /// <summary>
+        ///     Query the server for contracts using a predicate
+        /// </summary>
+        /// <param name="pred">Predicate to match instruments against</param>
+        /// <returns>A list of instruments matching these features.</returns>
+        public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred)
+        {
+            if (!Connected)
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request instruments - not connected."));
+                return new List<Instrument>();
+            }
 
-                    var outputSize = BitConverter.ToInt32(sizeBuffer, 0);
-                    // Then the actual data
-                    var buffer = s.ReceiveFrameBytes(out hasMore);
+            using (var s = new RequestSocket(_instrumentServerConnectionString))
+            {
+                using (var ms = new MemoryStream())
+                {
+                    EditableExpression mutable = EditableExpression.CreateEditableExpression(pred);
+                    XmlSerializer xs = new XmlSerializer(typeof(EditableExpression),
+                        new[] { typeof(MetaLinq.Expressions.EditableLambdaExpression) });
+                    xs.Serialize(ms, mutable);
 
-                    if (buffer.Length == 0)
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
+                    //Send the request
+                    s.SendMoreFrame(MessageType.PredicateSearch);
+                    s.SendFrame(ms.ToArray());
+                }
 
-                        return new List<Instrument>();
-                    }
+                //And return the result
+                return ReceiveInstrumentSearchResults(s);
+            }
+        }
 
-                    try
-                    {
-                        // Then we process it by first decompressing
-                        ms.SetLength(0);
-                        var decoded = LZ4Codec.Decode(buffer, 0, buffer.Length, outputSize);
-                        ms.Write(decoded, 0, decoded.Length);
-                        ms.Position = 0;
-                        // And finally deserializing
-                        return Serializer.Deserialize<List<Instrument>>(ms);
-                    }
-                    catch (Exception ex)
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Error processing instrument data: " + ex.Message));
+        private List<Instrument> ReceiveInstrumentSearchResults(RequestSocket s)
+        {
+            using (var ms = new MemoryStream())
+            {
+                // First we receive the size of the final uncompressed byte[] array
+                bool hasMore;
+                var sizeBuffer = s.ReceiveFrameBytes(out hasMore);
 
-                        return new List<Instrument>();
-                    }
+                if (sizeBuffer.Length == 0)
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
+
+                    return new List<Instrument>();
+                }
+
+                var outputSize = BitConverter.ToInt32(sizeBuffer, 0);
+                // Then the actual data
+                var buffer = s.ReceiveFrameBytes(out hasMore);
+
+                if (buffer.Length == 0)
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
+
+                    return new List<Instrument>();
+                }
+
+                try
+                {
+                    // Then we process it by first decompressing
+                    ms.SetLength(0);
+                    var decoded = LZ4Codec.Decode(buffer, 0, buffer.Length, outputSize);
+                    ms.Write(decoded, 0, decoded.Length);
+                    ms.Position = 0;
+                    // And finally deserializing
+                    return Serializer.Deserialize<List<Instrument>>(ms);
+                }
+                catch (Exception ex)
+                {
+                    RaiseEvent(Error, this, new ErrorArgs(-1, "Error processing instrument data: " + ex.Message));
+
+                    return new List<Instrument>();
                 }
             }
         }

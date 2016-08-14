@@ -5,10 +5,16 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.IO;
+using System.Linq.Expressions;
+using System.Text;
 using System.Threading;
+using System.Xml.Serialization;
 using EntityData;
+using MetaLinq;
 using Moq;
 using NUnit.Framework;
+using QDMS;
 using QDMSServer;
 
 namespace QDMSTest
@@ -63,8 +69,7 @@ namespace QDMSTest
                     It.Is<QDMS.Instrument>(y => 
                         y.Symbol == "SPY" &&
                         y.Datasource.Name == "Interactive Brokers" &&
-                        y.Type == QDMS.InstrumentType.Stock),
-                    It.Is<Func<QDMS.Instrument, bool>>(y => y == null)));
+                        y.Type == QDMS.InstrumentType.Stock)));
         }
 
         [Test]
@@ -76,8 +81,35 @@ namespace QDMSTest
             _instrumentSourceMock.Verify(
                 x => x.FindInstruments(
                     It.IsAny<MyDBContext>(), 
-                    It.Is<QDMS.Instrument>(y => y == null), 
-                    It.Is<Func<QDMS.Instrument, bool>>(y => y == null)));
+                    It.Is<QDMS.Instrument>(y => y == null)));
+        }
+
+        [Test]
+        public void ExpressionSearchIsTransmittedCorrectly()
+        {
+            //send the expression, then test it against the one received to make sure they're identical
+            Expression<Func<Instrument, bool>> exp = x => x.Symbol == "SPY" && x.Type == InstrumentType.CFD && !x.IsContinuousFuture;
+
+            var ms = new MemoryStream();
+            EditableExpression editableExpr = EditableExpression.CreateEditableExpression(exp);
+            XmlSerializer xs = new XmlSerializer(editableExpr.GetType());
+            xs.Serialize(ms, editableExpr);
+
+            Expression<Func<Instrument, bool>> receivedExpr = null;
+            _instrumentSourceMock.Setup(x =>
+                x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
+            .Callback<Expression<Func<Instrument, bool>>, MyDBContext>((x, y) => receivedExpr = x);
+
+            _client.FindInstruments(exp);
+            Thread.Sleep(100);
+
+            Assert.IsNotNull(receivedExpr);
+
+            var ms2 = new MemoryStream();
+            EditableExpression receivedEditableExpr = EditableExpression.CreateEditableExpression(exp);
+            xs.Serialize(ms2, receivedEditableExpr);
+
+            Assert.AreEqual(Encoding.UTF8.GetString(ms.ToArray()), Encoding.UTF8.GetString(ms2.ToArray()));
         }
     }
 }

@@ -44,6 +44,10 @@
       <HintPath>..\packages\lz4net.1.0.10.93\lib\net4-client\LZ4.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="MetaLinq, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MetaLinq.1.0.11\lib\portable45-net45+win8+wp8+wpa81\MetaLinq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NetMQ, Version=3.3.3.4, Culture=neutral, PublicKeyToken=a6decef4ddc58b3a, processorArchitecture=MSIL">
       <HintPath>..\packages\NetMQ.3.3.3.4\lib\net40\NetMQ.dll</HintPath>
       <Private>True</Private>

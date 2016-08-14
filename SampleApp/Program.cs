@@ -58,7 +58,7 @@ namespace SampleApp
             
             //then we grab some historical data from Yahoo
             //start by finding the SPY instrument
-            var spy = instruments.FirstOrDefault(x => x.Symbol == "SPY" && x.Datasource.Name == "Yahoo");
+            var spy = client.FindInstruments(x => x.Symbol == "SPY" && x.Datasource.Name == "Yahoo").FirstOrDefault();
             if (spy != null)
             {
                 var req = new HistoricalDataRequest(
