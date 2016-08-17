@@ -371,5 +371,89 @@ namespace QDMSTest
 
             Assert.IsTrue(received);
         }
+
+        [Test]
+        public void HistoricalRequestsOneRequestReceivesErrorNoData()
+        {
+            var exchange = new Exchange { ID = 1, Name = "Ex", Timezone = "Pacific Standard Time" };
+            var req = new HistoricalDataRequest
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY", Exchange = exchange },
+                Frequency = QDMS.BarSize.OneDay,
+                StartingDate = new DateTime(2014, 1, 13),
+                EndingDate = new DateTime(2014, 1, 15),
+                RTHOnly = true
+            };
+
+            int requestID = 0;
+
+            _ibClientMock
+                .Setup(x => x.RequestHistoricalData(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Krs.Ats.IBNet.BarSize>(),
+                    It.IsAny<HistoricalDataType>(),
+                    It.IsAny<int>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32>((y, a, b, c, d, e, f) => requestID = y);
+
+
+            _ibDatasource.RequestHistoricalData(req);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestID, (ErrorMessage)162, "Historical Market Data Service error message:HMDS query returned no data"));
+
+            _ibClientMock.Verify(x => x.RequestHistoricalData(
+                It.IsAny<int>(),
+                It.IsAny<Contract>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<string>(),
+                It.IsAny<Krs.Ats.IBNet.BarSize>(),
+                It.IsAny<HistoricalDataType>(),
+                It.IsAny<int>()),
+                Times.Exactly(1));
+        }
+
+        [Test]
+        public void HistoricalRequestsWithSubRequestReceivesErrorNoData()
+        {
+            var exchange = new Exchange { ID = 1, Name = "Ex", Timezone = "Pacific Standard Time" };
+            var req = new HistoricalDataRequest
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY", Exchange = exchange },
+                Frequency = QDMS.BarSize.OneMinute,
+                StartingDate = new DateTime(2014, 1, 13),
+                EndingDate = new DateTime(2014, 1, 15),
+                RTHOnly = true
+            };
+
+            int requestID = 0;
+
+            _ibClientMock
+                .Setup(x => x.RequestHistoricalData(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Krs.Ats.IBNet.BarSize>(),
+                    It.IsAny<HistoricalDataType>(),
+                    It.IsAny<int>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32>((y, a, b, c, d, e, f) => requestID = y);
+
+
+            _ibDatasource.RequestHistoricalData(req);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestID, (ErrorMessage)162, "Historical Market Data Service error message:HMDS query returned no data"));
+
+            _ibClientMock.Verify(x => x.RequestHistoricalData(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Krs.Ats.IBNet.BarSize>(),
+                    It.IsAny<HistoricalDataType>(),
+                    It.IsAny<int>()),
+                    Times.Exactly(1));
+        }
     }
 }
