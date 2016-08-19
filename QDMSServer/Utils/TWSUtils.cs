@@ -225,7 +225,7 @@ namespace QDMSServer
                 instrument.Multiplier.ToString(),
                 "",
                 instrument.Currency,
-                null,
+                instrument.Symbol,
                 instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
                 SecurityIdType.None,
                 string.Empty);
