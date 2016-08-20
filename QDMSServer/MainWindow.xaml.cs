@@ -406,9 +406,9 @@ namespace QDMSServer
         {
             var window = new AddInstrumentInteractiveBrokersWindow();
 
-            if (window.AddedInstruments != null)
+            if (window.ViewModel != null && window.ViewModel.AddedInstruments != null)
             {
-                foreach (Instrument i in window.AddedInstruments)
+                foreach (Instrument i in window.ViewModel.AddedInstruments)
                 {
                     Instruments.Add(i);
                 }
