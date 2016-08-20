@@ -96,7 +96,7 @@ namespace QDMSServer.DataSources
                 freqString);
 
             //if the user has provided an authentication code, we slap it on at the end
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.quandlAuthCode))
+            if (!string.IsNullOrEmpty(authToken))
                 requestURL += string.Format("&auth_token={0}", authToken);
 
             //download the data
@@ -145,8 +145,7 @@ namespace QDMSServer.DataSources
 
         private void Log(LogLevel level, string message)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-                _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         /// <summary>

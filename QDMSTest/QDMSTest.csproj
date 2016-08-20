@@ -147,6 +147,10 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
+      <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
+      <Name>QDMS.Server.DataSources.Quandl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
       <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
       <Name>QDMS.Server</Name>

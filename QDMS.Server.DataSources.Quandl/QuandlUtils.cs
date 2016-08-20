@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Windows;
 using System.Xml.Linq;
 using System.Linq;
 using QDMS;
