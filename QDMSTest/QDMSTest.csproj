@@ -147,6 +147,10 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj">
+      <Project>{723afac2-099b-410f-9d32-fe34611239e3}</Project>
+      <Name>QDMS.Server.DataSources.InteractiveBrokers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
       <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
       <Name>QDMS.Server</Name>

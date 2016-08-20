@@ -157,7 +157,7 @@ namespace QDMSServer
                 new IRealTimeDataSource[] {
                     //new Xignite(Properties.Settings.Default.xigniteApiToken),
                     //new Oanda(Properties.Settings.Default.oandaAccountId, Properties.Settings.Default.oandaAccessToken),
-                    new IB(Properties.Settings.Default.rtdClientIBID),
+                    new IB(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, Properties.Settings.Default.rtdClientIBID),
                     //new ForexFeed(Properties.Settings.Default.forexFeedAccessKey, ForexFeed.PriceType.Mid)
                 });
             HistoricalBroker = new HistoricalDataBroker(cfHistoricalBroker, localStorage,
@@ -165,7 +165,7 @@ namespace QDMSServer
                     new Yahoo(),
                     new FRED(),
                     //new Forexite(),
-                    new IB(Properties.Settings.Default.histClientIBID),
+                    new IB(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, Properties.Settings.Default.histClientIBID),
                     new Quandl(Properties.Settings.Default.quandlAuthCode),
                 });
 

@@ -28,7 +28,7 @@ namespace QDMSServer.DataSources
 {
     public class IB : IHistoricalDataSource, IRealTimeDataSource
     {
-        private readonly IIBClient _client;
+        private readonly IBClient _client;
         private readonly Dictionary<int, RealTimeDataRequest> _realTimeDataRequests;
         private readonly ConcurrentDictionary<int, HistoricalDataRequest> _historicalDataRequests;
 
@@ -70,6 +70,8 @@ namespace QDMSServer.DataSources
         private int _requestCounter;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
+        private readonly string _host;
+        private readonly int _port;
         private readonly int _clientID;
         private readonly object _queueLock = new object();
         private readonly object _subReqMapLock = new object();
@@ -92,12 +94,14 @@ namespace QDMSServer.DataSources
             }
         }
 
-        public IB(int clientID = -1, IIBClient client = null)
+        public IB(string host, int port, int clientID = -1, IBClient client = null)
         {
             Name = "Interactive Brokers";
 
             if (clientID < 0)
                 clientID = 99;
+            _host = host;
+            _port = port;
             _clientID = clientID;
 
             _realTimeDataRequests = new Dictionary<int, RealTimeDataRequest>();
@@ -528,7 +532,7 @@ namespace QDMSServer.DataSources
         {
             try
             {
-                _client.Connect(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, _clientID);
+                _client.Connect(_host, _port, _clientID);
             }
             catch (Exception e)
             {
@@ -583,9 +587,7 @@ namespace QDMSServer.DataSources
         ///</summary>
         private void Log(LogLevel level, string message)
         {
-            if (Application.Current != null)
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                    _logger.Log(level, message));
+            _logger.Log(level, message);
         }
 
         /// <summary>
@@ -627,8 +629,6 @@ namespace QDMSServer.DataSources
 
         public void Dispose()
         {
-            Properties.Settings.Default.ibClientRequestCounter = _requestCounter;
-            
             if(_client != null)
                 _client.Dispose();
 

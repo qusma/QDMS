@@ -21,15 +21,19 @@ namespace QDMSTest
     [TestFixture]
     public class IBTest
     {
-        private Mock<IIBClient> _ibClientMock;
+        private Mock<IBClient> _ibClientMock;
         private IB _ibDatasource;
+
+        // @ToDo: Fill this fields corret...
+        private const string Host = "localhost";
+        private const int Port = 7496;
 
         [SetUp]
         public void SetUp()
         {
-            _ibClientMock = new Mock<IIBClient>();
+            _ibClientMock = new Mock<IBClient>();
             _ibClientMock.Setup(x => x.Connected).Returns(true);
-            _ibDatasource = new IB(client: _ibClientMock.Object);
+            _ibDatasource = new IB(Host, Port, client: _ibClientMock.Object);
             _ibDatasource.Connect();
         }
 

@@ -49,18 +49,6 @@ namespace QDMSServer.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int ibClientRequestCounter {
-            get {
-                return ((int)(this["ibClientRequestCounter"]));
-            }
-            set {
-                this["ibClientRequestCounter"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
         public string mySqlHost {
             get {

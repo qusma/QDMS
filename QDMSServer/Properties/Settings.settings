@@ -8,9 +8,6 @@
     <Setting Name="ibClientPort" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">7496</Value>
     </Setting>
-    <Setting Name="ibClientRequestCounter" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
     <Setting Name="mySqlHost" Type="System.String" Scope="User">
       <Value Profile="(Default)">127.0.0.1</Value>
     </Setting>
