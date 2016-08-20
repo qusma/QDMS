@@ -247,7 +247,6 @@
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
-    <Compile Include="DataSources\OpenECry.cs" />
     <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataStorageFactory.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
