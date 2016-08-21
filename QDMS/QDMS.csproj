@@ -45,8 +45,9 @@
       <HintPath>..\packages\protobuf-net.2.1.0\lib\net45\protobuf-net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="QLNet">
-      <HintPath>..\Libraries\QLNet\QLNet.dll</HintPath>
+    <Reference Include="QLNet, Version=1.7.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QLNet.1.7.0.1\lib\net40\QLNet.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
