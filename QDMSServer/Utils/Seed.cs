@@ -21,10 +21,9 @@ namespace QDMSServer
             var yahoo = new Datasource { Name = "Yahoo" };
             var quandl = new Datasource { Name = "Quandl" };
             var fred = new Datasource { Name = "FRED" };
-            var google = new Datasource { Name = "Google" };
             var barChart = new Datasource { Name = "BarChart" };
 
-            context.Datasources.AddOrUpdate(x => x.Name, ib, yahoo, quandl, fred, google, barChart);
+            context.Datasources.AddOrUpdate(x => x.Name, ib, yahoo, quandl, fred, barChart);
 
             context.SaveChanges();
         }
