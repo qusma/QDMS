@@ -401,5 +401,17 @@ namespace QDMSServer.Properties {
                 this["forexFeedAccessKey"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string barChartApiKey {
+            get {
+                return ((string)(this["barChartApiKey"]));
+            }
+            set {
+                this["barChartApiKey"] = value;
+            }
+        }
     }
 }

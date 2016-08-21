@@ -458,6 +458,10 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
+      <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
+      <Name>QDMS.Server.DataSources.BarChart</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
       <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
       <Name>QDMS.Server.DataSources.Bloomberg</Name>
