@@ -34,11 +34,11 @@ cache:
   - packages -> **\packages.config  # preserve "packages" directory in the root of build folder but will reset it if packages.config is modified
 
 # enable service required for build/tests
-services:
+#services:
 #  - mssql2014           # start SQL Server 2014 Express
 #  - mssql2012sp1        # start SQL Server 2012 SP1 Express
-  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
-  - mysql               # start MySQL 5.6 service
+#  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
+#  - mysql               # start MySQL 5.6 service
 
 # enable patching of AssemblyInfo.* files
 #assembly_info:
@@ -60,8 +60,9 @@ platform: Any CPU
 configuration: Release
 
 build:
+  parallel: true                  # enable MSBuild parallel builds
   project: QDMS.sln               # path to Visual Studio solution or project
-
+  verbosity: minimal
 
 # scripts to run before build
 before_build:
