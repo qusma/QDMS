@@ -28,7 +28,7 @@ namespace QDMSServer.DataSources
 {
     public class IB : IHistoricalDataSource, IRealTimeDataSource
     {
-        private readonly IBClient _client;
+        private readonly IIBClient _client;
         private readonly Dictionary<int, RealTimeDataRequest> _realTimeDataRequests;
         private readonly ConcurrentDictionary<int, HistoricalDataRequest> _historicalDataRequests;
 
@@ -94,7 +94,7 @@ namespace QDMSServer.DataSources
             }
         }
 
-        public IB(string host, int port, int clientID = -1, IBClient client = null)
+        public IB(string host, int port, int clientID = -1, IIBClient client = null)
         {
             Name = "Interactive Brokers";
 
