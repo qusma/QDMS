@@ -24,12 +24,16 @@ namespace QDMSTest
         private Mock<IIBClient> _ibClientMock;
         private IB _ibDatasource;
 
+        //these don't matter, we never connect to TWS in these tests
+        private const string Host = "";
+        private const int Port = -1;
+
         [SetUp]
         public void SetUp()
         {
             _ibClientMock = new Mock<IIBClient>();
             _ibClientMock.Setup(x => x.Connected).Returns(true);
-            _ibDatasource = new IB(client: _ibClientMock.Object);
+            _ibDatasource = new IB(Host, Port, client: _ibClientMock.Object);
             _ibDatasource.Connect();
         }
 
@@ -52,9 +56,9 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()))
-                .Callback<int, Contract, DateTime, string, BarSize, HistoricalDataType, int>(
-                    (a, b, c, d, e, f, g) => requestCount[0]++);
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback(() => requestCount[0]++);
 
             var requests = new Dictionary<KeyValuePair<BarSize, int>, int> //left side is barsize/seconds, right side is expected splits
             {
@@ -97,9 +101,9 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()))
-                .Callback<int, Contract, DateTime, string, BarSize, HistoricalDataType, int>(
-                    (a, b, c, d, e, f, g) => requestCount[0]++);
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback(() => requestCount[0]++);
 
             var requests = new Dictionary<KeyValuePair<BarSize, int>, int> //left side is barsize/seconds, right side is expected splits
             {
@@ -148,8 +152,9 @@ namespace QDMSTest
                     It.IsAny<Contract>(),
                     It.IsAny<int>(),
                     It.IsAny<RealTimeBarType>(),
-                    It.IsAny<bool>()))
-                .Callback<int, Contract, int, RealTimeBarType, bool>((y, a, b, c, d) => requestID = y);
+                    It.IsAny<bool>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<int, Contract, int, RealTimeBarType, bool, List<TagValue>>((y, a, b, c, d, e) => requestID = y);
 
 
             _ibDatasource.RequestRealTimeData(req);
@@ -163,7 +168,8 @@ namespace QDMSTest
                     It.IsAny<Contract>(),
                     It.IsAny<int>(),
                     It.IsAny<RealTimeBarType>(),
-                    It.IsAny<bool>()),
+                    It.IsAny<bool>(),
+                    It.IsAny<List<TagValue>>()),
                     Times.Exactly(2));
         }
 
@@ -190,8 +196,9 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<Krs.Ats.IBNet.BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()))
-                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32>((y, a, b, c, d, e, f) => requestID = y);
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>((y, a, b, c, d, e, f, g) => requestID = y);
 
 
             _ibDatasource.RequestHistoricalData(req);
@@ -207,7 +214,8 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<Krs.Ats.IBNet.BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()), 
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()), 
                     Times.Exactly(2));
         }
 
@@ -234,7 +242,8 @@ namespace QDMSTest
                     It.Is<string>(y => y == "1 D"),
                     It.Is<Krs.Ats.IBNet.BarSize>(y => y == Krs.Ats.IBNet.BarSize.OneDay),
                     It.Is<HistoricalDataType>(y => y == HistoricalDataType.Trades),
-                    It.Is<int>(y => y == 1))
+                    It.Is<int>(y => y == 1),
+                    It.IsAny<List<TagValue>>())
                 , Times.Once);
         }
 
@@ -256,7 +265,8 @@ namespace QDMSTest
                 It.Is<Contract>(y => y.Symbol == "SPY" && y.Exchange == "Ex" && y.SecurityType == SecurityType.Stock),
                 It.Is<int>(y => y == (int)Krs.Ats.IBNet.BarSize.FiveSeconds),
                 It.Is<RealTimeBarType>(y => y == RealTimeBarType.Trades),
-                It.Is<bool>(y => y == true)));
+                It.Is<bool>(y => y == true),
+                It.IsAny<List<TagValue>>()));
         }
 
         [Test]
@@ -281,7 +291,8 @@ namespace QDMSTest
                 It.IsAny<string>(),
                 It.IsAny<BarSize>(),
                 It.IsAny<HistoricalDataType>(),
-                It.IsAny<int>()));
+                It.IsAny<int>(),
+                It.IsAny<List<TagValue>>()));
         }
 
         [Test]
@@ -302,7 +313,8 @@ namespace QDMSTest
                 It.Is<Contract>(y => y.Symbol == "TestMe!"),
                 It.IsAny<int>(),
                 It.IsAny<RealTimeBarType>(),
-                It.IsAny<bool>()));
+                It.IsAny<bool>(),
+                It.IsAny<List<TagValue>>()));
         }
 
         [Test]
@@ -318,8 +330,14 @@ namespace QDMSTest
 
             int requestID = -1;
             _ibClientMock
-                .Setup(x => x.RequestRealTimeBars(It.IsAny<int>(), It.IsAny<Contract>(), It.IsAny<int>(), It.IsAny<RealTimeBarType>(), It.IsAny<bool>()))
-                .Callback<int, Contract, Int32, RealTimeBarType, Boolean>((y, a, b, c, d) => requestID = y);
+                .Setup(x => x.RequestRealTimeBars(
+                    It.IsAny<int>(), 
+                    It.IsAny<Contract>(), 
+                    It.IsAny<int>(), 
+                    It.IsAny<RealTimeBarType>(), 
+                    It.IsAny<bool>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<int, Contract, Int32, RealTimeBarType, Boolean, List<TagValue>>((y, a, b, c, d, e) => requestID = y);
 
             _ibDatasource.RequestRealTimeData(req);
 
@@ -346,8 +364,16 @@ namespace QDMSTest
 
             int requestID = -1;
             _ibClientMock
-                .Setup(x => x.RequestHistoricalData(It.IsAny<int>(), It.IsAny<Contract>(), It.IsAny<DateTime>(), It.IsAny<string>(), It.IsAny<BarSize>(), It.IsAny<HistoricalDataType>(), It.IsAny<int>()))
-                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32>((y, a, b, c, d, e, f) => requestID = y);
+                .Setup(x => x.RequestHistoricalData(
+                    It.IsAny<int>(), 
+                    It.IsAny<Contract>(), 
+                    It.IsAny<DateTime>(), 
+                    It.IsAny<string>(), 
+                    It.IsAny<BarSize>(), 
+                    It.IsAny<HistoricalDataType>(), 
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>((y, a, b, c, d, e, f, g) => requestID = y);
 
             _ibDatasource.RequestHistoricalData(req);
 
@@ -395,8 +421,9 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<Krs.Ats.IBNet.BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()))
-                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32>((y, a, b, c, d, e, f) => requestID = y);
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>((y, a, b, c, d, e, f, g) => requestID = y);
 
 
             _ibDatasource.RequestHistoricalData(req);
@@ -410,7 +437,8 @@ namespace QDMSTest
                 It.IsAny<string>(),
                 It.IsAny<Krs.Ats.IBNet.BarSize>(),
                 It.IsAny<HistoricalDataType>(),
-                It.IsAny<int>()),
+                It.IsAny<int>(),
+                It.IsAny<List<TagValue>>()),
                 Times.Exactly(1));
         }
 
@@ -437,8 +465,10 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<Krs.Ats.IBNet.BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()))
-                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32>((y, a, b, c, d, e, f) => requestID = y);
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>(
+                    (y, a, b, c, d, e, f, g) => requestID = y);
 
 
             _ibDatasource.RequestHistoricalData(req);
@@ -452,7 +482,8 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.IsAny<Krs.Ats.IBNet.BarSize>(),
                     It.IsAny<HistoricalDataType>(),
-                    It.IsAny<int>()),
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()),
                     Times.Exactly(1));
         }
     }
