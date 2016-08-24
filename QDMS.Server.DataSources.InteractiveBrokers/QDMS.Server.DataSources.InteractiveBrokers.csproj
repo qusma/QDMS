@@ -31,9 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Krs.Ats.IBNet, Version=9.66.0.31, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Krs.Ats.IBNet.9.66.0.31\lib\net20\Krs.Ats.IBNet.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Krs.Ats.IBNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QDMS-IBClient.1.0.0\lib\Krs.Ats.IBNet.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.3.7\lib\net45\NLog.dll</HintPath>

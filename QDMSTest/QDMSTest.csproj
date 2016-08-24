@@ -59,13 +59,14 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Krs.Ats.IBNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libraries\ib-csharp\Krs.Ats.IBNet.dll</HintPath>
+      <HintPath>..\packages\QDMS-IBClient.1.0.0\lib\Krs.Ats.IBNet.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MetaLinq, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MetaLinq.1.0.11\lib\portable45-net45+win8+wp8+wpa81\MetaLinq.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Moq, Version=4.5.19.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <HintPath>..\packages\Moq.4.5.19\lib\net45\Moq.dll</HintPath>
       <Private>True</Private>
