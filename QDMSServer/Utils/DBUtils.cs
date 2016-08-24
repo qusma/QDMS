@@ -6,6 +6,7 @@
 
 using System;
 using System.Configuration;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
@@ -13,6 +14,7 @@ using System.Text;
 using MySql.Data.MySqlClient;
 using QDMSServer.Properties;
 using System.Security.Cryptography;
+using MySql.Data.Entity;
 
 namespace QDMSServer
 {
@@ -32,6 +34,14 @@ namespace QDMSServer
             }
 
             ConfigurationManager.RefreshSection("connectionStrings");
+        }
+
+        public static void SetDbConfiguration()
+        {
+            if (Settings.Default.databaseType == "MySql")
+            {
+                DbConfiguration.SetConfiguration(new MySqlEFConfiguration());
+            }
         }
 
         private static void SetSqlServerConnectionString(string stringName, string dbName)

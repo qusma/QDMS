@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Configuration;
 using System.Data.Entity;
 using System.Deployment.Application;
 using System.IO;
@@ -63,6 +62,9 @@ namespace QDMSServer
 
             //set the connection string
             DBUtils.SetConnectionString();
+
+            //set EF configuration, necessary for MySql to work
+            DBUtils.SetDbConfiguration();
 
             InitializeComponent();
             DataContext = this;
