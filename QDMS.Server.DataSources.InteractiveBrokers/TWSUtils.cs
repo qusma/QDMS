@@ -24,12 +24,12 @@ namespace QDMSServer
         /// <returns>True if the request obeys the limits, false otherwise.</returns>
         public static bool RequestObeysLimits(HistoricalDataRequest request)
         {
-            //The limitations are laid out here: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
+            //The limitations are laid out here: https://www.interactivebrokers.com/en/software/api/apiguide/tables/historical_data_limitations.htm
             TimeSpan period = (request.EndingDate - request.StartingDate);
             double periodSeconds = period.TotalSeconds;
             double freqSeconds = request.Frequency.ToTimeSpan().TotalSeconds;
 
-            if(periodSeconds / freqSeconds > 2000) return false;
+            //if (periodSeconds / freqSeconds > 2000) return false; //what was the purpose of this?
 
             return periodSeconds < MaxRequestLength(request.Frequency);
         }
@@ -41,7 +41,7 @@ namespace QDMSServer
         /// <returns>Maximum allowed length in </returns>
         public static int MaxRequestLength(QDMS.BarSize frequency)
         {
-            //The limitations are laid out here: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
+            //The limitations are laid out here: https://www.interactivebrokers.com/en/software/api/apiguide/tables/historical_data_limitations.htm
             if (frequency <= QDMS.BarSize.OneSecond)      return 1800;
             if (frequency <= QDMS.BarSize.FiveSeconds)    return 7200;
             if (frequency <= QDMS.BarSize.FifteenSeconds) return 14400;
