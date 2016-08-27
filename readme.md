@@ -1,5 +1,4 @@
 # QUSMA Data Management System (QDMS) fork
-[![Build Status](https://travis-ci.org/leo90skk/qdms.svg?branch=master)](https://travis-ci.org/leo90skk/qdms)
 
 The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
@@ -32,6 +31,13 @@ QDMS uses MySQL or SQL Server for storage, ZeroMQ and Protocol Buffers for clien
 * [Importing CSV data](http://i.imgur.com/en6kDo1.png).
 * [Editing futures expiration rules](http://i.imgur.com/WvKkb4x.png).
 * [Continuous futures options](http://i.imgur.com/47VuXmH.png).
+
+
+## Build Status
+
+| Windows | Linux (planned for 2.0) |
+|---------|-------------------------|
+| [![Build status](https://ci.appveyor.com/api/projects/status/ma7h13iqscrl5h05/branch/master?svg=true)](https://ci.appveyor.com/project/LeonhardSchick/qdms/branch/master) | [![Build Status](https://travis-ci.org/leo90skk/qdms.svg?branch=dotNetCore)](https://travis-ci.org/leo90skk/qdms) |
 
 
 ## Supported Data Sources

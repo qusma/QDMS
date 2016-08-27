@@ -1,0 +1,109 @@
+# Notes:
+#   - Minimal appveyor.yml file is an empty file. All sections are optional.
+#   - Indent each level of configuration with 2 spaces. Do not use tabs!
+#   - All section names are case-sensitive.
+#   - Section names should be unique on each level.
+
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: 0.9.2.{build}-{branch}
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    - master
+    - appveyor
+
+  # blacklist
+  except:
+    - dotNetCore
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Build worker image (VM template)
+image: Visual Studio 2015
+
+# build cache to preserve files/folders between builds
+cache:
+  - packages -> **\packages.config  # preserve "packages" directory in the root of build folder but will reset it if packages.config is modified
+
+# enable service required for build/tests
+#services:
+#  - mssql2014           # start SQL Server 2014 Express
+#  - mssql2012sp1        # start SQL Server 2012 SP1 Express
+#  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
+#  - mysql               # start MySQL 5.6 service
+
+# enable patching of AssemblyInfo.* files
+#assembly_info:
+#  patch: true
+#  file: AssemblyInfo.*
+#  assembly_version: "2.2.{build}"
+#  assembly_file_version: "{version}"
+#  assembly_informational_version: "{version}"
+
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: Any CPU
+
+# build Configuration, i.e. Debug, Release, etc.
+configuration: Release
+
+build:
+  parallel: true                  # enable MSBuild parallel builds
+  project: QDMS.sln               # path to Visual Studio solution or project
+  verbosity: minimal
+
+# scripts to run before build
+before_build:
+  - nuget restore
+
+# scripts to run *after* solution is built and *before* automatic packaging occurs (web apps, NuGet packages, Azure Cloud Services)
+before_package:
+
+# scripts to run after build
+after_build:
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+
+# to disable automatic builds
+#build: off
+
+
+#---------------------------------#
+#         notifications           #
+#---------------------------------#
+
+#notifications:
+
+  # Email
+#  - provider: Email
+#    to:
+#      - user1@email.com
+#      - user2@email.com
+#    subject: 'Build {{status}}'                  # optional
+#    message: "{{message}}, {{commitId}}, ..."    # optional
+#    on_build_status_changed: true
+
+  # Slack
+#  - provider: Slack
+#    incoming_webhook: http://incoming-webhook-url
+
+  # ...or using auth token
+
+#  - provider: Slack
+#    auth_token:
+#      secure: kBl9BlxvRMr9liHmnBs14A==
+#    channel: development
+#    template: "{message}, {commitId}, ..."

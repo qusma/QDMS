@@ -1,2 +1,6 @@
 language: csharp
 solution: QDMS.sln
+
+branches:
+  only:
+    - dotNetCore
