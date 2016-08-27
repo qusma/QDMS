@@ -452,10 +452,11 @@ namespace QDMSTest
                 Frequency = QDMS.BarSize.OneMinute,
                 StartingDate = new DateTime(2014, 1, 13),
                 EndingDate = new DateTime(2014, 1, 15),
-                RTHOnly = true
+                RTHOnly = true,
+                RequestID = 123
             };
 
-            int requestID = 0;
+            List<int> requestIds = new List<int>();
 
             _ibClientMock
                 .Setup(x => x.RequestHistoricalData(
@@ -468,14 +469,48 @@ namespace QDMSTest
                     It.IsAny<int>(),
                     It.IsAny<List<TagValue>>()))
                 .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>(
-                    (y, a, b, c, d, e, f, g) => requestID = y);
+                    (y, a, b, c, d, e, f, g) => requestIds.Add(y));
 
+            int histDataArrivalCounter = 0;
+            int errorReqId = -1;
+
+            _ibDatasource.Error += (e, s) => errorReqId = s.RequestID.Value;
+            _ibDatasource.HistoricalDataArrived += (e, s) => histDataArrivalCounter++;
 
             _ibDatasource.RequestHistoricalData(req);
 
-            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestID, (ErrorMessage)162, "Historical Market Data Service error message:HMDS query returned no data"));
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestIds[0], (ErrorMessage)162, "Historical Market Data Service error message:HMDS query returned no data"));
 
-            _ibClientMock.Verify(x => x.RequestHistoricalData(
+            //At this point only one of the subrequests has been given an error, so we get no reply yet
+            Assert.AreEqual(0, histDataArrivalCounter);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestIds[1], (ErrorMessage)162, "Historical Market Data Service error message:HMDS query returned no data"));
+
+            //Now both subrequests have been given an error, we expect to get an empty data set in return
+            Assert.AreEqual(1, histDataArrivalCounter);
+
+            //The error gives the id of the parent request, not any of the subrequests
+            Assert.AreEqual(123, errorReqId);
+        }
+
+        [Test]
+        public void HistoricalRequestsWithSubRequestReceivesErrorNoMarketPermissions()
+        {
+            var exchange = new Exchange { ID = 1, Name = "Ex", Timezone = "Pacific Standard Time" };
+            var req = new HistoricalDataRequest
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY", Exchange = exchange },
+                Frequency = QDMS.BarSize.OneMinute,
+                StartingDate = new DateTime(2014, 1, 13),
+                EndingDate = new DateTime(2014, 1, 15),
+                RTHOnly = true,
+                RequestID = 123
+            };
+
+            List<int> requestIds = new List<int>();
+
+            _ibClientMock
+                .Setup(x => x.RequestHistoricalData(
                     It.IsAny<int>(),
                     It.IsAny<Contract>(),
                     It.IsAny<DateTime>(),
@@ -483,8 +518,89 @@ namespace QDMSTest
                     It.IsAny<Krs.Ats.IBNet.BarSize>(),
                     It.IsAny<HistoricalDataType>(),
                     It.IsAny<int>(),
-                    It.IsAny<List<TagValue>>()),
-                    Times.Exactly(1));
+                    It.IsAny<List<TagValue>>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>(
+                    (y, a, b, c, d, e, f, g) => requestIds.Add(y));
+
+            int histDataArrivalCounter = 0;
+            int errorReqId = -1;
+
+            _ibDatasource.Error += (e, s) => errorReqId = s.RequestID.Value;
+            _ibDatasource.HistoricalDataArrived += (e, s) => histDataArrivalCounter++;
+
+            _ibDatasource.RequestHistoricalData(req);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestIds[0], (ErrorMessage)162, "Historical Market Data Service error message:No market data permissions"));
+
+            //At this point only one of the subrequests has been given an error, so we get no reply yet
+            Assert.AreEqual(0, histDataArrivalCounter);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestIds[1], (ErrorMessage)162, "Historical Market Data Service error message:No market data permissions"));
+
+            //Now both subrequests have been given an error, we expect to get an empty data set in return
+            Assert.AreEqual(1, histDataArrivalCounter);
+
+            //The error gives the id of the parent request, not any of the subrequests
+            Assert.AreEqual(123, errorReqId);
+        }
+
+        [Test]
+        public void HistoricalRequestsWithSubRequestDataPacingViolationResendWorksCorrectly()
+        {
+            var exchange = new Exchange { ID = 1, Name = "Ex", Timezone = "Pacific Standard Time" };
+            var req = new HistoricalDataRequest
+            {
+                Instrument = new Instrument { ID = 1, Symbol = "SPY", Exchange = exchange },
+                Frequency = QDMS.BarSize.OneMinute,
+                StartingDate = new DateTime(2014, 1, 13),
+                EndingDate = new DateTime(2014, 1, 15),
+                RTHOnly = true,
+                RequestID = 123
+            };
+
+            List<int> requestIds = new List<int>();
+
+            _ibClientMock
+                .Setup(x => x.RequestHistoricalData(
+                    It.IsAny<int>(),
+                    It.IsAny<Contract>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Krs.Ats.IBNet.BarSize>(),
+                    It.IsAny<HistoricalDataType>(),
+                    It.IsAny<int>(),
+                    It.IsAny<List<TagValue>>()))
+                .Callback<Int32, Contract, DateTime, String, BarSize, HistoricalDataType, Int32, List<TagValue>>(
+                    (y, a, b, c, d, e, f, g) => requestIds.Add(y));
+
+            int histDataArrivalCounter = 0;
+            int errorReqId = -1;
+            List<OHLCBar> data = null;
+
+            _ibDatasource.Error += (e, s) => errorReqId = s.RequestID.Value;
+            _ibDatasource.HistoricalDataArrived += (e, s) =>
+            {
+                data = s.Data;
+                histDataArrivalCounter++;
+            };
+
+            _ibDatasource.RequestHistoricalData(req);
+
+            _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestIds[0], (ErrorMessage)162, "Historical Market Data Service error message:Historical data request pacing violation"));
+
+            Thread.Sleep(25000);
+
+            //So at this point the sub-request has been given a data pacing violation, and the DS should have tried to re-send it
+
+            Assert.AreEqual(3, requestIds.Count);
+
+            //return the data
+            _ibClientMock.Raise(x => x.HistoricalData += null, new HistoricalDataEventArgs(requestIds[1], new DateTime(2014, 1, 14, 1, 0, 0), 1, 2, 0, 1, 0, 0, 0, false, 1, 1));
+            _ibClientMock.Raise(x => x.HistoricalData += null, new HistoricalDataEventArgs(requestIds[2], new DateTime(2014, 1, 14, 2, 0, 0), 1, 2, 0, 1, 0, 0, 0, false, 1, 1));
+
+            //and make sure it's sent up in the HistoricalDataArrived event properly
+            Assert.AreEqual(1, histDataArrivalCounter);
+            Assert.AreEqual(2, data.Count);
         }
     }
 }

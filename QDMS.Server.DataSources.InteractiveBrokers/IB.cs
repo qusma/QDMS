@@ -172,19 +172,12 @@ namespace QDMSServer.DataSources
                 {
                     if (_subRequestIDMap.ContainsKey(e.RequestId))
                     {
-                        _subRequestIDMap.Remove(e.RequestId);
-                        _subRequestCount[id]--;
-                        if (_subRequestCount[id] > 0)
+                        //If there are sub-requests, here we check if this is the last one
+                        requestComplete = ControlSubRequest(e.RequestId);
+
+                        if (requestComplete)
                         {
-                            //What happens here: this is a subrequest.
-                            //We check how many sub-requests in this group have been delivered.
-                            //if this is the last one, we want to call HistoricalDataRequestComplete()
-                            //otherwise there's more data to come, so we have to wait for it
-                            requestComplete = false;
-                        }
-                        else
-                        {
-                            //if it is complete, we'll need to sort the data because subrequests may not come in in order
+                            //If it was the last one, we need to order the data because sub-requests can arrive out of order
                             _arrivedHistoricalData[id] = _arrivedHistoricalData[id].OrderBy(x => x.DTOpen).ToList();
                         }
                     }
@@ -195,6 +188,40 @@ namespace QDMSServer.DataSources
                     HistoricalDataRequestComplete(id);
                 }
             }
+        }
+
+        /// <summary>
+        /// Control the dictionaries of subRequests
+        /// </summary>
+        /// <param name="subId">SubRequestID</param>
+        /// <returns>Returns true if the parent request is complete</returns>
+        private bool ControlSubRequest(int subId)
+        {
+            bool requestComplete = false;
+
+            lock (_subReqMapLock)
+            {
+                if (_subRequestIDMap.ContainsKey(subId))
+                {
+                    int originalID = _subRequestIDMap[subId];
+                    _subRequestIDMap.Remove(subId);
+                    _subRequestCount[originalID]--;
+                    if (_subRequestCount[originalID] > 0)
+                    {
+                        //What happens here: this is a subrequest.
+                        //We check how many sub-requests in this group have been delivered.
+                        //if this is the last one, we want to call HistoricalDataRequestComplete()
+                        //otherwise there's more data to come, so we have to wait for it
+                        requestComplete = false;
+                    }
+                    else
+                    {
+                        requestComplete = true;
+                    }
+                }
+            }
+
+            return requestComplete;
         }
 
         /// <summary>
@@ -352,20 +379,35 @@ namespace QDMSServer.DataSources
             else if ((int)e.ErrorCode == 162) //a historical data pacing violation
             {
                 //turns out that more than one error uses the same error code! What were they thinking?
-                if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:HMDS query returned no data"))
+                if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:HMDS query returned no data") ||
+                    e.ErrorMsg.StartsWith("Historical Market Data Service error message:No market data permissions"))
                 {
                     //no data returned = we return an empty data set
-                    RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
-                        _historicalDataRequests[e.TickerId],
-                        new List<OHLCBar>()));
+                    int origId;
+
+                    lock (_subReqMapLock)
+                    {
+                        //if the data is arriving for a sub-request, we must get the id of the original request first
+                        //otherwise it's just the same id
+                        origId = _subRequestIDMap.ContainsKey(e.TickerId)
+                                                    ? _subRequestIDMap[e.TickerId]
+                                                    : e.TickerId;
+                    }
+
+                    if (origId != e.TickerId)
+                    {
+                        //this is a subrequest - only complete the
+                        if (ControlSubRequest(e.TickerId))
+                        {
+                            HistoricalDataRequestComplete(origId);
+                        }
+                    }
+                    else
+                    {
+                        HistoricalDataRequestComplete(origId);
+                    }
                 }
-                else if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:No market data permissions"))
-                {
-                    //We don't have permission to view this data, return an empty data set
-                    RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(
-                        _historicalDataRequests[e.TickerId],
-                        new List<OHLCBar>()));
-                }
+
                 else
                 {
                     //simply a data pacing violation
@@ -404,18 +446,27 @@ namespace QDMSServer.DataSources
             var isHistorical = _historicalDataRequests.TryGetValue(e.TickerId, out histReq);
             if (isHistorical)
             {
-                errorArgs.ErrorMessage += string.Format(" Historical Req: {0} @ {1} From {2} To {3} - ID {4}",
+                int origId = _subRequestIDMap.ContainsKey(histReq.RequestID)
+                    ? _subRequestIDMap[histReq.RequestID]
+                    : histReq.RequestID;
+
+                errorArgs.ErrorMessage += string.Format(" Historical Req: {0} @ {1} From {2} To {3} - TickerId: {4}  ReqID: {5}",
                     histReq.Instrument.Symbol,
                     histReq.Frequency,
                     histReq.StartingDate,
                     histReq.EndingDate,
+                    e.TickerId,
                     histReq.RequestID);
+
+                errorArgs.RequestID = origId;
             }
             else if (_realTimeDataRequests.TryGetValue(e.TickerId, out rtReq)) //it's a real time request
             {
                 errorArgs.ErrorMessage += string.Format(" RT Req: {0} @ {1}",
                     rtReq.Instrument.Symbol,
                     rtReq.Frequency);
+
+                errorArgs.RequestID = rtReq.RequestID;
             }
 
             RaiseEvent(Error, this, errorArgs);
@@ -452,6 +503,7 @@ namespace QDMSServer.DataSources
                     lock (_subReqMapLock)
                     {
                         _requestCounter++;
+                        _historicalDataRequests.TryAdd(_requestCounter, subReq);
                         _subRequestIDMap.Add(_requestCounter, originalReqID);
                         SendHistoricalRequest(_requestCounter, subReq);
                     }
@@ -520,7 +572,8 @@ namespace QDMSServer.DataSources
         private HistoricalDataType GetDataType(Instrument instrument)
         {
             //when it comes to FOREX, IB doesn't return any data if you request Trades, you have to ask for Bid/Ask/Mid
-            if (instrument.Type == InstrumentType.Cash)
+            if (instrument.Type == InstrumentType.Cash ||
+                instrument.Type == InstrumentType.Commodity)
             {
                 return HistoricalDataType.Midpoint;
             }
@@ -615,14 +668,19 @@ namespace QDMSServer.DataSources
                 while (_historicalRequestQueue.Count > 0)
                 {
                     var requestID = _historicalRequestQueue.Dequeue();
+
                     var symbol = string.IsNullOrEmpty(_historicalDataRequests[requestID].Instrument.DatasourceSymbol)
                         ? _historicalDataRequests[requestID].Instrument.Symbol
                         : _historicalDataRequests[requestID].Instrument.DatasourceSymbol;
 
-                    RequestHistoricalData(_historicalDataRequests[requestID]);
-                    Log(LogLevel.Info, string.Format("IB Repeating historical data request for {0} @ {1}",
+                    // We repeat the request _with the same id_ as used previously. This means the previous
+                    // sub request mapping will still work
+                    SendHistoricalRequest(requestID, _historicalDataRequests[requestID]);
+
+                    Log(LogLevel.Info, string.Format("IB Repeating historical data request for {0} @ {1} with ID {2}",
                             symbol,
-                            _historicalDataRequests[requestID].Frequency));
+                            _historicalDataRequests[requestID].Frequency,
+                            requestID));
                 }
             }
         }
