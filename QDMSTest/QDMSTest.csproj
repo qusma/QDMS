@@ -153,6 +153,10 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
+      <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
+      <Name>QDMS.Server.DataSources.Quandl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj">
       <Project>{723afac2-099b-410f-9d32-fe34611239e3}</Project>
       <Name>QDMS.Server.DataSources.InteractiveBrokers</Name>

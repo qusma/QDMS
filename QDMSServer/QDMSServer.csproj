@@ -260,7 +260,6 @@
     <Compile Include="CheckBoxTag.cs" />
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
-    <Compile Include="DataSources\Quandl.cs" />
     <Compile Include="DataStorageFactory.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -272,7 +271,6 @@
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
-    <Compile Include="Utils\QuandlUtils.cs" />
     <Compile Include="Utils\Seed.cs" />
     <Compile Include="Utils\SqlServerBackup.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
@@ -485,6 +483,10 @@
     <ProjectReference Include="..\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
       <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
       <Name>QDMS.Server.DataSources.FRED</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
+      <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
+      <Name>QDMS.Server.DataSources.Quandl</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj">
       <Project>{723afac2-099b-410f-9d32-fe34611239e3}</Project>
