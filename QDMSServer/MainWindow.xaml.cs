@@ -48,7 +48,7 @@ namespace QDMSServer
 
         public ObservableCollection<Instrument> Instruments { get; set; }
 
-        public ObservableCollection<LogEventInfo> LogMessages { get; set; }
+        public ConcurrentNotifierBlockingList<LogEventInfo> LogMessages { get; set; }
 
         public MainWindow()
         {
@@ -82,14 +82,14 @@ namespace QDMSServer
                 }
             }
 
-            LogMessages = new ObservableCollection<LogEventInfo>();
+            LogMessages = new ConcurrentNotifierBlockingList<LogEventInfo>();
 
             //target is where the log managers send their logs, here we grab the memory target which has a Subject to observe
             var target = LogManager.Configuration.AllTargets.Single(x => x.Name == "myTarget") as MemoryTarget;
 
             //we subscribe to the messages and send them all to the LogMessages collection
             if (target != null)
-                target.Messages.Subscribe(msg => LogMessages.Add(msg));
+                target.Messages.Subscribe(msg => LogMessages.TryAdd(msg));
 
             //build the instruments grid context menu
             //we want a button for each BarSize enum value in the UpdateFreqSubMenu menu
