@@ -29,8 +29,8 @@ namespace QDMSServer
             }
             catch (Exception ex)
             {
+                Hide();
                 _logger.Log(LogLevel.Error, ex.Message);
-                Close();
                 return;
             }
 
@@ -38,7 +38,7 @@ namespace QDMSServer
 
             InitializeComponent();
 
-            ShowDialog();
+            Show();
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)

@@ -40,7 +40,6 @@ namespace QDMSServer.ViewModels
 
             Observable
                 .FromEventPattern<ConnectionClosedEventArgs>(_client, "ConnectionClosed")
-                .ObserveOnDispatcher()
                 .Subscribe(e => _logger.Warn("IB Instrument Adder connection closed."));
 
             Observable
@@ -49,7 +48,6 @@ namespace QDMSServer.ViewModels
 
             Observable
                 .FromEventPattern<ErrorEventArgs>(_client, "Error")
-                .ObserveOnDispatcher()
                 .Subscribe(e =>
                 {
                     if (e.EventArgs.ErrorMsg != "No security definition has been found for the request")
@@ -167,8 +165,7 @@ namespace QDMSServer.ViewModels
             }
             else
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                    _logger.Error("Could not find exchange in database: " + e.ContractDetails.Summary.Exchange));
+                _logger.Error("Could not find exchange in database: " + e.ContractDetails.Summary.Exchange);
                 return null;
             }
 
@@ -180,8 +177,7 @@ namespace QDMSServer.ViewModels
             }
             else if (!string.IsNullOrEmpty(e.ContractDetails.Summary.PrimaryExchange))
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                    _logger.Error("Could not find exchange in database: " + e.ContractDetails.Summary.PrimaryExchange));
+                _logger.Error("Could not find exchange in database: " + e.ContractDetails.Summary.PrimaryExchange);
                 return null;
             }
             return instrument;
@@ -315,7 +311,7 @@ namespace QDMSServer.ViewModels
                     _dialogService.ShowMessageAsync(this, "Error", ex.Message);
                 }
 
-                Application.Current.Dispatcher.Invoke(() => _logger.Log(NLog.LogLevel.Warn, ex, "Error adding instrument"));
+                _logger.Log(NLog.LogLevel.Warn, ex, "Error adding instrument");
             }
             return false;
         }
