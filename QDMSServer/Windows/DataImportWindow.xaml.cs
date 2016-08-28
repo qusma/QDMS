@@ -260,6 +260,20 @@ namespace QDMSServer
                          }
                         break;
 
+                    case "DateTimeOpen":
+                        DateTime tmpDTOpen;
+                        success = DateTime.TryParseExact(
+                            items[i], DateTimeFormatTextBox.Text, CultureInfo.InvariantCulture, DateTimeStyles.None, out tmpDTOpen);
+                        if (!success)
+                        {
+                            throw new Exception("Incorrect datetime format.");
+                        }
+                        else
+                        {
+                            bar.DTOpen = new DateTime(tmpDTOpen.Ticks);
+                        }
+                        break;
+
                     case "Time":
                         DateTime tmpTS;
                         success = DateTime.TryParseExact(
@@ -540,6 +554,10 @@ namespace QDMSServer
                 for (int i = 0; i < bars.Count; i++)
                 {
                     bars[i].DT = TimeZoneInfo.ConvertTimeFromUtc(bars[i].DT, tzInfo);
+                    if (bars[i].DTOpen.HasValue)
+                    {
+                        bars[i].DTOpen = TimeZoneInfo.ConvertTimeFromUtc(bars[i].DTOpen.Value, tzInfo);
+                    }
                 }
             }
             else if (TimezoneComboBox.Text == "Local" && (Data.Columns.Contains("Time") || Data.Columns.Contains("DateTime")))
@@ -547,6 +565,10 @@ namespace QDMSServer
                 for (int i = 0; i < bars.Count; i++)
                 {
                     bars[i].DT = TimeZoneInfo.ConvertTime(bars[i].DT, TimeZoneInfo.Local, tzInfo);
+                    if (bars[i].DTOpen.HasValue)
+                    {
+                        bars[i].DTOpen = TimeZoneInfo.ConvertTime(bars[i].DTOpen.Value, TimeZoneInfo.Local, tzInfo);
+                    }
                 }
             }
         }
