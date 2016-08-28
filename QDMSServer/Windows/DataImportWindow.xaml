@@ -46,6 +46,7 @@
                     <MenuItem Name="DateBtn" Header="Date"  Click="SetColumnType_ItemClick" />
                     <MenuItem Name="TimeBtn" Header="Time" Click="SetColumnType_ItemClick" />
                     <MenuItem Name="DateTimeBtn" Header="DateTime" Click="SetColumnType_ItemClick" />
+                    <MenuItem Name="DateTimeOpenBtn" Header="DateTimeOpen" Click="SetColumnType_ItemClick" />
                     <MenuItem Name="OpenBtn" Header="Open" Click="SetColumnType_ItemClick" />
                     <MenuItem Name="HighBtn" Header="High" Click="SetColumnType_ItemClick" />
                     <MenuItem Name="LowBtn" Header="Low" Click="SetColumnType_ItemClick" />

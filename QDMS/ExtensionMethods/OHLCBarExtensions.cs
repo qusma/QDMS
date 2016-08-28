@@ -22,6 +22,7 @@ namespace QDMS
                 //write header first
                 var headerFields = new List<string>
                 {
+                    "DateTime Open",
                     "Date",
                     "Time",
                     "Open",
@@ -42,7 +43,7 @@ namespace QDMS
 
                 foreach (OHLCBar bar in data)
                 {
-                    file.WriteLine("{0:yyyy-MM-dd},{1:HH:mm:ss.fff},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}",
+                    file.WriteLine("{14},{0:yyyy-MM-dd},{1:HH:mm:ss.fff},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}",
                         bar.Date,
                         bar.Date,
                         bar.Open,
@@ -56,7 +57,8 @@ namespace QDMS
                         bar.AdjOpen,
                         bar.AdjHigh,
                         bar.AdjLow,
-                        bar.AdjClose);
+                        bar.AdjClose,
+                        bar.DTOpen);
                 }
             }
         }
