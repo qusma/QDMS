@@ -600,7 +600,8 @@ namespace QDMSServer
 
                 //this next check here is necessary for the time-based switchover to work after weekends or holidays
                 if (cf.RolloverType == ContinuousFuturesRolloverType.Time &&
-                    MyUtils.BusinessDaysBetween(currentDate, frontFuture.Expiration.Value, calendar) <= cf.RolloverDays)
+                    (frontFuture.Expiration.Value < currentDate ||
+                    MyUtils.BusinessDaysBetween(currentDate, frontFuture.Expiration.Value, calendar) <= cf.RolloverDays))
                 {
                     switchContract = true;
                 }
