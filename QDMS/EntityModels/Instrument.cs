@@ -154,6 +154,10 @@ namespace QDMS
         [ProtoMember(29)]
         public ContinuousFuture ContinuousFuture { get; set; }
 
+        [ProtoMember(30)]
+        [MaxLength(20)]
+        public string TradingClass { get; set; }
+
         [NotMapped]
         public string TagsAsString
         {
