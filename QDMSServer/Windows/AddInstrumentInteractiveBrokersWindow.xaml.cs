@@ -38,7 +38,7 @@ namespace QDMSServer
 
             InitializeComponent();
 
-            Show();
+            ShowDialog();
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)
