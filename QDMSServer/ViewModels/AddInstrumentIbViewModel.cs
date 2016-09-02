@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
@@ -66,7 +67,7 @@ namespace QDMSServer.ViewModels
             {
                 _thisDS = context.Datasources.First(x => x.Name == "Interactive Brokers");
 
-                foreach (Exchange e in context.Exchanges)
+                foreach (Exchange e in context.Exchanges.Include(x => x.Sessions))
                 {
                     Exchanges.Add(e.Name);
                     _exchanges.Add(e.Name, e);
