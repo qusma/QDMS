@@ -441,19 +441,23 @@ namespace QDMSServer
                 futures = futures.Where(x => _data[new KeyValuePair<int, BarSize>(x.ID.Value, request.Frequency)].Count > 0).ToList();
             }
 
+            if (futures.Count == 0)
+            {
+                Log(LogLevel.Warn, "No data found");
+
+                if (raiseDataEvent)
+                {
+                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, new List<OHLCBar>()));
+                }
+
+                return null;
+            }
+
             var cf = request.Instrument.ContinuousFuture;
 
             Instrument frontFuture = futures.FirstOrDefault();
             Instrument backFuture = futures.ElementAt(1);
 
-            if (frontFuture == null)
-            {
-                if (raiseDataEvent)
-                {
-                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, new List<OHLCBar>()));
-                }
-                return null;
-            }
 
             //sometimes the contract will be based on the Xth month
             //this is where we keep track of the actual contract currently being used
