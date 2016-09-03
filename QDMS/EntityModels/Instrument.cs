@@ -254,7 +254,8 @@ namespace QDMS
                 Sessions = Sessions == null ? null : Sessions.Select(x => (InstrumentSession)x.Clone()).ToList(),
                 SessionsSource = SessionsSource,
                 SessionTemplateID = SessionTemplateID,
-                DatasourceSymbol = DatasourceSymbol
+                DatasourceSymbol = DatasourceSymbol,
+                TradingClass = TradingClass
             };
 
             if (ContinuousFuture != null)
