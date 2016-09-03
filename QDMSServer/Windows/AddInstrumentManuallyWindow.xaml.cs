@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -143,7 +144,7 @@ namespace QDMSServer
 
             Exchanges = new ObservableCollection<Exchange>();
 
-            var exchangeList = _context.Exchanges.AsEnumerable().OrderBy(x => x.Name);
+            var exchangeList = _context.Exchanges.Include(x => x.Sessions).AsEnumerable().OrderBy(x => x.Name);
             foreach (Exchange e in exchangeList)
             {
                 Exchanges.Add(e);

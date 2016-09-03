@@ -87,6 +87,9 @@ namespace QDMSServer
             //target is where the log managers send their logs, here we grab the memory target which has a Subject to observe
             var target = LogManager.Configuration.AllTargets.Single(x => x.Name == "myTarget") as MemoryTarget;
 
+            //Log unhandled exceptions
+            AppDomain.CurrentDomain.UnhandledException += AppDomain_CurrentDomain_UnhandledException;
+
             //we subscribe to the messages and send them all to the LogMessages collection
             if (target != null)
                 target.Messages.Subscribe(msg => LogMessages.TryAdd(msg));
@@ -222,6 +225,12 @@ namespace QDMSServer
             entityContext.Dispose();
 
             ShowChangelog();
+        }
+
+        private void AppDomain_CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger logger = LogManager.GetCurrentClassLogger();
+            logger.Error((Exception)e.ExceptionObject, "Unhandled exception");
         }
 
         private void ShowChangelog()

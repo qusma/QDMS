@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -47,7 +48,7 @@ namespace QDMSServer
             using (var entityContext = new MyDBContext())
             {
                 _thisDS = entityContext.Datasources.First(x => x.Name == "Quandl");
-                foreach (Exchange e in entityContext.Exchanges.AsEnumerable())
+                foreach (Exchange e in entityContext.Exchanges.Include(x => x.Sessions))
                 {
                     Exchanges.Add(e);
                 }
