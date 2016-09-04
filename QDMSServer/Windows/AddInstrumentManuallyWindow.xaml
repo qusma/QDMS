@@ -7,7 +7,7 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
     x:Class="QDMSServer.AddInstrumentManuallyWindow"
-    Title="Add Instrument: Manual" Height="713.55" Width="418"
+    Title="Add Instrument: Manual" Height="750" Width="418"
     ResizeMode="NoResize"
     BorderBrush="Black"
     BorderThickness="1"
@@ -70,6 +70,7 @@
                         <RowDefinition Height="26"/>
                         <RowDefinition Height="26"/>
                         <RowDefinition Height="26"/>
+                        <RowDefinition Height="26"/>
                         <RowDefinition Height="549*"/>
 
                         <RowDefinition Height="25"/>
@@ -80,17 +81,21 @@
                     <TextBox Grid.Row="0" Grid.Column="1"  x:Name="SymbolTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Symbol}" VerticalAlignment="Top" Width="166"/>
 
                     <Label Grid.Row="1" Grid.Column="0" Content="Underlying Symbol:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="125"/>
-                    <TextBox Grid.Row="1" Grid.Column="1"  x:Name="UnderlyingSymbolTextBox" HorizontalAlignment="Left" Height="25" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.UnderlyingSymbol}" VerticalAlignment="Top" Width="166" Grid.RowSpan="2"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"  x:Name="UnderlyingSymbolTextBox" HorizontalAlignment="Left" Height="25" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.UnderlyingSymbol}" VerticalAlignment="Top" Width="166"/>
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="Data Source Symbol:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="125" Grid.RowSpan="2"/>
-                    <TextBox Grid.Row="2" Grid.Column="1"  x:Name="DatasourceSymbolTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.DatasourceSymbol}" VerticalAlignment="Top" Width="166" Grid.RowSpan="2"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="Data Source Symbol:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="125"/>
+                    <TextBox Grid.Row="2" Grid.Column="1"  x:Name="DatasourceSymbolTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.DatasourceSymbol}" VerticalAlignment="Top" Width="166"/>
 
 
                     <Label Grid.Row="3" Grid.Column="0" Content="Name:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="3" Grid.Column="1"  x:Name="NameTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Name}" VerticalAlignment="Top" Width="166"/>
+                    <TextBox Grid.Row="3" Grid.Column="1"  x:Name="NameTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Name}" VerticalAlignment="Top" Width="166" />
+                    
+                    <Label Grid.Row="4" Grid.Column="0" Content="Trading Class:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="4" Grid.Column="1"  x:Name="TradingClassTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.TradingClass}" VerticalAlignment="Top" Width="166" />
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="Exchange:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <ComboBox SelectionChanged="ExchangeComboBox_OnSelectedIndexChanged"  IsEnabled="{Binding IsChecked, Converter={StaticResource InvertBooleanConverter}, ElementName=ExchangeNullCheckBox}" Grid.Row="4" Grid.Column="1"  x:Name="ExchangeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" ItemsSource="{Binding Exchanges}" DisplayMemberPath="Name" VerticalAlignment="Top" Width="120" >
+
+                    <Label Grid.Row="5" Grid.Column="0" Content="Exchange:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <ComboBox SelectionChanged="ExchangeComboBox_OnSelectedIndexChanged"  IsEnabled="{Binding IsChecked, Converter={StaticResource InvertBooleanConverter}, ElementName=ExchangeNullCheckBox}" Grid.Row="5" Grid.Column="1"  x:Name="ExchangeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" ItemsSource="{Binding Exchanges}" DisplayMemberPath="Name" VerticalAlignment="Top" Width="120" >
                         <ComboBox.SelectedItem>
                             <MultiBinding Converter="{StaticResource ExchangeMultiValueConverter}">
                                 <Binding Path="TheInstrument.Exchange" Mode="TwoWay" />
@@ -101,10 +106,10 @@
                     <!--IsEnabled="{Binding ElementName=ExchangeRadioBtn,Path=IsChecked,Converter={StaticResource InvertBooleanConverter}}" -->
                     <CheckBox x:Name="ExchangeNullCheckBox" 
                               IsChecked="{Binding TheInstrument.ExchangeID, Converter={StaticResource IsNullConverter}, Mode=OneWay}" 
-                              Content="Null" Grid.Column="1" HorizontalAlignment="Left" Margin="136,6,0,0" Grid.Row="4" VerticalAlignment="Top"/>
+                              Content="Null" Grid.Column="1" HorizontalAlignment="Left" Margin="136,6,0,0" Grid.Row="5" VerticalAlignment="Top"/>
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="Primary Exchange:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="125"/>
-                    <ComboBox IsEnabled="{Binding IsChecked, Converter={StaticResource InvertBooleanConverter}, ElementName=PrimaryExchangeNullCheckBox}" Grid.Row="5" Grid.Column="1"  x:Name="PrimaryExchangeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0"  ItemsSource="{Binding Exchanges}" DisplayMemberPath="Name" VerticalAlignment="Top" Width="120">
+                    <Label Grid.Row="6" Grid.Column="0" Content="Primary Exchange:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="125"/>
+                    <ComboBox IsEnabled="{Binding IsChecked, Converter={StaticResource InvertBooleanConverter}, ElementName=PrimaryExchangeNullCheckBox}" Grid.Row="6" Grid.Column="1"  x:Name="PrimaryExchangeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0"  ItemsSource="{Binding Exchanges}" DisplayMemberPath="Name" VerticalAlignment="Top" Width="120">
                         <ComboBox.SelectedItem>
                             <MultiBinding Converter="{StaticResource ExchangeMultiValueConverter}">
                                 <Binding Path="TheInstrument.PrimaryExchange" Mode="TwoWay" />
@@ -112,43 +117,43 @@
                             </MultiBinding>
                         </ComboBox.SelectedItem>
                     </ComboBox>
-                    <CheckBox x:Name="PrimaryExchangeNullCheckBox" IsChecked="{Binding TheInstrument.PrimaryExchangeID, Converter={StaticResource IsNullConverter}, Mode=OneWay}" Content="Null" Grid.Column="1" HorizontalAlignment="Left" Margin="136,6,0,0" Grid.Row="5" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="PrimaryExchangeNullCheckBox" IsChecked="{Binding TheInstrument.PrimaryExchangeID, Converter={StaticResource IsNullConverter}, Mode=OneWay}" Content="Null" Grid.Column="1" HorizontalAlignment="Left" Margin="136,6,0,0" Grid.Row="6" VerticalAlignment="Top"/>
 
 
-                    <Label Grid.Row="6" Grid.Column="0" Content="Type:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <ComboBox Grid.Row="6" Grid.Column="1"  x:Name="TypeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0"  Text="{Binding TheInstrument.Type}" VerticalAlignment="Top" Width="120" />
+                    <Label Grid.Row="7" Grid.Column="0" Content="Type:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <ComboBox Grid.Row="7" Grid.Column="1"  x:Name="TypeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0"  Text="{Binding TheInstrument.Type}" VerticalAlignment="Top" Width="120" />
 
-                    <Label Grid.Row="7" Grid.Column="0" Content="Option Type:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <ComboBox Grid.Row="7" Grid.Column="1" IsEnabled="{Binding IsChecked, Converter={StaticResource InvertBooleanConverter}, ElementName=OptionTypeNullCheckBox}"  x:Name="OptionTypeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" SelectedItem="{Binding TheInstrument.OptionType}" VerticalAlignment="Top" Width="120" />
-                    <CheckBox Click="OptionTypeNullCheckBox_Click" x:Name="OptionTypeNullCheckBox" IsChecked="{Binding TheInstrument.OptionType, Converter={StaticResource IsNullConverter}, Mode=OneWay}" Content="Null" Grid.Column="1" HorizontalAlignment="Left" Margin="136,6,0,0" Grid.Row="7" VerticalAlignment="Top"/>
+                    <Label Grid.Row="8" Grid.Column="0" Content="Option Type:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <ComboBox Grid.Row="8" Grid.Column="1" IsEnabled="{Binding IsChecked, Converter={StaticResource InvertBooleanConverter}, ElementName=OptionTypeNullCheckBox}"  x:Name="OptionTypeComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" SelectedItem="{Binding TheInstrument.OptionType}" VerticalAlignment="Top" Width="120" />
+                    <CheckBox Click="OptionTypeNullCheckBox_Click" x:Name="OptionTypeNullCheckBox" IsChecked="{Binding TheInstrument.OptionType, Converter={StaticResource IsNullConverter}, Mode=OneWay}" Content="Null" Grid.Column="1" HorizontalAlignment="Left" Margin="136,6,0,0" Grid.Row="8" VerticalAlignment="Top"/>
 
 
-                    <Label Grid.Row="8" Grid.Column="0" Content="Multiplier:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="8" Grid.Column="1"  x:Name="MultiplierTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.Multiplier, Converter={StaticResource StringToNullableConverter}}" VerticalAlignment="Top" Width="120"/>
+                    <Label Grid.Row="9" Grid.Column="0" Content="Multiplier:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="9" Grid.Column="1"  x:Name="MultiplierTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.Multiplier, Converter={StaticResource StringToNullableConverter}}" VerticalAlignment="Top" Width="120"/>
 
-                    <Label Grid.Row="9" Grid.Column="0" Content="Expiration:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <DatePicker Grid.Row="9" Grid.Column="1" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" SelectedDate="{Binding TheInstrument.Expiration, Converter={StaticResource StringToNullableConverter},StringFormat=\'dd/MM/yyyy\'}" VerticalAlignment="Top" Width="120" />
+                    <Label Grid.Row="10" Grid.Column="0" Content="Expiration:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <DatePicker Grid.Row="10" Grid.Column="1" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" SelectedDate="{Binding TheInstrument.Expiration, Converter={StaticResource StringToNullableConverter},StringFormat=\'dd/MM/yyyy\'}" VerticalAlignment="Top" Width="120" />
 
-                    <Label Grid.Row="10" Grid.Column="0" Content="Strike:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="10" Grid.Column="1"  x:Name="StrikeTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.Strike, Converter={StaticResource StringToNullableConverter}}" VerticalAlignment="Top" Width="120"/>
+                    <Label Grid.Row="11" Grid.Column="0" Content="Strike:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="11" Grid.Column="1"  x:Name="StrikeTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.Strike, Converter={StaticResource StringToNullableConverter}}" VerticalAlignment="Top" Width="120"/>
 
-                    <Label Grid.Row="11" Grid.Column="0" Content="Currency:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="11" Grid.Column="1"  x:Name="CurrencyTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.Currency}" VerticalAlignment="Top" Width="120"/>
+                    <Label Grid.Row="12" Grid.Column="0" Content="Currency:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="12" Grid.Column="1"  x:Name="CurrencyTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.Currency}" VerticalAlignment="Top" Width="120"/>
 
-                    <Label Grid.Row="12" Grid.Column="0" Content="Min Tick:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="12" Grid.Column="1"  x:Name="MinTickTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.MinTick, Converter={StaticResource StringToNullableConverter}}" VerticalAlignment="Top" Width="120"/>
+                    <Label Grid.Row="13" Grid.Column="0" Content="Min Tick:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="13" Grid.Column="1"  x:Name="MinTickTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="Wrap" Text="{Binding TheInstrument.MinTick, Converter={StaticResource StringToNullableConverter}}" VerticalAlignment="Top" Width="120"/>
 
-                    <Label Grid.Row="13" Grid.Column="0" Content="Industry:" HorizontalAlignment="Left" Margin="10,0,0,0" Height="25" VerticalAlignment="Top" Width="95"/>
-                    <TextBox Grid.Row="13" Grid.Column="1"  x:Name="IndustryTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Industry}" VerticalAlignment="Top" Width="166"/>
+                    <Label Grid.Row="14" Grid.Column="0" Content="Industry:" HorizontalAlignment="Left" Margin="10,0,0,0" Height="25" VerticalAlignment="Top" Width="95"/>
+                    <TextBox Grid.Row="14" Grid.Column="1"  x:Name="IndustryTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Industry}" VerticalAlignment="Top" Width="166"/>
 
-                    <Label Grid.Row="14" Grid.Column="0" Content="Category:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="14" Grid.Column="1"  x:Name="CategoryTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Category}" VerticalAlignment="Top" Width="166"/>
+                    <Label Grid.Row="15" Grid.Column="0" Content="Category:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="15" Grid.Column="1"  x:Name="CategoryTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Category}" VerticalAlignment="Top" Width="166"/>
 
-                    <Label Grid.Row="15" Grid.Column="0" Content="Subcategory:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="15" Grid.Column="1"  x:Name="SubcategoryTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Subcategory}" VerticalAlignment="Top" Width="166"/>
+                    <Label Grid.Row="16" Grid.Column="0" Content="Subcategory:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="16" Grid.Column="1"  x:Name="SubcategoryTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.Subcategory}" VerticalAlignment="Top" Width="166"/>
 
-                    <Label Grid.Row="16" Grid.Column="0" Content="Tags:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <ScrollViewer  Grid.Row="16" Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="10,5,0,10" Width="166" HorizontalAlignment="Left">
+                    <Label Grid.Row="17" Grid.Column="0" Content="Tags:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <ScrollViewer  Grid.Row="17" Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="10,5,0,10" Width="166" HorizontalAlignment="Left">
                         <ItemsControl  x:Name="TagsListBox" FontSize="10" ItemsSource="{Binding Tags}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -157,8 +162,8 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-                    <Label Grid.Row="17" Grid.Column="0" Content="Datasource:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <ComboBox Grid.Row="17" Grid.Column="1" DisplayMemberPath="Name" x:Name="DatasourceComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0"
+                    <Label Grid.Row="18" Grid.Column="0" Content="Datasource:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <ComboBox Grid.Row="18" Grid.Column="1" DisplayMemberPath="Name" x:Name="DatasourceComboBox" IsTextSearchEnabled="True" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0"
 						VerticalAlignment="Top" Width="166">
                         <ComboBox.SelectedItem>
                             <MultiBinding Converter="{StaticResource DatasourceMultiValueConverter}">
@@ -168,8 +173,8 @@
                         </ComboBox.SelectedItem>
                     </ComboBox>
 
-                    <Label Grid.Row="18" Grid.Column="0" Content="Valid Exchanges:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
-                    <TextBox Grid.Row="18" Grid.Column="1"  x:Name="ValidExchangesTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.ValidExchanges}" VerticalAlignment="Top" Width="166"/>
+                    <Label Grid.Row="19" Grid.Column="0" Content="Valid Exchanges:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Height="25" Width="95"/>
+                    <TextBox Grid.Row="19" Grid.Column="1"  x:Name="ValidExchangesTextBox" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" TextWrapping="NoWrap" Text="{Binding TheInstrument.ValidExchanges}" VerticalAlignment="Top" Width="166"/>
 
                 </Grid>
             </TabItem>
@@ -262,7 +267,7 @@
                         <RowDefinition Height="125"/>
                         <RowDefinition Height="87*"/>
                     </Grid.RowDefinitions>
-  
+
                     <Label Grid.Row="0"  Content="Root Symbol:" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Height="23" Width="109"/>
                     <ComboBox Grid.Row="0"  Name="RootSymbolComboBox" HorizontalAlignment="Left" Margin="120,10,0,0" 
                               SelectedItem="{Binding TheInstrument.ContinuousFuture.UnderlyingSymbol}"

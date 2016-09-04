@@ -192,7 +192,8 @@ namespace QDMSServer
                 Category = contract.Category,
                 Subcategory = contract.Subcategory,
                 IsContinuousFuture = false,
-                ValidExchanges = contract.ValidExchanges
+                ValidExchanges = contract.ValidExchanges,
+                TradingClass = contract.Summary.TradingClass
             };
 
             if (!string.IsNullOrEmpty(contract.Summary.PrimaryExchange))
@@ -229,6 +230,9 @@ namespace QDMSServer
                 instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
                 SecurityIdType.None,
                 string.Empty);
+
+            contract.TradingClass = instrument.TradingClass;
+
             contract.IncludeExpired = instrument.Expiration.HasValue; //only set IncludeExpired to true if the contract can actually expire
 
             if (instrument.Strike.HasValue && instrument.Strike.Value != 0)

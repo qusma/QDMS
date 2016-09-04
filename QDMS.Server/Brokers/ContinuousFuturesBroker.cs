@@ -944,13 +944,16 @@ namespace QDMSServer
             }
             selectedDate = selectedDate.AddMonths(count);
 
+            string tradingClass = request.Instrument.TradingClass;
+
             //we got the month we want! find the contract
             Expression<Func<Instrument, bool>> searchFunc = 
                 x =>
                     x.Expiration.HasValue &&
                     x.Expiration.Value.Month == selectedDate.Month &&
                     x.Expiration.Value.Year == selectedDate.Year &&
-                    x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol;
+                    x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol &&
+                    (string.IsNullOrEmpty(tradingClass) || x.TradingClass == tradingClass);
 
             var contract = _instrumentMgr.FindInstruments(searchFunc).FirstOrDefault();
 

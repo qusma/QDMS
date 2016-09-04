@@ -154,6 +154,10 @@ namespace QDMS
         [ProtoMember(29)]
         public ContinuousFuture ContinuousFuture { get; set; }
 
+        [ProtoMember(30)]
+        [MaxLength(20)]
+        public string TradingClass { get; set; }
+
         [NotMapped]
         public string TagsAsString
         {
@@ -250,7 +254,8 @@ namespace QDMS
                 Sessions = Sessions == null ? null : Sessions.Select(x => (InstrumentSession)x.Clone()).ToList(),
                 SessionsSource = SessionsSource,
                 SessionTemplateID = SessionTemplateID,
-                DatasourceSymbol = DatasourceSymbol
+                DatasourceSymbol = DatasourceSymbol,
+                TradingClass = TradingClass
             };
 
             if (ContinuousFuture != null)

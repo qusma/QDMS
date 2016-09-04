@@ -81,6 +81,10 @@
     <Compile Include="Migrations\201404201506394_AddBarDTOpen.Designer.cs">
       <DependentUpon>201404201506394_AddBarDTOpen.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201609021302442_TradingClass.cs" />
+    <Compile Include="Migrations\201609021302442_TradingClass.Designer.cs">
+      <DependentUpon>201609021302442_TradingClass.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
     <Compile Include="MyDBContext.cs" />
@@ -116,6 +120,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201404201506394_AddBarDTOpen.resx">
       <DependentUpon>201404201506394_AddBarDTOpen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609021302442_TradingClass.resx">
+      <DependentUpon>201609021302442_TradingClass.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
