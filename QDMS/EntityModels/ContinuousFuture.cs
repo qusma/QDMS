@@ -78,40 +78,40 @@ namespace QDMS
         [ProtoMember(7)]
         public ContinuousFuturesAdjustmentMode AdjustmentMode { get; set; }
 
-        [ProtoMember(8)]
+        [ProtoMember(8, IsRequired = true)]
         public bool UseJan { get; set; }
 
-        [ProtoMember(9)]
+        [ProtoMember(9, IsRequired = true)]
         public bool UseFeb { get; set; }
 
-        [ProtoMember(10)]
+        [ProtoMember(10, IsRequired = true)]
         public bool UseMar { get; set; }
 
-        [ProtoMember(11)]
+        [ProtoMember(11, IsRequired = true)]
         public bool UseApr { get; set; }
 
-        [ProtoMember(12)]
+        [ProtoMember(12, IsRequired = true)]
         public bool UseMay { get; set; }
 
-        [ProtoMember(13)]
+        [ProtoMember(13, IsRequired = true)]
         public bool UseJun { get; set; }
 
-        [ProtoMember(14)]
+        [ProtoMember(14, IsRequired = true)]
         public bool UseJul { get; set; }
 
-        [ProtoMember(15)]
+        [ProtoMember(15, IsRequired = true)]
         public bool UseAug { get; set; }
 
-        [ProtoMember(16)]
+        [ProtoMember(16, IsRequired = true)]
         public bool UseSep { get; set; }
 
-        [ProtoMember(17)]
+        [ProtoMember(17, IsRequired = true)]
         public bool UseOct { get; set; }
 
-        [ProtoMember(18)]
+        [ProtoMember(18, IsRequired = true)]
         public bool UseNov { get; set; }
 
-        [ProtoMember(19)]
+        [ProtoMember(19, IsRequired = true)]
         public bool UseDec { get; set; }
 
         public bool MonthIsUsed(int month)

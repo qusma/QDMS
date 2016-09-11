@@ -129,6 +129,7 @@
     <Compile Include="QDMSServer\InstrumentsServerTest.cs" />
     <Compile Include="QDMSServer\RealTimeDataServerTest.cs" />
     <Compile Include="QDMSServer\RTHFilterTest.cs" />
+    <Compile Include="QDMS\ContinuousFutureTest.cs" />
     <Compile Include="QDMS\InstrumentTest.cs" />
     <Compile Include="QDMS\MyExtensionsTest.cs" />
     <Compile Include="QDMS\MyUtilsTest.cs" />
