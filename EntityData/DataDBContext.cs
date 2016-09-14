@@ -46,7 +46,7 @@ namespace EntityData
             modelBuilder.Entity<OHLCBar>().Property(x => x.AdjClose).HasPrecision(16, 8);
             modelBuilder.Entity<OHLCBar>().Property(x => x.Dividend).HasPrecision(16, 8);
             modelBuilder.Entity<OHLCBar>().Property(x => x.Split).HasPrecision(16, 8);
-            modelBuilder.Entity<OHLCBar>().HasKey(x => new { x.DT, x.InstrumentID, x.Frequency });
+            modelBuilder.Entity<OHLCBar>().HasKey(x => new { x.InstrumentID, x.Frequency, x.DT });
 
             modelBuilder.Entity<StoredDataInfo>().HasKey(x => new { x.InstrumentID, x.Frequency });
             modelBuilder.Entity<StoredDataInfo>().Property(x => x.EarliestDate).HasPrecision(3);
