@@ -36,7 +36,7 @@
                   IsTextSearchEnabled="True"
                   HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Margin="109,49,0,0"  Height="20" />
 
-        <ComboBox Grid.Row="0" ItemsSource="{Binding Exchanges}" Name="ExchangeBox" SelectedIndex="0" TextSearch.TextPath="Value"
+        <ComboBox Grid.Row="0" ItemsSource="{Binding Exchanges}" Name="ExchangeBox" SelectedIndex="0"
                         SelectedItem="{Binding SelectedExchange}"
                           HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Margin="109,80,0,0"  IsTextSearchEnabled="True"
                           Height="20" />
