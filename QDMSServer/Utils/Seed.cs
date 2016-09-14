@@ -1011,7 +1011,9 @@ namespace QDMSServer
                     new Exchange { Name = "NASDAQOM", LongName = "NASDAQ OMX", Timezone = "Eastern Standard Time" },
                     new Exchange { Name = "CBOE2", LongName = "CBOE C2", Timezone = "Central Standard Time" },
                     new Exchange { Name = "MIAX", LongName = "MIAX Options Exchange", Timezone = "Eastern Standard Time" },
-                    new Exchange { Name = "A", LongName = "American Stock Exchange", Timezone = "Eastern Standard Time" }
+                    new Exchange { Name = "A", LongName = "American Stock Exchange", Timezone = "Eastern Standard Time" },
+                    new Exchange { Name = "EDGX", LongName = "Bats EDGX Options Exchange", Timezone = "Eastern Standard Time" },
+                    new Exchange { Name = "MERCURY", LongName = "ISE Mercury", Timezone = "Eastern Standard Time" }
                 };
 
             foreach (Exchange e in exchanges)
