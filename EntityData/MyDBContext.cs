@@ -4,7 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure.Annotations;
 using EntityData.Migrations;
 using QDMS;
 
@@ -71,7 +73,82 @@ namespace EntityData
             modelBuilder.Entity<TemplateSession>().Property(x => x.OpeningTime).HasPrecision(0);
             modelBuilder.Entity<TemplateSession>().Property(x => x.ClosingTime).HasPrecision(0);
 
-            
+            string uniqueIndex = "IX_Unique";
+
+            modelBuilder.Entity<Instrument>().Property(t => t.Symbol)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute(uniqueIndex)
+                        {
+                            IsUnique = true,
+                            Order = 1
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<Instrument>().Property(t => t.Type)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute(uniqueIndex)
+                        {
+                            IsUnique = true,
+                            Order = 2
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<Instrument>().Property(t => t.DatasourceID)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute(uniqueIndex)
+                        {
+                            IsUnique = true,
+                            Order = 3
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<Instrument>().Property(t => t.ExchangeID)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute(uniqueIndex)
+                        {
+                            IsUnique = true,
+                            Order = 4
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<Instrument>().Property(t => t.Expiration)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute(uniqueIndex)
+                        {
+                            IsUnique = true,
+                            Order = 5
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<Instrument>().Property(t => t.Strike)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute(uniqueIndex)
+                        {
+                            IsUnique = true,
+                            Order = 6
+                        }
+                    )
+                );
+
+
+
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
     }
