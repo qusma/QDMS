@@ -209,7 +209,14 @@ namespace QDMSServer
                     if (e.Request.DataLocation == DataLocation.ExternalOnly)
                     {
                         //if the request specifies only fresh data, we don't want to go through local storage
-                        ReturnData(new HistoricalDataEventArgs(e.Request, e.Data));
+                        var data = e.Data;
+
+                        if (e.Request.AggregateTo.HasValue)
+                        {
+                            data = BarAggregator.Aggregate(e.Data, e.Request.AggregateTo.Value);
+                        }
+
+                        ReturnData(new HistoricalDataEventArgs(e.Request, data));
                     }
                     else
                     {
@@ -236,13 +243,16 @@ namespace QDMSServer
 
                         //we add half a bar to the request limit so that the data we get starts with the next one
                         DateTime correctedDateTime = e.Data[0].Date.Date.ToDateTime().AddMilliseconds(originalRequest.Frequency.ToTimeSpan().TotalMilliseconds / 2);
-                        storageData = _dataStorage.GetData(originalRequest.Instrument, originalRequest.StartingDate,
-                            correctedDateTime, originalRequest.Frequency);
+                        storageData = _dataStorage.GetData(originalRequest.Instrument, originalRequest.StartingDate, correctedDateTime, originalRequest.Frequency);
                     }
                 }
 
+                var data = originalRequest.AggregateTo.HasValue 
+                    ? BarAggregator.Aggregate(storageData.Concat(e.Data), originalRequest.AggregateTo.Value) 
+                    : storageData.Concat(e.Data).ToList();
+
                 //then send the data to the server through the event, so it can be send out to the client
-                ReturnData(new HistoricalDataEventArgs(e.Request, storageData.Concat(e.Data).ToList()));
+                ReturnData(new HistoricalDataEventArgs(e.Request, data));
 
                 Log(LogLevel.Info, string.Format("Pulled {0} data points from source {1} on instrument {2} and {3} points from local storage.",
                     e.Data.Count,

@@ -180,7 +180,7 @@ namespace QDMSTest
             _broker.RequestHistoricalData(request);
 
             _localStorageMock.Verify(x => x.GetStorageInfo(It.IsAny<int>(), It.IsAny<BarSize>()), Times.Never);
-            _localStorageMock.Verify(x => x.GetData(It.IsAny<Instrument>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<BarSize>()), Times.Never);
+            _localStorageMock.Verify(x => x.GetData(It.IsAny<Instrument>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<BarSize>(), It.IsAny<BarSize?>()), Times.Never);
         }
 
         [Test]
@@ -446,5 +446,53 @@ namespace QDMSTest
 
             Assert.Throws<Exception>(() =>_broker.RequestHistoricalData(request));
         }
+
+        [Test]
+        public void LocalOnlyRequestForBarsFromHigherFreqIsForwardedCorrectly()
+        {
+            Assert.IsTrue(false);
+            //TODO what if we let the database do the job for us? Seems like it's more naturally suited
+        }
+
+        [Test]
+        public void ExternalOnlyRequestForBarsFromHigherFreqIsForwardedCorrectly()
+        {
+            //the request needs to 
+            Assert.IsTrue(false);
+        }
+
+        [Test]
+        public void LocalAndExternalRequestForBarsFromHigherFreqIsForwardedCorrectly()
+        {
+            Assert.IsTrue(false);
+        }
+
+        [Test]
+        public void BarsAggregatedInHdbWhenDataNotSavedToDb()
+        {
+            var hdr = new HistoricalDataRequest
+            {
+                SaveDataToStorage = false
+            };
+
+            _broker.RequestHistoricalData(hdr);
+            //todo do we need separate cases for external/local/both?
+            Assert.IsTrue(false);
+        }
+
+        private List<OHLCBar> _fiveSecondBars = new List<OHLCBar>
+        {
+
+        };
+
+        private List<OHLCBar> _fiveMinuteBars = new List<OHLCBar>
+        {
+
+        };
+
+        //TODO: ExternalOnly
+        //TODO: Both and DoNotSave
+
+        //TODO what if we go half and half and data is not saved?
     }
 }

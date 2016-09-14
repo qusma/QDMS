@@ -10,13 +10,20 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    public class HistoricalDataRequest : ICloneable
+    public class HistoricalDataRequest
     {
         /// <summary>
         /// The frequency of the data.
         /// </summary>
         [ProtoMember(1, IsRequired = true)]
         public BarSize Frequency { get; set; }
+
+        /// <summary>
+        /// If this is set, the data will be aggregated from higher-frequency (<see cref="Frequency"/>) into lower-frequency (AggregateTo) bars.
+        /// Must be a lower frequency than <see cref="Frequency"/>.
+        /// </summary>
+        [ProtoMember(12)]
+        public BarSize? AggregateTo { get; set; }
 
         /// <summary>
         /// The instrument whose data you want.
@@ -108,7 +115,7 @@ namespace QDMS
         {
         }
 
-        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, DataLocation dataLocation = DataLocation.Both, bool saveToLocalStorage = true, bool rthOnly = true, int requestID = 0)
+        public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, DataLocation dataLocation = DataLocation.Both, bool saveToLocalStorage = true, bool rthOnly = true, int requestID = 0, BarSize? aggregateTo = null)
         {
             Frequency = frequency;
             Instrument = instrument;
@@ -118,6 +125,7 @@ namespace QDMS
             SaveDataToStorage = saveToLocalStorage;
             RTHOnly = rthOnly;
             RequestID = requestID;
+            AggregateTo = aggregateTo;//todo rename
         }
 
         /// <summary>
@@ -126,9 +134,9 @@ namespace QDMS
         /// <returns>
         /// A new object that is a copy of this instance.
         /// </returns>
-        public object Clone()
+        public HistoricalDataRequest Clone()
         {
-            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, DataLocation, SaveDataToStorage, RTHOnly, RequestID);
+            var clone = new HistoricalDataRequest(Instrument, Frequency, StartingDate, EndingDate, DataLocation, SaveDataToStorage, RTHOnly, RequestID, AggregateTo);
             clone.AssignedID = AssignedID;
             clone.IsSubrequestFor = IsSubrequestFor;
             clone.RequesterIdentity = RequesterIdentity;

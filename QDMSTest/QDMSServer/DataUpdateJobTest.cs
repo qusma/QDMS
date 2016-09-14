@@ -227,7 +227,7 @@ namespace QDMSTest
                         };
 
                         _localStorageMock
-                            .Setup(x => x.GetData(It.IsAny<Instrument>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<BarSize>()))
+                            .Setup(x => x.GetData(It.IsAny<Instrument>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<BarSize>(), It.IsAny<BarSize?>()))
                             .Returns(data);
                     });
 

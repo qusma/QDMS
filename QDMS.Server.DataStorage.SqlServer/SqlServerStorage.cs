@@ -113,12 +113,22 @@ namespace QDMSServer.DataSources
         /// <param name="startDate">Starting datetime.</param>
         /// <param name="endDate">Ending datetime.</param>
         /// <param name="frequency">Frequency.</param>
+        /// <param name="aggregateTo">If set, bars will be aggregated to this frequency</param>
         /// <returns></returns>
-        public List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency = BarSize.OneDay)
+        public List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency = BarSize.OneDay, BarSize? aggregateTo = null)
         {
+            if (aggregateTo.HasValue && frequency >= aggregateTo.Value) throw new ArgumentException("aggregateTo must be a lower frequency than frequency");
+
             SqlConnection connection;
             if (!TryConnect(out connection))
                 throw new Exception("Could not connect to database");
+
+
+            if (aggregateTo.HasValue)
+            {
+                //We want to construct bars using higher-frequency data
+                return AgggregateBarsFromHigherFreq(connection, instrument, startDate, endDate, frequency, aggregateTo.Value);
+            }
 
             using (var cmd = new SqlCommand("", connection))
             {
@@ -137,20 +147,75 @@ namespace QDMSServer.DataSources
                     {
                         var bar = new OHLCBar
                         {
-                            DT = reader.GetDateTime(0),
-                            DTOpen = reader.IsDBNull(15) ? null : (DateTime?)reader.GetDateTime(15),
-                            Open = reader.GetDecimal(3),
-                            High = reader.GetDecimal(4),
-                            Low = reader.GetDecimal(5),
-                            Close = reader.GetDecimal(6),
-                            AdjOpen = reader.IsDBNull(7) ? null : (decimal?)reader.GetDecimal(7),
-                            AdjHigh = reader.IsDBNull(8) ? null : (decimal?)reader.GetDecimal(8),
-                            AdjLow = reader.IsDBNull(9) ? null : (decimal?)reader.GetDecimal(9),
-                            AdjClose = reader.IsDBNull(10) ? null : (decimal?)reader.GetDecimal(10),
-                            Volume = reader.IsDBNull(11) ? null : (long?)reader.GetInt64(11),
-                            OpenInterest = reader.IsDBNull(12) ? null : (int?)reader.GetInt32(12),
-                            Dividend = reader.IsDBNull(13) ? null : (decimal?)reader.GetDecimal(13),
-                            Split = reader.IsDBNull(14) ? null : (decimal?)reader.GetDecimal(14)
+                            DT = (DateTime)reader["DT"],
+                            DTOpen = reader["DTOpen"] as DateTime?,
+                            Open = (decimal)reader["Open"],
+                            High = (decimal)reader["High"],
+                            Low = (decimal)reader["Low"],
+                            Close = (decimal)reader["Close"],
+                            AdjOpen = reader["AdjOpen"] as decimal?,
+                            AdjHigh = reader["AdjHigh"] as decimal?,
+                            AdjLow = reader["AdjLow"] as decimal?,
+                            AdjClose = reader["AdjClose"] as decimal?,
+                            Volume = reader["Volume"] as long?,
+                            OpenInterest = reader["OpenInterest"] as int?,
+                            Dividend = reader["Dividend"] as decimal?,
+                            Split = reader["Split"] as decimal?
+                        };
+
+                        data.Add(bar);
+                    }
+                }
+
+                connection.Close();
+
+                return data;
+            }
+        }
+
+        private List<OHLCBar> AgggregateBarsFromHigherFreq(SqlConnection connection, Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency, BarSize aggregateTo)
+        {
+            using (var cmd = new SqlCommand("", connection))
+            {
+                cmd.CommandText = string.Format(@"
+                SELECT
+                    MIN(t.DTOpen) as DTOpen,
+                    MAX(t.DT) as DT,
+                    (SELECT [Open] FROM data WHERE [DTOpen] = MIN(t.DTOpen)) [Open],
+                    MAX(High) [High],
+                    MIN(Low) [Low],
+                    (SELECT [Close] FROM data WHERE [DT] = MAX(t.DT)) [Close],
+                    SUM([Volume]) as Volume
+                 FROM 
+                    [data] t
+                 WHERE 
+                    InstrumentID = @ID AND Frequency = @Freq AND DT >= @Start AND DT <= @End          
+                 GROUP BY 
+ 	                FLOOR(DATEDIFF(SECOND,'1970-01-01', DTOpen)/{0})
+                ORDER BY
+	                [DT] ASC",
+                aggregateTo.ToTimeSpan().TotalSeconds);
+
+                cmd.Parameters.AddWithValue("Freq", (int)frequency);
+                cmd.Parameters.AddWithValue("ID", instrument.ID);
+                cmd.Parameters.AddWithValue("Start", frequency >= BarSize.OneDay ? startDate.Date : startDate);
+                cmd.Parameters.AddWithValue("End", frequency >= BarSize.OneDay ? endDate.Date : endDate);
+
+                var data = new List<OHLCBar>();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var bar = new OHLCBar
+                        {
+                            DT = (DateTime)reader["DT"],
+                            DTOpen = reader["DTOpen"] as DateTime?,
+                            Open = (decimal)reader["Open"],
+                            High = (decimal)reader["High"],
+                            Low = (decimal)reader["Low"],
+                            Close = (decimal)reader["Close"],
+                            Volume = reader["Volume"] as long?,
                         };
 
                         data.Add(bar);

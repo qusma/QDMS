@@ -34,7 +34,7 @@ namespace QDMSServer.DataSources
 
         public MySQLStorage(string connectionString)
         {
-            if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException("connectionString");
+            if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException(nameof(connectionString));
 
             Name = "Local Storage";
             _connectionString = connectionString;
@@ -120,20 +120,30 @@ namespace QDMSServer.DataSources
         /// <param name="startDate">Starting datetime.</param>
         /// <param name="endDate">Ending datetime.</param>
         /// <param name="frequency">Frequency.</param>
+        /// <param name="aggregateTo">If set, bars will be aggregated to this frequency</param>
         /// <returns></returns>
-        public List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency = BarSize.OneDay)
+        public List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency = BarSize.OneDay, BarSize? aggregateTo = null)
         {
+            if (aggregateTo.HasValue && frequency >= aggregateTo.Value) throw new ArgumentException("aggregateTo must be a lower frequency than frequency");
+
             bool isConnected;
             MySqlConnection connection = TryConnect(out isConnected);
             if (!isConnected)
                 throw new Exception("Could not connect to database");
 
+            if (aggregateTo.HasValue)
+            {
+                //We want to construct bars using higher-frequency data
+                return AgggregateBarsFromHigherFreq(connection, instrument, startDate, endDate, frequency, aggregateTo.Value);
+            }
+
             using (var cmd = new MySqlCommand("", connection))
             {
                 cmd.CommandText = "SELECT * FROM data WHERE " +
                                                 "InstrumentID = ?ID AND Frequency = ?Freq AND DT >= ?Start AND DT <= ?End ORDER BY DT ASC";
-                cmd.Parameters.AddWithValue("ID", instrument.ID);
+
                 cmd.Parameters.AddWithValue("Freq", (int)frequency);
+                cmd.Parameters.AddWithValue("ID", instrument.ID);
                 cmd.Parameters.AddWithValue("Start", frequency >= BarSize.OneDay ? startDate.Date : startDate);
                 cmd.Parameters.AddWithValue("End", frequency >= BarSize.OneDay ? endDate.Date : endDate);
 
@@ -145,20 +155,71 @@ namespace QDMSServer.DataSources
                     {
                         var bar = new OHLCBar
                         {
-                            DT = reader.GetDateTime(0),
-                            DTOpen = reader.IsDBNull(15) ? null : (DateTime?)reader.GetDateTime(15),
+                            DT = (DateTime)reader["DT"],
+                            DTOpen = reader["DTOpen"] as DateTime?,
                             Open = reader.GetDecimal("Open"),
                             High = reader.GetDecimal("High"),
                             Low = reader.GetDecimal("Low"),
                             Close = reader.GetDecimal("Close"),
-                            AdjOpen = reader.IsDBNull(7) ? null : (decimal?)reader.GetDecimal("AdjOpen"),
-                            AdjHigh = reader.IsDBNull(8) ? null : (decimal?)reader.GetDecimal("AdjHigh"),
-                            AdjLow = reader.IsDBNull(9) ? null : (decimal?)reader.GetDecimal("AdjLow"),
-                            AdjClose = reader.IsDBNull(10) ? null : (decimal?)reader.GetDecimal("AdjClose"),
-                            Volume = reader.IsDBNull(11) ? null : (long?)reader.GetInt64("Volume"),
-                            OpenInterest = reader.IsDBNull(12) ? null : (int?)reader.GetInt32("OpenInterest"),
-                            Dividend = reader.IsDBNull(13) ? null : (decimal?)reader.GetDecimal("Dividend"),
-                            Split = reader.IsDBNull(14) ? null : (decimal?)reader.GetDecimal("Split")
+                            AdjOpen = reader["AdjOpen"] as decimal?,
+                            AdjHigh = reader["AdjHigh"] as decimal?,
+                            AdjLow = reader["AdjLow"] as decimal?,
+                            AdjClose = reader["AdjClose"] as decimal?,
+                            Volume = reader["Volume"] as long?,
+                            OpenInterest = reader["OpenInterest"] as int?,
+                            Dividend = reader["Dividend"] as decimal?,
+                            Split = reader["Split"] as decimal?
+                        };
+
+                        data.Add(bar);
+                    }
+                }
+
+                connection.Close();
+
+                return data;
+            }
+        }
+
+        private List<OHLCBar> AgggregateBarsFromHigherFreq(MySqlConnection connection, Instrument instrument, DateTime startDate, DateTime endDate, BarSize frequency, BarSize aggregateTo)
+        {
+            using (var cmd = new MySqlCommand("", connection))
+            {
+                cmd.CommandText = string.Format(@"
+                                    SELECT
+                                        MIN(DTOpen) as `DTOpen`,
+                                        MAX(DT) as `DT`,
+                                        SUBSTRING_INDEX(MIN(CONCAT(`DT`, '_', `Open`)), '_', -1) AS `Open`,
+                                        MAX(High) as `High`,
+                                        MIN(Low) as `Low`,
+                                        SUBSTRING_INDEX(MAX(CONCAT(`DT`, '_', `Close`)), '_', -1) AS `Close`,
+                                        SUM(`Volume`) as `Volume`
+                                    FROM data
+                                    WHERE InstrumentID = ?ID AND Frequency = ?Freq AND DT >= ?Start AND DT <= ?End
+                                    GROUP BY FLOOR(UNIX_TIMESTAMP(DTOpen)/{0})
+                                    ORDER BY DT ASC",
+                aggregateTo.ToTimeSpan().TotalSeconds);
+
+                cmd.Parameters.AddWithValue("Freq", (int)frequency);
+                cmd.Parameters.AddWithValue("ID", instrument.ID);
+                cmd.Parameters.AddWithValue("Start", frequency >= BarSize.OneDay ? startDate.Date : startDate);
+                cmd.Parameters.AddWithValue("End", frequency >= BarSize.OneDay ? endDate.Date : endDate);
+
+                var data = new List<OHLCBar>();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var bar = new OHLCBar
+                        {
+                            DT = (DateTime)reader["DT"],
+                            DTOpen = reader["DTOpen"] as DateTime?,
+                            Open = reader.GetDecimal("Open"),
+                            High = reader.GetDecimal("High"),
+                            Low = reader.GetDecimal("Low"),
+                            Close = reader.GetDecimal("Close"),
+                            Volume = reader["Volume"] as long?,
                         };
 
                         data.Add(bar);
@@ -174,7 +235,7 @@ namespace QDMSServer.DataSources
         //for IHistoricalDataSource, we just grab data and send it back with the event
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
-            var data = GetData(request.Instrument, request.StartingDate, request.EndingDate, request.Frequency);
+            var data = GetData(request.Instrument, request.StartingDate, request.EndingDate, request.Frequency, request.AggregateTo);
 
             RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, data));
         }
