@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="TWSUtils.cs" company="">
 // Copyright 2013 Alexander Soffronow Pagonidis
 // </copyright>
@@ -192,9 +192,15 @@ namespace QDMSServer
                 Category = contract.Category,
                 Subcategory = contract.Subcategory,
                 IsContinuousFuture = false,
-                ValidExchanges = contract.ValidExchanges,
-                TradingClass = contract.Summary.TradingClass
+                ValidExchanges = contract.ValidExchanges
             };
+
+            if (instrument.Type == InstrumentType.Future || 
+                instrument.Type == InstrumentType.FutureOption ||
+                instrument.Type == InstrumentType.Option)
+            {
+                instrument.TradingClass = contract.Summary.TradingClass;
+            }
 
             if (!string.IsNullOrEmpty(contract.Summary.PrimaryExchange))
                 instrument.PrimaryExchange = new Exchange { Name = contract.Summary.PrimaryExchange };
