@@ -121,4 +121,10 @@
   <data name="CHANGELOG" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\CHANGELOG;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="QuartzMySqlDbInit" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\QuartzMySqlDbInit.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="QuartzSqlServerDbInit" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\QuartzSqlServerDbInit.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
 </root>

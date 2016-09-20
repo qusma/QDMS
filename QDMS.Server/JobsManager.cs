@@ -7,31 +7,33 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using NLog;
 using QDMS;
+using QDMS.Server.Jobs;
 using Quartz;
-
-// Takes DataUpdateJobs from the QDMS system and creates appropriate jobs in the scheduler.
 
 namespace QDMSServer
 {
     public static class JobsManager
     {
-        public static void ScheduleJobs(IScheduler scheduler, List<DataUpdateJobDetails> jobs)
+        public static void ScheduleJob(IScheduler scheduler, IJobDetails job)
         {
-            if (jobs == null || jobs.Count == 0) return;
+            ScheduleJobs(scheduler, new[] { job });
+        }
 
-            //start by clearing all the jobs
-            scheduler.Clear();
+        public static void ScheduleJobs<T>(IScheduler scheduler, IEnumerable<T> jobs) where T: IJobDetails
+        {
+            if (jobs == null) return;
 
             //then convert and add them
-            foreach (DataUpdateJobDetails job in jobs)
+            foreach (IJobDetails job in jobs)
             {
-                IDictionary map = new Dictionary<string, object> { { "details", job } };
+                IDictionary map = new Dictionary<string, string> { { "settings", JsonConvert.SerializeObject(job) } };
 
                 IJobDetail quartzJob = JobBuilder
                     .Create<DataUpdateJob>()
-                    .WithIdentity(job.Name)
+                    .WithIdentity(job.Name, JobTypes.DataUpdate)
                     .UsingJobData(new JobDataMap(map))
                     .Build();
                 try
@@ -46,35 +48,28 @@ namespace QDMSServer
             }
         }
 
-        private static ITrigger CreateTrigger(DataUpdateJobDetails jobDetails)
+        private static ITrigger CreateTrigger(IJobDetails jobDetails)
         {
             ITrigger trigger = TriggerBuilder
                 .Create()
                 .WithSchedule(GetScheduleBuilder(jobDetails))
-                .WithIdentity(jobDetails.Name + "Trigger")
+                .WithIdentity(jobDetails.Name, JobTypes.DataUpdate)
                 .Build();
             
             return trigger;
         }
 
-        private static DailyTimeIntervalScheduleBuilder GetScheduleBuilder(DataUpdateJobDetails jobDetails)
+        private static DailyTimeIntervalScheduleBuilder GetScheduleBuilder(IJobDetails jobDetails)
         {
-            if(jobDetails.WeekDaysOnly)
-            {
-                return DailyTimeIntervalScheduleBuilder
-                    .Create()
-                    .OnMondayThroughFriday()
-                    .StartingDailyAt(new TimeOfDay(jobDetails.Time.Hours, jobDetails.Time.Minutes))
-                    .EndingDailyAfterCount(1);
-            }
-            else
-            {
-                return DailyTimeIntervalScheduleBuilder
-                    .Create()
-                    .OnEveryDay()
-                    .StartingDailyAt(new TimeOfDay(jobDetails.Time.Hours, jobDetails.Time.Minutes))
-                    .EndingDailyAfterCount(1);
-            }
+            var builder = DailyTimeIntervalScheduleBuilder.Create();
+
+            builder = jobDetails.WeekDaysOnly 
+                ? builder.OnMondayThroughFriday() 
+                : builder.OnEveryDay();
+
+            return builder
+                .StartingDailyAt(new TimeOfDay(jobDetails.Time.Hours, jobDetails.Time.Minutes))
+                .EndingDailyAfterCount(1);
         }
     }
 }

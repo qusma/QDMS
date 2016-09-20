@@ -149,6 +149,10 @@
       <HintPath>..\packages\NetMQ.3.3.3.4\lib\net40\NetMQ.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.3.7\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
@@ -261,6 +265,7 @@
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
     <Compile Include="DataStorageFactory.cs" />
+    <Compile Include="Interfaces\IJobViewModel.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -268,9 +273,13 @@
     </Compile>
     <Compile Include="ListBoxExt.cs" />
     <Compile Include="UpdateHelper.cs" />
+    <Compile Include="UserControls\DataUpdateJobControl.xaml.cs">
+      <DependentUpon>DataUpdateJobControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
+    <Compile Include="Utils\QuartzUtils.cs" />
     <Compile Include="Utils\Seed.cs" />
     <Compile Include="Utils\SqlServerBackup.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
@@ -284,6 +293,9 @@
     <Compile Include="ValueConverters\TimeSpanConverter.cs" />
     <Compile Include="ValueConverters\TZToStringConverter.cs" />
     <Compile Include="ViewModels\AddInstrumentIbViewModel.cs" />
+    <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\JobViewModelBase.cs" />
+    <Compile Include="ViewModels\SchedulerViewModel.cs" />
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
     </Compile>
@@ -353,6 +365,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="UserControls\DataUpdateJobControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\AboutWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -436,6 +452,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Resources\QuartzSqlServerDbInit.txt" />
+    <None Include="Resources\QuartzMySqlDbInit.txt" />
     <Resource Include="Resources\logo.png" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

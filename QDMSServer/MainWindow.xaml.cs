@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data.Entity;
 using System.Deployment.Application;
 using System.IO;
 using System.Linq;
@@ -19,6 +18,7 @@ using System.Windows.Input;
 using Common.Logging.NLog;
 using EntityData;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using NLog;
 using NLog.Targets;
 using QDMS;
@@ -26,6 +26,9 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
 using QDMSServer.DataSources;
+using QDMSServer.Properties;
+
+
 
 namespace QDMSServer
 {
@@ -125,6 +128,9 @@ namespace QDMSServer
             dataContext.Database.Initialize(false);
             dataContext.Dispose();
 
+            //create quartz db if it doesn't exist
+            QuartzUtils.InitializeDatabase(Settings.Default.databaseType);
+
             //build the tags menu
             var allTags = entityContext.Tags.ToList();
             BuildTagContextMenu(allTags);
@@ -199,7 +205,8 @@ namespace QDMSServer
             ActiveStreamGrid.ItemsSource = RealTimeBroker.ActiveStreams;
 
             //create the scheduler
-            ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
+            var quartzSettings = QuartzUtils.GetQuartzSettings(Settings.Default.databaseType);
+            ISchedulerFactory schedulerFactory = new StdSchedulerFactory(quartzSettings);
             _scheduler = schedulerFactory.GetScheduler();
             _scheduler.JobFactory = new DataUpdateJobFactory(HistoricalBroker,
                 Properties.Settings.Default.updateJobEmailHost,
@@ -219,12 +226,24 @@ namespace QDMSServer
                 localStorage, new InstrumentManager());
             _scheduler.Start();
 
-            //Grab jobs and schedule them
-            JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.Include(t => t.Instrument).Include(t => t.Tag).ToList());
+            //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
+            MigrateJobs(entityContext, _scheduler);
 
             entityContext.Dispose();
 
             ShowChangelog();
+        }
+
+        private void MigrateJobs(MyDBContext context, IScheduler scheduler)
+        {
+            //Check if there are jobs in the QDMS db and no jobs in the quartz db - in that case we migrate them
+            if (context.DataUpdateJobs.Any() && scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()).Count == 0)
+            {
+                foreach (DataUpdateJobDetails job  in context.DataUpdateJobs)
+                {
+                    JobsManager.ScheduleJob(scheduler, job);
+                }
+            }
         }
 
         private void AppDomain_CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -784,19 +803,8 @@ namespace QDMSServer
 
         private void DataJobsBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            var window = new ScheduledJobsWindow();
-            window.ShowDialog();
-
-            //clear and re-schedule all jobs, allowing any existing jobs to finish first.
-            _scheduler.PauseAll();
-            using (var entityContext = new MyDBContext())
-            {
-                JobsManager.ScheduleJobs(_scheduler, entityContext.DataUpdateJobs.Include(t => t.Instrument).Include(t => t.Tag).ToList());
-            }
-
-            var alljobs = _scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.AnyGroup());
-
-            _scheduler.ResumeAll();
+            var window = new ScheduledJobsWindow(new ViewModels.SchedulerViewModel(_scheduler, DialogCoordinator.Instance));
+            window.Show();
         }
 
         private void AboutBtn_Click(object sender, RoutedEventArgs e)

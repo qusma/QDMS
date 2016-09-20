@@ -117,6 +117,7 @@
     <Compile Include="DataSources\TickStorage.cs" />
     <Compile Include="EmailSender.cs" />
     <Compile Include="InstrumentManager.cs" />
+    <Compile Include="Jobs\JobTypes.cs" />
     <Compile Include="Utils\EncryptionUtils.cs" />
     <Compile Include="Interfaces\IEmailService.cs" />
     <Compile Include="Interfaces\IHistoricalDataBroker.cs" />

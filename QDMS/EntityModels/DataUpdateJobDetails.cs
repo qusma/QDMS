@@ -11,11 +11,12 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 using QDMS.Annotations;
 
 namespace QDMS
 {
-    public class DataUpdateJobDetails : INotifyPropertyChanged
+    public class DataUpdateJobDetails : INotifyPropertyChanged, IJobDetails
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

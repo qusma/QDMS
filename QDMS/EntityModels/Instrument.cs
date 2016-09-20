@@ -16,7 +16,7 @@ namespace QDMS
 {
     [ProtoContract]
     [Serializable]
-    public class Instrument : ICloneable
+    public class Instrument : ICloneable, IEquatable<Instrument>
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -177,6 +177,21 @@ namespace QDMS
                 Exchange == null || string.IsNullOrEmpty(Exchange.Timezone)
                     ? "UTC" 
                     : Exchange.Timezone);
+        }
+
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+        /// </returns>
+        /// <param name="other">An object to compare with this object.</param>
+        public bool Equals(Instrument other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other.ID.Equals(ID);
         }
 
         public override string ToString()
