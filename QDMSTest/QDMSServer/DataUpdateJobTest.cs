@@ -9,6 +9,7 @@ using EntityData;
 using QDMS;
 using QDMSServer;
 using Moq;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Quartz;
 
@@ -34,7 +35,8 @@ namespace QDMSTest
 
             var jobDetailMock = new Mock<IJobDetail>();
             IDictionary<string,object> detailsMap = new Dictionary<string,object>();
-            detailsMap.Add("details", new DataUpdateJobDetails() { Name = "mockjob", Frequency = BarSize.OneDay });
+            var jobDetails = new DataUpdateJobDetails() { Name = "mockjob", Frequency = BarSize.OneDay };
+            detailsMap.Add("settings", JsonConvert.SerializeObject(jobDetails));
 
             jobDetailMock.Setup(x => x.JobDataMap).Returns(new JobDataMap(detailsMap));
 

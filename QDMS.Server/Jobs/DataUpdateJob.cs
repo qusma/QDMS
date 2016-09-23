@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Windows;
+using Newtonsoft.Json;
 using NLog;
 using QDMS;
 using Quartz;
@@ -29,11 +29,19 @@ namespace QDMSServer
         private object _reqIDLock = new object();
         private IInstrumentSource _instrumentManager;
 
+        /// <summary>
+        /// </summary>
+        /// <param name="broker"></param>
+        /// <param name="emailService"></param>
+        /// <param name="settings"></param>
+        /// <param name="localStorage"></param>
+        /// <param name="instrumentManager"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="instrumentManager"/> is <see langword="null" />.</exception>
         public DataUpdateJob(IHistoricalDataBroker broker, IEmailService emailService, UpdateJobSettings settings, IDataStorage localStorage, IInstrumentSource instrumentManager)
         {
-            if (settings == null) throw new ArgumentNullException("settings");
-            if (localStorage == null) throw new ArgumentNullException("localStorage");
-            if (instrumentManager == null) throw new ArgumentNullException("instrumentManager");
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            if (localStorage == null) throw new ArgumentNullException(nameof(localStorage));
+            if (instrumentManager == null) throw new ArgumentNullException(nameof(instrumentManager));
 
             _broker = broker;
             _emailService = emailService;
@@ -69,8 +77,17 @@ namespace QDMSServer
             }
 
             JobDataMap dataMap = context.JobDetail.JobDataMap;
-            var details = (DataUpdateJobDetails)dataMap["details"];
-            
+            DataUpdateJobDetails details;
+            try
+            {
+                details = JsonConvert.DeserializeObject<DataUpdateJobDetails>((string)dataMap["settings"]);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to deserialize data update job settings");
+                return;
+            }
+
             Log(LogLevel.Info, string.Format("Data Update job {0} triggered.", details.Name));
 
             //Multiple jobs may be called simultaneously, so what we do is seed the Random based on the job name
@@ -118,11 +135,29 @@ namespace QDMSServer
                     startingDT = relevantStorageInfo.LatestDate;
                 }
 
+                DateTime endDt = DateTime.Now;
+
+                //try to get the current time in the instrument's exchange timezone
+                string timeZone = i?.Exchange?.Timezone;
+                if (!string.IsNullOrEmpty(timeZone))
+                {
+                    try
+                    {
+                        var tz = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+                        endDt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, "Could not find timezone " + timeZone);
+                    }
+                }
+
+
                 var req = new HistoricalDataRequest(
                     i,
                     details.Frequency,
                     startingDT,
-                    DateTime.Now, //TODO this should be in the instrument's timezone...
+                    endDt,
                     dataLocation: DataLocation.ExternalOnly,
                     saveToLocalStorage: true,
                     rthOnly: true,

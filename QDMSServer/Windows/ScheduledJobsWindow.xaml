@@ -5,20 +5,25 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
-    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:qdmsServer="clr-namespace:QDMSServer"
     Title="Schedule Data Updates" Height="553.723" Width="574.568"
     BorderBrush="Black"
     BorderThickness="1"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:viewModels="clr-namespace:QDMSServer.ViewModels"
+    d:DataContext="{d:DesignInstance d:Type=viewModels:SchedulerViewModel, IsDesignTimeCreatable=True}"
+    mc:Ignorable="d"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    xmlns:qdmsServer1="clr-namespace:QDMSServer;assembly=QDMS.Server"
+    xmlns:userControls="clr-namespace:QDMSServer.UserControls"
+    Dialog:DialogParticipation.Register="{Binding}"
     >
     <controls:MetroWindow.Resources>
-        <ObjectDataProvider x:Key="BarSizes" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type Type="qdms:BarSize"/>
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-
-        <qdmsServer:InvertBooleanConverter x:Key="InvertBooleanConverter" />
+        <DataTemplate DataType="{x:Type viewModels:DataUpdateJobViewModel}">
+            <userControls:DataUpdateJobControl/>
+        </DataTemplate>
+        
     </controls:MetroWindow.Resources>
 
     <Grid>
@@ -27,14 +32,13 @@
             <ColumnDefinition Width="150"/>
             <ColumnDefinition Width="200*"/>
         </Grid.ColumnDefinitions>
-        <Button Click="AddBtn_Click" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,11,251,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
-        <Button Grid.Column="1" Click="SaveBtn_OnClick" x:Name="SaveBtn" Content="Save" HorizontalAlignment="Right" Margin="0,11,171,0" VerticalAlignment="Top" Width="75" Height="19"/>
-        <Button Click="DeleteBtn_Click" x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,11,91,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
-
         <DataGrid Name="JobsGrid" Grid.Column="0" AutoGenerateColumns="False"
-                  HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" ItemsSource="{Binding Jobs}" IsReadOnly="True">
+                  HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" 
+                  ItemsSource="{Binding Jobs}" 
+                  SelectedItem="{Binding SelectedJob, Mode=TwoWay}"
+                  IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Path=Name}"  Width="250" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Path=Job.Name}"  Width="250" />
             </DataGrid.Columns>
 
             <DataGrid.RowStyle>
@@ -48,73 +52,20 @@
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
-                <RowDefinition Height="170"/>
-                <RowDefinition Height="170"/>
-                <RowDefinition Height="300*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
-            
-            <GroupBox Header="Instruments To Update" HorizontalAlignment="Stretch" Margin="10,10,10,0" Grid.Row="1" VerticalAlignment="Top" Height="152">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="50*"/>
-                        <RowDefinition Height="50*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="160"/>
-                        <ColumnDefinition Width="239*"/>
-                    </Grid.ColumnDefinitions>
-                    <RadioButton Content="Instrument:" HorizontalAlignment="Left" Margin="5,20,0,0" VerticalAlignment="Top" GroupName="Group1"
-                                 IsChecked="{Binding ElementName=JobsGrid,Path=SelectedItem.UseTag,Converter={StaticResource InvertBooleanConverter}}" Name="InstrumentsRadioBtn"/>
-                    <RadioButton Grid.Column="0" Grid.Row="1" Content="Instruments With Tag:" HorizontalAlignment="Left" GroupName="Group2"
-                                 Margin="5,20,0,0" VerticalAlignment="Top" IsChecked="{Binding ElementName=JobsGrid,Path=SelectedItem.UseTag}" Name="TagRadioBtn" />
+            <Button Command="{Binding Add}" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,11,251,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
+            <Button DataContext="{Binding SelectedJob}"
+                Command="{Binding Save}" x:Name="SaveBtn" Content="Save" HorizontalAlignment="Right" Margin="0,11,171,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
+            <Button Command="{Binding Delete}"
+                CommandParameter="{Binding SelectedJob}"
+                x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,11,91,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
 
-                    <ComboBox Grid.Column="1" Grid.Row="0" Name="InstrumentsComboBox" IsEnabled="{Binding ElementName=InstrumentsRadioBtn,Path=IsChecked}"
-                              HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"
-                              ItemsSource="{Binding Instruments}" SelectedItem="{Binding ElementName=JobsGrid,Path=SelectedItem.Instrument}"
-                              />
-                    <ComboBox Grid.Column="1" Grid.Row="1" Name="TagsComboBox" IsEnabled="{Binding ElementName=TagRadioBtn,Path=IsChecked}"
-                              HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"
-                              DisplayMemberPath="Name" ItemsSource="{Binding Tags}" SelectedItem="{Binding ElementName=JobsGrid,Path=SelectedItem.Tag}" />
+            <ContentControl Grid.Row="1" Content="{Binding}" DataContext="{Binding SelectedJob}" />
 
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Options" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="2" VerticalAlignment="Stretch">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="160*"/>
-                        <ColumnDefinition Width="216*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="50*"/>
-                        <RowDefinition Height="50*"/>
-                    </Grid.RowDefinitions>
-                    <Label Content="Frequency: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <Label Grid.Row="1" Grid.Column="0" Content="Job Name: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-
-                    <ComboBox Grid.Column="1" Grid.Row="0" Name="FrequencyComboBox" SelectedValue="{Binding ElementName=JobsGrid,Path=SelectedItem.Frequency}"
-                              ItemsSource="{Binding Source={StaticResource BarSizes}}"
-                              HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Margin="10,15,0,0" Width="203"/>
-                    <TextBox Grid.Column="1" HorizontalAlignment="Left"
-                             Height="23" Margin="10,10,0,0" Grid.Row="1" TextWrapping="Wrap" Text="{Binding ElementName=JobsGrid,Path=SelectedItem.Name,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="200"/>
-
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="When To Run" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="171*"/>
-                        <ColumnDefinition Width="212*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="40"/>
-                        <RowDefinition Height="12*"/>
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Weekdays Only" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="{Binding ElementName=JobsGrid,Path=SelectedItem.WeekDaysOnly}"/>
-                    <Label Grid.Row="1" Grid.Column="0" Content="Time:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <xctk:MaskedTextBox Text="{Binding ElementName=JobsGrid,Path=SelectedItem.Time}" Name="StartTimeEdit" Mask="00:00:00"  
-                                        Grid.Column="1" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="118"/>
-                </Grid>
-            </GroupBox>
+            <Label Grid.Row="2" Name="ValidationErrorLabel" Content="{Binding SelectedJob.ValidationError}" Foreground="Red">
+            </Label>
         </Grid>
     </Grid>
 </controls:MetroWindow>

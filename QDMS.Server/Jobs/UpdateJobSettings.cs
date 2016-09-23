@@ -34,6 +34,8 @@ namespace QDMSServer
 
         public string FromEmail { get; set; }
 
+        public UpdateJobSettings() { }
+
         public UpdateJobSettings(
             bool noDataReceived = true, 
             bool errors = true, 
