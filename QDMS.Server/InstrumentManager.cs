@@ -76,7 +76,8 @@ namespace QDMSServer
                     (x.Symbol == instrument.Symbol && 
                     x.DatasourceID == instrument.DatasourceID && 
                     x.ExchangeID == instrument.ExchangeID &&
-                    x.Expiration == instrument.Expiration));
+                    x.Expiration == instrument.Expiration &&
+                    x.Type == instrument.Type));
 
                 if (existingInstrument == null) //object doesn't exist, so we add it
                 {
@@ -175,12 +176,14 @@ namespace QDMSServer
                 {
                     query = query.Where(x => x.ID == search.ID);
                 }
-                else if (search.Symbol != null && search.DatasourceID.HasValue && search.ExchangeID.HasValue && search.Expiration.HasValue)
+                else if (search.Symbol != null && search.DatasourceID.HasValue && search.ExchangeID.HasValue && search.Expiration.HasValue && search.Strike.HasValue && search.Type != InstrumentType.Undefined)
                 {
                     query = query.Where(x => x.Symbol == search.Symbol 
                         && x.DatasourceID == search.DatasourceID 
                         && x.ExchangeID == search.ExchangeID
-                        && x.Expiration == search.Expiration);
+                        && x.Expiration == search.Expiration
+                        && x.Strike == search.Strike
+                        && x.Type == search.Type);
                 }
                 else if (search.ContinuousFutureID.HasValue)
                 {
