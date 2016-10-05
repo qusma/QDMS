@@ -78,45 +78,45 @@ namespace QDMSServer
                             break;
 
                         case "Open":
-                            if (decimal.TryParse(price.Value, out parsedValue))
+                            if (decimal.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsedValue))
                                 bar.Open = parsedValue;
                             break;
 
                         case "High":
-                            if (decimal.TryParse(price.Value, out parsedValue))
+                            if (decimal.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsedValue))
                                 bar.High = parsedValue;
                             break;
 
                         case "Low":
-                            if (decimal.TryParse(price.Value, out parsedValue))
+                            if (decimal.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsedValue))
                                 bar.Low = parsedValue;
                             break;
 
                         case "Close":
-                            if (decimal.TryParse(price.Value, out parsedValue))
+                            if (decimal.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsedValue))
                                 bar.Close = parsedValue;
                             break;
 
                         case "Settle": //some futures data series have "settle" field instead of "close"
-                            if (!isNull && decimal.TryParse(price.Value, out parsedValue))
+                            if (!isNull && decimal.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsedValue))
                                 bar.Close = parsedValue;
                             break;
 
                             //volume and OI are not represented as ints for some reason
                         case "Volume":
                             double volume;
-                            if (!isNull && double.TryParse(price.Value, out volume))
+                            if (!isNull && double.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out volume))
                                 bar.Volume = (long)volume;
                             break;
 
                         case "Open Interest":
                             double openInterest;
-                            if (!isNull && double.TryParse(price.Value, out openInterest))
+                            if (!isNull && double.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out openInterest))
                                 bar.OpenInterest = (int)openInterest;
                             break;
 
                         case "Adjusted Close":
-                            if (decimal.TryParse(price.Value, out parsedValue))
+                            if (decimal.TryParse(price.Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsedValue))
                                 bar.AdjClose = parsedValue;
                             break;
                     }
