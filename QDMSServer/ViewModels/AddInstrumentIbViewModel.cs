@@ -23,7 +23,7 @@ namespace QDMSServer.ViewModels
 {
     public class AddInstrumentIbViewModel : ReactiveObject, IDisposable
     {
-        public AddInstrumentIbViewModel(DialogCoordinator dialogService)
+        public AddInstrumentIbViewModel(IDialogCoordinator dialogService)
         {
             _dialogService = dialogService;
             CreateCommands();
@@ -395,7 +395,7 @@ namespace QDMSServer.ViewModels
         }
 
         private readonly IBClient _client;
-        private readonly DialogCoordinator _dialogService;
+        private readonly IDialogCoordinator _dialogService;
         private readonly Dictionary<string, Exchange> _exchanges;
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
