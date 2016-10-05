@@ -31,6 +31,9 @@ namespace QDMSTest
             _client.Dispose();
         }
 
+        /*
+         * Disabled see https://github.com/leo90skk/qdms/issues/19
+         * 
         [Test]
         public void InstrumentAdditionRequestsAreSentCorrectly()
         {
@@ -76,7 +79,7 @@ namespace QDMSTest
 
             instrumentsServer.StopServer();
             instrumentsServer.Dispose();
-        }
+        }*/
 
         [Test]
         public void RequestHistoricalDataRaisesErrorEventAndReturnsMinusOneWhenDatesAreWrong()

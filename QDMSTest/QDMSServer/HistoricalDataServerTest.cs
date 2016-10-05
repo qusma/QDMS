@@ -15,6 +15,9 @@ using QDMSServer;
 
 namespace QDMSTest
 {
+    /*
+     * Disabled see https://github.com/leo90skk/qdms/issues/19
+     * 
     [TestFixture]
     public class HistoricalDataServerTest
     {
@@ -181,5 +184,5 @@ namespace QDMSTest
 
             Assert.IsTrue(errorRaised);
         }
-    }
+    }*/
 }
