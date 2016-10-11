@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Moq;
+using NetMQ;
 using NUnit.Framework;
 using QDMS;
 using QDMSServer;
@@ -29,11 +30,9 @@ namespace QDMSTest
         public void TearDown()
         {
             _client.Dispose();
+            NetMQConfig.Cleanup();
         }
 
-        /*
-         * Disabled see https://github.com/leo90skk/qdms/issues/19
-         * 
         [Test]
         public void InstrumentAdditionRequestsAreSentCorrectly()
         {
@@ -45,7 +44,7 @@ namespace QDMSTest
             var rtdServer = new RealTimeDataServer(5554, 5553, rtdBrokerMock.Object);
             rtdServer.StartServer();
 
-            
+
 
             _client.Connect();
 
@@ -54,7 +53,7 @@ namespace QDMSTest
             var instrument = new Instrument() { Symbol = "SPY", UnderlyingSymbol = "SPY", Type = InstrumentType.Stock, Currency = "USD", Exchange = exchange, Datasource = datasource, Multiplier = 1 };
 
             instrumentSourceMock.Setup(x => x.AddInstrument(It.IsAny<Instrument>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(instrument);
-            
+
             Instrument result = _client.AddInstrument(instrument);
 
             Thread.Sleep(50);
@@ -79,7 +78,7 @@ namespace QDMSTest
 
             instrumentsServer.StopServer();
             instrumentsServer.Dispose();
-        }*/
+        }
 
         [Test]
         public void RequestHistoricalDataRaisesErrorEventAndReturnsMinusOneWhenDatesAreWrong()

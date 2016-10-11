@@ -7,15 +7,13 @@
 using System;
 using System.Threading;
 using Moq;
+using NetMQ;
 using NUnit.Framework;
 using QDMS;
 using QDMSServer;
 
 namespace QDMSTest
 {
-    /*
-     * Disabled see https://github.com/leo90skk/qdms/issues/19
-     * 
     [TestFixture]
     public class RealTimeDataServerTest
     {
@@ -42,6 +40,7 @@ namespace QDMSTest
         {
             _client.Dispose();
             _rtServer.Dispose();
+            NetMQConfig.Cleanup();
         }
         
         [Test]
@@ -199,5 +198,5 @@ namespace QDMSTest
             _rtServer.StopServer();
             Assert.IsFalse(_rtServer.ServerRunning);
         }
-    }*/
+    }
 }

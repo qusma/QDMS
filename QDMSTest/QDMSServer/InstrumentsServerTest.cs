@@ -13,6 +13,7 @@ using System.Xml.Serialization;
 using EntityData;
 using MetaLinq;
 using Moq;
+using NetMQ;
 using NUnit.Framework;
 using QDMS;
 using QDMSServer;
@@ -56,11 +57,10 @@ namespace QDMSTest
             _rtdServer.Dispose();
 
             _client.Dispose();
+
+            NetMQConfig.Cleanup();
         }
 
-        /*
-         * Disabled see https://github.com/leo90skk/qdms/issues/19
-         * 
         [Test]
         public void SearchesForInstrumentsWithTheCorrectParameters()
         {
@@ -113,6 +113,6 @@ namespace QDMSTest
             xs.Serialize(ms2, receivedEditableExpr);
 
             Assert.AreEqual(Encoding.UTF8.GetString(ms.ToArray()), Encoding.UTF8.GetString(ms2.ToArray()));
-        }*/
+        }
     }
 }
