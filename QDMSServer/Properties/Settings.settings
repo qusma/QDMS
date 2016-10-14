@@ -98,5 +98,8 @@
     <Setting Name="barChartApiKey" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="EconomicReleaseDefaultDatasource" Type="System.String" Scope="User">
+      <Value Profile="(Default)">FXStreet</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

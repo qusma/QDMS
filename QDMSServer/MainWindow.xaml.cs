@@ -22,6 +22,8 @@ using MahApps.Metro.Controls.Dialogs;
 using NLog;
 using NLog.Targets;
 using QDMS;
+using QDMS.Server.Brokers;
+using QDMS.Server.DataSources;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
@@ -40,6 +42,7 @@ namespace QDMSServer
         public RealTimeDataBroker RealTimeBroker { get; set; }
         private readonly RealTimeDataServer _realTimeServer;
         public HistoricalDataBroker HistoricalBroker { get; set; }
+        public EconomicReleaseBroker EconomicReleaseBroker { get; set; }
         private readonly HistoricalDataServer _historicalDataServer;
         private readonly InstrumentsServer _instrumentsServer;
 
@@ -180,6 +183,8 @@ namespace QDMSServer
                     new Quandl(Properties.Settings.Default.quandlAuthCode),
                     new BarChart(Properties.Settings.Default.barChartApiKey)
                 });
+            EconomicReleaseBroker = new EconomicReleaseBroker("FXStreet",
+                new[] { new fx.FXStreet() });
 
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
@@ -208,7 +213,7 @@ namespace QDMSServer
             var quartzSettings = QuartzUtils.GetQuartzSettings(Settings.Default.databaseType);
             ISchedulerFactory schedulerFactory = new StdSchedulerFactory(quartzSettings);
             _scheduler = schedulerFactory.GetScheduler();
-            _scheduler.JobFactory = new DataUpdateJobFactory(HistoricalBroker,
+            _scheduler.JobFactory = new JobFactory(HistoricalBroker,
                 Properties.Settings.Default.updateJobEmailHost,
                 Properties.Settings.Default.updateJobEmailPort,
                 Properties.Settings.Default.updateJobEmailUsername,
@@ -223,7 +228,9 @@ namespace QDMSServer
                     timeout: Properties.Settings.Default.updateJobTimeout,
                     toEmail: Properties.Settings.Default.updateJobEmail,
                     fromEmail: Properties.Settings.Default.updateJobEmailSender),
-                localStorage, new InstrumentManager());
+                localStorage, new InstrumentManager(),
+                EconomicReleaseBroker
+                );
             _scheduler.Start();
 
             //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
@@ -239,7 +246,7 @@ namespace QDMSServer
             //Check if there are jobs in the QDMS db and no jobs in the quartz db - in that case we migrate them
             if (context.DataUpdateJobs.Any() && scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()).Count == 0)
             {
-                foreach (DataUpdateJobDetails job  in context.DataUpdateJobs)
+                foreach (DataUpdateJobSettings job  in context.DataUpdateJobs)
                 {
                     JobsManager.ScheduleJob(scheduler, job);
                 }

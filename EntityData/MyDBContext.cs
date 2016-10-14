@@ -34,7 +34,8 @@ namespace EntityData
         public DbSet<TemplateSession> TemplateSessions { get; set; }
         public DbSet<UnderlyingSymbol> UnderlyingSymbols { get; set; }
         public DbSet<ContinuousFuture> ContinuousFutures { get; set; }
-        public DbSet<DataUpdateJobDetails> DataUpdateJobs { get; set; }
+        public DbSet<DataUpdateJobSettings> DataUpdateJobs { get; set; }
+        public DbSet<EconomicRelease> EconomicReleases { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -148,6 +149,8 @@ namespace EntityData
                 );
 
 
+            modelBuilder.Entity<EconomicRelease>().HasKey(x => new { x.DateTime, x.Name, x.Country });
+            modelBuilder.Entity<EconomicRelease>().Property(x => x.Currency).HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute()));
 
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }

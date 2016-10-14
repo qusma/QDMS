@@ -11,7 +11,7 @@ using ReactiveUI;
 
 namespace QDMSServer.ViewModels
 {
-    public class DataUpdateJobViewModel : JobViewModelBase<DataUpdateJobDetails>
+    public class DataUpdateJobViewModel : JobViewModelBase<DataUpdateJobSettings>
     {
         /// <summary>
         /// For design-time purposes only
@@ -19,7 +19,7 @@ namespace QDMSServer.ViewModels
         [Obsolete]
         public DataUpdateJobViewModel() : base() { }
 
-        public DataUpdateJobViewModel(DataUpdateJobDetails job, IScheduler scheduler) : base(job, scheduler)
+        public DataUpdateJobViewModel(DataUpdateJobSettings job, IScheduler scheduler) : base(job, scheduler)
         {
             this.WhenAnyValue(x => x.UseTag, x => x.Instrument, x => x.Tag)
                 .Subscribe(x => ValidateSettings());

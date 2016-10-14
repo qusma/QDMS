@@ -177,7 +177,7 @@
                     </Grid.ColumnDefinitions>
                     <GroupBox Header="Email Settings" Grid.RowSpan="2">
                         <StackPanel Orientation="Vertical">
-                                <Label Content="Host Address:" />
+                            <Label Content="Host Address:" />
                             <TextBox Name="UpdateJobEmailHost" />
                             <Label Content="Host Port:" />
                             <TextBox Name="UpdateJobEmailPort" />
@@ -203,7 +203,7 @@
                             <CheckBox Margin="5" Name="UpdateJobDatasourceErrors" Content="Datasource Errors" ToolTip="You will be notified if there are any errors in the underlying datasources during the update." />
                         </StackPanel>
                     </GroupBox>
-                    
+
                     <GroupBox Header="Job Settings" Grid.Column="1" Grid.Row="1">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Timeout (in seconds):" />
@@ -212,7 +212,21 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-
+            <TabItem Header="Economic Releases">
+                <Grid>
+                    <GroupBox Header="Default Datasource">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Default datasource:" />
+                            <ComboBox Name="DefaultEconomicReleaseDatasourceComboBox" Width="150" Margin="10,10,0,0" 
+                                      VerticalAlignment="Top" HorizontalAlignment="Left"
+                                      ItemsSource="{Binding EconomicReleaseDataSources}"
+                                      SelectedItem="{Binding SelectedDefaultEconomicReleaseDatasource}"
+                                      >
+                            </ComboBox>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
         </TabControl>
         <Button Name="CancelBtn" Click="CancelBtn_Click" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,5,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>
         <Button Name="SaveBtn" Click="SaveBtn_Click" Content="Save" HorizontalAlignment="Right" Margin="0,0,100,0" Grid.Row="1" VerticalAlignment="Top" Width="75"/>

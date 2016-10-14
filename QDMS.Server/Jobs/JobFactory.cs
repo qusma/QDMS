@@ -5,14 +5,17 @@
 // -----------------------------------------------------------------------
 
 using System;
+using QDMS.Server.Brokers;
+using QDMS.Server.Jobs;
 using Quartz;
 using Quartz.Spi;
 
 namespace QDMSServer
 {
-    public class DataUpdateJobFactory : IJobFactory
+    public class JobFactory : IJobFactory
     {
-        private readonly HistoricalDataBroker _hdb;
+        private readonly IHistoricalDataBroker _hdb;
+        private readonly IEconomicReleaseBroker _erb;
 
         private string _host;
         private int _port;
@@ -25,7 +28,7 @@ namespace QDMSServer
         private QDMS.IDataStorage _localStorage;
         private IInstrumentSource _instrumentSource;
 
-        public DataUpdateJobFactory(HistoricalDataBroker broker,
+        public JobFactory(IHistoricalDataBroker hdb,
             string host,
             int port,
             string username,
@@ -34,9 +37,10 @@ namespace QDMSServer
             string email,
             UpdateJobSettings updateJobSettings,
             QDMS.IDataStorage localStorage,
-            IInstrumentSource instrumentSource) : base()
+            IInstrumentSource instrumentSource,
+            IEconomicReleaseBroker erb) : base()
         {
-            _hdb = broker;
+            _hdb = hdb;
 
             _host = host;
             _port = port;
@@ -47,6 +51,7 @@ namespace QDMSServer
             _updateJobSettings = updateJobSettings;
             _localStorage = localStorage;
             _instrumentSource = instrumentSource;
+            _erb = erb;
         }
 
         /// <summary>
@@ -70,23 +75,47 @@ namespace QDMSServer
         /// </returns>
         public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
+            string type = bundle.Trigger.Key.Group;
+
+            if (type == JobTypes.DataUpdate)
+            {
+                return GetDataUpdateJob(bundle, scheduler);
+            }
+            else if (type == JobTypes.EconomicRelease)
+            {
+                return GetEconomicReleaseJob(bundle, scheduler);
+            }
+
+            throw new Exception("Uknown job type " + type);
+        }
+
+        private IJob GetEconomicReleaseJob(TriggerFiredBundle bundle, IScheduler scheduler)
+        {
+            return new EconomicReleaseUpdateJob(_erb, GetEmailSender(), _updateJobSettings);
+        }
+
+        private IJob GetDataUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
+        {
             //only provide the email sender if data exists to properly initialize it with
+            return new DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, _instrumentSource);
+        }
+
+        private EmailSender GetEmailSender()
+        {
             if (!string.IsNullOrEmpty(_host) &&
-                !string.IsNullOrEmpty(_username) &&
-                !string.IsNullOrEmpty(_password) &&
-                !string.IsNullOrEmpty(_sender) &&
-                !string.IsNullOrEmpty(_email))
+            !string.IsNullOrEmpty(_username) &&
+            !string.IsNullOrEmpty(_password) &&
+            !string.IsNullOrEmpty(_sender) &&
+            !string.IsNullOrEmpty(_email))
             {
-                return new DataUpdateJob(_hdb, new EmailSender(
-                    _host,
-                    _username,
-                    _password,
-                    _port), _updateJobSettings, _localStorage, _instrumentSource);
+                return new EmailSender(
+                            _host,
+                            _username,
+                            _password,
+                            _port);
             }
-            else
-            {
-                return new DataUpdateJob(_hdb, null, _updateJobSettings, _localStorage, _instrumentSource);
-            }
+
+            return null;
         }
 
         /// <summary>

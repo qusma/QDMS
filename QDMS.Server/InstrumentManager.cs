@@ -143,8 +143,10 @@ namespace QDMSServer
         public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred, MyDBContext context = null)
         {
             var query = GetIQueryable(ref context);
-
+            
+            //A bad predicate can cause a crash here, but I think the exception should be handled further up
             var instruments = query.Where(pred).ToList();
+
             foreach (Instrument i in instruments)
             {
                 //hack because we can't load these in the normal way, see comment below

@@ -6,6 +6,9 @@
 
 namespace QDMSServer
 {
+    /// <summary>
+    /// These settings apply to all types of jobs
+    /// </summary>
     public class UpdateJobSettings
     {
         /// <summary>

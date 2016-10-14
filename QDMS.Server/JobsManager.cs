@@ -17,23 +17,23 @@ namespace QDMSServer
 {
     public static class JobsManager
     {
-        public static void ScheduleJob(IScheduler scheduler, IJobDetails job)
+        public static void ScheduleJob(IScheduler scheduler, IJobSettings job)
         {
             ScheduleJobs(scheduler, new[] { job });
         }
 
-        public static void ScheduleJobs<T>(IScheduler scheduler, IEnumerable<T> jobs) where T: IJobDetails
+        public static void ScheduleJobs<T>(IScheduler scheduler, IEnumerable<T> jobs) where T: IJobSettings
         {
             if (jobs == null) return;
 
             //then convert and add them
-            foreach (IJobDetails job in jobs)
+            foreach (IJobSettings job in jobs)
             {
                 IDictionary map = new Dictionary<string, string> { { "settings", JsonConvert.SerializeObject(job) } };
 
                 IJobDetail quartzJob = JobBuilder
                     .Create<DataUpdateJob>()
-                    .WithIdentity(job.Name, JobTypes.DataUpdate)
+                    .WithIdentity(job.Name, JobTypes.GetJobType(job))
                     .UsingJobData(new JobDataMap(map))
                     .Build();
                 try
@@ -48,27 +48,27 @@ namespace QDMSServer
             }
         }
 
-        private static ITrigger CreateTrigger(IJobDetails jobDetails)
+        private static ITrigger CreateTrigger(IJobSettings jobSettings)
         {
             ITrigger trigger = TriggerBuilder
                 .Create()
-                .WithSchedule(GetScheduleBuilder(jobDetails))
-                .WithIdentity(jobDetails.Name, JobTypes.DataUpdate)
+                .WithSchedule(GetScheduleBuilder(jobSettings))
+                .WithIdentity(jobSettings.Name, JobTypes.GetJobType(jobSettings))
                 .Build();
             
             return trigger;
         }
 
-        private static DailyTimeIntervalScheduleBuilder GetScheduleBuilder(IJobDetails jobDetails)
+        private static DailyTimeIntervalScheduleBuilder GetScheduleBuilder(IJobSettings jobSettings)
         {
             var builder = DailyTimeIntervalScheduleBuilder.Create();
 
-            builder = jobDetails.WeekDaysOnly 
+            builder = jobSettings.WeekDaysOnly 
                 ? builder.OnMondayThroughFriday() 
                 : builder.OnEveryDay();
 
             return builder
-                .StartingDailyAt(new TimeOfDay(jobDetails.Time.Hours, jobDetails.Time.Minutes))
+                .StartingDailyAt(new TimeOfDay(jobSettings.Time.Hours, jobSettings.Time.Minutes))
                 .EndingDailyAfterCount(1);
         }
     }

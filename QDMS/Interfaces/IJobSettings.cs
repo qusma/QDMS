@@ -8,7 +8,10 @@ using System;
 
 namespace QDMS
 {
-    public interface IJobDetails
+    /// <summary>
+    /// Common settings for all job types
+    /// </summary>
+    public interface IJobSettings
     {
         /// <summary>
         /// If true, updates will only happen monday through friday.

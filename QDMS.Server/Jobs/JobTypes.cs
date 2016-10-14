@@ -4,15 +4,19 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using QDMS.Server.Jobs.JobDetails;
+
 namespace QDMS.Server.Jobs
 {
     public static class JobTypes
     {
         public const string DataUpdate = "DataUpdate";
+        public const string EconomicRelease = "EconomicRelease";
 
-        public static string GetJobType(IJobDetails job)
+        public static string GetJobType(IJobSettings job)
         {
-            if (job is DataUpdateJobDetails) return DataUpdate;
+            if (job is DataUpdateJobSettings) return DataUpdate;
+            if (job is EconomicReleaseUpdateJobSettings) return EconomicRelease;
 
             return "";
         }
