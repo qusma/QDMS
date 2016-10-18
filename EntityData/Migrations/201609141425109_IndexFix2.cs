@@ -7,9 +7,7 @@ namespace EntityData.Migrations
     {
         public override void Up()
         {
-            DropIndex("dbo.Instruments", "IX_Symbol_DatasourceID_ExchangeID_Expiration");
-            DropIndex("dbo.Instruments", new[] { "ExchangeID" });
-            DropIndex("dbo.Instruments", new[] { "DatasourceID" });
+            DropIndex("dbo.Instruments", new[] { "Symbol", "DatasourceID", "ExchangeID", "Expiration", "Strike" });
             CreateIndex("dbo.Instruments", new[] { "Symbol", "Type", "DatasourceID", "ExchangeID", "Expiration", "Strike" }, unique: true, name: "IX_Unique");
         }
         
@@ -20,8 +18,6 @@ namespace EntityData.Migrations
                 "dbo.Instruments",
                 new string[5] { "Symbol", "DatasourceID", "ExchangeID", "Expiration", "Strike" },
                 unique: true);
-            CreateIndex("dbo.Instruments", "DatasourceID");
-            CreateIndex("dbo.Instruments", "ExchangeID");
         }
     }
 }

@@ -24,7 +24,7 @@ namespace QDMSTest
 
         private readonly string _sqlServerPassword = "Password12!";
         private readonly string _sqlServerHost = "(local)\\SQL2016";
-        private readonly string _sqlServerUsername = "as";
+        private readonly string _sqlServerUsername = "sa";
         private readonly bool _useWindowsAuthentication = false;
 
         [Test]
