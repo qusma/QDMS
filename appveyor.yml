@@ -71,7 +71,7 @@ before_package:
 
 # scripts to run after build
 after_build:
-- ps: "[reflection.assembly]::LoadWithPartialName(\"Microsoft.SqlServer.Smo\") | Out-Null\n[reflection.assembly]::LoadWithPartialName(\"Microsoft.SqlServer.SqlWmiManagement\") | Out-Null\n \n$instanceName = 'SQL2016'\n$computerName = $env:COMPUTERNAME\n$smo = 'Microsoft.SqlServer.Management.Smo.'\n$wmi = New-Object ($smo + 'Wmi.ManagedComputer')\n\n# Enable named pipes\n$uri = \"ManagedComputer[@Name='$serverName']/ ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Np']\"\n$Np = $wmi.GetSmoObject($uri)\n$Np.IsEnabled = $true\n$Np.Alter()\n\n# Start services\nSet-Service SQLBrowser -StartupType Manual\nStart-Service SQLBrowser\nRestart-Service \"MSSQL`$$instanceName\""
+- ps: "[reflection.assembly]::LoadWithPartialName(\"Microsoft.SqlServer.Smo\") | Out-Null\n[reflection.assembly]::LoadWithPartialName(\"Microsoft.SqlServer.SqlWmiManagement\") | Out-Null\n \n$instanceName = 'SQL2016'\n$computerName = $env:COMPUTERNAME\n$smo = 'Microsoft.SqlServer.Management.Smo.'\n$wmi = New-Object ($smo + 'Wmi.ManagedComputer')\n\n# Enable named pipes\n$uri = \"ManagedComputer[@Name='$computerName']/ ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Np']\"\n$Np = $wmi.GetSmoObject($uri)\n$Np.IsEnabled = $true\n$Np.Alter()\n\n# Start services\nSet-Service SQLBrowser -StartupType Manual\nStart-Service SQLBrowser\nRestart-Service \"MSSQL`$$instanceName\""
       
 # to run your custom scripts instead of automatic MSBuild
 build_script:
