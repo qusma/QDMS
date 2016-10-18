@@ -1,3 +1,5 @@
+using System.Configuration;
+
 namespace EntityData.Migrations.DataDBContextNS
 {
     using System;
@@ -7,8 +9,18 @@ namespace EntityData.Migrations.DataDBContextNS
     {
         public override void Up()
         {
-            DropPrimaryKey("dbo.data");
-            AddPrimaryKey("dbo.data", new[] { "InstrumentID", "Frequency", "DT" });
+            string provider = ConfigurationManager.ConnectionStrings["qdmsEntities"].ProviderName;
+
+            if (provider == "MySql.Data.MySqlClient")
+            {
+                DropPrimaryKey("data");
+                AddPrimaryKey("data", new[] { "InstrumentID", "Frequency", "DT" });
+            }
+            else
+            {
+                DropPrimaryKey("dbo.data");
+                AddPrimaryKey("dbo.data", new[] { "InstrumentID", "Frequency", "DT" });
+            }
         }
         
         public override void Down()
