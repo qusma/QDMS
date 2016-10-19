@@ -34,11 +34,9 @@ cache:
   - packages -> **\packages.config  # preserve "packages" directory in the root of build folder but will reset it if packages.config is modified
 
 # enable service required for build/tests
-#services:
-#  - mssql2014           # start SQL Server 2014 Express
-#  - mssql2012sp1        # start SQL Server 2012 SP1 Express
-#  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
-#  - mysql               # start MySQL 5.6 service
+services:
+  - mysql               # start MySQL 5.6 service
+  - mssql2016
 
 # enable patching of AssemblyInfo.* files
 #assembly_info:
@@ -73,7 +71,8 @@ before_package:
 
 # scripts to run after build
 after_build:
-
+- ps: "[reflection.assembly]::LoadWithPartialName(\"Microsoft.SqlServer.Smo\") | Out-Null\n[reflection.assembly]::LoadWithPartialName(\"Microsoft.SqlServer.SqlWmiManagement\") | Out-Null\n \n$instanceName = 'SQL2016'\n$computerName = $env:COMPUTERNAME\n$smo = 'Microsoft.SqlServer.Management.Smo.'\n$wmi = New-Object ($smo + 'Wmi.ManagedComputer')\n\n# Enable named pipes\n$uri = \"ManagedComputer[@Name='$computerName']/ ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Np']\"\n$Np = $wmi.GetSmoObject($uri)\n$Np.IsEnabled = $true\n$Np.Alter()\n\n# Start services\nSet-Service SQLBrowser -StartupType Manual\nStart-Service SQLBrowser\nRestart-Service \"MSSQL`$$instanceName\""
+      
 # to run your custom scripts instead of automatic MSBuild
 build_script:
 
