@@ -13,7 +13,7 @@ namespace EntityData.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201610192005592_EconomicReleases"; }
+            get { return "201610201924240_EconomicReleases"; }
         }
         
         string IMigrationMetadata.Source

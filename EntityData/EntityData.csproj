@@ -93,9 +93,9 @@
     <Compile Include="Migrations\201609141425109_IndexFix2.Designer.cs">
       <DependentUpon>201609141425109_IndexFix2.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201610192005592_EconomicReleases.cs" />
-    <Compile Include="Migrations\201610192005592_EconomicReleases.Designer.cs">
-      <DependentUpon>201610192005592_EconomicReleases.cs</DependentUpon>
+    <Compile Include="Migrations\201610201924240_EconomicReleases.cs" />
+    <Compile Include="Migrations\201610201924240_EconomicReleases.Designer.cs">
+      <DependentUpon>201610201924240_EconomicReleases.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
@@ -142,8 +142,8 @@
     <EmbeddedResource Include="Migrations\201609141425109_IndexFix2.resx">
       <DependentUpon>201609141425109_IndexFix2.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201610192005592_EconomicReleases.resx">
-      <DependentUpon>201610192005592_EconomicReleases.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201610201924240_EconomicReleases.resx">
+      <DependentUpon>201610201924240_EconomicReleases.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

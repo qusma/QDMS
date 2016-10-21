@@ -30,8 +30,6 @@ using Quartz.Impl.Matchers;
 using QDMSServer.DataSources;
 using QDMSServer.Properties;
 
-
-
 namespace QDMSServer
 {
     /// <summary>
@@ -183,8 +181,11 @@ namespace QDMSServer
                     new Quandl(Properties.Settings.Default.quandlAuthCode),
                     new BarChart(Properties.Settings.Default.barChartApiKey)
                 });
+
+            var countryCodeHelper = new CountryCodeHelper(entityContext.Countries.ToList());
+
             EconomicReleaseBroker = new EconomicReleaseBroker("FXStreet",
-                new[] { new fx.FXStreet() });
+                new[] { new fx.FXStreet(countryCodeHelper) });
 
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);

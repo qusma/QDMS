@@ -3,10 +3,12 @@ module fx =
 
     open QDMS
     open System
+    open System.Linq
     open FSharp.Data
     open NLog
 
-    type FXStreet()  = 
+    type FXStreet(countryCodeHelper:CountryCodeHelper)  = 
+        let countryCodeHelper = countryCodeHelper
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
         let logger = NLog.LogManager.GetCurrentClassLogger()
 
@@ -20,8 +22,8 @@ module fx =
 
         member private this.parseRow(row: CsvRow) = 
             try
-                let countryCode = MyUtils.CountryNameToCountryCode(row.["Country"])
-                let currencyCode = MyUtils.CountryCodeToCurrencyCode(countryCode)
+                let countryCode = countryCodeHelper.GetCountryCode(row.["Country"])
+                let currencyCode = countryCodeHelper.GetCurrencyCode(countryCode)
                 Some(new EconomicRelease(
                                 row.["Name"], 
                                 countryCode, 

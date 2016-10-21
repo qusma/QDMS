@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using ProtoBuf;
 
 namespace QDMS
@@ -14,8 +15,14 @@ namespace QDMS
     [Serializable]
     public class EconomicRelease
     {
+        [ProtoMember(9)]
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
         [ProtoMember(1)]
         [MaxLength(100)]
+        [Required]
         public string Name { get; set; }
 
         /// <summary>
@@ -23,6 +30,7 @@ namespace QDMS
         /// </summary>
         [ProtoMember(2)]
         [MaxLength(2)]
+        [Required]
         public string Country { get; set; }
 
         /// <summary>

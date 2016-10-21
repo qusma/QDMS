@@ -92,7 +92,7 @@ namespace QDMS.Server.Brokers
                     foreach (var release in data)
                     {
                         //the data we get might be a duplicate and we want the latest values of everything, so we can't just insert
-                        context.Set<EconomicRelease>().AddOrUpdate(release);
+                        context.Set<EconomicRelease>().AddOrUpdate(x => new { x.Name, x.Country, x.DateTime }, release);
                     }
                     context.SaveChanges();
                 }

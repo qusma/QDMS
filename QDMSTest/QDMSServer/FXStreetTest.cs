@@ -9,6 +9,7 @@ using QDMS;
 using QDMS.Server.DataSources;
 using System.Collections.Generic;
 using System.Linq;
+using QDMSServer;
 
 namespace QDMSTest
 {
@@ -64,9 +65,9 @@ namespace QDMSTest
 10/14/2016 05:00:00,Retail Sales(MoM),Singapore,1,-1.100,1.400,
 10/14/2016 06:00:00,Gross Domestic Product(YoY),Finland,1,-0.100,1.500,
 10/14/2016 06:00:00,Current Account, Finland,1,-0.200,-0.400,
-10/14/2016 06:00:00, Consumer Price Index(YoY),Finland,1,0.400,0.400,
+10/14/2016 06:00:00,Consumer Price Index(YoY),Finland,1,0.400,0.400,
 10/14/2016 06:30:00,WPI Inflation, India,1,3.570,3.740,
-10/14/2016 07:00:00, Consumer Price Index(YoY),Spain,1,0.200,-0.100,0.300
+10/14/2016 07:00:00,Consumer Price Index(YoY),Spain,1,0.200,-0.100,0.300
 10/14/2016 07:00:00,HICP(YoY),Spain,1,0.000,0.100,0.100
 10/14/2016 07:00:00,HICP(MoM),Spain,1,0.700,0.000,0.800
 10/14/2016 07:00:00,Consumer Price Index(MoM),Spain,1,0.000,0.100,0.100
@@ -80,26 +81,26 @@ namespace QDMSTest
 10/14/2016 09:00:00,Trade Balance n.s.a.,European Monetary Union,2,18.400,25.300,15.300
 10/14/2016 09:00:00,Trade Balance s.a.,European Monetary Union,2,23.300,20.000,20.500
 10/14/2016 11:30:00,""FX Reserves, USD"",India,1,367.650,371.990,
-10/14/2016 12:00:00,Current Account, Poland,1,-1047.000,-802.000,
-10/14/2016 12:00:00, Trade Deficit Government, India,1,8.340,7.670,
-10/14/2016 12:30:00, Retail Sales ex Autos(MoM),United States,2,0.500,-0.100,0.400
-10/14/2016 12:30:00, Retail Sales control group,United States,2,0.100,-0.100,0.400
-10/14/2016 12:30:00, Retail Sales(MoM),United States,3,0.600,-0.300,0.600
-10/14/2016 12:30:00, Producer Price Index(MoM),United States,1,0.300,0.000,0.200
-10/14/2016 12:30:00, Producer Price Index ex Food & Energy(YoY),United States,1,1.200,1.000,1.200
-10/14/2016 12:30:00, Producer Price Index(YoY),United States,1,0.700,0.000,0.600
-10/14/2016 12:30:00, Producer Price Index ex Food & Energy(MoM),United States,1,0.200,0.100,0.200
-10/14/2016 12:30:00, Federal Reserve Bank of Boston President Rosengren Speech,United States,1,,,
-10/14/2016 12:30:00, M3 Money Supply(YoY),Poland,1,9.300,10.000,
-10/14/2016 14:00:00,Reuters/Michigan Consumer Sentiment Index, United States,3,87.900,91.200,91.900
-10/14/2016 14:00:00,Business Inventories, United States,1,0.200,0.000,0.200
+10/14/2016 12:00:00,Current Account,Poland,1,-1047.000,-802.000,
+10/14/2016 12:00:00,Trade Deficit Government,India,1,8.340,7.670,
+10/14/2016 12:30:00,Retail Sales ex Autos (MoM),United States,2,0.500,-0.100,0.400
+10/14/2016 12:30:00,Retail Sales control group,United States,2,0.100,-0.100,0.400
+10/14/2016 12:30:00,Retail Sales (MoM),United States,3,0.600,-0.300,0.600
+10/14/2016 12:30:00,Producer Price Index (MoM),United States,1,0.300,0.000,0.200
+10/14/2016 12:30:00,Producer Price Index ex Food & Energy (YoY),United States,1,1.200,1.000,1.200
+10/14/2016 12:30:00,Producer Price Index (YoY),United States,1,0.700,0.000,0.600
+10/14/2016 12:30:00,Producer Price Index ex Food & Energy (MoM),United States,1,0.200,0.100,0.200
+10/14/2016 12:30:00,Federal Reserve Bank of Boston President Rosengren Speech,United States,1,,,
+10/14/2016 12:30:00,M3 Money Supply (YoY),Poland,1,9.300,10.000,
+10/14/2016 14:00:00,Reuters/Michigan Consumer Sentiment Index,United States,3,87.900,91.200,91.900
+10/14/2016 14:00:00,Business Inventories,United States,1,0.200,0.000,0.200
 10/14/2016 14:00:00,BOE's Governor Carney speech,United Kingdom,3,,,
-10/14/2016 17:00:00,Baker Hughes US Oil Rig Count, United States,1,432.000,428.000,
+10/14/2016 17:00:00,Baker Hughes US Oil Rig Count,United States,1,432.000,428.000,
 10/14/2016 17:30:00,Fed's Yellen Speech,United States,3,,,
 10/14/2016 19:30:00,CFTC Gold NC net positions,United States,1,,245.500,
-10/14/2016 19:30:00, CFTC USD NC net positions, United States,1,,45.100,
+10/14/2016 19:30:00,CFTC USD NC net positions,United States,1,,45.100,
 10/14/2016 19:30:00,CFTC Oil NC net positions,United States,1,,363.000,
-10/14/2016 19:30:00, CFTC GBP NC net positions, United Kingdom,1,-95.000,-98.000,
+10/14/2016 19:30:00,CFTC GBP NC net positions,United Kingdom,1,-95.000,-98.000,
 10/14/2016 19:30:00,CFTC JPY NC net positions,Japan,1,46.000,69.000,
 10/14/2016 19:30:00,CFTC EUR NC net positions,European Monetary Union,1,-93.000,-82.000,
 10/14/2016 19:30:00,CFTC AUD NC net positions,Australia,1,26.000,24.000,
@@ -108,7 +109,8 @@ namespace QDMSTest
         [Test]
         public void ParsesDataCorrectly()
         {
-            var fxStreet = new fx.FXStreet();
+            var countryCodeHelper = new CountryCodeHelper(Seed.Countries);
+            var fxStreet = new fx.FXStreet(countryCodeHelper);
             var errors = new List<string>();
             ((IEconomicReleaseSource)fxStreet).Error += (s, e) => errors.Add(e.ErrorMessage);
 
