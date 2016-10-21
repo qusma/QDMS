@@ -64,16 +64,16 @@ namespace QDMSTest
 10/14/2016 05:00:00,Retail Sales(YoY),Singapore,1,-1.000,2.800,
 10/14/2016 05:00:00,Retail Sales(MoM),Singapore,1,-1.100,1.400,
 10/14/2016 06:00:00,Gross Domestic Product(YoY),Finland,1,-0.100,1.500,
-10/14/2016 06:00:00,Current Account, Finland,1,-0.200,-0.400,
+10/14/2016 06:00:00,Current Account,Finland,1,-0.200,-0.400,
 10/14/2016 06:00:00,Consumer Price Index(YoY),Finland,1,0.400,0.400,
-10/14/2016 06:30:00,WPI Inflation, India,1,3.570,3.740,
+10/14/2016 06:30:00,WPI Inflation,India,1,3.570,3.740,
 10/14/2016 07:00:00,Consumer Price Index(YoY),Spain,1,0.200,-0.100,0.300
 10/14/2016 07:00:00,HICP(YoY),Spain,1,0.000,0.100,0.100
 10/14/2016 07:00:00,HICP(MoM),Spain,1,0.700,0.000,0.800
 10/14/2016 07:00:00,Consumer Price Index(MoM),Spain,1,0.000,0.100,0.100
 10/14/2016 07:15:00,Producer and Import Prices(MoM),Switzerland,1,0.300,-0.300,0.100
 10/14/2016 07:15:00,Producer and Import Prices(YoY),Switzerland,1,-0.100,-0.400,-0.200
-10/14/2016 08:30:00,BOE Credit Conditions Survey, United Kingdom,1,,,
+10/14/2016 08:30:00,BOE Credit Conditions Survey,United Kingdom,1,,,
 10/14/2016 09:00:00,Consumer Price Index(EU Norm) (YoY),Italy,1,0.100,0.100,0.100
 10/14/2016 09:00:00,Consumer Price Index(MoM),Italy,1,-0.200,-0.200,-0.200
 10/14/2016 09:00:00,Consumer Price Index(EU Norm) (MoM),Italy,1,1.900,1.900,1.900
