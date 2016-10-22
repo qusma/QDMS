@@ -12,6 +12,7 @@ using MySql.Data.MySqlClient;
 using NUnit.Framework;
 using EntityData;
 using MySql.Data.Entity;
+using QDMSServer;
 
 namespace QDMSTest
 {
@@ -53,7 +54,11 @@ namespace QDMSTest
             using (var ctx = new MyDBContext())
             {
                 ctx.Database.Initialize(true);
+                Seed.SeedDatasources(ctx);
+                Seed.DoSeed();
             }
+
+            
 
             using (var ctx = new DataDBContext())
             {
@@ -110,6 +115,8 @@ namespace QDMSTest
             using (var ctx = new MyDBContext())
             {
                 ctx.Database.Initialize(true);
+                Seed.SeedDatasources(ctx);
+                Seed.DoSeed();
             }
 
             using (var ctx = new DataDBContext())
