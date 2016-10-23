@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -19,9 +20,17 @@ namespace QDMSServer
     /// </summary>
     public partial class SettingsWindow : MetroWindow
     {
+        public ObservableCollection<string> EconomicReleaseDataSources { get; set; } = new ObservableCollection<string>(); 
+        public string SelectedDefaultEconomicReleaseDatasource { get; set; }
+
         public SettingsWindow()
         {
             InitializeComponent();
+
+            //Economic Releases
+            EconomicReleaseDataSources.Add("FXStreet");
+            SelectedDefaultEconomicReleaseDatasource = Properties.Settings.Default.EconomicReleaseDefaultDatasource;
+
             //ports for the servers
             RTDPubPortTextBox.Text = Properties.Settings.Default.rtDBPubPort.ToString();
             RTDReqPortTextBox.Text = Properties.Settings.Default.rtDBReqPort.ToString();
@@ -78,6 +87,8 @@ namespace QDMSServer
             UpdateJobTimeouts.IsChecked = Properties.Settings.Default.updateJobTimeouts;
             UpdateJobDatasourceErrors.IsChecked = Properties.Settings.Default.updateJobReportErrors;
             UpdateJobNoData.IsChecked = Properties.Settings.Default.updateJobReportNoData;
+
+            DataContext = this;
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
@@ -198,6 +209,10 @@ namespace QDMSServer
             Properties.Settings.Default.updateJobTimeouts = UpdateJobTimeouts.IsChecked.Value;
             Properties.Settings.Default.updateJobReportErrors = UpdateJobDatasourceErrors.IsChecked.Value;
             Properties.Settings.Default.updateJobReportNoData = UpdateJobNoData.IsChecked.Value;
+
+            //Economic Releases
+            Properties.Settings.Default.EconomicReleaseDefaultDatasource = SelectedDefaultEconomicReleaseDatasource;
+
 
             Properties.Settings.Default.Save();
 

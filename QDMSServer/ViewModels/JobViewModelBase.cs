@@ -12,7 +12,11 @@ using System;
 
 namespace QDMSServer.ViewModels
 {
-    public abstract class JobViewModelBase<T> : ReactiveObject, IJobViewModel where T : IJobDetails
+    /// <summary>
+    /// ViewModels for jobs derive from this one
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class JobViewModelBase<T> : ReactiveObject, IJobViewModel where T : IJobSettings
     {
         private readonly IScheduler _scheduler;
 

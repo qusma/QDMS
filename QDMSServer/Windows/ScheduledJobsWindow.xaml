@@ -23,7 +23,9 @@
         <DataTemplate DataType="{x:Type viewModels:DataUpdateJobViewModel}">
             <userControls:DataUpdateJobControl/>
         </DataTemplate>
-        
+        <DataTemplate DataType="{x:Type viewModels:EconomicReleaseUpdateJobViewModel}">
+            <userControls:EconomicReleaseJobControl/>
+        </DataTemplate>
     </controls:MetroWindow.Resources>
 
     <Grid>

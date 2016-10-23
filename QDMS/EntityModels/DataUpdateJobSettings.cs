@@ -13,10 +13,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using QDMS.Annotations;
-
+//This one should be in QDMS.Server.Jobs.JobDetails but for now we leave it here because we still need the old jobs to remain in the db
 namespace QDMS
 {
-    public class DataUpdateJobDetails : INotifyPropertyChanged, IJobDetails
+    public class DataUpdateJobSettings : INotifyPropertyChanged, IJobSettings
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

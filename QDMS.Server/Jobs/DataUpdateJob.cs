@@ -4,15 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Newtonsoft.Json;
+using NLog;
+using QDMS;
+using Quartz;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Newtonsoft.Json;
-using NLog;
-using QDMS;
-using Quartz;
 
 namespace QDMSServer
 {
@@ -58,11 +58,11 @@ namespace QDMSServer
         ///             fires that is associated with the <see cref="T:Quartz.IJob"/>.
         /// </summary>
         /// <remarks>
-        /// The implementation may wish to set a  result object on the 
+        /// The implementation may wish to set a  result object on the
         ///             JobExecutionContext before this method exits.  The result itself
-        ///             is meaningless to Quartz, but may be informative to 
-        ///             <see cref="T:Quartz.IJobListener"/>s or 
-        ///             <see cref="T:Quartz.ITriggerListener"/>s that are watching the job's 
+        ///             is meaningless to Quartz, but may be informative to
+        ///             <see cref="T:Quartz.IJobListener"/>s or
+        ///             <see cref="T:Quartz.ITriggerListener"/>s that are watching the job's
         ///             execution.
         /// </remarks>
         /// <param name="context">The execution context.</param>
@@ -70,17 +70,17 @@ namespace QDMSServer
         {
             _logger = LogManager.GetCurrentClassLogger();
 
-            if(_broker == null)
+            if (_broker == null)
             {
                 Log(LogLevel.Error, "Data Update Job failed: broker not set.");
                 return;
             }
 
             JobDataMap dataMap = context.JobDetail.JobDataMap;
-            DataUpdateJobDetails details;
+            DataUpdateJobSettings settings;
             try
             {
-                details = JsonConvert.DeserializeObject<DataUpdateJobDetails>((string)dataMap["settings"]);
+                settings = JsonConvert.DeserializeObject<DataUpdateJobSettings>((string)dataMap["settings"]);
             }
             catch (Exception e)
             {
@@ -88,22 +88,21 @@ namespace QDMSServer
                 return;
             }
 
-            Log(LogLevel.Info, string.Format("Data Update job {0} triggered.", details.Name));
+            Log(LogLevel.Info, string.Format("Data Update job {0} triggered.", settings.Name));
 
             //Multiple jobs may be called simultaneously, so what we do is seed the Random based on the job name
-            byte[] bytes = new byte[details.Name.Length * sizeof(char)];
-            Buffer.BlockCopy(details.Name.ToCharArray(), 0, bytes, 0, bytes.Length);
+            byte[] bytes = new byte[settings.Name.Length * sizeof(char)];
+            Buffer.BlockCopy(settings.Name.ToCharArray(), 0, bytes, 0, bytes.Length);
             Random r = new Random((int)DateTime.Now.TimeOfDay.TotalSeconds ^ BitConverter.ToInt32(bytes, 0));
             _requesterID = "DataUpdateJob" + r.Next(); //we use this ID to identify this particular data update job
 
-            
-            List<Instrument> instruments = details.UseTag 
-                ? _instrumentManager.FindInstruments(pred: x => x.Tags.Any(y => y.ID == details.TagID)) 
-                : _instrumentManager.FindInstruments(pred: x => x.ID == details.InstrumentID);
+            List<Instrument> instruments = settings.UseTag
+                ? _instrumentManager.FindInstruments(pred: x => x.Tags.Any(y => y.ID == settings.TagID))
+                : _instrumentManager.FindInstruments(pred: x => x.ID == settings.InstrumentID);
 
             if (instruments.Count == 0)
             {
-                Log(LogLevel.Error, string.Format("Aborting data update job {0}: no instruments found.", details.Name));
+                Log(LogLevel.Error, string.Format("Aborting data update job {0}: no instruments found.", settings.Name));
                 return;
             }
 
@@ -122,16 +121,16 @@ namespace QDMSServer
                 //don't request data on expired securities unless the expiration was recent
                 if (i.Expiration.HasValue && (DateTime.Now - i.Expiration.Value).TotalDays > 15)
                 {
-                    Log(LogLevel.Trace, string.Format("Data update job {0}: ignored instrument w/ ID {1} due to expiration date.", details.Name, i.ID));
+                    Log(LogLevel.Trace, string.Format("Data update job {0}: ignored instrument w/ ID {1} due to expiration date.", settings.Name, i.ID));
                     continue;
                 }
 
                 DateTime startingDT = new DateTime(1900, 1, 1);
 
                 var storageInfo = _localStorage.GetStorageInfo(i.ID.Value);
-                if (storageInfo.Any(x => x.Frequency == details.Frequency))
+                if (storageInfo.Any(x => x.Frequency == settings.Frequency))
                 {
-                    var relevantStorageInfo = storageInfo.First(x => x.Frequency == details.Frequency);
+                    var relevantStorageInfo = storageInfo.First(x => x.Frequency == settings.Frequency);
                     startingDT = relevantStorageInfo.LatestDate;
                 }
 
@@ -152,19 +151,18 @@ namespace QDMSServer
                     }
                 }
 
-
                 var req = new HistoricalDataRequest(
                     i,
-                    details.Frequency,
+                    settings.Frequency,
                     startingDT,
                     endDt,
                     dataLocation: DataLocation.ExternalOnly,
                     saveToLocalStorage: true,
                     rthOnly: true,
                     requestID: counter)
-                    {
-                        RequesterIdentity = _requesterID
-                    };
+                {
+                    RequesterIdentity = _requesterID
+                };
 
                 try
                 {
@@ -174,7 +172,7 @@ namespace QDMSServer
                         _pendingRequests.Add(req);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _errors.Add(ex.Message);
                 }
@@ -184,7 +182,7 @@ namespace QDMSServer
             Stopwatch sw = new Stopwatch();
             sw.Start();
             //loop until time runs out or all requests are completed
-            while (_pendingRequests.Count > 0 && 
+            while (_pendingRequests.Count > 0 &&
                 sw.ElapsedMilliseconds < _settings.Timeout * 1000)
             {
                 Thread.Sleep(100);
@@ -192,28 +190,28 @@ namespace QDMSServer
 
             JobComplete();
 
-            Log(LogLevel.Info, string.Format("Data Update job {0} completed.", details.Name));
+            Log(LogLevel.Info, string.Format("Data Update job {0} completed.", settings.Name));
         }
-        
+
         /// <summary>
         /// Any errors coming up from the broker are added to a list of errors to be emailed at the end of the job
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void _broker_Error(object sender, ErrorArgs e)
+        private void _broker_Error(object sender, ErrorArgs e)
         {
-            if(_settings.Errors)
+            if (_settings.Errors)
             {
                 _errors.Add(e.ErrorMessage);
             }
         }
 
-        void _broker_HistoricalDataArrived(object sender, HistoricalDataEventArgs e)
+        private void _broker_HistoricalDataArrived(object sender, HistoricalDataEventArgs e)
         {
             if (e.Request.RequesterIdentity != _requesterID) return;
 
             //If no data was received, we add that to the errors
-            if(e.Data.Count == 0 && _settings.NoDataReceived)
+            if (e.Data.Count == 0 && _settings.NoDataReceived)
             {
                 _errors.Add(string.Format("Data update for instrument {0} downloaded 0 bars.", e.Request.Instrument));
             }
@@ -246,10 +244,10 @@ namespace QDMSServer
                 }
             }
 
-            if(_errors.Count > 0 && _emailService != null && !string.IsNullOrEmpty(_settings.FromEmail) && !string.IsNullOrEmpty(_settings.ToEmail))
+            if (_errors.Count > 0 && _emailService != null && !string.IsNullOrEmpty(_settings.FromEmail) && !string.IsNullOrEmpty(_settings.ToEmail))
             {
                 //No email specified, so there's nothing to do
-                if(string.IsNullOrEmpty(_settings.ToEmail))
+                if (string.IsNullOrEmpty(_settings.ToEmail))
                 {
                     return;
                 }
@@ -258,12 +256,12 @@ namespace QDMSServer
                 try
                 {
                     _emailService.Send(
-                        _settings.FromEmail, 
-                        _settings.ToEmail, 
-                        "QDMS: Data Update Errors", 
+                        _settings.FromEmail,
+                        _settings.ToEmail,
+                        "QDMS: Data Update Errors",
                         string.Join(Environment.NewLine, _errors));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Log(LogLevel.Error, string.Format("Update job could not send error email: {0}", ex.Message));
                 }
@@ -292,7 +290,7 @@ namespace QDMSServer
                 request.EndingDate,
                 freq);
 
-            if(data == null || data.Count <= 1) return;
+            if (data == null || data.Count <= 1) return;
 
             //count how many bars are not newly updated
             int toSkip = data.Count(x => x.DT < request.StartingDate);
@@ -300,8 +298,8 @@ namespace QDMSServer
             var closePrices = data
                 .Select(x => x.AdjClose.HasValue ? (double)x.AdjClose.Value : (double)x.Close);
             var absRets = closePrices.Zip(closePrices.Skip(1), (x, y) => Math.Abs(y / x - 1));
-            
-            if(absRets.Skip(Math.Max(0, toSkip - 1)).Max() >= abnormalLimit)
+
+            if (absRets.Skip(Math.Max(0, toSkip - 1)).Max() >= abnormalLimit)
             {
                 _errors.Add(string.Format("Possible dirty data detected, abnormally large returns in instrument {0} at frequency {1}.",
                     inst,
@@ -311,12 +309,12 @@ namespace QDMSServer
             //Check for abnormally large ranges
             var highs = data.Select(x => x.AdjHigh.HasValue ? x.AdjHigh.Value : x.High);
             var lows = data.Select(x => x.AdjLow.HasValue ? x.AdjLow.Value : x.Low);
-            var ranges = highs.Zip(lows, (h, l) => (double) (h - l));
+            var ranges = highs.Zip(lows, (h, l) => (double)(h - l));
 
             double stDev = ranges.QDMSStandardDeviation();
             double mean = ranges.Average();
 
-            if(ranges.Skip(toSkip).Any(x => x > mean + stDev * abnormalStDevRange))
+            if (ranges.Skip(toSkip).Any(x => x > mean + stDev * abnormalStDevRange))
             {
                 _errors.Add(string.Format("Possible dirty data detected, abnormally large range in instrument {0} at frequency {1}.",
                     inst,

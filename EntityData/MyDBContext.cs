@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData.Migrations;
+using QDMS;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
-using EntityData.Migrations;
-using QDMS;
 
 namespace EntityData
 {
@@ -34,7 +34,10 @@ namespace EntityData
         public DbSet<TemplateSession> TemplateSessions { get; set; }
         public DbSet<UnderlyingSymbol> UnderlyingSymbols { get; set; }
         public DbSet<ContinuousFuture> ContinuousFutures { get; set; }
-        public DbSet<DataUpdateJobDetails> DataUpdateJobs { get; set; }
+        public DbSet<DataUpdateJobSettings> DataUpdateJobs { get; set; }
+        public DbSet<EconomicRelease> EconomicReleases { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -52,14 +55,13 @@ namespace EntityData
 
             modelBuilder.Entity<Instrument>()
             .HasMany(c => c.Tags)
-            .WithMany()             
+            .WithMany()
             .Map(x =>
             {
                 x.MapLeftKey("InstrumentID");
                 x.MapRightKey("TagID");
                 x.ToTable("tag_map");
             });
-
 
             modelBuilder.Entity<Instrument>().Property(x => x.Strike).HasPrecision(16, 8);
             modelBuilder.Entity<Instrument>().Property(x => x.MinTick).HasPrecision(16, 8);
@@ -72,6 +74,8 @@ namespace EntityData
 
             modelBuilder.Entity<TemplateSession>().Property(x => x.OpeningTime).HasPrecision(0);
             modelBuilder.Entity<TemplateSession>().Property(x => x.ClosingTime).HasPrecision(0);
+
+            // Instrument
 
             string uniqueIndex = "IX_Unique";
 
@@ -147,9 +151,9 @@ namespace EntityData
                     )
                 );
 
-
-
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
+
+
     }
 }

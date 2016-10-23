@@ -205,8 +205,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reactive.PlatformServices, Version=2.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rx-PlatformServices.2.3\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+    <Reference Include="System.Reactive.PlatformServices, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Reactive.Windows.Threading, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -276,6 +276,9 @@
     <Compile Include="UserControls\DataUpdateJobControl.xaml.cs">
       <DependentUpon>DataUpdateJobControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\EconomicReleaseJobControl.xaml.cs">
+      <DependentUpon>EconomicReleaseJobControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\DbBackup.cs" />
     <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
@@ -294,6 +297,7 @@
     <Compile Include="ValueConverters\TZToStringConverter.cs" />
     <Compile Include="ViewModels\AddInstrumentIbViewModel.cs" />
     <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\EconomicReleaseUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\JobViewModelBase.cs" />
     <Compile Include="ViewModels\SchedulerViewModel.cs" />
     <Compile Include="Windows\AboutWindow.xaml.cs">
@@ -366,6 +370,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="UserControls\DataUpdateJobControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\EconomicReleaseJobControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -501,6 +509,10 @@
     <ProjectReference Include="..\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
       <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
       <Name>QDMS.Server.DataSources.FRED</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
+      <Project>{3c2b9ce3-9054-46c4-902b-ae500a61b613}</Project>
+      <Name>QDMS.Server.DataSources.FXStreet</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
       <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>

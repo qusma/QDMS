@@ -400,7 +400,7 @@ namespace QDMS
             for (int i = 0; i < sessions.Count - 1; i++)
             {
                 if (sessions[i].Overlaps(sessions[i + 1]))
-                    throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions.First(), sessions.Last()));
+                    throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions[i], sessions[i + 1]));
             }
         }
     }

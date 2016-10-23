@@ -6,18 +6,19 @@
 
 using EntityData;
 using MahApps.Metro.Controls.Dialogs;
+using Newtonsoft.Json;
 using NLog;
 using QDMS;
+using QDMS.Server.Jobs;
+using QDMS.Server.Jobs.JobDetails;
 using Quartz;
+using Quartz.Impl.Matchers;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Newtonsoft.Json;
-using QDMS.Server.Jobs;
-using Quartz.Impl.Matchers;
 
 namespace QDMSServer.ViewModels
 {
@@ -39,10 +40,11 @@ namespace QDMSServer.ViewModels
             Jobs = new ObservableCollection<IJobViewModel>();
             Tags = new ReactiveList<Tag>();
             Instruments = new ReactiveList<Instrument>();
+            EconomicReleaseDataSources = new ObservableCollection<string> { "FXStreet" }; //we'll be grabbing this through the api in the future
 
             RefreshCollections();
             PopulateJobs();
-            
+
             CreateCommands();
         }
 
@@ -57,7 +59,7 @@ namespace QDMSServer.ViewModels
                 {
                     try
                     {
-                        var jd = JsonConvert.DeserializeObject<DataUpdateJobDetails>((string)jobDetails.JobDataMap["settings"]);
+                        var jd = JsonConvert.DeserializeObject<DataUpdateJobSettings>((string)jobDetails.JobDataMap["settings"]);
                         if (jd.InstrumentID.HasValue)
                         {
                             jd.Instrument = Instruments.FirstOrDefault(x => x.ID == jd.InstrumentID.Value);
@@ -72,6 +74,19 @@ namespace QDMSServer.ViewModels
                     catch (Exception e)
                     {
                         _logger.Error(e, "Failed to deserialize data update job");
+                    }
+                }
+                else if (job.Group == JobTypes.EconomicRelease)
+                {
+                    try
+                    {
+                        var jd = JsonConvert.DeserializeObject<EconomicReleaseUpdateJobSettings>((string)jobDetails.JobDataMap["settings"]);
+
+                        Jobs.Add(new EconomicReleaseUpdateJobViewModel(jd, _scheduler));
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, "Failed to deserialize economic release update job");
                     }
                 }
             }
@@ -113,6 +128,7 @@ namespace QDMSServer.ViewModels
             var dialog = new CustomDialog { Title = "Add New Job" };
             var panel = new StackPanel();
             panel.Children.Add(new RadioButton { Content = "Data Update", Margin = new Thickness(5), IsChecked = true });
+            panel.Children.Add(new RadioButton { Content = "Economic Release Update", Margin = new Thickness(5), IsChecked = false });
 
             var addBtn = new Button { Content = "Add" };
             addBtn.Click += (s, e) =>
@@ -132,8 +148,15 @@ namespace QDMSServer.ViewModels
             //create the jobdetails and add
             if (selectedJob == "Data Update")
             {
-                var job = new DataUpdateJobDetails { Name = GetJobName("DataUpdateJob"), UseTag = true, Frequency = BarSize.OneDay, Time = new TimeSpan(8, 0, 0), WeekDaysOnly = true };
+                var job = new DataUpdateJobSettings { Name = GetJobName("DataUpdateJob"), UseTag = true, Frequency = BarSize.OneDay, Time = new TimeSpan(8, 0, 0), WeekDaysOnly = true };
                 var jobVm = new DataUpdateJobViewModel(job, _scheduler);
+                Jobs.Add(jobVm);
+                SelectedJob = jobVm;
+            }
+            else if (selectedJob == "Economic Release Update")
+            {
+                var job = new EconomicReleaseUpdateJobSettings { Name = GetJobName("EconomicReleaseUpdateJob"), BusinessDaysBack = 1, BusinessDaysAhead = 7, DataSource = "FXStreet" };
+                var jobVm = new EconomicReleaseUpdateJobViewModel(job, _scheduler);
                 Jobs.Add(jobVm);
                 SelectedJob = jobVm;
             }
@@ -183,8 +206,9 @@ namespace QDMSServer.ViewModels
         public ReactiveList<Instrument> Instruments { get; set; }
 
         public ObservableCollection<IJobViewModel> Jobs { get; }
+        public ObservableCollection<string> EconomicReleaseDataSources { get; set; }
 
-        public DataUpdateJobViewModel SelectedJob
+        public IJobViewModel SelectedJob
         {
             get { return _selectedJob; }
             set { this.RaiseAndSetIfChanged(ref _selectedJob, value); }
@@ -194,6 +218,6 @@ namespace QDMSServer.ViewModels
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly IScheduler _scheduler;
-        private DataUpdateJobViewModel _selectedJob;
+        private IJobViewModel _selectedJob;
     }
 }

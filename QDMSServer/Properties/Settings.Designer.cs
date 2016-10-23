@@ -401,5 +401,17 @@ namespace QDMSServer.Properties {
                 this["barChartApiKey"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("FXStreet")]
+        public string EconomicReleaseDefaultDatasource {
+            get {
+                return ((string)(this["EconomicReleaseDefaultDatasource"]));
+            }
+            set {
+                this["EconomicReleaseDefaultDatasource"] = value;
+            }
+        }
     }
 }

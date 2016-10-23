@@ -9,7 +9,7 @@ using QDMS;
 
 namespace EntityData
 {
-    public class DataUpdateJobConfig : EntityTypeConfiguration<DataUpdateJobDetails>
+    public class DataUpdateJobConfig : EntityTypeConfiguration<DataUpdateJobSettings>
     {
         public DataUpdateJobConfig()
         {

@@ -62,6 +62,7 @@
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Krs.Ats.IBNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\QDMS-IBClient.1.0.0\lib\Krs.Ats.IBNet.dll</HintPath>
       <Private>True</Private>
@@ -140,6 +141,8 @@
     <Compile Include="QDMSServer\ContinuousFuturesBrokerTest.cs" />
     <Compile Include="QDMSServer\ContinuousFuturesBrokerTestData.cs" />
     <Compile Include="QDMSServer\DataUpdateJobTest.cs" />
+    <Compile Include="QDMSServer\EconomicReleaseBrokerTest.cs" />
+    <Compile Include="QDMSServer\FXStreetTest.cs" />
     <Compile Include="QDMSServer\HistoricalDataBrokerTest.cs" />
     <Compile Include="QDMSServer\HistoricalDataServerTest.cs" />
     <Compile Include="QDMSServer\IBTest.cs" />
@@ -171,6 +174,10 @@
     <ProjectReference Include="..\EntityData\EntityData.csproj">
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
+      <Project>{3c2b9ce3-9054-46c4-902b-ae500a61b613}</Project>
+      <Name>QDMS.Server.DataSources.FXStreet</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
       <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
