@@ -33,6 +33,18 @@ namespace EntityData.Migrations
                 .Index(t => t.Name, unique: true, name: "IX_Country");
             
             CreateTable(
+                "dbo.Currencies",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        Name = c.String(maxLength: 100, storeType: "nvarchar"),
+                        Code = c.String(maxLength: 3, storeType: "nvarchar"),
+                        NumericCode = c.Int(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id)
+                .Index(t => t.Code, unique: true);
+            
+            CreateTable(
                 "dbo.EconomicReleases",
                 c => new
                     {
@@ -56,8 +68,10 @@ namespace EntityData.Migrations
         {
             DropIndex("dbo.EconomicReleases", new[] { "Currency" });
             DropIndex("dbo.EconomicReleases", "IX_Unique");
+            DropIndex("dbo.Currencies", new[] { "Code" });
             DropIndex("dbo.Countries", "IX_Country");
             DropTable("dbo.EconomicReleases");
+            DropTable("dbo.Currencies");
             DropTable("dbo.Countries");
             RenameTable(name: "dbo.DataUpdateJobSettings", newName: "DataUpdateJobDetails");
         }

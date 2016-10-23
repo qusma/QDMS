@@ -37,6 +37,7 @@ namespace EntityData
         public DbSet<DataUpdateJobSettings> DataUpdateJobs { get; set; }
         public DbSet<EconomicRelease> EconomicReleases { get; set; }
         public DbSet<Country> Countries { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -149,60 +150,6 @@ namespace EntityData
                         }
                     )
                 );
-
-
-            // Economic Releases
-            modelBuilder.Entity<EconomicRelease>().Property(x => x.Currency).HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute()));
-
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.Name)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 1
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.Country)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 2
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.DateTime)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 3
-                        }
-                    )
-                );
-
-
-            // Countries
-            modelBuilder.Entity<Country>().Property(t => t.Name)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Country")
-                        {
-                            IsUnique = true
-                        }
-                    )
-                );
-
 
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
