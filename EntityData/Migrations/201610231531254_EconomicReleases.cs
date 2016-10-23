@@ -38,7 +38,7 @@ namespace EntityData.Migrations
                     {
                         Id = c.Int(nullable: false, identity: true),
                         Name = c.String(maxLength: 100, storeType: "nvarchar"),
-                        Code = c.String(maxLength: 3, storeType: "nvarchar"),
+                        Code = c.String(nullable: false, maxLength: 3, storeType: "nvarchar"),
                         NumericCode = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)

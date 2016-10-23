@@ -1562,6 +1562,9 @@ namespace QDMSServer
                 new Currency { Name = "Silver", Code = "XAG", NumericCode = 961 },
             };
 
+            //there are duplicates in the ISO dataset, so grab only distinct entries
+            currencies = currencies.Distinct((x, y) => x.Code == y.Code).ToList();
+
             foreach (Currency c in currencies)
             {
                 context.Currencies.AddOrUpdate(x => x.Code, c);

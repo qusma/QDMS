@@ -23,6 +23,7 @@ namespace QDMS
         /// </summary>
         [MaxLength(3)]
         [Index(IsUnique = true)]
+        [Required]
         public string Code { get; set; }
 
         /// <summary>
