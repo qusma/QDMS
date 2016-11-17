@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Reactive;
 using Quartz;
 using ReactiveUI;
 
@@ -13,7 +14,7 @@ namespace QDMSServer
     public interface IJobViewModel : INotifyPropertyChanged
     {
         string ValidationError { get; set; }
-        ReactiveCommand<object> Save { get; }
+        ReactiveCommand<Unit, Unit> Save { get; }
         void DeleteJob();
         string Name { get; set; }
         JobKey JobKey { get; }

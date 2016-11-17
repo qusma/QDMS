@@ -4,24 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using MetaLinq;
 using Newtonsoft.Json;
-using ProtoBuf;
 using System;
-using System.IO;
 using System.Linq.Expressions;
-using System.Xml.Serialization;
 
 namespace QDMS
 {
-    [ProtoContract]
     public class EconomicReleaseRequest
     {
         private string _serializedFilter;
-
-        [Obsolete("FOR SERIALIZATION USE ONLY")]
-        public EconomicReleaseRequest()
-        { }
 
         /// <summary>
         /// Request data for a single day
@@ -55,23 +46,23 @@ namespace QDMS
             DataSource = dataSource;
         }
 
-        [ProtoIgnore]
+        [Obsolete("FOR SERIALIZATION USE ONLY")]
+        public EconomicReleaseRequest()
+        { }
+
+        public DataLocation DataLocation { get; set; }
+
+        /// <summary>
+        /// If this is not specified, the default datasource will be used.
+        /// </summary>
+        public string DataSource { get; }
+
         [JsonIgnore]
         public Expression<Func<EconomicRelease, bool>> Filter
         {
             get
             {
-                if (_serializedFilter == null) return null;
-
-                var ms = new StringReader(_serializedFilter);
-
-                var xs = new XmlSerializer(typeof(EditableExpression),
-                    new[] { typeof(MetaLinq.Expressions.EditableLambdaExpression) });
-
-                //Deserialize LINQ expression
-                var editableExp = (EditableExpression)xs.Deserialize(ms);
-                var expression = (Expression<Func<EconomicRelease, bool>>)editableExp.ToExpression();
-                return expression;
+                return ExpressionSerializer.Deserialize<EconomicRelease>(_serializedFilter);
             }
             set
             {
@@ -81,19 +72,10 @@ namespace QDMS
                     return;
                 }
 
-                using (StringWriter textWriter = new StringWriter())
-                {
-                    EditableExpression mutable = EditableExpression.CreateEditableExpression(value);
-                    XmlSerializer xs = new XmlSerializer(typeof(EditableExpression),
-                        new[] { typeof(MetaLinq.Expressions.EditableLambdaExpression) });
-
-                    xs.Serialize(textWriter, mutable);
-                    _serializedFilter = textWriter.ToString();
-                }
+                _serializedFilter = value.Serialize();
             }
         }
 
-        [ProtoMember(4)]
         [Obsolete("FOR SERIALIZATION USE ONLY")]
         public string SerializedFilter
         {
@@ -107,19 +89,8 @@ namespace QDMS
             }
         }
 
-        /// <summary>
-        /// If this is not specified, the default datasource will be used.
-        /// </summary>
-        [ProtoMember(1)]
-        public string DataSource { get; }
+        public DateTime FromDate { get; set; }
 
-        [ProtoMember(2)]
-        public DateTime FromDate { get; }
-
-        [ProtoMember(3)]
-        public DateTime ToDate { get; }
-
-        [ProtoMember(5)]
-        public DataLocation DataLocation { get; }
+        public DateTime ToDate { get; set; }
     }
 }

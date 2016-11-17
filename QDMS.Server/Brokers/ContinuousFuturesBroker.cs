@@ -21,7 +21,10 @@
 // the final contract used.
 // The result is findally returned through the FoundFrontContract event.
 
-
+using NLog;
+using QDMS;
+using QDMS.Annotations;
+using QLNet;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -30,11 +33,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using System.Windows;
-using NLog;
-using QDMS;
-using QDMS.Annotations;
-using QLNet;
+using EntityData;
+using QDMS.Server;
 using Instrument = QDMS.Instrument;
 using Timer = System.Timers.Timer;
 
@@ -45,7 +45,7 @@ namespace QDMSServer
     public class ContinuousFuturesBroker : IContinuousFuturesBroker
     {
         private IDataClient _client;
-        private readonly IInstrumentSource _instrumentMgr;
+        private readonly IInstrumentSource _instrumentRepo;
 
         /// <summary>
         /// Keeps track of how many historical data requests remain until we can calculate the continuous prices
@@ -118,20 +118,19 @@ namespace QDMSServer
 
         private readonly Timer _reconnectTimer;
 
-        public ContinuousFuturesBroker(IDataClient client, IInstrumentSource instrumentMgr, bool connectImmediately = true)
+        public ContinuousFuturesBroker(IDataClient client, bool connectImmediately = true, IInstrumentSource instrumentRepo = null)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             _client = client;
 
-            _instrumentMgr = instrumentMgr;
+            _instrumentRepo = instrumentRepo ?? new InstrumentRepository(new MyDBContext());
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
-            if(connectImmediately)
+            if (connectImmediately)
                 _client.Connect();
 
-            
             _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();
             _requestCounts = new Dictionary<int, int>();
@@ -149,7 +148,7 @@ namespace QDMSServer
             Name = "ContinuousFutures";
         }
 
-        void _reconnectTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private void _reconnectTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (!_client.Connected)
             {
@@ -165,8 +164,6 @@ namespace QDMSServer
                 }
             }
         }
-
-
 
         private void _client_Error(object sender, ErrorArgs e)
         {
@@ -187,9 +184,9 @@ namespace QDMSServer
         }
 
         /// <summary>
-        /// Historical data has arrived. 
-        /// Add it to our data store, then check if all requests have been 
-        /// fulfilled for a particular continuous futures request. If they 
+        /// Historical data has arrived.
+        /// Add it to our data store, then check if all requests have been
+        /// fulfilled for a particular continuous futures request. If they
         /// have, go do the calculations.
         /// </summary>
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
@@ -266,14 +263,12 @@ namespace QDMSServer
             var requests = new List<HistoricalDataRequest>();
 
             var cf = request.Instrument.ContinuousFuture;
-            var searchInstrument = new Instrument
-            {
-                UnderlyingSymbol = request.Instrument.ContinuousFuture.UnderlyingSymbol.Symbol,
-                Type = InstrumentType.Future,
-                DatasourceID = request.Instrument.DatasourceID
-            };
 
-            var futures = _instrumentMgr.FindInstruments(search: searchInstrument);
+            var futures = _instrumentRepo.FindInstruments(x =>
+                x.UnderlyingSymbol == request.Instrument.ContinuousFuture.UnderlyingSymbol.Symbol &&
+                x.Type == InstrumentType.Future &&
+                x.DatasourceID == request.Instrument.DatasourceID).Result;
+
 
             if (futures == null)
             {
@@ -306,9 +301,9 @@ namespace QDMSServer
                 .Where(x => x.Expiration != null && x.Expiration.Value < request.StartingDate)
                 .Select(x => x.Expiration.Value).ToList();
 
-            DateTime firstExpiration = 
-                expiringBeforeStart.Count > 0 
-                    ? expiringBeforeStart.Max() 
+            DateTime firstExpiration =
+                expiringBeforeStart.Count > 0
+                    ? expiringBeforeStart.Max()
                     : futures.Select(x => x.Expiration.Value).Min();
 
             futures = futures.Where(x => x.Expiration != null && x.Expiration.Value >= firstExpiration).ToList();
@@ -427,7 +422,7 @@ namespace QDMSServer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns>The last contract used in the construction of this continuous futures instrument.</returns>
         private Instrument GetContFutData(HistoricalDataRequest request, bool raiseDataEvent = true)
@@ -458,16 +453,13 @@ namespace QDMSServer
             Instrument frontFuture = futures.FirstOrDefault();
             Instrument backFuture = futures.ElementAt(1);
 
-
             //sometimes the contract will be based on the Xth month
             //this is where we keep track of the actual contract currently being used
             Instrument selectedFuture = futures.ElementAt(cf.Month - 1);
             Instrument lastUsedSelectedFuture = selectedFuture;
 
-
             //final date is the earliest of: the last date of data available, or the request's endingdate
-            DateTime lastDateAvailable = new DateTime(1,1,1);
-            
+            DateTime lastDateAvailable = new DateTime(1, 1, 1);
 
             TimeSeries frontData, backData, selectedData;
             lock (_dataLock)
@@ -638,7 +630,7 @@ namespace QDMSServer
                     backFuture = futures.FirstOrDefault(x => x.Expiration > backFuture.Expiration);
                     var prevSelected = selectedFuture;
                     selectedFuture = futures.Where(x => x.Expiration >= frontFuture.Expiration).ElementAtOrDefault(cf.Month - 1);
-                    
+
                     Log(LogLevel.Info,
                         string.Format("CFB Filling request for {0}: switching front contract from {1} to {2} (selected contract from {3} to {4}) at {5}",
                         request.Instrument.Symbol,
@@ -649,8 +641,6 @@ namespace QDMSServer
                             ? ""
                             : selectedFuture.Symbol,
                         currentDate.ToString("yyyy-MM-dd")));
-
-
 
                     if (frontFuture == null) break; //no other futures left, get out
                     if (selectedFuture == null) break;
@@ -801,11 +791,10 @@ namespace QDMSServer
         /// </summary>
         private void ProcessFrontContractRequest(FrontContractRequest request)
         {
-            Log(LogLevel.Info, 
+            Log(LogLevel.Info,
                 string.Format("Processing front contract request for symbol: {0} at: {1}",
                 request.Instrument.Symbol,
                 request.Date.HasValue ? request.Date.ToString() : "Now"));
-
 
             if (request.Instrument.ContinuousFuture.RolloverType == ContinuousFuturesRolloverType.Time)
             {
@@ -947,16 +936,14 @@ namespace QDMSServer
             string tradingClass = request.Instrument.TradingClass;
 
             //we got the month we want! find the contract
-            Expression<Func<Instrument, bool>> searchFunc = 
+            Expression<Func<Instrument, bool>> searchFunc =
                 x =>
                     x.Expiration.HasValue &&
                     x.Expiration.Value.Month == selectedDate.Month &&
                     x.Expiration.Value.Year == selectedDate.Year &&
                     x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol &&
                     (string.IsNullOrEmpty(tradingClass) || x.TradingClass == tradingClass);
-
-            var contract = _instrumentMgr.FindInstruments(searchFunc).FirstOrDefault();
-
+            Instrument contract = _instrumentRepo.FindInstruments(searchFunc).Result.FirstOrDefault();
 
             var timer = new Timer(50) { AutoReset = false };
             timer.Elapsed += (sender, e) =>
@@ -976,6 +963,7 @@ namespace QDMSServer
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
 
         public event EventHandler<FoundFrontContractEventArgs> FoundFrontContract;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]

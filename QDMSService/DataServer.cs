@@ -3,6 +3,7 @@ using NLog;
 using QDMS;
 using QDMSServer;
 using System;
+using QDMS.Server;
 
 namespace QDMSService
 {
@@ -10,13 +11,10 @@ namespace QDMSService
     {
         private Logger _log;
         private Config.DataService _config;
-
-        private InstrumentManager _instrumentManager;
-
+        
         private HistoricalDataBroker _historicalDataBroker;
         private RealTimeDataBroker _realTimeDataBroker;
 
-        private InstrumentsServer _instrumentsServer;
         private HistoricalDataServer _historicalDataServer;
         private RealTimeDataServer _realTimeDataServer;
         
@@ -56,15 +54,10 @@ namespace QDMSService
             }
 
             // initialisize helper classes
-            _instrumentManager = new InstrumentManager();
 
-            var cfRealtimeBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient("RTDBCFClient", "127.0.0.1",
-                _config.RealtimeDataService.RequestPort, _config.RealtimeDataService.PublisherPort,
-                _config.InstrumentService.Port, _config.HistoricalDataService.Port), _instrumentManager, false);
-            var cfHistoricalBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient("HDBCFClient", "127.0.0.1",
-                _config.RealtimeDataService.RequestPort, _config.RealtimeDataService.PublisherPort,
-                _config.InstrumentService.Port, _config.HistoricalDataService.Port), _instrumentManager, false);
-
+            var cfRealtimeBroker = new ContinuousFuturesBroker(GetClient("RTDBCFClient"), false);
+            var cfHistoricalBroker = new ContinuousFuturesBroker(GetClient("HDBCFClient"), false);
+            
             IDataStorage localStorage;
 
             switch (_config.LocalStorage.Type)
@@ -88,23 +81,32 @@ namespace QDMSService
             });
 
             // create servers
-            _instrumentsServer = new InstrumentsServer(_config.InstrumentService.Port, _instrumentManager);
             _historicalDataServer = new HistoricalDataServer(_config.HistoricalDataService.Port, _historicalDataBroker);
             _realTimeDataServer = new RealTimeDataServer(_config.RealtimeDataService.PublisherPort, _config.RealtimeDataService.RequestPort, _realTimeDataBroker);
 
             // ... start the servers
-            _instrumentsServer.StartServer();
             _historicalDataServer.StartServer();
             _realTimeDataServer.StartServer();
 
             _log.Info($"Server is ready.");
         }
 
+        private QDMSClient.QDMSClient GetClient(string clientName)
+        {
+            return new QDMSClient.QDMSClient(
+                clientName, 
+                "127.0.0.1",
+                _config.RealtimeDataService.RequestPort, 
+                _config.RealtimeDataService.PublisherPort, 
+                _config.HistoricalDataService.Port,
+                _config.RestService.Port, 
+                _config.RestService.ApiKey);
+        }
+
         public void Stop()
         {
             _realTimeDataServer.Dispose();
             _historicalDataBroker.Dispose();
-            _instrumentsServer.Dispose();
         }
     }   
 }

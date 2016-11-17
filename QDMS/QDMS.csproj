@@ -72,6 +72,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataSourceStatus.cs" />
     <Compile Include="EntityModels\Country.cs" />
     <Compile Include="EntityModels\Currency.cs" />
     <Compile Include="EntityModels\DataUpdateJobSettings.cs" />
@@ -93,13 +94,16 @@
     <Compile Include="ExtensionMethods\OHLCBarExtensions.cs" />
     <Compile Include="ExtensionMethods\StatsExtensions.cs" />
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
-    <Compile Include="Interfaces\IDataClient.cs" />
+    <Compile Include="Interfaces\IEntity.cs" />
     <Compile Include="Interfaces\IJobSettings.cs" />
     <Compile Include="Interfaces\IEconomicReleaseSource.cs" />
     <Compile Include="Interfaces\ISession.cs" />
     <Compile Include="MessageType.cs" />
+    <Compile Include="RealTimeStreamInfo.cs" />
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
+    <Compile Include="Requests\PredicateSearchRequest.cs" />
     <Compile Include="Utils\CountryCodeHelper.cs" />
+    <Compile Include="Utils\ExpressionSerializer.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />
     <Compile Include="EntityModels\ContinuousFuture.cs" />
@@ -141,6 +145,7 @@
     <Compile Include="StoredDataInfo.cs" />
     <Compile Include="TimeSeries.cs" />
     <Compile Include="Utils\MyUtils.cs" />
+    <Compile Include="Utils\PriceAdjuster.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

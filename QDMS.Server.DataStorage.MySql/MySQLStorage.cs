@@ -16,6 +16,7 @@ using MySql.Data.MySqlClient;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
+using QDMS.Utils;
 
 #pragma warning disable 67
 

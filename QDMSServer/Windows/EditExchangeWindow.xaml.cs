@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using EntityData;
@@ -60,13 +61,10 @@ namespace QDMSServer
         private void ModifyBtn_Click(object sender, RoutedEventArgs e)
         {
             //ensure sessions don't overlap
-            try
+            List<string> error;
+            if (!MyUtils.ValidateSessions(TheExchange.Sessions.ToList(), out error))
             {
-                MyUtils.ValidateSessions(TheExchange.Sessions.ToList<ISession>());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(error.First());
                 return;
             }
 

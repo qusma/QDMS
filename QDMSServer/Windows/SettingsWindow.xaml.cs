@@ -35,7 +35,10 @@ namespace QDMSServer
             RTDPubPortTextBox.Text = Properties.Settings.Default.rtDBPubPort.ToString();
             RTDReqPortTextBox.Text = Properties.Settings.Default.rtDBReqPort.ToString();
             HDPortTextBox.Text = Properties.Settings.Default.hDBPort.ToString();
-            InstrumentServerPortTextBox.Text = Properties.Settings.Default.instrumentServerPort.ToString();
+            HttpPort.Text = Properties.Settings.Default.httpPort.ToString();
+
+            //REST API key
+            RestApiKeyTextBox.Text = Properties.Settings.Default.apiKey;
 
             //logs
             LogFolderTextBox.Text = Properties.Settings.Default.logDirectory;
@@ -116,11 +119,14 @@ namespace QDMSServer
                 Properties.Settings.Default.hDBPort = hDBPort;
             }
 
-            int instrumentServerPort;
-            if (int.TryParse(InstrumentServerPortTextBox.Text, out instrumentServerPort))
+            int httpPort;
+            if (int.TryParse(HttpPort.Text, out httpPort))
             {
-                Properties.Settings.Default.instrumentServerPort = instrumentServerPort;
+                Properties.Settings.Default.httpPort = httpPort;
             }
+
+            //REST API key
+            Properties.Settings.Default.apiKey = RestApiKeyTextBox.Text;
 
             //logging settings...create folder if necessary
             try

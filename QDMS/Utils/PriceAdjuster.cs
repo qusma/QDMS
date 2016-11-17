@@ -5,9 +5,8 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using QDMS;
 
-namespace QDMSServer
+namespace QDMS.Utils
 {
     /// <summary>
     /// Takes OHLC bars and produces adjusted prices for dividends and splits.

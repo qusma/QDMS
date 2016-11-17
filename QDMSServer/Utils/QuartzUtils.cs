@@ -113,7 +113,7 @@ namespace QDMSServer
             properties["quartz.jobStore.useProperties"] = "true";
             properties["quartz.jobStore.dataSource"] = "default";
             properties["quartz.jobStore.tablePrefix"] = "QRTZ_";
-            //todo test with sqlserevr
+
             //properties["quartz.jobStore.lockHandler.type"] = "Quartz.Impl.AdoJobStore.UpdateLockRowSemaphore, Quartz";
 
             properties["quartz.dataSource.default.connectionString"] = DBUtils.GetSqlServerConnectionString(

@@ -34,6 +34,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
+#pragma warning disable 693
 
 //namespace DrWPF.Windows.Data
 namespace QDMSServer

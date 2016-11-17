@@ -9,7 +9,6 @@ using ProtoBuf;
 
 namespace QDMS
 {
-    [Serializable]
     [ProtoContract]
     public class Tick
     {

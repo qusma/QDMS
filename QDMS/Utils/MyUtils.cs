@@ -391,17 +391,29 @@ namespace QDMS
         /// <summary>
         /// Ensure that no sessions in the collection overlap.
         /// </summary>
-        public static void ValidateSessions(List<ISession> sessions)
+        /// <returns>True if validation succeeded, false if there were errors</returns>
+        public static bool ValidateSessions<T>(List<T> sessions, out List<string> errors) where T: ISession
         {
+            errors = new List<string>();
+            if (sessions == null) return true;
+
             sessions = sessions.OrderBy(x => x.ClosingDay).ThenBy(x => x.ClosingTime).ToList();
             //first test last vs first, then in a row
             if (sessions.First().Overlaps(sessions.Last()))
-                throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions.First(), sessions.Last()));
+            {
+                errors.Add($"Sessions overlap: {sessions.First()} and {sessions.Last()}");
+                return false;
+            }
             for (int i = 0; i < sessions.Count - 1; i++)
             {
                 if (sessions[i].Overlaps(sessions[i + 1]))
-                    throw new Exception(string.Format("Sessions overlap: {0} and {1}", sessions[i], sessions[i + 1]));
+                {
+                    errors.Add($"Sessions overlap: {sessions[i]} and {sessions[i + 1]}");
+                    return false;
+                }
             }
+
+            return true;
         }
     }
 }

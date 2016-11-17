@@ -19,15 +19,15 @@ namespace QDMSServer
     public class DataUpdateJob : IJob
     {
         private Logger _logger;
-        private IEmailService _emailService;
-        private IHistoricalDataBroker _broker;
-        private List<string> _errors;
+        private readonly IEmailService _emailService;
+        private readonly IHistoricalDataBroker _broker;
+        private readonly List<string> _errors;
         private string _requesterID;
-        private UpdateJobSettings _settings;
-        private List<HistoricalDataRequest> _pendingRequests;
-        private IDataStorage _localStorage;
-        private object _reqIDLock = new object();
-        private IInstrumentSource _instrumentManager;
+        private readonly UpdateJobSettings _settings;
+        private readonly List<HistoricalDataRequest> _pendingRequests;
+        private readonly IDataStorage _localStorage;
+        private readonly object _reqIDLock = new object();
+        private readonly IInstrumentSource _instrumentManager;
 
         /// <summary>
         /// </summary>
@@ -97,8 +97,8 @@ namespace QDMSServer
             _requesterID = "DataUpdateJob" + r.Next(); //we use this ID to identify this particular data update job
 
             List<Instrument> instruments = settings.UseTag
-                ? _instrumentManager.FindInstruments(pred: x => x.Tags.Any(y => y.ID == settings.TagID))
-                : _instrumentManager.FindInstruments(pred: x => x.ID == settings.InstrumentID);
+                    ? _instrumentManager.FindInstruments(x => x.Tags.Any(y => y.ID == settings.TagID)).Result
+                    : _instrumentManager.FindInstruments(x => x.ID == settings.InstrumentID).Result;
 
             if (instruments.Count == 0)
             {

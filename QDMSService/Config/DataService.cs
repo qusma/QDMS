@@ -23,13 +23,6 @@ namespace QDMSService.Config
             set { this["LocalStorage"] = value; }
         }
 
-        [ConfigurationProperty("InstrumentService")]
-        public InstrumentService InstrumentService
-        {
-            get { return (InstrumentService)this["InstrumentService"]; }
-            set { this["InstrumentService"] = value; }
-        }
-
         [ConfigurationProperty("HistoricalDataService")]
         public HistoricalDataService HistoricalDataService
         {
@@ -42,6 +35,13 @@ namespace QDMSService.Config
         {
             get { return (RealtimeDataService)this["RealtimeDataService"]; }
             set { this["RealtimeDataService"] = value; }
+        }
+
+        [ConfigurationProperty("RestService")]
+        public RestService RestService
+        {
+            get { return (RestService)this["RestService"]; }
+            set { this["RestService"] = value; }
         }
     }
 }

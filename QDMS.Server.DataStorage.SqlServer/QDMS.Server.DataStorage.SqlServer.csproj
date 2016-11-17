@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.9\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.3.11\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -49,10 +49,6 @@
     <Compile Include="SqlServerStorage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
-      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
-      <Name>QDMS.Server</Name>
-    </ProjectReference>
     <ProjectReference Include="..\QDMS\QDMS.csproj">
       <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
       <Name>QDMS</Name>

@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using QDMS;
 
 namespace QDMSTest
@@ -13,7 +15,7 @@ namespace QDMSTest
     public static class ContinuousFuturesBrokerTestData
     {
         //utility function to get the contracts used for the continuous futures calculations
-        public static List<Instrument> GetVIXFutures()
+        public static List<Instrument> GetVIXFutures(Expression<Func<Instrument, bool>> filter = null)
         {
             var nov12 = new Instrument
             {
@@ -96,11 +98,12 @@ namespace QDMSTest
                 may13
             };
 
-            return futures;
+            if (filter == null) return futures;
+            return futures.AsQueryable().Where(filter).ToList();
         }
 
         //utility function to get the contracts used for the intraday continuous futures calculations
-        public static List<Instrument> GetContractsForIntradayData()
+        public static List<Instrument> GetContractsForIntradayData(Expression<Func<Instrument,bool>> filter = null)
         {
             var dec13 = new Instrument
             {
@@ -127,8 +130,8 @@ namespace QDMSTest
                 dec13,
                 jan14
             };
-
-            return futures;
+            if (filter == null) return futures;
+            return futures.AsQueryable().Where(filter).ToList();
         }
 
         public static Dictionary<int, List<OHLCBar>> GetIntradayVIXFuturesData()

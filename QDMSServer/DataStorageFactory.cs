@@ -13,7 +13,7 @@ namespace QDMSServer
     {
         public static IDataStorage Get()
         {
-            switch(Properties.Settings.Default.databaseType)
+            switch (Properties.Settings.Default.databaseType)
             {
                 case "MySql":
                     return new MySQLStorage(DBUtils.GetMySqlServerConnectionString("qdmsdata"));

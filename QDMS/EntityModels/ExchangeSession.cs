@@ -7,26 +7,29 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 using ProtoBuf;
 
 namespace QDMS
 {
     [ProtoContract]
-    [Serializable]
-    public class ExchangeSession : ISession
+    public class ExchangeSession : ISession, IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        [JsonIgnore]
         public TimeSpan OpeningTime { get; set; }
 
+        [JsonIgnore]
         public TimeSpan ClosingTime { get; set; }
 
         [ProtoMember(2)]
         public int ExchangeID { get; set; }
 
+        [JsonIgnore]
         public virtual Exchange Exchange { get; set; }
 
         [ProtoMember(3)]

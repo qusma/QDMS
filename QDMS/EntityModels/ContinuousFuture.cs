@@ -12,7 +12,6 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    [Serializable]
     public class ContinuousFuture : ICloneable
     {
         public ContinuousFuture()

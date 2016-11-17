@@ -15,6 +15,8 @@ using EntityData;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using QDMS;
+using QDMS.Server;
+using QDMS.Utils;
 using QDMSServer.DataSources;
 
 namespace QDMSServer

@@ -12,6 +12,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Data.Entity;
 using EntityData;
 using MahApps.Metro.Controls;
 using QDMS;

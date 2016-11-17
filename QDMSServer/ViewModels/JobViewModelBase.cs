@@ -9,6 +9,9 @@ using QDMS.Server.Jobs;
 using Quartz;
 using ReactiveUI;
 using System;
+using System.Reactive;
+using ReactiveUI.Legacy;
+using ReactiveCommand = ReactiveUI.ReactiveCommand;
 
 namespace QDMSServer.ViewModels
 {
@@ -39,8 +42,7 @@ namespace QDMSServer.ViewModels
             _scheduler = scheduler;
             _preChangeName = job.Name;
 
-            Save = ReactiveCommand.Create(this.WhenAny(x => x.ValidationError, x => string.IsNullOrEmpty(x.Value)));
-            Save.Subscribe(x => ExecuteSave());
+            Save = ReactiveCommand.Create(ExecuteSave, this.WhenAny(x => x.ValidationError, x => string.IsNullOrEmpty(x.Value)));
         }
 
         public T Job { get; }
@@ -52,7 +54,7 @@ namespace QDMSServer.ViewModels
             set { Job.Name = value; this.RaisePropertyChanged(); }
         }
 
-        public ReactiveCommand<object> Save { get; }
+        public ReactiveCommand<Unit, Unit> Save { get; }
 
         public string ValidationError
         {

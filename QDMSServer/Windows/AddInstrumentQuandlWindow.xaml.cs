@@ -15,6 +15,7 @@ using EntityData;
 using MahApps.Metro.Controls;
 using NLog;
 using QDMS;
+using QDMS.Server;
 
 namespace QDMSServer
 {
@@ -96,24 +97,27 @@ namespace QDMSServer
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
             int count = 0;
-            var instrumentSource = new InstrumentManager();
-
-            foreach (Instrument newInstrument in InstrumentGrid.SelectedItems)
+            
+            using (var context = new MyDBContext())
             {
-                if (newInstrument.Exchange != null)
-                    newInstrument.ExchangeID = newInstrument.Exchange.ID;
-                if (newInstrument.PrimaryExchange != null)
-                    newInstrument.PrimaryExchangeID = newInstrument.PrimaryExchange.ID;
+                var instrumentSource = new InstrumentRepository(context);
+                foreach (Instrument newInstrument in InstrumentGrid.SelectedItems)
+                {
+                    if (newInstrument.Exchange != null)
+                        newInstrument.ExchangeID = newInstrument.Exchange.ID;
+                    if (newInstrument.PrimaryExchange != null)
+                        newInstrument.PrimaryExchangeID = newInstrument.PrimaryExchange.ID;
 
-                try
-                {
-                    if (instrumentSource.AddInstrument(newInstrument) != null)
-                        count++;
-                    AddedInstruments.Add(newInstrument);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error");
+                    try
+                    {
+                        if (instrumentSource.AddInstrument(newInstrument) != null)
+                            count++;
+                        AddedInstruments.Add(newInstrument);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error");
+                    }
                 }
             }
             StatusLabel.Content = string.Format("{0}/{1} instruments added.", count, InstrumentGrid.SelectedItems.Count);

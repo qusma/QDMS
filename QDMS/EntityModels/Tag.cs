@@ -12,7 +12,7 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    public class Tag : ICloneable, IEquatable<Tag>
+    public class Tag : ICloneable, IEquatable<Tag>, IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -43,6 +43,7 @@ namespace QDMS
         /// <param name="other">An object to compare with this object.</param>
         public bool Equals(Tag other)
         {
+            if (ReferenceEquals(other, null)) return false;
             return other.ID == ID && other.Name == Name;
         }
 

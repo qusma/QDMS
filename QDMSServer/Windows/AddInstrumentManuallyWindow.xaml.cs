@@ -267,13 +267,10 @@ namespace QDMSServer
             //Validate the sessions
             if (SelectedSessions.Count > 0)
             {
-                try
+                List<string> error;
+                if (!MyUtils.ValidateSessions(SelectedSessions.ToList<ISession>(), out error))
                 {
-                    MyUtils.ValidateSessions(SelectedSessions.ToList<ISession>());
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(error.First());
                     return;
                 }
             }

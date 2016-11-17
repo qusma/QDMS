@@ -37,7 +37,7 @@ namespace QDMSTest
             _hdServer = new HistoricalDataServer(5557, _historicalDataBrokerMock.Object);
             _hdServer.StartServer();
 
-            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5556, 5557);
+            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5557, 5559, "");
             _client.Connect();
         }
 

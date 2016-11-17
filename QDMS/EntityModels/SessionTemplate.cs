@@ -13,7 +13,7 @@ using System.Linq;
 namespace QDMS
 {
 
-    public class SessionTemplate : ICloneable
+    public class SessionTemplate : ICloneable, IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

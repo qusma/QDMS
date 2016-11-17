@@ -14,8 +14,7 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    [Serializable]
-    public class Exchange : ICloneable
+    public class Exchange : ICloneable, IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

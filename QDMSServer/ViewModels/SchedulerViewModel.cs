@@ -17,8 +17,10 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Windows;
 using System.Windows.Controls;
+using QDMS.Server;
 
 namespace QDMSServer.ViewModels
 {
@@ -101,8 +103,8 @@ namespace QDMSServer.ViewModels
             {
                 Tags.AddRange(context.Tags.ToList());
 
-                var im = new InstrumentManager();
-                Instruments.AddRange(im.FindInstruments(context));
+                var im = new InstrumentRepository(context);
+                Instruments.AddRange(im.FindInstruments().Result);
             }
         }
 
@@ -113,11 +115,12 @@ namespace QDMSServer.ViewModels
 
         private void CreateCommands()
         {
-            Delete = ReactiveCommand.Create(this.WhenAny(x => x.SelectedJob, x => x.Value != null));
-            Delete.Subscribe(x => ExecuteDelete(x as DataUpdateJobViewModel), e => _logger.Log(LogLevel.Warn, e, "Scheduler job deletion error"));
+            Delete = ReactiveCommand.Create<DataUpdateJobViewModel>(
+                ExecuteDelete, 
+                this.WhenAny(x => x.SelectedJob, x => x.Value != null));
+            Delete.ThrownExceptions.Subscribe(e => _logger.Log(LogLevel.Warn, e, "Scheduler job deletion error"));
 
-            Add = ReactiveCommand.Create();
-            Add.Subscribe(_ => ExecuteAdd());
+            Add = ReactiveCommand.Create(ExecuteAdd);
         }
 
         private void ExecuteAdd()
@@ -197,9 +200,9 @@ namespace QDMSServer.ViewModels
             SelectedJob = null;
         }
 
-        public ReactiveCommand<object> Add { get; private set; }
+        public ReactiveCommand<Unit, Unit> Add { get; private set; }
 
-        public ReactiveCommand<object> Delete { get; private set; }
+        public ReactiveCommand<DataUpdateJobViewModel, Unit> Delete { get; private set; }
 
         public IDialogCoordinator DialogService { get; set; }
 

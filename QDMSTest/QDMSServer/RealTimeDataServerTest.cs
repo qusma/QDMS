@@ -31,7 +31,7 @@ namespace QDMSTest
             _rtServer = new RealTimeDataServer(5555, 5554, _brokerMock.Object);
             _rtServer.StartServer();
 
-            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5556, 5557);
+            _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5557, 5559, "");
             _client.Connect();
         }
 

@@ -46,8 +46,9 @@ namespace QDMSServer
             "localhost",
             Properties.Settings.Default.rtDBReqPort,
             Properties.Settings.Default.rtDBPubPort,
-            Properties.Settings.Default.instrumentServerPort,
-            Properties.Settings.Default.hDBPort);
+            Properties.Settings.Default.hDBPort,
+            Properties.Settings.Default.httpPort,
+            Properties.Settings.Default.apiKey);
             
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
