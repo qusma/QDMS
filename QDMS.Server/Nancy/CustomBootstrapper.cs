@@ -38,8 +38,10 @@ namespace QDMS.Server.Nancy
             _apiKey = apiKey;
         }
 
-        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
+            base.ConfigureApplicationContainer(container);
+
             //configure ioc
             container.Register<IMyDbContext, MyDBContext>().AsMultiInstance();
             container.Register<IInstrumentSource, InstrumentRepository>().AsMultiInstance();
@@ -47,7 +49,10 @@ namespace QDMS.Server.Nancy
             container.Register<IEconomicReleaseBroker>(_erb);
             container.Register<IHistoricalDataBroker>(_hdb);
             container.Register<IRealTimeDataBroker>(_rtdb);
+        }
 
+        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        {
             //log requests
             pipelines.BeforeRequest += ctx =>
             {
