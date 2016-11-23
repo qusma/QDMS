@@ -413,7 +413,7 @@ namespace QDMSServer.Properties {
                 this["EconomicReleaseDefaultDatasource"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("123")]
@@ -435,6 +435,18 @@ namespace QDMSServer.Properties {
             }
             set {
                 this["httpPort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool useSsl {
+            get {
+                return ((bool)(this["useSsl"]));
+            }
+            set {
+                this["useSsl"] = value;
             }
         }
     }

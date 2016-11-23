@@ -161,7 +161,8 @@ namespace QDMSServer
                     Properties.Settings.Default.rtDBPubPort,
                     Properties.Settings.Default.hDBPort,
                     Properties.Settings.Default.httpPort,
-                    Properties.Settings.Default.apiKey), 
+                    Properties.Settings.Default.apiKey,
+                    useSsl: Properties.Settings.Default.useSsl), 
                     connectImmediately: false);
             var cfHistoricalBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
                     "HDBCFClient",
@@ -170,7 +171,8 @@ namespace QDMSServer
                     Properties.Settings.Default.rtDBPubPort,
                     Properties.Settings.Default.hDBPort,
                     Properties.Settings.Default.httpPort,
-                    Properties.Settings.Default.apiKey), 
+                    Properties.Settings.Default.apiKey,
+                    useSsl: Properties.Settings.Default.useSsl), 
                     connectImmediately: false);
             var localStorage = DataStorageFactory.Get();
             RealTimeBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage,
@@ -211,7 +213,8 @@ namespace QDMSServer
                 Properties.Settings.Default.rtDBPubPort,
                 Properties.Settings.Default.hDBPort,
                 Properties.Settings.Default.httpPort,
-                Properties.Settings.Default.apiKey);
+                Properties.Settings.Default.apiKey,
+                useSsl: Properties.Settings.Default.useSsl);
             _client.Connect();
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
 
@@ -249,7 +252,8 @@ namespace QDMSServer
                 HistoricalBroker,
                 RealTimeBroker,
                 Properties.Settings.Default.apiKey);
-            var host = new NancyHost(bootstrapper, new Uri("http://localhost:" + Properties.Settings.Default.httpPort));
+            var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);
+            var host = new NancyHost(bootstrapper, uri);
             host.Start();
 
             entityContext.Dispose();

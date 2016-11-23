@@ -25,15 +25,20 @@ namespace QDMSClient
         private HttpClient _httpClient = new HttpClient();
         private readonly string _baseAddr;
 
-        public ApiClient(string host, int httpPort, string apiKey)
+        public ApiClient(string host, int httpPort, string apiKey, bool useSsl)
         {
-            _baseAddr = $"http://{host}:{httpPort}";
+            _baseAddr = (useSsl ? "https" : "http") + $"://{host}:{httpPort}";
             _httpClient.Timeout = TimeSpan.FromSeconds(10);
             if (!string.IsNullOrEmpty(apiKey))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(apiKey);
             }
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            //this allows the use of self-signed certificates
+            ServicePointManager
+                .ServerCertificateValidationCallback +=
+                (sender, cert, chain, sslPolicyErrors) => true;
         }
 
         private async Task<ApiResponse<T>> MakeRequest<T>(Func<HttpClient, Task<HttpResponseMessage>> request) where T : class

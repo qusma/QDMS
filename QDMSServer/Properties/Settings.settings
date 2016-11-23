@@ -100,12 +100,15 @@
     </Setting>
     <Setting Name="EconomicReleaseDefaultDatasource" Type="System.String" Scope="User">
       <Value Profile="(Default)">FXStreet</Value>
-	</Setting>
+    </Setting>
     <Setting Name="apiKey" Type="System.String" Scope="User">
       <Value Profile="(Default)">123</Value>
     </Setting>
     <Setting Name="httpPort" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5559</Value>
+    </Setting>
+    <Setting Name="useSsl" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

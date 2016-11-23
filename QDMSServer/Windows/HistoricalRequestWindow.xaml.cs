@@ -48,7 +48,8 @@ namespace QDMSServer
             Properties.Settings.Default.rtDBPubPort,
             Properties.Settings.Default.hDBPort,
             Properties.Settings.Default.httpPort,
-            Properties.Settings.Default.apiKey);
+            Properties.Settings.Default.apiKey,
+            useSsl: Properties.Settings.Default.useSsl);
             
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;

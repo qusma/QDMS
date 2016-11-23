@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Configuration;
 
 namespace QDMSService.Config
 {
-    public class RestService : ConfigurationElement
+    public class WebService : ConfigurationElement
     {
         [ConfigurationProperty("Port", DefaultValue = 5559, IsRequired = false)]
         [IntegerValidator(MinValue = 1, MaxValue = 65535)]
@@ -22,6 +17,13 @@ namespace QDMSService.Config
         {
             get { return (string)this["ApiKey"]; }
             set { this["ApiKey"] = value; }
+        }
+
+        [ConfigurationProperty("UseSsl", DefaultValue = false, IsRequired = false)]
+        public bool UseSsl
+        {
+            get { return (bool)this["UseSsl"]; }
+            set { this["UseSsl"] = value; }
         }
     }
 }

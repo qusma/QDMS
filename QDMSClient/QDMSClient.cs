@@ -502,9 +502,10 @@ namespace QDMSClient
         /// <param name="realTimeRequestPort">The port used for real time data requsts.</param>
         /// <param name="realTimePublishPort">The port used for publishing new real time data.</param>
         /// <param name="historicalDataPort">The port used for historical data.</param>
-        /// <param name="httpPort"></param>
-        /// <param name="apiKey"></param>
-        public QDMSClient(string clientName, string host, int realTimeRequestPort, int realTimePublishPort, int historicalDataPort, int httpPort, string apiKey)
+        /// <param name="httpPort">The port used for the REST API.</param>
+        /// <param name="apiKey">The authentication key for the REST API.</param>
+        /// <param name="useSsl">Use an encrypted connection for the REST API.</param>
+        public QDMSClient(string clientName, string host, int realTimeRequestPort, int realTimePublishPort, int historicalDataPort, int httpPort, string apiKey, bool useSsl = false)
         {
             _name = clientName;
 
@@ -514,7 +515,7 @@ namespace QDMSClient
 
             _historicalDataRequests = new ConcurrentQueue<HistoricalDataRequest>();
 
-            _apiClient = new ApiClient(host, httpPort, apiKey);
+            _apiClient = new ApiClient(host, httpPort, apiKey, useSsl);
         }
         
 
