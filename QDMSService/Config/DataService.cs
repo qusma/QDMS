@@ -38,9 +38,9 @@ namespace QDMSService.Config
         }
 
         [ConfigurationProperty("RestService")]
-        public RestService RestService
+        public WebService WebService
         {
-            get { return (RestService)this["RestService"]; }
+            get { return (WebService)this["RestService"]; }
             set { this["RestService"] = value; }
         }
     }

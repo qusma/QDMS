@@ -17,7 +17,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace QDMSTest.httpServer
+namespace QDMSTest.HttpServer
 {
     [TestFixture]
     public class InstrumentModuleTest : ModuleTestBase<Instrument, InstrumentModule>

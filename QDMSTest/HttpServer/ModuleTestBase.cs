@@ -20,7 +20,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace QDMSTest.httpServer
+namespace QDMSTest.HttpServer
 {
     /// <summary>
     /// Base for testing Nancy modules

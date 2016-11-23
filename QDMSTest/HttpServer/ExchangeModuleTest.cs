@@ -16,7 +16,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 
-namespace QDMSTest.httpServer
+namespace QDMSTest.HttpServer
 {
     [TestFixture]
     public class ExchangeModuleTest : ModuleTestBase<Exchange, ExchangeModule>

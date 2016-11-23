@@ -10,7 +10,7 @@ using Nancy.Testing;
 using NUnit.Framework;
 using QDMS;
 using QDMS.Server.NancyModules;
-using QDMSTest.httpServer;
+using QDMSTest.HttpServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
