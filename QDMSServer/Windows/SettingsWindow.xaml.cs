@@ -4,14 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls;
+using NLog;
+using NLog.Targets;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using MahApps.Metro.Controls;
-using NLog;
-using NLog.Targets;
 
 namespace QDMSServer
 {
@@ -20,7 +20,7 @@ namespace QDMSServer
     /// </summary>
     public partial class SettingsWindow : MetroWindow
     {
-        public ObservableCollection<string> EconomicReleaseDataSources { get; set; } = new ObservableCollection<string>(); 
+        public ObservableCollection<string> EconomicReleaseDataSources { get; set; } = new ObservableCollection<string>();
         public string SelectedDefaultEconomicReleaseDatasource { get; set; }
 
         public SettingsWindow()
@@ -35,7 +35,11 @@ namespace QDMSServer
             RTDPubPortTextBox.Text = Properties.Settings.Default.rtDBPubPort.ToString();
             RTDReqPortTextBox.Text = Properties.Settings.Default.rtDBReqPort.ToString();
             HDPortTextBox.Text = Properties.Settings.Default.hDBPort.ToString();
-            InstrumentServerPortTextBox.Text = Properties.Settings.Default.instrumentServerPort.ToString();
+            HttpPort.Text = Properties.Settings.Default.httpPort.ToString();
+
+            //REST API key
+            RestApiKeyTextBox.Text = Properties.Settings.Default.apiKey;
+            UseSslCheckBox.IsChecked = Properties.Settings.Default.useSsl;
 
             //logs
             LogFolderTextBox.Text = Properties.Settings.Default.logDirectory;
@@ -73,7 +77,7 @@ namespace QDMSServer
             SqlServerHost.Text = Properties.Settings.Default.sqlServerHost;
             SqlServerUsername.Text = Properties.Settings.Default.sqlServerUsername;
             SqlServerPassword.Password = EncryptionUtils.Unprotect(Properties.Settings.Default.sqlServerPassword);
-            
+
             //Data jobs
             UpdateJobEmailHost.Text = Properties.Settings.Default.updateJobEmailHost;
             UpdateJobEmailPort.Text = Properties.Settings.Default.updateJobEmailPort.ToString();
@@ -95,6 +99,7 @@ namespace QDMSServer
         {
             Close();
         }
+
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
         {
             //ports settings
@@ -116,11 +121,15 @@ namespace QDMSServer
                 Properties.Settings.Default.hDBPort = hDBPort;
             }
 
-            int instrumentServerPort;
-            if (int.TryParse(InstrumentServerPortTextBox.Text, out instrumentServerPort))
+            int httpPort;
+            if (int.TryParse(HttpPort.Text, out httpPort))
             {
-                Properties.Settings.Default.instrumentServerPort = instrumentServerPort;
+                Properties.Settings.Default.httpPort = httpPort;
             }
+
+            //REST API key
+            Properties.Settings.Default.apiKey = RestApiKeyTextBox.Text;
+            Properties.Settings.Default.useSsl = UseSslCheckBox.IsChecked ?? false;
 
             //logging settings...create folder if necessary
             try
@@ -136,7 +145,6 @@ namespace QDMSServer
             {
                 MessageBox.Show("Error setting log directory: " + ex.Message);
             }
-
 
             //IB Settings
             Properties.Settings.Default.ibClientHost = IBHostTextBox.Text;
@@ -200,7 +208,7 @@ namespace QDMSServer
             Properties.Settings.Default.updateJobEmailPassword = EncryptionUtils.Protect(UpdateJobEmailPassword.Password);
 
             int timeout;
-            if(int.TryParse(UpdateJobTimeout.Text, out timeout) && timeout > 0)
+            if (int.TryParse(UpdateJobTimeout.Text, out timeout) && timeout > 0)
             {
                 Properties.Settings.Default.updateJobTimeout = timeout;
             }
@@ -212,7 +220,6 @@ namespace QDMSServer
 
             //Economic Releases
             Properties.Settings.Default.EconomicReleaseDefaultDatasource = SelectedDefaultEconomicReleaseDatasource;
-
 
             Properties.Settings.Default.Save();
 

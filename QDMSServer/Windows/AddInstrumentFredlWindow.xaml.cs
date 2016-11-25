@@ -14,6 +14,7 @@ using EntityData;
 using MahApps.Metro.Controls;
 using NLog;
 using QDMS;
+using QDMS.Server;
 
 namespace QDMSServer
 {
@@ -80,22 +81,24 @@ namespace QDMSServer
         {
             int count = 0;
 
-            var instrumentSource = new InstrumentManager();
-
-            foreach (FredUtils.FredSeries series in InstrumentGrid.SelectedItems)
+            using (var context = new MyDBContext())
             {
-                var newInstrument = FredUtils.SeriesToInstrument(series);
-                newInstrument.Datasource = _thisDS;
+                var instrumentSource = new InstrumentRepository(context);
+                foreach (FredUtils.FredSeries series in InstrumentGrid.SelectedItems)
+                {
+                    var newInstrument = FredUtils.SeriesToInstrument(series);
+                    newInstrument.Datasource = _thisDS;
 
-                try
-                {
-                    if (instrumentSource.AddInstrument(newInstrument) != null)
-                        count++;
-                    AddedInstruments.Add(newInstrument);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error");
+                    try
+                    {
+                        if (instrumentSource.AddInstrument(newInstrument) != null)
+                            count++;
+                        AddedInstruments.Add(newInstrument);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error");
+                    }
                 }
             }
             StatusLabel.Content = string.Format("{0}/{1} instruments added.", count, InstrumentGrid.SelectedItems.Count);

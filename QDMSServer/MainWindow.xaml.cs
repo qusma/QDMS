@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Deployment.Application;
 using System.IO;
 using System.Linq;
@@ -29,6 +30,10 @@ using Quartz.Impl;
 using Quartz.Impl.Matchers;
 using QDMSServer.DataSources;
 using QDMSServer.Properties;
+using Nancy.Hosting.Self;
+using Nancy.Authentication.Stateless;
+using QDMS.Server;
+using QDMS.Server.Nancy;
 
 namespace QDMSServer
 {
@@ -42,7 +47,6 @@ namespace QDMSServer
         public HistoricalDataBroker HistoricalBroker { get; set; }
         public EconomicReleaseBroker EconomicReleaseBroker { get; set; }
         private readonly HistoricalDataServer _historicalDataServer;
-        private readonly InstrumentsServer _instrumentsServer;
 
         private readonly IScheduler _scheduler;
 
@@ -141,8 +145,8 @@ namespace QDMSServer
 
             Instruments = new ObservableCollection<Instrument>();
 
-            var mgr = new InstrumentManager();
-            var instrumentList = mgr.FindInstruments(entityContext);
+            var instrumentRepo = new InstrumentRepository(entityContext);
+            var instrumentList = instrumentRepo.FindInstruments().Result;
 
             foreach (Instrument i in instrumentList)
             {
@@ -151,19 +155,25 @@ namespace QDMSServer
 
             //create brokers
             var cfRealtimeBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
-                "RTDBCFClient",
-                "127.0.0.1",
-                Properties.Settings.Default.rtDBReqPort,
-                Properties.Settings.Default.rtDBPubPort,
-                Properties.Settings.Default.instrumentServerPort,
-                Properties.Settings.Default.hDBPort), new InstrumentManager(), connectImmediately: false);
+                    "RTDBCFClient",
+                    "127.0.0.1",
+                    Properties.Settings.Default.rtDBReqPort,
+                    Properties.Settings.Default.rtDBPubPort,
+                    Properties.Settings.Default.hDBPort,
+                    Properties.Settings.Default.httpPort,
+                    Properties.Settings.Default.apiKey,
+                    useSsl: Properties.Settings.Default.useSsl), 
+                    connectImmediately: false);
             var cfHistoricalBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
-                "HDBCFClient",
-                "127.0.0.1",
-                Properties.Settings.Default.rtDBReqPort,
-                Properties.Settings.Default.rtDBPubPort,
-                Properties.Settings.Default.instrumentServerPort,
-                Properties.Settings.Default.hDBPort), new InstrumentManager(), connectImmediately: false);
+                    "HDBCFClient",
+                    "127.0.0.1",
+                    Properties.Settings.Default.rtDBReqPort,
+                    Properties.Settings.Default.rtDBPubPort,
+                    Properties.Settings.Default.hDBPort,
+                    Properties.Settings.Default.httpPort,
+                    Properties.Settings.Default.apiKey,
+                    useSsl: Properties.Settings.Default.useSsl), 
+                    connectImmediately: false);
             var localStorage = DataStorageFactory.Get();
             RealTimeBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage,
                 new IRealTimeDataSource[] {
@@ -189,12 +199,10 @@ namespace QDMSServer
 
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
-            _instrumentsServer = new InstrumentsServer(Properties.Settings.Default.instrumentServerPort, mgr);
             _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, HistoricalBroker);
 
             //and start them
             _realTimeServer.StartServer();
-            _instrumentsServer.StartServer();
             _historicalDataServer.StartServer();
             
             //we also need a client to make historical data requests with
@@ -203,8 +211,10 @@ namespace QDMSServer
                 "localhost",
                 Properties.Settings.Default.rtDBReqPort,
                 Properties.Settings.Default.rtDBPubPort,
-                Properties.Settings.Default.instrumentServerPort,
-                Properties.Settings.Default.hDBPort);
+                Properties.Settings.Default.hDBPort,
+                Properties.Settings.Default.httpPort,
+                Properties.Settings.Default.apiKey,
+                useSsl: Properties.Settings.Default.useSsl);
             _client.Connect();
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
 
@@ -229,13 +239,22 @@ namespace QDMSServer
                     timeout: Properties.Settings.Default.updateJobTimeout,
                     toEmail: Properties.Settings.Default.updateJobEmail,
                     fromEmail: Properties.Settings.Default.updateJobEmailSender),
-                localStorage, new InstrumentManager(),
-                EconomicReleaseBroker
-                );
+                localStorage,
+                EconomicReleaseBroker);
             _scheduler.Start();
 
             //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
             MigrateJobs(entityContext, _scheduler);
+
+            var bootstrapper = new CustomBootstrapper(
+                DataStorageFactory.Get(), 
+                EconomicReleaseBroker,
+                HistoricalBroker,
+                RealTimeBroker,
+                Properties.Settings.Default.apiKey);
+            var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);
+            var host = new NancyHost(bootstrapper, uri);
+            host.Start();
 
             entityContext.Dispose();
 
@@ -426,9 +445,6 @@ namespace QDMSServer
             _historicalDataServer.StopServer();
             _historicalDataServer.Dispose();
 
-            _instrumentsServer.StopServer();
-            _instrumentsServer.Dispose();
-
             RealTimeBroker.Dispose();
 
             HistoricalBroker.Dispose();
@@ -537,7 +553,7 @@ namespace QDMSServer
         }
 
         //delete one or more instruments
-        private void DeleteInstrumentBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
+        private async void DeleteInstrumentBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
             var selectedInstruments = InstrumentsGrid.SelectedItems;
             if (selectedInstruments.Count == 0) return;
@@ -560,7 +576,7 @@ namespace QDMSServer
 
             foreach (Instrument i in InstrumentsGrid.SelectedItems)
             {
-                InstrumentManager.RemoveInstrument(i, DataStorageFactory.Get());
+                await _client.DeleteInstrument(i).ConfigureAwait(true);
                 toRemove.Add(i);
             }
 
@@ -889,6 +905,12 @@ namespace QDMSServer
         private void UpdateBtn_Click(object sender, RoutedEventArgs e)
         {
             UpdateHelper.InstallUpdateSyncWithInfo();
+        }
+
+        private void TagsBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            var window = new TagsWindow(_client);
+            window.Show();
         }
     }
 }

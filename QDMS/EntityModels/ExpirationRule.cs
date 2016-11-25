@@ -17,7 +17,6 @@ namespace QDMS
     /// This class holds a set of rules that collectively can be used to deduce the expiration date of a futures or options contract.
     /// </summary>
     [ProtoContract]
-    [Serializable]
     public class ExpirationRule
     {
         /// <summary>

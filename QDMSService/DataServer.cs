@@ -1,8 +1,13 @@
 ﻿using EntityData;
+using Nancy.Hosting.Self;
 using NLog;
 using QDMS;
+using QDMS.Server.Brokers;
+using QDMS.Server.DataSources;
+using QDMS.Server.Nancy;
 using QDMSServer;
 using System;
+using System.Linq;
 
 namespace QDMSService
 {
@@ -11,15 +16,12 @@ namespace QDMSService
         private Logger _log;
         private Config.DataService _config;
 
-        private InstrumentManager _instrumentManager;
-
         private HistoricalDataBroker _historicalDataBroker;
         private RealTimeDataBroker _realTimeDataBroker;
+        private EconomicReleaseBroker _economicReleaseBroker;
 
-        private InstrumentsServer _instrumentsServer;
         private HistoricalDataServer _historicalDataServer;
         private RealTimeDataServer _realTimeDataServer;
-        
 
         public DataServer(Config.DataService config)
         {
@@ -56,14 +58,9 @@ namespace QDMSService
             }
 
             // initialisize helper classes
-            _instrumentManager = new InstrumentManager();
 
-            var cfRealtimeBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient("RTDBCFClient", "127.0.0.1",
-                _config.RealtimeDataService.RequestPort, _config.RealtimeDataService.PublisherPort,
-                _config.InstrumentService.Port, _config.HistoricalDataService.Port), _instrumentManager, false);
-            var cfHistoricalBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient("HDBCFClient", "127.0.0.1",
-                _config.RealtimeDataService.RequestPort, _config.RealtimeDataService.PublisherPort,
-                _config.InstrumentService.Port, _config.HistoricalDataService.Port), _instrumentManager, false);
+            var cfRealtimeBroker = new ContinuousFuturesBroker(GetClient("RTDBCFClient"), false);
+            var cfHistoricalBroker = new ContinuousFuturesBroker(GetClient("HDBCFClient"), false);
 
             IDataStorage localStorage;
 
@@ -72,9 +69,11 @@ namespace QDMSService
                 case Config.LocalStorageType.MySql:
                     localStorage = new QDMSServer.DataSources.MySQLStorage(_config.LocalStorage.ConnectionString);
                     break;
+
                 case Config.LocalStorageType.SqlServer:
                     localStorage = new QDMSServer.DataSources.SqlServerStorage(_config.LocalStorage.ConnectionString);
                     break;
+
                 default:
                     throw new NotSupportedException("Not supported local storage type: " + _config.LocalStorage.Type);
             }
@@ -86,25 +85,47 @@ namespace QDMSService
             _realTimeDataBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage, new IRealTimeDataSource[] {
                 // @todo please add here some real time data sources the service should provide
             });
+            _economicReleaseBroker = new EconomicReleaseBroker("FXStreet",
+                new[] { new fx.FXStreet(new CountryCodeHelper(entityContext.Countries.ToList())) });
 
             // create servers
-            _instrumentsServer = new InstrumentsServer(_config.InstrumentService.Port, _instrumentManager);
             _historicalDataServer = new HistoricalDataServer(_config.HistoricalDataService.Port, _historicalDataBroker);
             _realTimeDataServer = new RealTimeDataServer(_config.RealtimeDataService.PublisherPort, _config.RealtimeDataService.RequestPort, _realTimeDataBroker);
 
+            var bootstrapper = new CustomBootstrapper(
+                localStorage,
+                _economicReleaseBroker,
+                _historicalDataBroker,
+                _realTimeDataBroker,
+               _config.WebService.ApiKey);
+            var uri = new Uri((_config.WebService.UseSsl ? "https" : "http") + "://localhost:" + _config.WebService.Port);
+            var httpServer = new NancyHost(bootstrapper, uri);
+
             // ... start the servers
-            _instrumentsServer.StartServer();
             _historicalDataServer.StartServer();
             _realTimeDataServer.StartServer();
+            httpServer.Start();
 
             _log.Info($"Server is ready.");
+        }
+
+        private QDMSClient.QDMSClient GetClient(string clientName)
+        {
+            return new QDMSClient.QDMSClient(
+                clientName,
+                "127.0.0.1",
+                _config.RealtimeDataService.RequestPort,
+                _config.RealtimeDataService.PublisherPort,
+                _config.HistoricalDataService.Port,
+                _config.WebService.Port,
+                _config.WebService.ApiKey,
+                _config.WebService.UseSsl);
         }
 
         public void Stop()
         {
             _realTimeDataServer.Dispose();
             _historicalDataBroker.Dispose();
-            _instrumentsServer.Dispose();
         }
-    }   
+    }
 }

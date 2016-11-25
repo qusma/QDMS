@@ -4,15 +4,19 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using EntityData.Migrations;
 using QDMS;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EntityData
 {
-    public partial class MyDBContext : DbContext
+    public partial class MyDBContext : DbContext, IMyDbContext
     {
         public MyDBContext()
             : base("Name=qdmsEntities")
@@ -154,6 +158,48 @@ namespace EntityData
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
 
+        public void SetEntryState(object entity, EntityState state)
+        {
+            Entry(entity).State = state;
+        }
 
+        public void UpdateEntryValues(object entity, object newValues)
+        {
+            Entry(entity).CurrentValues.SetValues(newValues);
+        }
+    }
+
+    public interface IMyDbContext
+    {
+        DbSet<Instrument> Instruments { get; set; }
+        DbSet<Tag> Tags { get; set; }
+        DbSet<Exchange> Exchanges { get; set; }
+        DbSet<Datasource> Datasources { get; set; }
+        DbSet<SessionTemplate> SessionTemplates { get; set; }
+        DbSet<ExchangeSession> ExchangeSessions { get; set; }
+        DbSet<InstrumentSession> InstrumentSessions { get; set; }
+        DbSet<TemplateSession> TemplateSessions { get; set; }
+        DbSet<UnderlyingSymbol> UnderlyingSymbols { get; set; }
+        DbSet<ContinuousFuture> ContinuousFutures { get; set; }
+        DbSet<DataUpdateJobSettings> DataUpdateJobs { get; set; }
+        DbSet<EconomicRelease> EconomicReleases { get; set; }
+        DbSet<Country> Countries { get; set; }
+        DbSet<Currency> Currencies { get; set; }
+
+        DbChangeTracker ChangeTracker { get; }
+        DbContextConfiguration Configuration { get; }
+        Database Database { get; }
+
+        DbSet<TEntity> Set<TEntity>() where TEntity : class;
+        DbSet Set(Type entityType);
+
+        DbEntityEntry Entry(object entity);
+        DbEntityEntry<T> Entry<T>(T entity) where T : class;
+        int SaveChanges();
+        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+        void Dispose();
+        void SetEntryState(object entity, EntityState state);
+        void UpdateEntryValues(object entity, object newValues);
     }
 }

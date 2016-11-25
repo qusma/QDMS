@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using QDMS;
+using QDMSClient;
 
 namespace SampleApp
 {
@@ -22,8 +23,9 @@ namespace SampleApp
                 "127.0.0.1",
                 5556,
                 5557,
-                5558,
-                5555);
+                5555,
+                5559,
+                "");
 
             //hook up the events needed to receive data & error messages
             client.HistoricalDataReceived += client_HistoricalDataReceived;
@@ -44,7 +46,20 @@ namespace SampleApp
             }
 
             //request the list of available instruments
-            List<Instrument> instruments = client.FindInstruments();
+            ApiResponse<List<Instrument>> response = client.GetInstruments().Result; //normally you'd use await here
+            if (!response.WasSuccessful)
+            {
+                Console.WriteLine("Failed to get instrument data:");
+                foreach (var error in response.Errors)
+                {
+                    Console.WriteLine(error);
+                }
+                Console.WriteLine("Press enter to exit.");
+                Console.ReadLine();
+                return;
+            }
+
+            List<Instrument> instruments = response.Result;
             foreach (Instrument i in instruments)
             {
                 Console.WriteLine("Instrument ID {0}: {1} ({2}), Datasource: {3}",
@@ -55,10 +70,11 @@ namespace SampleApp
             }
 
             Thread.Sleep(3000);
-            
+
             //then we grab some historical data from Yahoo
             //start by finding the SPY instrument
-            var spy = client.FindInstruments(x => x.Symbol == "SPY" && x.Datasource.Name == "Yahoo").FirstOrDefault();
+            response = client.GetInstruments(x => x.Symbol == "SPY" && x.Datasource.Name == "Yahoo").Result;
+            var spy = response.Result.FirstOrDefault();
             if (spy != null)
             {
                 var req = new HistoricalDataRequest(

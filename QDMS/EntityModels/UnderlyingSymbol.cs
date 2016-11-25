@@ -16,8 +16,7 @@ using QLNet;
 namespace QDMS
 {
     [ProtoContract]
-    [Serializable]
-    public class UnderlyingSymbol : ICloneable
+    public class UnderlyingSymbol : ICloneable, IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

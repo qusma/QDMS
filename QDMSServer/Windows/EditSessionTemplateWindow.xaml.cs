@@ -48,13 +48,10 @@ namespace QDMSServer
         private void ModifyBtn_Click(object sender, RoutedEventArgs e)
         {
             //ensure sessions don't overlap
-            try
+            List<string> error;
+            if (!MyUtils.ValidateSessions(TheTemplate.Sessions.ToList(), out error))
             {
-                MyUtils.ValidateSessions(TheTemplate.Sessions.ToList<ISession>());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(error.First());
                 return;
             }
 

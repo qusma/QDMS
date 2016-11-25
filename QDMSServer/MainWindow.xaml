@@ -108,6 +108,8 @@
                 <Separator/>
                 <MenuItem Header="Scheduled Jobs" x:Name="DataJobsBtn" Click="DataJobsBtn_OnClick"/>
                 <Separator/>
+                <MenuItem Header="Tags" x:Name="TagsBtn" Click="TagsBtn_OnClick"/>
+                <Separator/>
                 <MenuItem Header="Settings" x:Name="BtnSettings" Click="BtnSettings_OnItemClick" />
             </MenuItem>
 

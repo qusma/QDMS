@@ -8,5 +8,5 @@
 #r "System.Numerics.dll"
 #r "../../packages/FSharp.Data.2.3.2/lib/net40/FSharp.Data.dll"
 #r "System.Xml.Linq.dll"
-#r "../../packages/NLog.4.3.8/lib/net45/NLog.dll"
 #r "../../packages/FSharp.Data.2.3.2/lib/net40/FSharp.Data.DesignTime.dll"
+#r "../../packages/NLog.4.3.11/lib/net45/NLog.dll"

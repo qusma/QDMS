@@ -42,8 +42,32 @@
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="FluentValidation, Version=6.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentValidation.6.2.1.0\lib\Net45\FluentValidation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Nancy, Version=1.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.1.4.3\lib\net40\Nancy.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Nancy.Hosting.Self, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Hosting.Self.1.4.1\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Nancy.Serialization.JsonNet, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Serialization.JsonNet.1.4.1\lib\net40\Nancy.Serialization.JsonNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Nancy.Validation.FluentValidation, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.Validation.FluentValidation.1.4.1\lib\net40\Nancy.Validation.FluentValidation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.9\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.3.11\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -62,8 +86,8 @@
     <Compile Include="Config\DataService.cs" />
     <Compile Include="Config\LocalStorageElement.cs" />
     <Compile Include="Config\HistoricalDataService.cs" />
-    <Compile Include="Config\InstrumentService.cs" />
     <Compile Include="Config\RealtimeDataService.cs" />
+    <Compile Include="Config\WebService.cs" />
     <Compile Include="DataServer.cs" />
     <Compile Include="Program.cs">
       <SubType>Component</SubType>
@@ -78,6 +102,10 @@
     <ProjectReference Include="..\EntityData\EntityData.csproj">
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
+      <Project>{3C2B9CE3-9054-46C4-902B-AE500A61B613}</Project>
+      <Name>QDMS.Server.DataSources.FXStreet</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj">
       <Project>{0197ea02-a2ad-475f-9a73-7a0bcfc18891}</Project>

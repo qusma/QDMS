@@ -4,16 +4,16 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Moq;
+using NUnit.Framework;
+using QDMS;
+using QDMSServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
-using EntityData;
-using Moq;
-using NUnit.Framework;
-using QDMS;
-using QDMSServer;
+using System.Threading.Tasks;
 
 namespace QDMSTest
 {
@@ -31,7 +31,7 @@ namespace QDMSTest
         {
             _clientMock = new Mock<IDataClient>();
             _instrumentMgrMock = new Mock<IInstrumentSource>();
-            _broker = new ContinuousFuturesBroker(_clientMock.Object, _instrumentMgrMock.Object);
+            _broker = new ContinuousFuturesBroker(_clientMock.Object, instrumentRepo: _instrumentMgrMock.Object);
 
             _cfInst = new Instrument();
             _cfInst.Type = InstrumentType.Future;
@@ -77,16 +77,24 @@ namespace QDMSTest
         [Test]
         public void SearchesForCorrectContracts()
         {
-            _instrumentMgrMock.Setup(x => x.FindInstruments(null, It.IsAny<Instrument>())).Returns(new List<Instrument>());
+            Expression<Func<Instrument, bool>> correctFilter = i =>
+                    i.UnderlyingSymbol == _cfInst.ContinuousFuture.UnderlyingSymbol.Symbol &&
+                    i.Type == InstrumentType.Future &&
+                    i.DatasourceID == _cfInst.DatasourceID;
+
+            Expression<Func<Instrument, bool>> filter = null;
+            _instrumentMgrMock
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(x => Task.FromResult(new List<Instrument>()))
+                .Callback<Expression<Func<Instrument, bool>>>(x => filter = x);
 
             _broker.RequestHistoricalData(_req);
 
-            _instrumentMgrMock.Verify(x => x.FindInstruments(null, It.Is<Instrument>(
-                i =>
-                    i.UnderlyingSymbol == _cfInst.ContinuousFuture.UnderlyingSymbol.Symbol &&
-                    i.Type == InstrumentType.Future &&
-                    i.DatasourceID == _cfInst.DatasourceID
-                )));
+            Assert.NotNull(filter);
+
+            //can't directly test the expression, so we have to test its results instead
+            var list = new List<Instrument> { new Instrument { UnderlyingSymbol = _cfInst.ContinuousFuture.UnderlyingSymbol.Symbol, Type = InstrumentType.Future, DatasourceID = _cfInst.DatasourceID } }.AsQueryable();
+            Assert.AreEqual(list.Where(correctFilter).First(), list.Where(filter).First());
         }
 
         //This tests the request to the client for historical data, ensuring that the right contracts are requested
@@ -95,8 +103,8 @@ namespace QDMSTest
         {
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(x => Task.FromResult(ContinuousFuturesBrokerTestData.GetVIXFutures(x)));
 
             var requests = new List<HistoricalDataRequest>();
 
@@ -215,8 +223,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -324,8 +332,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -478,8 +486,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -527,8 +535,8 @@ namespace QDMSTest
         {
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(x => Task.FromResult(ContinuousFuturesBrokerTestData.GetVIXFutures(x)));
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -677,8 +685,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -831,8 +839,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -985,8 +993,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -1120,8 +1128,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -1259,8 +1267,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -1393,8 +1401,8 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Instrument>()))
+                .ReturnsAsync(ContinuousFuturesBrokerTestData.GetVIXFutures());
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetVIXFuturesData();
@@ -1443,9 +1451,9 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x
-                .FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), null))
-                .Returns(
-                    (Expression<Func<Instrument, bool>> y, MyDBContext a) => contracts.AsQueryable().Where(y).ToList()
+                .FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(
+                    x => Task.FromResult(contracts.AsQueryable().Where(x).ToList())
                 );
 
             _cfInst.ContinuousFuture.RolloverDays = 1;
@@ -1568,8 +1576,8 @@ namespace QDMSTest
         {
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(x => Task.FromResult(ContinuousFuturesBrokerTestData.GetVIXFutures(x)));
 
             var expectedExpirationMonths = new Dictionary<DateTime, int>
             {
@@ -1726,9 +1734,9 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x
-                .FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), null))
-                .Returns(
-                    (Expression<Func<Instrument, bool>> y, MyDBContext a) => contracts.AsQueryable().Where(y).ToList()
+                .FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(
+                    x => Task.FromResult(contracts.AsQueryable().Where(x).ToList())
                 );
 
             _cfInst.ContinuousFuture.RolloverDays = 1;
@@ -1854,9 +1862,9 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock.Setup(x => x
-                .FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
-                .Returns(
-                    (Expression<Func<Instrument, bool>> y, MyDBContext a) => contracts.AsQueryable().Where(y).ToList()
+                .FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(
+                     y => Task.FromResult(contracts.AsQueryable().Where(y).ToList())
                 );
 
             _cfInst.ContinuousFuture.RolloverDays = 1;
@@ -1958,7 +1966,6 @@ namespace QDMSTest
                 _broker.RequestFrontContract(_cfInst, dt);
             }
 
-
             int i = 0;
             while (expectedExpirationMonths.Count != returnedExpirationMonths.Count)
             {
@@ -1987,8 +1994,8 @@ namespace QDMSTest
         {
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetVIXFutures());
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(x => Task.FromResult(ContinuousFuturesBrokerTestData.GetVIXFutures(x)));
 
             var expectedExpirationMonths = new Dictionary<DateTime, int>
             {
@@ -2216,8 +2223,9 @@ namespace QDMSTest
 
             //return the contracts requested
             _instrumentMgrMock
-                .Setup(x => x.FindInstruments(null, It.IsAny<Instrument>()))
-                .Returns(ContinuousFuturesBrokerTestData.GetContractsForIntradayData());
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns<Expression<Func<Instrument, bool>>>(
+                    x => Task.FromResult(ContinuousFuturesBrokerTestData.GetContractsForIntradayData(x)));
 
             var requests = new List<HistoricalDataRequest>();
             var futuresData = ContinuousFuturesBrokerTestData.GetIntradayVIXFuturesData();

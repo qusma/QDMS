@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using EntityData;
-using QDMS;
-using QDMSServer;
-using Moq;
+﻿using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using QDMS;
+using QDMSServer;
 using Quartz;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace QDMSTest
 {
@@ -23,7 +20,7 @@ namespace QDMSTest
         private Mock<IDataStorage> _localStorageMock;
         private Mock<IJobExecutionContext> _contextMock;
         private Mock<IInstrumentSource> _instrumentManagerMock;
-            
+
         [SetUp]
         public void SetUp()
         {
@@ -34,7 +31,7 @@ namespace QDMSTest
             _instrumentManagerMock = new Mock<IInstrumentSource>();
 
             var jobDetailMock = new Mock<IJobDetail>();
-            IDictionary<string,object> detailsMap = new Dictionary<string,object>();
+            IDictionary<string, object> detailsMap = new Dictionary<string, object>();
             var jobDetails = new DataUpdateJobSettings() { Name = "mockjob", Frequency = BarSize.OneDay };
             detailsMap.Add("settings", JsonConvert.SerializeObject(jobDetails));
 
@@ -61,26 +58,26 @@ namespace QDMSTest
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
             _instrumentManagerMock
-                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
-                .Returns(new List<Instrument>() { inst });
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .ReturnsAsync(new List<Instrument>() { inst });
 
             _localStorageMock
                 .Setup(x => x.GetStorageInfo(It.IsAny<int>()))
-                .Returns(new List<StoredDataInfo>() { 
-                    new StoredDataInfo() 
-                    { 
-                        Frequency = BarSize.OneDay, 
-                        InstrumentID = inst.ID.Value, 
+                .Returns(new List<StoredDataInfo>() {
+                    new StoredDataInfo()
+                    {
+                        Frequency = BarSize.OneDay,
+                        InstrumentID = inst.ID.Value,
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
             job.Execute(_contextMock.Object);
 
-            _mailMock.Verify(x => 
+            _mailMock.Verify(x =>
                 x.Send(
-                    It.IsAny<string>(), 
-                    It.Is<string>(y => y == "test@test.test"), 
-                    It.IsAny<string>(), 
+                    It.IsAny<string>(),
+                    It.Is<string>(y => y == "test@test.test"),
+                    It.IsAny<string>(),
                     It.Is<string>(y => y.Contains("TestException123"))));
         }
 
@@ -96,16 +93,16 @@ namespace QDMSTest
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
             _instrumentManagerMock
-                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
-                .Returns(new List<Instrument>() { inst });
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .ReturnsAsync(new List<Instrument>() { inst });
 
             _localStorageMock
                 .Setup(x => x.GetStorageInfo(It.IsAny<int>()))
-                .Returns(new List<StoredDataInfo>() { 
-                    new StoredDataInfo() 
-                    { 
-                        Frequency = BarSize.OneDay, 
-                        InstrumentID = inst.ID.Value, 
+                .Returns(new List<StoredDataInfo>() {
+                    new StoredDataInfo()
+                    {
+                        Frequency = BarSize.OneDay,
+                        InstrumentID = inst.ID.Value,
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
@@ -128,25 +125,25 @@ namespace QDMSTest
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
             _instrumentManagerMock
-                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
-                .Returns(new List<Instrument>() { inst });
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .ReturnsAsync(new List<Instrument>() { inst });
 
             _localStorageMock
                 .Setup(x => x.GetStorageInfo(It.IsAny<int>()))
-                .Returns(new List<StoredDataInfo>() { 
-                    new StoredDataInfo() 
-                    { 
-                        Frequency = BarSize.OneDay, 
-                        InstrumentID = inst.ID.Value, 
+                .Returns(new List<StoredDataInfo>() {
+                    new StoredDataInfo()
+                    {
+                        Frequency = BarSize.OneDay,
+                        InstrumentID = inst.ID.Value,
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
             job.Execute(_contextMock.Object);
 
-            _mailMock.Verify(x => 
+            _mailMock.Verify(x =>
                 x.Send(
-                    It.IsAny<string>(), 
-                    It.Is<string>(y => y == "test@test.test"), 
+                    It.IsAny<string>(),
+                    It.Is<string>(y => y == "test@test.test"),
                     It.IsAny<string>(),
                     It.Is<string>(y => y.Contains("could not be fulfilled"))));
         }
@@ -159,19 +156,19 @@ namespace QDMSTest
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
             _instrumentManagerMock
-                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
-                .Returns(new List<Instrument>() { inst });
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .ReturnsAsync(new List<Instrument>() { inst });
 
             _localStorageMock
                 .Setup(x => x.GetStorageInfo(It.IsAny<int>()))
-                .Returns(new List<StoredDataInfo>() { 
-                    new StoredDataInfo() 
-                    { 
-                        Frequency = BarSize.OneDay, 
-                        InstrumentID = inst.ID.Value, 
+                .Returns(new List<StoredDataInfo>() {
+                    new StoredDataInfo()
+                    {
+                        Frequency = BarSize.OneDay,
+                        InstrumentID = inst.ID.Value,
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
-            
+
             HistoricalDataRequest req = null;
             _brokerMock
                 .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
@@ -201,23 +198,23 @@ namespace QDMSTest
 
             Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
             _instrumentManagerMock
-                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>(), It.IsAny<MyDBContext>()))
-                .Returns(new List<Instrument>() { inst });
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .ReturnsAsync(new List<Instrument>() { inst });
 
             _localStorageMock
                 .Setup(x => x.GetStorageInfo(It.IsAny<int>()))
-                .Returns(new List<StoredDataInfo>() { 
-                    new StoredDataInfo() 
-                    { 
-                        Frequency = BarSize.OneDay, 
-                        InstrumentID = inst.ID.Value, 
+                .Returns(new List<StoredDataInfo>() {
+                    new StoredDataInfo()
+                    {
+                        Frequency = BarSize.OneDay,
+                        InstrumentID = inst.ID.Value,
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
             HistoricalDataRequest req = null;
             _brokerMock
                 .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
-                .Callback<HistoricalDataRequest>(y => 
+                .Callback<HistoricalDataRequest>(y =>
                     {
                         req = y;
 
@@ -248,7 +245,5 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.Is<string>(y => y.Contains("Possible dirty data detected"))));
         }
-
-
     }
 }

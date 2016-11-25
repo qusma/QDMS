@@ -13,16 +13,17 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    [Serializable]
-    public class InstrumentSession : ISession
+    public class InstrumentSession : ISession, IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        [JsonIgnore]
         public TimeSpan OpeningTime { get; set; }
 
+        [JsonIgnore]
         public TimeSpan ClosingTime { get; set; }
 
         [ProtoMember(2)]

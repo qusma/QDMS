@@ -413,5 +413,41 @@ namespace QDMSServer.Properties {
                 this["EconomicReleaseDefaultDatasource"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("123")]
+        public string apiKey {
+            get {
+                return ((string)(this["apiKey"]));
+            }
+            set {
+                this["apiKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5559")]
+        public int httpPort {
+            get {
+                return ((int)(this["httpPort"]));
+            }
+            set {
+                this["httpPort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool useSsl {
+            get {
+                return ((bool)(this["useSsl"]));
+            }
+            set {
+                this["useSsl"] = value;
+            }
+        }
     }
 }

@@ -89,10 +89,11 @@ namespace QDMS.Server.Brokers
             {
                 using (var context = new MyDBContext())
                 {
+                    var dbSet = context.Set<EconomicRelease>();
                     foreach (var release in data)
                     {
                         //the data we get might be a duplicate and we want the latest values of everything, so we can't just insert
-                        context.Set<EconomicRelease>().AddOrUpdate(x => new { x.Name, x.Country, x.DateTime }, release);
+                        dbSet.AddOrUpdate(x => new { x.Name, x.Country, x.DateTime }, release);
                     }
                     context.SaveChanges();
                 }
@@ -108,7 +109,7 @@ namespace QDMS.Server.Brokers
                 data = data.AsQueryable().Where(request.Filter).ToList();
             }
 
-            _logger.Info($"ERB returning {data?.Count} rows from {client.Name}");
+            _logger.Info($"ERB returning {data?.Count} items from {client.Name}");
 
             return data;
         }
@@ -158,7 +159,7 @@ namespace QDMS.Server.Brokers
                 try
                 {
                     var result = await queryableData.ToListAsync().ConfigureAwait(false);
-                    _logger.Info($"ERB returning {result.Count} rows from the local db");
+                    _logger.Info($"ERB returning {result.Count} items from the local db");
                     return result;
                 }
                 catch (Exception ex)

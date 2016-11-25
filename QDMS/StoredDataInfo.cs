@@ -11,7 +11,6 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    [Serializable]
     public class StoredDataInfo
     {
         [ProtoMember(1)]

@@ -13,19 +13,16 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
 using LZ4;
-using MetaLinq;
 using NetMQ;
 using NetMQ.Sockets;
-using ProtoBuf;
 using QDMS;
 
 // TODO: Fix comments at the end of lines
 namespace QDMSClient
 {
     // ReSharper disable once InconsistentNaming
-    public class QDMSClient : IDataClient
+    public partial class QDMSClient : IDataClient
     {
         private const int HistoricalDataRequestsPeriodInSeconds = 1;
         private const int HeartBeatPeriodInSeconds = 1;
@@ -34,7 +31,6 @@ namespace QDMSClient
         // Where to connect
         private readonly string _realTimeRequestConnectionString;
         private readonly string _realTimeDataConnectionString;
-        private readonly string _instrumentServerConnectionString;
         private readonly string _historicalDataConnectionString;
         /// <summary>
         /// This holds the zeromq identity string that we'll be using.
@@ -444,118 +440,10 @@ namespace QDMSClient
             }
 
             _poller = null;
+
+            _apiClient.Dispose();
         }
 
-        /// <summary>
-        ///     Query the server for contracts matching a particular set of features.
-        /// </summary>
-        /// <param name="instrument">An Instrument object; any features that are not null will be search parameters. If null, all instruments are returned.</param>
-        /// <returns>A list of instruments matching these features.</returns>
-        public List<Instrument> FindInstruments(Instrument instrument = null)
-        {
-            if (!Connected)
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request instruments - not connected."));
-
-                return new List<Instrument>();
-            }
-
-            using (var s = new RequestSocket(_instrumentServerConnectionString))
-            {
-                using (var ms = new MemoryStream())
-                {
-                    if (instrument == null) // All contracts
-                    {
-                        s.SendFrame(MessageType.AllInstruments);
-                    }
-                    else // An actual search
-                    {
-                        s.SendMoreFrame(MessageType.Search); // First we send a search request
-                        // Then we need to serialize and send the instrument
-                        s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
-                    }
-
-                    return ReceiveInstrumentSearchResults(s);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Query the server for contracts using a predicate
-        /// </summary>
-        /// <param name="pred">Predicate to match instruments against</param>
-        /// <returns>A list of instruments matching these features.</returns>
-        public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred)
-        {
-            if (!Connected)
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request instruments - not connected."));
-                return new List<Instrument>();
-            }
-
-            using (var s = new RequestSocket(_instrumentServerConnectionString))
-            {
-                using (var ms = new MemoryStream())
-                {
-                    EditableExpression mutable = EditableExpression.CreateEditableExpression(pred);
-                    XmlSerializer xs = new XmlSerializer(typeof(EditableExpression),
-                        new[] { typeof(MetaLinq.Expressions.EditableLambdaExpression) });
-                    xs.Serialize(ms, mutable);
-
-                    //Send the request
-                    s.SendMoreFrame(MessageType.PredicateSearch);
-                    s.SendFrame(ms.ToArray());
-                }
-
-                //And return the result
-                return ReceiveInstrumentSearchResults(s);
-            }
-        }
-
-        private List<Instrument> ReceiveInstrumentSearchResults(RequestSocket s)
-        {
-            using (var ms = new MemoryStream())
-            {
-                // First we receive the size of the final uncompressed byte[] array
-                bool hasMore;
-                var sizeBuffer = s.ReceiveFrameBytes(out hasMore);
-
-                if (sizeBuffer.Length == 0)
-                {
-                    RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no reply."));
-
-                    return new List<Instrument>();
-                }
-
-                var outputSize = BitConverter.ToInt32(sizeBuffer, 0);
-                // Then the actual data
-                var buffer = s.ReceiveFrameBytes(out hasMore);
-
-                if (buffer.Length == 0)
-                {
-                    RaiseEvent(Error, this, new ErrorArgs(-1, "Contract request failed, received no data."));
-
-                    return new List<Instrument>();
-                }
-
-                try
-                {
-                    // Then we process it by first decompressing
-                    ms.SetLength(0);
-                    var decoded = LZ4Codec.Decode(buffer, 0, buffer.Length, outputSize);
-                    ms.Write(decoded, 0, decoded.Length);
-                    ms.Position = 0;
-                    // And finally deserializing
-                    return Serializer.Deserialize<List<Instrument>>(ms);
-                }
-                catch (Exception ex)
-                {
-                    RaiseEvent(Error, this, new ErrorArgs(-1, "Error processing instrument data: " + ex.Message));
-
-                    return new List<Instrument>();
-                }
-            }
-        }
 
         /// <summary>
         ///     Cancel a live real time data stream.
@@ -604,14 +492,6 @@ namespace QDMSClient
             }
         }
 
-        /// <summary>
-        ///     Get a list of all available instruments
-        /// </summary>
-        /// <returns></returns>
-        public List<Instrument> GetAllInstruments()
-        {
-            return FindInstruments();
-        }
         #endregion
 
         /// <summary>
@@ -621,64 +501,23 @@ namespace QDMSClient
         /// <param name="host">The address of the server.</param>
         /// <param name="realTimeRequestPort">The port used for real time data requsts.</param>
         /// <param name="realTimePublishPort">The port used for publishing new real time data.</param>
-        /// <param name="instrumentServerPort">The port used by the instruments server.</param>
         /// <param name="historicalDataPort">The port used for historical data.</param>
-        public QDMSClient(string clientName, string host, int realTimeRequestPort, int realTimePublishPort, int instrumentServerPort, int historicalDataPort)
+        /// <param name="httpPort">The port used for the REST API.</param>
+        /// <param name="apiKey">The authentication key for the REST API.</param>
+        /// <param name="useSsl">Use an encrypted connection for the REST API.</param>
+        public QDMSClient(string clientName, string host, int realTimeRequestPort, int realTimePublishPort, int historicalDataPort, int httpPort, string apiKey, bool useSsl = false)
         {
             _name = clientName;
 
             _realTimeRequestConnectionString = $"tcp://{host}:{realTimeRequestPort}";
             _realTimeDataConnectionString = $"tcp://{host}:{realTimePublishPort}";
-            _instrumentServerConnectionString = $"tcp://{host}:{instrumentServerPort}";
             _historicalDataConnectionString = $"tcp://{host}:{historicalDataPort}";
 
             _historicalDataRequests = new ConcurrentQueue<HistoricalDataRequest>();
+
+            _apiClient = new ApiClient(host, httpPort, apiKey, useSsl);
         }
-
-        /// <summary>
-        ///     Add an instrument to QDMS.
-        /// </summary>
-        /// <param name="instrument"></param>
-        /// <returns>The instrument with its ID set if successful, null otherwise.</returns>
-        public Instrument AddInstrument(Instrument instrument)
-        {
-            if (!Connected)
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not add instrument - not connected."));
-
-                return null;
-            }
-
-            if (instrument == null)
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not add instrument - instrument is null."));
-
-                return null;
-            }
-
-            using (var s = new RequestSocket(_instrumentServerConnectionString))
-            {
-                using (var ms = new MemoryStream())
-                {
-                    s.SendMoreFrame(MessageType.AddInstrument); // First we send an "ADD" request
-                    // Then we need to serialize and send the instrument
-                    s.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
-                    // Then get the reply
-                    var result = s.ReceiveFrameString();
-
-                    if (!result.Equals(MessageType.Success, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(-1, "Instrument addition failed: received no reply."));
-
-                        return null;
-                    }
-                    // Addition was successful, receive the instrument and return it
-                    var serializedInstrument = s.ReceiveFrameBytes();
-
-                    return MyUtils.ProtoBufDeserialize<Instrument>(serializedInstrument, ms);
-                }
-            }
-        }
+        
 
         #region Event handlers
         /// <summary>
@@ -979,5 +818,15 @@ namespace QDMSClient
 
             handler?.Invoke(sender, e);
         }
+
+        //These can be removed in a subsequent version
+        [Obsolete("Use GetInstruments instead")]
+        public List<Instrument> GetAllInstruments() => GetInstruments().Result.Result;
+        [Obsolete("Use GetInstruments instead")]
+        public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred) =>
+            GetInstruments(pred).Result.Result;
+        [Obsolete("Use GetInstruments instead")]
+        public List<Instrument> FindInstruments(Instrument instrument = null) =>
+            GetInstruments(instrument).Result.Result;
     }
 }

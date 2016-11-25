@@ -5,6 +5,8 @@
 // -----------------------------------------------------------------------
 
 using System;
+using EntityData;
+using QDMS.Server;
 using QDMS.Server.Brokers;
 using QDMS.Server.Jobs;
 using Quartz;
@@ -26,7 +28,6 @@ namespace QDMSServer
 
         private UpdateJobSettings _updateJobSettings;
         private QDMS.IDataStorage _localStorage;
-        private IInstrumentSource _instrumentSource;
 
         public JobFactory(IHistoricalDataBroker hdb,
             string host,
@@ -37,7 +38,6 @@ namespace QDMSServer
             string email,
             UpdateJobSettings updateJobSettings,
             QDMS.IDataStorage localStorage,
-            IInstrumentSource instrumentSource,
             IEconomicReleaseBroker erb) : base()
         {
             _hdb = hdb;
@@ -50,7 +50,6 @@ namespace QDMSServer
             _email = email;
             _updateJobSettings = updateJobSettings;
             _localStorage = localStorage;
-            _instrumentSource = instrumentSource;
             _erb = erb;
         }
 
@@ -97,7 +96,7 @@ namespace QDMSServer
         private IJob GetDataUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
             //only provide the email sender if data exists to properly initialize it with
-            return new DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, _instrumentSource);
+            return new DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, new InstrumentRepository(new MyDBContext()));
         }
 
         private EmailSender GetEmailSender()

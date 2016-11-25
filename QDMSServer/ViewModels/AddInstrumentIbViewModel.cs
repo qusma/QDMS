@@ -15,9 +15,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows;
 using MahApps.Metro.Controls.Dialogs;
+using QDMS.Server;
 
 namespace QDMSServer.ViewModels
 {
@@ -100,13 +102,16 @@ namespace QDMSServer.ViewModels
         {
             if (_tmpContractDetails.Count == 1)
             {
-                var im = new InstrumentManager();
-                Instrument instrument = ContractToInstrument(_tmpContractDetails[0]);
-
-                if (instrument != null && TryAddInstrument(im, instrument))
+                using (var context = new MyDBContext())
                 {
-                    //successfully added the symbol
-                    _symbolsAdded.Add(instrument.Symbol);
+                    var im = new InstrumentRepository(context);
+                    Instrument instrument = ContractToInstrument(_tmpContractDetails[0]);
+
+                    if (instrument != null && TryAddInstrument(im, instrument))
+                    {
+                        //successfully added the symbol
+                        _symbolsAdded.Add(instrument.Symbol);
+                    }
                 }
             }
 
@@ -186,14 +191,11 @@ namespace QDMSServer.ViewModels
 
         private void CreateCommands()
         {
-            AddSelectedInstruments = ReactiveCommand.Create();
-            AddSelectedInstruments.Subscribe(x => ExecuteAddSelectedInstruments((IList)x));
+            AddSelectedInstruments = ReactiveCommand.Create<IList>(ExecuteAddSelectedInstruments);
 
-            Search = ReactiveCommand.Create(this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
-            Search.Subscribe(_ => ExecuteSearch());
+            Search = ReactiveCommand.Create(ExecuteSearch, this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
 
-            BatchAddMultipleSymbols = ReactiveCommand.Create(this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
-            BatchAddMultipleSymbols.Subscribe(_ => ExecuteBatchAddSymbols());
+            BatchAddMultipleSymbols = ReactiveCommand.Create(ExecuteBatchAddSymbols, this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
         }
 
         private void ExecuteAddSelectedInstruments(IList selectedInstruments)
@@ -202,13 +204,16 @@ namespace QDMSServer.ViewModels
             if (selectedInstruments.Count == 0) return;
 
             int count = 0;
-            var instrumentSource = new InstrumentManager();
-
-            foreach (Instrument newInstrument in selectedInstruments)
+            using (var context = new MyDBContext())
             {
-                if (TryAddInstrument(instrumentSource, newInstrument))
+                var instrumentSource = new InstrumentRepository(context);
+
+                foreach (Instrument newInstrument in selectedInstruments)
                 {
-                    count++;
+                    if (TryAddInstrument(instrumentSource, newInstrument))
+                    {
+                        count++;
+                    }
                 }
             }
 
@@ -295,7 +300,7 @@ namespace QDMSServer.ViewModels
             SendContractDetailsRequest(nextSymbol);
         }
 
-        private bool TryAddInstrument(InstrumentManager instrumentSource, Instrument newInstrument, bool showDialogs = true)
+        private bool TryAddInstrument(InstrumentRepository instrumentSource, Instrument newInstrument, bool showDialogs = true)
         {
             try
             {
@@ -319,9 +324,9 @@ namespace QDMSServer.ViewModels
 
         public List<Instrument> AddedInstruments { get; private set; }
 
-        public ReactiveCommand<object> AddSelectedInstruments { get; private set; }
+        public ReactiveCommand<IList, Unit> AddSelectedInstruments { get; private set; }
 
-        public ReactiveCommand<object> BatchAddMultipleSymbols { get; private set; }
+        public ReactiveCommand<Unit, Unit> BatchAddMultipleSymbols { get; private set; }
 
         public string Currency
         {
@@ -356,7 +361,7 @@ namespace QDMSServer.ViewModels
             set { this.RaiseAndSetIfChanged(ref _multiSymbolText, value); }
         }
 
-        public ReactiveCommand<object> Search { get; private set; }
+        public ReactiveCommand<Unit, Unit> Search { get; private set; }
 
         public bool SearchUnderway
         {

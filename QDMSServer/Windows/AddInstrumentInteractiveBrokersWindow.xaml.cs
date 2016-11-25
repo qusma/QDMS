@@ -57,7 +57,7 @@ namespace QDMSServer
         private void SymbolTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-                ViewModel.Search.Execute(null);
+                ViewModel.Search.Execute();
         }
 
         public AddInstrumentIbViewModel ViewModel { get; set; }
