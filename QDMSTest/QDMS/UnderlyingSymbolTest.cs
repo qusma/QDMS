@@ -28,7 +28,7 @@ namespace QDMSTest
                 DaysBefore = 30,
                 DayType = DayType.Calendar,
                 ReferenceRelativeMonth = RelativeMonth.NextMonth,
-                ReferenceUsesDays = false,
+                ReferenceDayType = ReferenceDayType.WeekDays,
                 ReferenceWeekDay = DayOfTheWeek.Friday,
                 ReferenceWeekDayCount = WeekDayCount.Third,
                 ReferenceDayMustBeBusinessDay = true
@@ -63,7 +63,7 @@ namespace QDMSTest
                 DaysBefore = 0,
                 DayType = DayType.Calendar,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                ReferenceUsesDays = false,
+                ReferenceDayType = ReferenceDayType.WeekDays,
                 ReferenceWeekDay = DayOfTheWeek.Friday,
                 ReferenceWeekDayCount = WeekDayCount.Third
             };
@@ -94,7 +94,7 @@ namespace QDMSTest
                 DaysBefore = 1,
                 DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                ReferenceUsesDays = true,
+                ReferenceDayType = ReferenceDayType.CalendarDays,
                 ReferenceDays = 15
             };
 
@@ -130,7 +130,7 @@ namespace QDMSTest
                 DaysBefore = 3,
                 DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.PreviousMonth,
-                ReferenceUsesDays = true,
+                ReferenceDayType = ReferenceDayType.CalendarDays,
                 ReferenceDays = 25,
                 ReferenceDayMustBeBusinessDay = true
             };
@@ -162,8 +162,7 @@ namespace QDMSTest
                 DaysBefore = 7,
                 DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                ReferenceUsesDays = false,
-                ReferenceDayIsLastBusinessDayOfMonth = true
+                ReferenceDayType = ReferenceDayType.LastDayOfMonth
             };
 
             DateTime dec13Expiration = ub.ExpirationDate(2013, 12);
@@ -189,8 +188,7 @@ namespace QDMSTest
                 DaysBefore = 2,
                 DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                ReferenceUsesDays = false,
-                ReferenceDayIsLastBusinessDayOfMonth = true
+                ReferenceDayType = ReferenceDayType.LastDayOfMonth
             };
 
             DateTime dec13Expiration = ub.ExpirationDate(2013, 12);
@@ -220,7 +218,7 @@ namespace QDMSTest
                 DaysBefore = 2,
                 DayType = DayType.Business,
                 ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                ReferenceUsesDays = false,
+                ReferenceDayType = ReferenceDayType.WeekDays,
                 ReferenceWeekDay = DayOfTheWeek.Wednesday,
                 ReferenceWeekDayCount = WeekDayCount.Third
             };

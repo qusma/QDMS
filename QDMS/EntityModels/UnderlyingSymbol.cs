@@ -10,11 +10,15 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
+using Newtonsoft.Json;
 using ProtoBuf;
 using QLNet;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Represents a futures contract specification, including the root symbol and expiration date rules
+    /// </summary>
     [ProtoContract]
     public class UnderlyingSymbol : ICloneable, IEntity
     {
@@ -28,6 +32,7 @@ namespace QDMS
         public string Symbol { get; set; }
 
         //The byte is what we save to the database, the ExpirationRule is what we use in our applications
+        [JsonIgnore]
         public byte[] ExpirationRule
         {
             get
@@ -51,8 +56,8 @@ namespace QDMS
 
             Calendar calendar = MyUtils.GetCalendarFromCountryCode(countryCode);
 
-            int day;
-            if (Rule.ReferenceDayIsLastBusinessDayOfMonth)
+            int day = 0;
+            if (Rule.ReferenceDayType == ReferenceDayType.LastDayOfMonth)
             {
                 var tmpDay = referenceDay.AddMonths(1);
                 tmpDay = tmpDay.AddDays(-1);
@@ -62,11 +67,11 @@ namespace QDMS
                 }
                 day = tmpDay.Day;
             }
-            else if (Rule.ReferenceUsesDays) //we use a fixed number of days from the start of the month
+            else if (Rule.ReferenceDayType == ReferenceDayType.CalendarDays) //we use a fixed number of days from the start of the month
             {
                 day = Rule.ReferenceDays;
             }
-            else //we use a number of weeks and then a weekday of that week
+            else if (Rule.ReferenceDayType == ReferenceDayType.WeekDays) //we use a number of weeks and then a weekday of that week
             {
                 if (Rule.ReferenceWeekDayCount == WeekDayCount.Last) //the last week of the month
                 {
