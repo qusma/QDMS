@@ -140,16 +140,16 @@ namespace QDMS.Server.Brokers
         {
             using (var context = new MyDBContext())
             {
-                //can't use .Date here so we have to do year/month/day manually. DbFunctions.TruncateTime doesn't work for MySql
+                //this wrangling is necessary because MySql doesn't support TruncateTime()
+                //if a time is set, use it as the limit; if not, we want all events from that day
+                var toDate = request.ToDate.TimeOfDay.TotalSeconds == 0
+                    ? request.ToDate.AddDays(1)
+                    : request.ToDate;
+
                 var queryableData = context.EconomicReleases
                     .Where(x =>
-                        x.DateTime.Year >= request.FromDate.Year &&
-                        x.DateTime.Month >= request.FromDate.Month &&
-                        x.DateTime.Day >= request.FromDate.Day)
-                    .Where(x =>
-                        x.DateTime.Year <= request.ToDate.Year &&
-                        x.DateTime.Month <= request.ToDate.Month &&
-                        x.DateTime.Day <= request.ToDate.Day);
+                        x.DateTime >= request.FromDate &&
+                        x.DateTime <= toDate);
 
                 if (request.Filter != null)
                 {
