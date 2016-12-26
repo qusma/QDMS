@@ -7,7 +7,6 @@
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
-using QDMS.Server.Jobs.JobDetails;
 using QDMSServer;
 using Quartz;
 using System;

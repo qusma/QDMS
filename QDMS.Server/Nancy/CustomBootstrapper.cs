@@ -17,6 +17,8 @@ using QDMS.Server.Brokers;
 using QDMSServer;
 using System.Data.SqlClient;
 using System.Linq;
+using QDMS.Server.Repositories;
+using Quartz;
 
 namespace QDMS.Server.Nancy
 {
@@ -26,15 +28,17 @@ namespace QDMS.Server.Nancy
         private readonly IEconomicReleaseBroker _erb;
         private readonly IHistoricalDataBroker _hdb;
         private readonly IRealTimeDataBroker _rtdb;
+        private readonly IScheduler _scheduler;
         private readonly string _apiKey;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public CustomBootstrapper(IDataStorage storage, IEconomicReleaseBroker erb, IHistoricalDataBroker hdb, IRealTimeDataBroker rtdb, string apiKey)
+        public CustomBootstrapper(IDataStorage storage, IEconomicReleaseBroker erb, IHistoricalDataBroker hdb, IRealTimeDataBroker rtdb, IScheduler scheduler, string apiKey)
         {
             _storage = storage;
             _erb = erb;
             _hdb = hdb;
             _rtdb = rtdb;
+            _scheduler = scheduler;
             _apiKey = apiKey;
         }
 
@@ -45,6 +49,8 @@ namespace QDMS.Server.Nancy
             //configure ioc
             container.Register<IMyDbContext, MyDBContext>().AsMultiInstance();
             container.Register<IInstrumentSource, InstrumentRepository>().AsMultiInstance();
+            container.Register<IJobsRepository, JobsRepository>().AsMultiInstance();
+            container.Register<IScheduler>(_scheduler);
             container.Register<IDataStorage>(_storage);
             container.Register<IEconomicReleaseBroker>(_erb);
             container.Register<IHistoricalDataBroker>(_hdb);

@@ -178,6 +178,25 @@ namespace QDMS
         Task<ApiResponse<Tag>> UpdateTag(Tag tag);
 
         /// <summary>
+        /// Get all data economic release update jobs
+        /// </summary>
+        Task<ApiResponse<List<EconomicReleaseUpdateJobSettings>>> GetEconomicReleaseUpdateJobs();
+
+        /// <summary>
+        /// Get all data update jobs
+        /// </summary>
+        Task<ApiResponse<List<DataUpdateJobSettings>>> GetaDataUpdateJobs();
+
+        /// <summary>
+        /// Add a new job
+        /// </summary>
+        Task<ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings;
+
+        /// <summary>
+        /// Delete a job
+        /// </summary>
+        Task<ApiResponse<T>> DeleteJob<T>(T job) where T : class, IJobSettings;
+
         /// <summary>
         /// Get all underlying symbols
         /// </summary>

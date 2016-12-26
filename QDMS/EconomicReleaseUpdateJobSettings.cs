@@ -4,14 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using QDMS.Annotations;
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
-namespace QDMS.Server.Jobs.JobDetails
+namespace QDMS
 {
-    public class EconomicReleaseUpdateJobSettings : IJobSettings, INotifyPropertyChanged
+    public class EconomicReleaseUpdateJobSettings : IJobSettings
     {
         /// <summary>
         /// If true, updates will only happen monday through friday.
@@ -25,16 +22,8 @@ namespace QDMS.Server.Jobs.JobDetails
 
         public string Name { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public int BusinessDaysBack { get; set; }
         public int BusinessDaysAhead { get; set; }
         public string DataSource { get; set; }
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }
