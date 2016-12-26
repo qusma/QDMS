@@ -303,14 +303,19 @@
     <Compile Include="UserControls\EconomicReleaseJobControl.xaml.cs">
       <DependentUpon>EconomicReleaseJobControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\UnderlyingSymbolControl.xaml.cs">
+      <DependentUpon>UnderlyingSymbolControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\DbBackup.cs" />
-    <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\DbUtils.cs" />
+    <Compile Include="Utils\ExtensionMethods.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
     <Compile Include="Utils\QuartzUtils.cs" />
     <Compile Include="Utils\Seed.cs" />
     <Compile Include="Utils\SqlServerBackup.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
     <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
+    <Compile Include="ValueConverters\EnumBooleanConverter.cs" />
     <Compile Include="ValueConverters\ExchangeMultiValueConverter.cs" />
     <Compile Include="ValueConverters\InvertBooleanConverter.cs" />
     <Compile Include="ValueConverters\IsNullConverter.cs" />
@@ -326,6 +331,8 @@
     <Compile Include="ViewModels\SchedulerViewModel.cs" />
     <Compile Include="ViewModels\TagsViewModel.cs" />
     <Compile Include="ViewModels\TagViewModel.cs" />
+    <Compile Include="ViewModels\UnderlyingSymbolsViewModel.cs" />
+    <Compile Include="ViewModels\UnderlyingSymbolViewModel.cs" />
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
@@ -347,9 +354,6 @@
     </Compile>
     <Compile Include="Windows\SessionTemplatesWindow.xaml.cs">
       <DependentUpon>SessionTemplatesWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\EditRootSymbolWindow.xaml.cs">
-      <DependentUpon>EditRootSymbolWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\RootSymbolsWindow.xaml.cs">
       <DependentUpon>RootSymbolsWindow.xaml</DependentUpon>
@@ -407,6 +411,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControls\UnderlyingSymbolControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\AboutWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -434,10 +442,6 @@
     <Page Include="Windows\SessionTemplatesWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Windows\EditRootSymbolWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\RootSymbolsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
