@@ -4,28 +4,25 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using EntityData;
 using MahApps.Metro.Controls.Dialogs;
-using Newtonsoft.Json;
-using NLog;
 using QDMS;
-using QDMS.Server.Jobs;
-using QDMS.Server.Jobs.JobDetails;
-using Quartz;
-using Quartz.Impl.Matchers;
+using QDMSClient;
 using ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using QDMS.Server;
 
 namespace QDMSServer.ViewModels
 {
     public class SchedulerViewModel : ReactiveObject
     {
+        private readonly IDataClient _client;
+
         /// <summary>
         /// WARNING: used only for design-time purposes, do not use this!
         /// </summary>
@@ -34,98 +31,109 @@ namespace QDMSServer.ViewModels
         {
         }
 
-        public SchedulerViewModel(IScheduler scheduler, IDialogCoordinator dialogService)
+        public SchedulerViewModel(IDataClient client, IDialogCoordinator dialogCoordinator)
         {
-            _scheduler = scheduler;
-            DialogService = dialogService;
+            _client = client;
+            DialogCoordinator = dialogCoordinator;
 
-            Jobs = new ObservableCollection<IJobViewModel>();
+            Jobs = new ReactiveList<IJobViewModel>();
             Tags = new ReactiveList<Tag>();
             Instruments = new ReactiveList<Instrument>();
-            EconomicReleaseDataSources = new ObservableCollection<string> { "FXStreet" }; //we'll be grabbing this through the api in the future
-
-            RefreshCollections();
-            PopulateJobs();
+            EconomicReleaseDataSources = new ReactiveList<string>();
 
             CreateCommands();
         }
 
-        private void PopulateJobs()
-        {
-            var dataUpdateJobKeys = _scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup());
-            foreach (JobKey job in dataUpdateJobKeys)
-            {
-                IJobDetail jobDetails = _scheduler.GetJobDetail(job);
-
-                if (job.Group == JobTypes.DataUpdate)
-                {
-                    try
-                    {
-                        var jd = JsonConvert.DeserializeObject<DataUpdateJobSettings>((string)jobDetails.JobDataMap["settings"]);
-                        if (jd.InstrumentID.HasValue)
-                        {
-                            jd.Instrument = Instruments.FirstOrDefault(x => x.ID == jd.InstrumentID.Value);
-                        }
-                        if (jd.TagID.HasValue)
-                        {
-                            jd.Tag = Tags.FirstOrDefault(x => x.ID == jd.TagID.Value);
-                        }
-
-                        Jobs.Add(new DataUpdateJobViewModel(jd, _scheduler));
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, "Failed to deserialize data update job");
-                    }
-                }
-                else if (job.Group == JobTypes.EconomicRelease)
-                {
-                    try
-                    {
-                        var jd = JsonConvert.DeserializeObject<EconomicReleaseUpdateJobSettings>((string)jobDetails.JobDataMap["settings"]);
-
-                        Jobs.Add(new EconomicReleaseUpdateJobViewModel(jd, _scheduler));
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, "Failed to deserialize economic release update job");
-                    }
-                }
-            }
-        }
-
-        public void RefreshCollections()
-        {
-            Tags.Clear();
-            Instruments.Clear();
-
-            using (var context = new MyDBContext())
-            {
-                Tags.AddRange(context.Tags.ToList());
-
-                var im = new InstrumentRepository(context);
-                Instruments.AddRange(im.FindInstruments().Result);
-            }
-        }
-
-        public void Shutdown()
-        {
-            _scheduler.Shutdown(true);
-        }
-
         private void CreateCommands()
         {
-            Delete = ReactiveCommand.Create<DataUpdateJobViewModel>(
-                ExecuteDelete, 
-                this.WhenAny(x => x.SelectedJob, x => x.Value != null));
-            Delete.ThrownExceptions.Subscribe(e => _logger.Log(LogLevel.Warn, e, "Scheduler job deletion error"));
-
             Add = ReactiveCommand.Create(ExecuteAdd);
+
+            //get existing jobs and tags/instruments
+            Load = ReactiveCommand.CreateFromTask(async _ =>
+            {
+                var dataUpdateJobs = _client.GetaDataUpdateJobs();
+                var econReleaseUpdateJobs = _client.GetEconomicReleaseUpdateJobs();
+                var tags = _client.GetTags();
+                var instruments = _client.GetInstruments();
+                var econReleaseSources = _client.GetEconomicReleaseDataSources();
+
+                await Task.WhenAll(dataUpdateJobs, econReleaseUpdateJobs, tags, instruments, econReleaseSources).ConfigureAwait(false);
+
+                var responses = new ApiResponse[] { dataUpdateJobs.Result, econReleaseUpdateJobs.Result, tags.Result, instruments.Result, econReleaseSources.Result };
+                if (await responses.DisplayErrors(this, DialogCoordinator).ConfigureAwait(true)) return null;
+
+                Tags.AddRange(tags.Result.Result);
+                Instruments.AddRange(instruments.Result.Result);
+                EconomicReleaseDataSources.AddRange(econReleaseSources.Result.Result);
+
+                var jobs = new List<IJobSettings>();
+                jobs.AddRange(dataUpdateJobs.Result.Result);
+                jobs.AddRange(econReleaseUpdateJobs.Result.Result);
+
+                return jobs;
+            });
+            Load.Subscribe(jobs =>
+            {
+                if (jobs == null) return;
+
+                foreach (var job in jobs)
+                {
+                    Jobs.Add(GetJobViewModel(job));
+                }
+            });
+
+            //Delete job
+            var deleteCanExecute = this
+                .WhenAnyValue(x => x.SelectedJob)
+                .Select(x => x != null && !string.IsNullOrEmpty(x.PreChangeName));
+
+            Delete = ReactiveCommand.CreateFromTask(async _ =>
+            {
+                //Give a dialog to confirm the deletion
+                MessageDialogResult dialogResult = await DialogCoordinator.ShowMessageAsync(this,
+                    "Delete Job",
+                    string.Format("Are you sure you want to delete {0}?", SelectedJob.Name),
+                    MessageDialogStyle.AffirmativeAndNegative);
+
+                if (dialogResult != MessageDialogResult.Affirmative) return;
+
+                //If the name has changed but hasn't been saved, we change it back to be in sync with the server
+                SelectedJob.Name = SelectedJob.PreChangeName;
+
+                //Request deletion
+                var response = await _client.DeleteJob(SelectedJob.Job);
+                if (await response.DisplayErrors(this, DialogCoordinator)) return;
+
+                //if it was successful, remove the VM from the list
+                Jobs.Remove(SelectedJob);
+                SelectedJob = null;
+            },
+            deleteCanExecute);
         }
+
+        private IJobViewModel GetJobViewModel(IJobSettings job)
+        {
+            if (job is DataUpdateJobSettings)
+            {
+                return new DataUpdateJobViewModel((DataUpdateJobSettings)job, _client, DialogCoordinator);
+            }
+            if (job is EconomicReleaseUpdateJobSettings)
+            {
+                return new EconomicReleaseUpdateJobViewModel((EconomicReleaseUpdateJobSettings)job, _client, DialogCoordinator);
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public ReactiveCommand<Unit, Unit> Add { get; set; }
+
+        public ReactiveCommand<Unit, Unit> Update { get; set; }
+
+        public ReactiveCommand<Unit, List<IJobSettings>> Load { get; private set; }
 
         private void ExecuteAdd()
         {
-            string selectedJob = "";
+            string selectedJob;
 
             //Present a dialog for the user to select the type of job they want to add
             var dialog = new CustomDialog { Title = "Add New Job" };
@@ -136,33 +144,32 @@ namespace QDMSServer.ViewModels
             var addBtn = new Button { Content = "Add" };
             addBtn.Click += (s, e) =>
             {
-                DialogService.HideMetroDialogAsync(this, dialog);
+                DialogCoordinator.HideMetroDialogAsync(this, dialog);
                 selectedJob = (string)panel.Children.OfType<RadioButton>().FirstOrDefault(r => r.IsChecked.HasValue && r.IsChecked.Value)?.Content;
                 AddJob(selectedJob);
             };
             panel.Children.Add(addBtn);
             dialog.Content = panel;
 
-            DialogService.ShowMetroDialogAsync(this, dialog);
+            DialogCoordinator.ShowMetroDialogAsync(this, dialog);
         }
 
         private void AddJob(string selectedJob)
         {
+            IJobSettings job = null;
             //create the jobdetails and add
             if (selectedJob == "Data Update")
             {
-                var job = new DataUpdateJobSettings { Name = GetJobName("DataUpdateJob"), UseTag = true, Frequency = BarSize.OneDay, Time = new TimeSpan(8, 0, 0), WeekDaysOnly = true };
-                var jobVm = new DataUpdateJobViewModel(job, _scheduler);
-                Jobs.Add(jobVm);
-                SelectedJob = jobVm;
+                job = new DataUpdateJobSettings { Name = GetJobName("DataUpdateJob"), UseTag = true, Frequency = BarSize.OneDay, Time = new TimeSpan(8, 0, 0), WeekDaysOnly = true };
             }
             else if (selectedJob == "Economic Release Update")
             {
-                var job = new EconomicReleaseUpdateJobSettings { Name = GetJobName("EconomicReleaseUpdateJob"), BusinessDaysBack = 1, BusinessDaysAhead = 7, DataSource = "FXStreet" };
-                var jobVm = new EconomicReleaseUpdateJobViewModel(job, _scheduler);
-                Jobs.Add(jobVm);
-                SelectedJob = jobVm;
+                job = new EconomicReleaseUpdateJobSettings { Name = GetJobName("EconomicReleaseUpdateJob"), BusinessDaysBack = 1, BusinessDaysAhead = 7, DataSource = "FXStreet" };
             }
+
+            var jobVm = GetJobViewModel(job);
+            Jobs.Add(jobVm);
+            SelectedJob = jobVm;
         }
 
         /// <summary>
@@ -182,45 +189,26 @@ namespace QDMSServer.ViewModels
             return newName;
         }
 
-        private async void ExecuteDelete(IJobViewModel vm)
-        {
-            if (vm == null) throw new ArgumentNullException(nameof(vm));
+        public ReactiveCommand<Unit, Unit> Delete { get; private set; }
 
-            MessageDialogResult dialogResult = await DialogService.ShowMessageAsync(this,
-                "Delete Job",
-                string.Format("Are you sure you want to delete {0}?", vm.Name),
-                MessageDialogStyle.AffirmativeAndNegative);
-
-            if (dialogResult != MessageDialogResult.Affirmative) return;
-
-            vm.DeleteJob();
-
-            Jobs.Remove(vm);
-
-            SelectedJob = null;
-        }
-
-        public ReactiveCommand<Unit, Unit> Add { get; private set; }
-
-        public ReactiveCommand<DataUpdateJobViewModel, Unit> Delete { get; private set; }
-
-        public IDialogCoordinator DialogService { get; set; }
+        public IDialogCoordinator DialogCoordinator { get; set; }
 
         public ReactiveList<Instrument> Instruments { get; set; }
 
-        public ObservableCollection<IJobViewModel> Jobs { get; }
-        public ObservableCollection<string> EconomicReleaseDataSources { get; set; }
+        public ReactiveList<IJobViewModel> Jobs { get; }
+        public ReactiveList<string> EconomicReleaseDataSources { get; set; }
 
         public IJobViewModel SelectedJob
         {
             get { return _selectedJob; }
-            set { this.RaiseAndSetIfChanged(ref _selectedJob, value); }
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedJob, value);
+            }
         }
 
         public ReactiveList<Tag> Tags { get; set; }
 
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly IScheduler _scheduler;
         private IJobViewModel _selectedJob;
     }
 }

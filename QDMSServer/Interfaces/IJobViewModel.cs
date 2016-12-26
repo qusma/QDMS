@@ -6,17 +6,23 @@
 
 using System.ComponentModel;
 using System.Reactive;
-using Quartz;
+using QDMS;
 using ReactiveUI;
 
 namespace QDMSServer
 {
-    public interface IJobViewModel : INotifyPropertyChanged
+    public interface IJobViewModel : INotifyPropertyChanged, INotifyDataErrorInfo
     {
-        string ValidationError { get; set; }
-        ReactiveCommand<Unit, Unit> Save { get; }
-        void DeleteJob();
         string Name { get; set; }
-        JobKey JobKey { get; }
+
+        IJobSettings Job { get; }
+
+        /// <summary>
+        /// When changing the name, we need to keep track of the previous one as well to unschedule the previous job
+        /// This is necessary because you can't "update" jobs, only delete and add from scratch
+        /// </summary>
+        string PreChangeName { get; set; }
+
+        ReactiveCommand<Unit, Unit> Save { get; }
     }
 }

@@ -4,7 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Reactive.Linq;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using QDMS;
 using QDMSServer.ViewModels;
 
 namespace QDMSServer
@@ -14,11 +17,18 @@ namespace QDMSServer
     /// </summary>
     public partial class ScheduledJobsWindow : MetroWindow
     {
-        public ScheduledJobsWindow(SchedulerViewModel viewModel)
+        public SchedulerViewModel ViewModel { get; }
+
+        public ScheduledJobsWindow(IDataClient client)
         {
             InitializeComponent();
-            viewModel.RefreshCollections();
-            DataContext = viewModel;
+            ViewModel = new SchedulerViewModel(client, DialogCoordinator.Instance);
+            DataContext = ViewModel;
+        }
+
+        private async void MetroWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            await ViewModel.Load.Execute();
         }
     }
 }
