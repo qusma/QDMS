@@ -9,6 +9,7 @@
 // the actual expiration date.
 
 using System;
+using Newtonsoft.Json;
 using ProtoBuf;
 
 namespace QDMS
@@ -19,6 +20,9 @@ namespace QDMS
     [ProtoContract]
     public class ExpirationRule
     {
+        private bool _referenceUsesDays;
+        private bool _referenceDayIsLastBusinessDayOfMonth;
+
         /// <summary>
         /// The future expires this many days before the Reference day.
         /// </summary>
@@ -36,7 +40,13 @@ namespace QDMS
         /// If false, we use a set number of elapsed days of the week to set the reference point.
         /// </summary>
         [ProtoMember(5)]
-        public bool ReferenceUsesDays { get; set; }
+        [Obsolete("Use ReferenceDayType instead")]
+        [JsonIgnore]
+        public bool ReferenceUsesDays
+        {
+            get { return _referenceUsesDays; }
+            set { _referenceUsesDays = value; }
+        }
 
         /// <summary>
         /// If ReferenceUsesDays is true, this sets the day of the month on which the reference day is.
@@ -66,12 +76,32 @@ namespace QDMS
         /// If this is true, the reference day is set to the last business day of the relevant month.
         /// </summary>
         [ProtoMember(10)]
-        public bool ReferenceDayIsLastBusinessDayOfMonth { get; set; }
+        [Obsolete("Use ReferenceDayType instead")]
+        [JsonIgnore]
+        public bool ReferenceDayIsLastBusinessDayOfMonth
+        {
+            get { return _referenceDayIsLastBusinessDayOfMonth; }
+            set { _referenceDayIsLastBusinessDayOfMonth = value; }
+        }
 
         /// <summary>
         /// If this is true, if the reference day happens to be a holiday, it is moved back until it falls on a business day.
         /// </summary>
         [ProtoMember(11)]
         public bool ReferenceDayMustBeBusinessDay { get; set; }
+
+        [ProtoIgnore]
+        public ReferenceDayType ReferenceDayType
+        {
+            get {
+                if (_referenceDayIsLastBusinessDayOfMonth) return ReferenceDayType.LastDayOfMonth;
+                if (_referenceUsesDays) return ReferenceDayType.CalendarDays;
+                return ReferenceDayType.WeekDays;
+            }
+            set {
+                _referenceDayIsLastBusinessDayOfMonth = value == ReferenceDayType.LastDayOfMonth;
+                _referenceUsesDays = value == ReferenceDayType.CalendarDays;
+            }
+        }
     }
 }

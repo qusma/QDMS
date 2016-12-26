@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using QDMS.Server;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QDMSService.Config
 {
-    public enum LocalStorageType
-    {
-        MySql,
-        SqlServer
-    }
-
     public class LocalStorageElement : ConfigurationElement
     {
         [ConfigurationProperty("Type")]

@@ -4,10 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using QDMS.Server.Jobs.JobDetails;
-using Quartz;
+using QDMS;
 using ReactiveUI;
 using System;
+using MahApps.Metro.Controls.Dialogs;
+using QDMS.Server.Validation;
 
 namespace QDMSServer.ViewModels
 {
@@ -17,38 +18,30 @@ namespace QDMSServer.ViewModels
         /// For design-time purposes only
         /// </summary>
         [Obsolete]
-        public EconomicReleaseUpdateJobViewModel() : base() { }
+        public EconomicReleaseUpdateJobViewModel() { }
 
-        public EconomicReleaseUpdateJobViewModel(EconomicReleaseUpdateJobSettings job, IScheduler scheduler) : base(job, scheduler)
+        public EconomicReleaseUpdateJobViewModel(EconomicReleaseUpdateJobSettings job, IDataClient client, IDialogCoordinator dialogCoordinator) 
+            : base(job, new EconomicReleaseUpdateJobSettingsValidator(), client, dialogCoordinator)
         {
-            this.WhenAnyValue(x => x.DaysBack, x => x.DaysAhead, x => x.DataSource)
-                .Subscribe(x => ValidateSettings());
+
         }
 
-        private void ValidateSettings()
+        public int BusinessDaysBack
         {
-            ValidationError = "";
-            if (DaysBack < 0) ValidationError = "Days Back must be greater than or equal to zero";
-            if (DaysAhead < 0) ValidationError = "Days Back must be greater than or equal to zero";
-            if (string.IsNullOrEmpty(Job.DataSource)) ValidationError = "Datasource cannot be empty";
+            get { return Model.BusinessDaysBack; }
+            set { Model.BusinessDaysBack = value; this.RaisePropertyChanged(); }
         }
 
-        public int DaysBack
+        public int BusinessDaysAhead
         {
-            get { return Job.BusinessDaysBack; }
-            set { Job.BusinessDaysBack = value; this.RaisePropertyChanged(); }
-        }
-
-        public int DaysAhead
-        {
-            get { return Job.BusinessDaysAhead; }
-            set { Job.BusinessDaysAhead = value; this.RaisePropertyChanged(); }
+            get { return Model.BusinessDaysAhead; }
+            set { Model.BusinessDaysAhead = value; this.RaisePropertyChanged(); }
         }
 
         public string DataSource
         {
-            get { return Job.DataSource; }
-            set { Job.DataSource = value; this.RaisePropertyChanged(); }
+            get { return Model.DataSource; }
+            set { Model.DataSource = value; this.RaisePropertyChanged(); }
         }
     }
 }

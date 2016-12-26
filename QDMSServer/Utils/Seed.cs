@@ -298,7 +298,7 @@ namespace QDMSServer
                     DaysBefore = 2,
                     DayType = DayType.Business,
                     ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                    ReferenceUsesDays = false,
+                    ReferenceDayType = ReferenceDayType.WeekDays,
                     ReferenceWeekDay = DayOfTheWeek.Wednesday,
                     ReferenceWeekDayCount = WeekDayCount.Third
                 }
@@ -313,7 +313,7 @@ namespace QDMSServer
                     DaysBefore = 3,
                     DayType = DayType.Business,
                     ReferenceRelativeMonth = RelativeMonth.PreviousMonth,
-                    ReferenceUsesDays = true,
+                    ReferenceDayType = ReferenceDayType.CalendarDays,
                     ReferenceDays = 25,
                     ReferenceDayMustBeBusinessDay = true
                 }
@@ -328,7 +328,7 @@ namespace QDMSServer
                     DaysBefore = 1,
                     DayType = DayType.Business,
                     ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                    ReferenceUsesDays = true,
+                    ReferenceDayType = ReferenceDayType.CalendarDays,
                     ReferenceDays = 15
                 }
             };
@@ -342,7 +342,7 @@ namespace QDMSServer
                     DaysBefore = 0,
                     DayType = DayType.Calendar,
                     ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                    ReferenceUsesDays = false,
+                    ReferenceDayType = ReferenceDayType.WeekDays,
                     ReferenceWeekDay = DayOfTheWeek.Friday,
                     ReferenceWeekDayCount = WeekDayCount.Third
                 }
@@ -358,7 +358,7 @@ namespace QDMSServer
                     DaysBefore = 0,
                     DayType = DayType.Calendar,
                     ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                    ReferenceUsesDays = false,
+                    ReferenceDayType = ReferenceDayType.WeekDays,
                     ReferenceWeekDay = DayOfTheWeek.Friday,
                     ReferenceWeekDayCount = WeekDayCount.Third
                 }
@@ -373,8 +373,7 @@ namespace QDMSServer
                     DaysBefore = 2,
                     DayType = DayType.Business,
                     ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                    ReferenceUsesDays = false,
-                    ReferenceDayIsLastBusinessDayOfMonth = true
+                    ReferenceDayType = ReferenceDayType.LastDayOfMonth
                 }
             };
             context.UnderlyingSymbols.AddOrUpdate(x => x.Symbol, gc);
@@ -387,8 +386,7 @@ namespace QDMSServer
                     DaysBefore = 7,
                     DayType = DayType.Business,
                     ReferenceRelativeMonth = RelativeMonth.CurrentMonth,
-                    ReferenceUsesDays = false,
-                    ReferenceDayIsLastBusinessDayOfMonth = true
+                    ReferenceDayType = ReferenceDayType.LastDayOfMonth
                 }
             };
             context.UnderlyingSymbols.AddOrUpdate(x => x.Symbol, ub);
@@ -401,7 +399,7 @@ namespace QDMSServer
                     DaysBefore = 30,
                     DayType = DayType.Calendar,
                     ReferenceRelativeMonth = RelativeMonth.NextMonth,
-                    ReferenceUsesDays = false,
+                    ReferenceDayType = ReferenceDayType.WeekDays,
                     ReferenceWeekDay = DayOfTheWeek.Friday,
                     ReferenceWeekDayCount = WeekDayCount.Third,
                     ReferenceDayMustBeBusinessDay = true

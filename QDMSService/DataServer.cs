@@ -8,6 +8,9 @@ using QDMS.Server.Nancy;
 using QDMSServer;
 using System;
 using System.Linq;
+using QDMS.Server;
+using Quartz;
+using Quartz.Impl;
 
 namespace QDMSService
 {
@@ -22,6 +25,9 @@ namespace QDMSService
 
         private HistoricalDataServer _historicalDataServer;
         private RealTimeDataServer _realTimeDataServer;
+        private NancyHost _httpServer;
+
+        private IScheduler _scheduler;
 
         public DataServer(Config.DataService config)
         {
@@ -66,11 +72,11 @@ namespace QDMSService
 
             switch (_config.LocalStorage.Type)
             {
-                case Config.LocalStorageType.MySql:
+                case LocalStorageType.MySql:
                     localStorage = new QDMSServer.DataSources.MySQLStorage(_config.LocalStorage.ConnectionString);
                     break;
 
-                case Config.LocalStorageType.SqlServer:
+                case LocalStorageType.SqlServer:
                     localStorage = new QDMSServer.DataSources.SqlServerStorage(_config.LocalStorage.ConnectionString);
                     break;
 
@@ -92,19 +98,25 @@ namespace QDMSService
             _historicalDataServer = new HistoricalDataServer(_config.HistoricalDataService.Port, _historicalDataBroker);
             _realTimeDataServer = new RealTimeDataServer(_config.RealtimeDataService.PublisherPort, _config.RealtimeDataService.RequestPort, _realTimeDataBroker);
 
+            // create scheduler
+            ISchedulerFactory schedulerFactory = new StdSchedulerFactory(); //todo need settings for scheduler + jobfactory
+            _scheduler = schedulerFactory.GetScheduler();
+
             var bootstrapper = new CustomBootstrapper(
                 localStorage,
                 _economicReleaseBroker,
                 _historicalDataBroker,
                 _realTimeDataBroker,
+                _scheduler,
                _config.WebService.ApiKey);
             var uri = new Uri((_config.WebService.UseSsl ? "https" : "http") + "://localhost:" + _config.WebService.Port);
-            var httpServer = new NancyHost(bootstrapper, uri);
+            _httpServer = new NancyHost(bootstrapper, uri);
 
             // ... start the servers
             _historicalDataServer.StartServer();
             _realTimeDataServer.StartServer();
-            httpServer.Start();
+            _httpServer.Start();
+            _scheduler.Start();
 
             _log.Info($"Server is ready.");
         }
@@ -126,6 +138,8 @@ namespace QDMSService
         {
             _realTimeDataServer.Dispose();
             _historicalDataBroker.Dispose();
+            _httpServer.Dispose();
+            _scheduler.Shutdown();
         }
     }
 }

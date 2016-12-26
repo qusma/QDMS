@@ -74,7 +74,7 @@ AncestorType={x:Type Window}}, Path=DataContext.Tags}" SelectedItem="{Binding Ta
 
             </Grid>
         </GroupBox>
-        <GroupBox Header="When To Run" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="2" VerticalAlignment="Stretch" >
+        <GroupBox Header="When To Run" HorizontalAlignment="Stretch" Margin="10,0,10,10" Grid.Row="2" VerticalAlignment="Stretch" >
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="171*"/>

@@ -6,7 +6,7 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
     xmlns:qdmsServer="clr-namespace:QDMSServer"
-    Title="Schedule Data Updates" Height="553.723" Width="574.568"
+    Title="Schedule Data Updates" Height="553.723" Width="675"
     BorderBrush="Black"
     BorderThickness="1"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,6 +18,7 @@
     xmlns:qdmsServer1="clr-namespace:QDMSServer;assembly=QDMS.Server"
     xmlns:userControls="clr-namespace:QDMSServer.UserControls"
     Dialog:DialogParticipation.Register="{Binding}"
+    Loaded="MetroWindow_Loaded"
     >
     <controls:MetroWindow.Resources>
         <DataTemplate DataType="{x:Type viewModels:DataUpdateJobViewModel}">
@@ -31,7 +32,7 @@
     <Grid>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="200*"/>
         </Grid.ColumnDefinitions>
         <DataGrid Name="JobsGrid" Grid.Column="0" AutoGenerateColumns="False"
@@ -55,19 +56,14 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
             <Button Command="{Binding Add}" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,11,251,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
-            <Button DataContext="{Binding SelectedJob}"
-                Command="{Binding Save}" x:Name="SaveBtn" Content="Save" HorizontalAlignment="Right" Margin="0,11,171,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
+            <Button 
+                Command="{Binding SelectedJob.Save}" x:Name="SaveBtn" Content="Save" HorizontalAlignment="Right" Margin="0,11,171,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
             <Button Command="{Binding Delete}"
-                CommandParameter="{Binding SelectedJob}"
                 x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,11,91,0" VerticalAlignment="Top" Width="75" Height="19" Grid.Row="0"/>
 
             <ContentControl Grid.Row="1" Content="{Binding}" DataContext="{Binding SelectedJob}" />
-
-            <Label Grid.Row="2" Name="ValidationErrorLabel" Content="{Binding SelectedJob.ValidationError}" Foreground="Red">
-            </Label>
         </Grid>
     </Grid>
 </controls:MetroWindow>

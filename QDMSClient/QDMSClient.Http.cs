@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using QDMS;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using QDMS;
 
 namespace QDMSClient
 {
@@ -21,31 +21,31 @@ namespace QDMSClient
         /// <summary>
         /// Get all exchanges
         /// </summary>
-        public async Task<ApiResponse<List<Exchange>>> GetExchanges() => 
+        public async Task<ApiResponse<List<Exchange>>> GetExchanges() =>
             await _apiClient.GetAsync<List<Exchange>>("/exchanges").ConfigureAwait(false);
 
         /// <summary>
         /// Get a specific exchange by id
         /// </summary>
-        public async Task<ApiResponse<Exchange>> GetExchange(int id) => 
+        public async Task<ApiResponse<Exchange>> GetExchange(int id) =>
             await _apiClient.GetAsync<Exchange>($"/exchanges/{id}").ConfigureAwait(false);
 
         /// <summary>
         /// Add a new exchange
         /// </summary>
-        public async Task<ApiResponse<Exchange>> AddExchange(Exchange exchange) => 
+        public async Task<ApiResponse<Exchange>> AddExchange(Exchange exchange) =>
             await _apiClient.PostAsync<Exchange>("/exchanges", exchange).ConfigureAwait(false);
 
         /// <summary>
         /// Update an existing exchange with new values
         /// </summary>
-        public async Task<ApiResponse<Exchange>> UpdateExchange(Exchange exchange) => 
+        public async Task<ApiResponse<Exchange>> UpdateExchange(Exchange exchange) =>
             await _apiClient.PutAsync<Exchange>("/exchanges", exchange).ConfigureAwait(false);
 
         /// <summary>
         /// Delete an exchange
         /// </summary>
-        public async Task<ApiResponse<Exchange>> DeleteExchange(Exchange exchange) => 
+        public async Task<ApiResponse<Exchange>> DeleteExchange(Exchange exchange) =>
             await _apiClient.DeleteAsync<Exchange>($"/exchanges/{exchange?.ID}").ConfigureAwait(false);
 
         #endregion exchanges
@@ -55,7 +55,7 @@ namespace QDMSClient
         /// <summary>
         /// Get all datasources
         /// </summary>
-        public async Task<ApiResponse<List<Datasource>>> GetDatasources() => 
+        public async Task<ApiResponse<List<Datasource>>> GetDatasources() =>
             await _apiClient.GetAsync<List<Datasource>>("/datasources").ConfigureAwait(false);
 
         /// <summary>
@@ -190,11 +190,77 @@ namespace QDMSClient
             await _apiClient.PutAsync<SessionTemplate>("/sessiontemplates", sessiontemplate).ConfigureAwait(false);
 
         /// <summary>
-        /// Delete a session templaet
+        /// Delete a session template
         /// </summary>
         public async Task<ApiResponse<SessionTemplate>> DeleteSessionTemplate(SessionTemplate sessiontemplate) =>
             await _apiClient.DeleteAsync<SessionTemplate>($"/sessiontemplates/{sessiontemplate?.ID}").ConfigureAwait(false);
 
         #endregion sessiontemplates
+
+        #region jobs
+
+        /// <summary>
+        /// Get all data update jobs
+        /// </summary>
+        public async Task<ApiResponse<List<DataUpdateJobSettings>>> GetaDataUpdateJobs() =>
+            await _apiClient.GetAsync<List<DataUpdateJobSettings>>("/jobs/dataupdatejobs").ConfigureAwait(false);
+
+        /// <summary>
+        /// Get all data economic release update jobs
+        /// </summary>
+        public async Task<ApiResponse<List<EconomicReleaseUpdateJobSettings>>> GetEconomicReleaseUpdateJobs() =>
+            await _apiClient.GetAsync<List<EconomicReleaseUpdateJobSettings>>("/jobs/economicreleaseupdatejobs").ConfigureAwait(false);
+
+        private string GetJobPathFromType(IJobSettings job)
+        {
+            if (job is DataUpdateJobSettings)
+                return "/jobs/dataupdatejobs";
+            if (job is EconomicReleaseUpdateJobSettings)
+                return "/jobs/economicreleaseupdatejobs";
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Add a new job
+        /// </summary>
+        public async Task<ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings =>
+            await _apiClient.PostAsync<T>(GetJobPathFromType(job), job).ConfigureAwait(false);
+
+        /// <summary>
+        /// Delete a job
+        /// </summary>
+        public async Task<ApiResponse<T>> DeleteJob<T>(T job) where T : class, IJobSettings =>
+            await _apiClient.DeleteAsync<T>(GetJobPathFromType(job), job).ConfigureAwait(false);
+
+        #endregion jobs
+
+        #region underlyingsymbols
+
+        /// <summary>
+        /// Get all underlying symbols
+        /// </summary>
+        public async Task<ApiResponse<List<UnderlyingSymbol>>> GetUnderlyingSymbols() =>
+            await _apiClient.GetAsync<List<UnderlyingSymbol>>("/underlyingsymbols").ConfigureAwait(false);
+
+        /// <summary>
+        /// Add a new underlying symbol
+        /// </summary>
+        public async Task<ApiResponse<UnderlyingSymbol>> AddUnderlyingSymbol(UnderlyingSymbol symbol) =>
+            await _apiClient.PostAsync<UnderlyingSymbol>("/underlyingsymbols", symbol).ConfigureAwait(false);
+
+        /// <summary>
+        /// Update an existing underlying symbol
+        /// </summary>
+        public async Task<ApiResponse<UnderlyingSymbol>> UpdateUnderlyingSymbol(UnderlyingSymbol symbol) =>
+            await _apiClient.PutAsync<UnderlyingSymbol>("/underlyingsymbols", symbol).ConfigureAwait(false);
+
+        /// <summary>
+        /// Delete an underlying symbol
+        /// </summary>
+        public async Task<ApiResponse<UnderlyingSymbol>> DeleteUnderlyingSymbol(UnderlyingSymbol symbol) =>
+            await _apiClient.DeleteAsync<UnderlyingSymbol>($"/underlyingsymbols/{symbol?.ID}").ConfigureAwait(false);
+
+        #endregion underlyingsymbols
     }
 }

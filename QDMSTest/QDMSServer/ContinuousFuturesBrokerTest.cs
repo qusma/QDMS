@@ -50,7 +50,7 @@ namespace QDMSTest
                 DaysBefore = 30,
                 DayType = DayType.Calendar,
                 ReferenceRelativeMonth = RelativeMonth.NextMonth,
-                ReferenceUsesDays = false,
+                ReferenceDayType = ReferenceDayType.WeekDays,
                 ReferenceWeekDay = DayOfTheWeek.Friday,
                 ReferenceWeekDayCount = WeekDayCount.Third,
                 ReferenceDayMustBeBusinessDay = true
@@ -1547,7 +1547,7 @@ namespace QDMSTest
             //make the request
             foreach (DateTime dt in expectedExpirationMonths.Keys)
             {
-                _broker.RequestFrontContract(_cfInst, dt);
+                _broker.RequestFrontContract(_cfInst, dt); //todo what's the prob? Is it the intermediate data pull?
             }
 
             int i = 0;

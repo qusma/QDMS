@@ -34,6 +34,7 @@ using Nancy.Hosting.Self;
 using Nancy.Authentication.Stateless;
 using QDMS.Server;
 using QDMS.Server.Nancy;
+using QDMS.Server.Repositories;
 
 namespace QDMSServer
 {
@@ -251,6 +252,7 @@ namespace QDMSServer
                 EconomicReleaseBroker,
                 HistoricalBroker,
                 RealTimeBroker,
+                _scheduler,
                 Properties.Settings.Default.apiKey);
             var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);
             var host = new NancyHost(bootstrapper, uri);
@@ -264,11 +266,12 @@ namespace QDMSServer
         private void MigrateJobs(MyDBContext context, IScheduler scheduler)
         {
             //Check if there are jobs in the QDMS db and no jobs in the quartz db - in that case we migrate them
+            var repo = new JobsRepository(context, scheduler);
             if (context.DataUpdateJobs.Any() && scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()).Count == 0)
             {
                 foreach (DataUpdateJobSettings job  in context.DataUpdateJobs)
                 {
-                    JobsManager.ScheduleJob(scheduler, job);
+                    repo.ScheduleJob(job);
                 }
             }
         }
@@ -622,7 +625,7 @@ namespace QDMSServer
 
         private void RootSymbolsBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            var window = new RootSymbolsWindow();
+            var window = new RootSymbolsWindow(_client);
             window.ShowDialog();
         }
 
@@ -827,7 +830,7 @@ namespace QDMSServer
 
         private void DataJobsBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            var window = new ScheduledJobsWindow(new ViewModels.SchedulerViewModel(_scheduler, DialogCoordinator.Instance));
+            var window = new ScheduledJobsWindow(_client);
             window.Show();
         }
 

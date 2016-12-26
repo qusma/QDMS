@@ -4,14 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using FluentValidation;
+using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMS.Server.Jobs;
 using Quartz;
 using ReactiveUI;
 using System;
 using System.Reactive;
-using ReactiveUI.Legacy;
-using ReactiveCommand = ReactiveUI.ReactiveCommand;
+using System.Reactive.Linq;
 
 namespace QDMSServer.ViewModels
 {
@@ -19,60 +20,69 @@ namespace QDMSServer.ViewModels
     /// ViewModels for jobs derive from this one
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class JobViewModelBase<T> : ReactiveObject, IJobViewModel where T : IJobSettings
+    public abstract class JobViewModelBase<T> : ValidatingViewModelBase<T>, IJobViewModel where T : class, IJobSettings
     {
-        private readonly IScheduler _scheduler;
-
-        /// <summary>
-        /// When changing the name, we need to keep track of the previous one as well to unschedule the previous job
-        /// </summary>
-        private string _preChangeName;
-
-        private string _validationError;
+        private readonly T _typedJob;
 
         /// <summary>
         /// For design-time purposes only
         /// </summary>
         [Obsolete]
-        protected JobViewModelBase() { }
+        protected JobViewModelBase() : base(null, null) { }
 
-        protected JobViewModelBase(T job, IScheduler scheduler)
+        protected JobViewModelBase(T job, AbstractValidator<T> validator, IDataClient client, IDialogCoordinator dialogCoordinator) : base(job, validator)
         {
+            PreChangeName = job.Name;
             Job = job;
-            _scheduler = scheduler;
-            _preChangeName = job.Name;
+            _typedJob = job;
 
-            Save = ReactiveCommand.Create(ExecuteSave, this.WhenAny(x => x.ValidationError, x => string.IsNullOrEmpty(x.Value)));
+            //Save job
+            var saveCanExecute = this
+                .WhenAnyValue(x => x.HasErrors)
+                .Select(x => x == false);
+
+            Save = ReactiveCommand.CreateFromTask(async _ =>
+            {
+                //First delete the existing job (if there is an existing job), with the old name
+                string tmpName = Name;
+                Name = PreChangeName;
+                await client.DeleteJob(_typedJob); //failure is OK here, it might not exist on the server if it's newly added
+                Name = tmpName;
+
+                //then add it with the new values
+                var result = await client.AddJob(_typedJob).ConfigureAwait(true);
+                if (await result.DisplayErrors(this, dialogCoordinator)) return;
+
+                PreChangeName = Name;
+            },
+            saveCanExecute);
         }
 
-        public T Job { get; }
-        public JobKey JobKey => new JobKey(Name, JobTypes.GetJobType(Job));
+        public IJobSettings Job { get; }
+
+        public JobKey JobKey => new JobKey(Name, JobTypes.GetJobType(Model));
 
         public string Name
         {
-            get { return Job.Name; }
-            set { Job.Name = value; this.RaisePropertyChanged(); }
+            get { return Model.Name; }
+            set { Model.Name = value; this.RaisePropertyChanged(); }
         }
 
+        /// <summary>
+        /// When changing the name, we need to keep track of the previous one as well to unschedule the previous job
+        /// </summary>
+        public string PreChangeName { get; set; }
         public ReactiveCommand<Unit, Unit> Save { get; }
-
-        public string ValidationError
+        public TimeSpan Time
         {
-            get { return _validationError; }
-            set { this.RaiseAndSetIfChanged(ref _validationError, value); }
+            get { return Model.Time; }
+            set { Model.Time = value; this.RaisePropertyChanged(); }
         }
 
-        public void DeleteJob()
+        public bool WeekDaysOnly
         {
-            _scheduler.DeleteJob(new JobKey(_preChangeName, JobTypes.GetJobType(Job)));
-        }
-
-        private void ExecuteSave()
-        {
-            DeleteJob();
-
-            JobsManager.ScheduleJob(_scheduler, Job);
-            _preChangeName = Name;
+            get { return Model.WeekDaysOnly; }
+            set { Model.WeekDaysOnly = value; this.RaisePropertyChanged(); }
         }
     }
 }

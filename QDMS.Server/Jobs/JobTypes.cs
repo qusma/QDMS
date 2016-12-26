@@ -4,8 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using QDMS.Server.Jobs.JobDetails;
-
 namespace QDMS.Server.Jobs
 {
     public static class JobTypes

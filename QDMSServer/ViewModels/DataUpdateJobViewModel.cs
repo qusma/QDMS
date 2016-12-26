@@ -4,10 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using QDMS;
-using Quartz;
+using QDMS.Server.Validation;
 using ReactiveUI;
+using System;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace QDMSServer.ViewModels
 {
@@ -17,57 +18,41 @@ namespace QDMSServer.ViewModels
         /// For design-time purposes only
         /// </summary>
         [Obsolete]
-        public DataUpdateJobViewModel() : base() { }
+        public DataUpdateJobViewModel() { }
 
-        public DataUpdateJobViewModel(DataUpdateJobSettings job, IScheduler scheduler) : base(job, scheduler)
+        public DataUpdateJobViewModel(DataUpdateJobSettings job, IDataClient client, IDialogCoordinator dialogCoordinator) 
+            : base(job, new DataUpdateJobSettingsValidator(), client, dialogCoordinator)
         {
-            this.WhenAnyValue(x => x.UseTag, x => x.Instrument, x => x.Tag)
-                .Subscribe(x => ValidateSettings());
-        }
-
-
-        private void ValidateSettings()
-        {
-            ValidationError = "";
-
-            if (Job.UseTag && Job.Tag == null)
-            {
-                ValidationError = "You must select a tag.";
-            }
-            else if (Job.Instrument == null)
-            {
-                ValidationError = "You must select an instrument";
-            }
         }
 
         public Instrument Instrument
         {
-            get { return Job.Instrument; }
+            get { return Model.Instrument; }
             set
             {
-                Job.Instrument = value;
-                Job.InstrumentID = value?.ID;
+                Model.Instrument = value;
+                Model.InstrumentID = value?.ID;
                 this.RaisePropertyChanged();
             }
         }
 
         public Tag Tag
         {
-            get { return Job.Tag; }
+            get { return Model.Tag; }
             set
             {
-                Job.Tag = value;
-                Job.TagID = value?.ID;
+                Model.Tag = value;
+                Model.TagID = value?.ID;
                 this.RaisePropertyChanged();
             }
         }
 
         public bool UseTag
         {
-            get { return Job.UseTag; }
+            get { return Model.UseTag; }
             set
             {
-                Job.UseTag = value;
+                Model.UseTag = value;
                 this.RaisePropertyChanged();
             }
         }

@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataSourceStatus.cs" />
+    <Compile Include="EconomicReleaseUpdateJobSettings.cs" />
     <Compile Include="EntityModels\Country.cs" />
     <Compile Include="EntityModels\Currency.cs" />
     <Compile Include="EntityModels\DataUpdateJobSettings.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Enums\DataLocation.cs" />
     <Compile Include="Enums\DayType.cs" />
     <Compile Include="Enums\Importance.cs" />
+    <Compile Include="Enums\ReferenceDayType.cs" />
     <Compile Include="Enums\RelativeMonth.cs" />
     <Compile Include="Enums\WeekDayCount.cs" />
     <Compile Include="EventArguments\FoundFrontContractEventArgs.cs" />
