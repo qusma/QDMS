@@ -35,8 +35,25 @@ namespace QDMSServer.ViewModels
         public TagViewModel SelectedTag
         {
             get { return _selectedTag; }
-            set { this.RaiseAndSetIfChanged(ref _selectedTag, value); }
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedTag, value);
+
+                //update the SelectedTagHasErrors subscription
+                _selectedTagHasErrorsSubscription?.Dispose();
+                if (_selectedTag == null) return;
+                _selectedTagHasErrorsSubscription = _selectedTag
+                    .WhenAnyValue(x => x.HasErrors)
+                    .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTagHasErrors)));
+            }
         }
+
+        IDisposable _selectedTagHasErrorsSubscription;
+
+        /// <summary>
+        /// Conveniently passes through HasErrors for the selected tag
+        /// </summary>
+        public bool SelectedTagHasErrors => SelectedTag?.HasErrors ?? false;
 
         public TagsViewModel(QDMSClient.QDMSClient client, IDialogCoordinator dialogCoordinator)
         {
@@ -61,12 +78,16 @@ namespace QDMSServer.ViewModels
             });
 
             //Add new tag
+            var addCanExecute = NewTag
+                .WhenAnyValue(x => x.Name)
+                .Select(newName => !string.IsNullOrEmpty(newName));
             Add = ReactiveCommand.CreateFromTask(async _ =>
             {
                 var tag = await client.AddTag(NewTag.Model).ConfigureAwait(true);
                 NewTag.Name = "";
                 return tag;
-            });
+            },
+            addCanExecute);
 
             Add.Subscribe(async result =>
             {
@@ -86,8 +107,6 @@ namespace QDMSServer.ViewModels
             //Delete Tag
             Delete = ReactiveCommand.CreateFromTask(async _ =>
             {
-                if (SelectedTag == null) return null;
-
                 if (SelectedTag.ConfirmDelete != true)
                 {
                     SelectedTag.ConfirmDelete = true;
@@ -95,28 +114,26 @@ namespace QDMSServer.ViewModels
                 }
 
                 return await client.DeleteTag(SelectedTag?.Model).ConfigureAwait(true);
-            });
+            },
+            this.WhenAnyValue(x => x.SelectedTag).Select(x => x != null));
+
             Delete.Subscribe(async result =>
             {
                 if (result == null) return;
-                if (!result.WasSuccessful)
-                {
-                    await _dialogCoordinator.ShowMessageAsync(this, "Error", string.Join("\n", result.Errors)).ConfigureAwait(true);
-                    return;
-                }
+                if (await result.DisplayErrors(this, _dialogCoordinator)) return;
 
                 Tags.Remove(Tags.FirstOrDefault(x => x.Model.ID == result.Result.ID));
             });
 
             //Update Tag
-            Save = ReactiveCommand.CreateFromTask(async _ => await client.UpdateTag(SelectedTag?.Model).ConfigureAwait(true));
-            Save.Subscribe(async result =>
-            {
-                if (!result.WasSuccessful)
-                {
-                    await _dialogCoordinator.ShowMessageAsync(this, "Error", string.Join("\n", result.Errors)).ConfigureAwait(true);
-                }
-            });
+            var saveCanExecute = this
+                .WhenAnyValue(x => x.SelectedTag, x => x.SelectedTagHasErrors, (tag, hasError) => new { tag, hasError })
+                .Select(x => x.tag != null && x.hasError == false);
+
+            Save = ReactiveCommand.CreateFromTask(
+                async _ => await client.UpdateTag(SelectedTag?.Model).ConfigureAwait(true),
+                saveCanExecute);
+            Save.Subscribe(async result => await result.DisplayErrors(this, _dialogCoordinator));
         }
 
         public ReactiveCommand<Unit, ApiResponse<List<Tag>>> LoadTags { get; set; }
