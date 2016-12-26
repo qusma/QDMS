@@ -754,7 +754,7 @@ namespace QDMSServer
             }
         }
 
-        static private void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
+        private static void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
             where T : EventArgs
         {
             EventHandler<T> handler = @event;
@@ -936,14 +936,11 @@ namespace QDMSServer
             string tradingClass = request.Instrument.TradingClass;
 
             //we got the month we want! find the contract
-            Expression<Func<Instrument, bool>> searchFunc =
-                x =>
-                    x.Expiration.HasValue &&
-                    x.Expiration.Value.Month == selectedDate.Month &&
-                    x.Expiration.Value.Year == selectedDate.Year &&
-                    x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol &&
-                    (string.IsNullOrEmpty(tradingClass) || x.TradingClass == tradingClass);
-            Instrument contract = _instrumentRepo.FindInstruments(searchFunc).Result.FirstOrDefault();
+            Instrument contract = _instrumentRepo.FindInstruments(x => x.Expiration.HasValue &&
+                   x.Expiration.Value.Month == selectedDate.Month &&
+                   x.Expiration.Value.Year == selectedDate.Year &&
+                   x.UnderlyingSymbol == cf.UnderlyingSymbol.Symbol &&
+                   (string.IsNullOrEmpty(tradingClass) || x.TradingClass == tradingClass)).Result.FirstOrDefault();
 
             var timer = new Timer(50) { AutoReset = false };
             timer.Elapsed += (sender, e) =>
