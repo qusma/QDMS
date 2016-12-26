@@ -176,5 +176,26 @@ namespace QDMS
         /// Update an existing tag with new values
         /// </summary>
         Task<ApiResponse<Tag>> UpdateTag(Tag tag);
+
+        /// <summary>
+        /// <summary>
+        /// Get all underlying symbols
+        /// </summary>
+        Task<ApiResponse<List<UnderlyingSymbol>>> GetUnderlyingSymbols();
+
+        /// <summary>
+        /// Add a new underlying symbol
+        /// </summary>
+        Task<ApiResponse<UnderlyingSymbol>> AddUnderlyingSymbol(UnderlyingSymbol symbol);
+
+        /// <summary>
+        /// Update an existing underlying symbol
+        /// </summary>
+        Task<ApiResponse<UnderlyingSymbol>> UpdateUnderlyingSymbol(UnderlyingSymbol symbol);
+
+        /// <summary>
+        /// Delete an underlying symbol
+        /// </summary>
+        Task<ApiResponse<UnderlyingSymbol>> DeleteUnderlyingSymbol(UnderlyingSymbol symbol);
     }
 }

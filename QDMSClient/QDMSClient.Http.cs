@@ -196,5 +196,33 @@ namespace QDMSClient
             await _apiClient.DeleteAsync<SessionTemplate>($"/sessiontemplates/{sessiontemplate?.ID}").ConfigureAwait(false);
 
         #endregion sessiontemplates
+
+        #region underlyingsymbols
+
+        /// <summary>
+        /// Get all underlying symbols
+        /// </summary>
+        public async Task<ApiResponse<List<UnderlyingSymbol>>> GetUnderlyingSymbols() =>
+            await _apiClient.GetAsync<List<UnderlyingSymbol>>("/underlyingsymbols").ConfigureAwait(false);
+
+        /// <summary>
+        /// Add a new underlying symbol
+        /// </summary>
+        public async Task<ApiResponse<UnderlyingSymbol>> AddUnderlyingSymbol(UnderlyingSymbol symbol) =>
+            await _apiClient.PostAsync<UnderlyingSymbol>("/underlyingsymbols", symbol).ConfigureAwait(false);
+
+        /// <summary>
+        /// Update an existing underlying symbol
+        /// </summary>
+        public async Task<ApiResponse<UnderlyingSymbol>> UpdateUnderlyingSymbol(UnderlyingSymbol symbol) =>
+            await _apiClient.PutAsync<UnderlyingSymbol>("/underlyingsymbols", symbol).ConfigureAwait(false);
+
+        /// <summary>
+        /// Delete an underlying symbol
+        /// </summary>
+        public async Task<ApiResponse<UnderlyingSymbol>> DeleteUnderlyingSymbol(UnderlyingSymbol symbol) =>
+            await _apiClient.DeleteAsync<UnderlyingSymbol>($"/underlyingsymbols/{symbol?.ID}").ConfigureAwait(false);
+
+        #endregion underlyingsymbols
     }
 }

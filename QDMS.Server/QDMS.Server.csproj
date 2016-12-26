@@ -148,6 +148,7 @@
     <Compile Include="NancyModules\DatasourceModule.cs" />
     <Compile Include="NancyModules\EconomicReleasesModule.cs" />
     <Compile Include="NancyModules\ExchangeModule.cs" />
+    <Compile Include="NancyModules\UnderlyingSymbolModule.cs" />
     <Compile Include="Nancy\ErrorResponse.cs" />
     <Compile Include="Validation\ExchangeValidator.cs" />
     <Compile Include="NancyModules\InstrumentModule.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Servers\RealTimeDataServer.cs" />
+    <Compile Include="Validation\UnderlyingSymbolValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EntityData\EntityData.csproj">
