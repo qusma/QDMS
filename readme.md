@@ -30,18 +30,18 @@ Features
 Supported Data Sources
 ----------------------
 
-| Data Source                           | Historical Data supported | Real Time Data supported | Verified and Tested |
-|-------------------------------------- | ------------------------- | ------------------------ | ------------------- |
-| Interactive Brokers                   | :white_check_mark:    |                    | :grey_question: |
-| Bloomberg                             | :white_check_mark:    | :white_check_mark: | :grey_question: |
-| Quandl                                | :white_check_mark:    |                    | :grey_question: |
-| FRED (Federal Reserve Economic Data)  | :white_check_mark:    |                    | :grey_question: |
-| Yahoo                                 | :white_check_mark:    |                    | :grey_question: |
-| BarChart                              | :white_check_mark:    |                    | :grey_question: |
-| [OpenECry](http://futuresonline.com/) | :white_check_mark:    | :white_check_mark: | :grey_question: |
-| [ForexFeed](http://forexfeed.net/)    | (not implemented yet) | :white_check_mark: | :white_check_mark: |
+| Data Source                           | Historical Data supported | Real Time Data supported |
+|-------------------------------------- | ------------------------- | ------------------------ |
+| Interactive Brokers                   | :white_check_mark:    |                    |
+| Bloomberg                             | :white_check_mark:    | :white_check_mark: |
+| Quandl                                | :white_check_mark:    |                    |
+| FRED (Federal Reserve Economic Data)  | :white_check_mark:    |                    |
+| Yahoo                                 | :white_check_mark:    |                    |
+| BarChart                              | :white_check_mark:    |                    |
+| [OpenECry](http://futuresonline.com/) | :white_check_mark:    | :white_check_mark: |
+| [ForexFeed](http://forexfeed.net/)    | (not implemented)     | :white_check_mark: |
 
-Feel free to add a new data service that you're missing. Please make a pull request when you're finish.
+When you miss a data service, feel free to ask...
 
 Requirements:
 ------------------------
