@@ -77,6 +77,7 @@
     <Compile Include="EntityModels\Country.cs" />
     <Compile Include="EntityModels\Currency.cs" />
     <Compile Include="EntityModels\DataUpdateJobSettings.cs" />
+    <Compile Include="EntityModels\Dividend.cs" />
     <Compile Include="EntityModels\EconomicRelease.cs" />
     <Compile Include="EntityModels\ExpirationRule.cs" />
     <Compile Include="EntityModels\Tick.cs" />
@@ -96,12 +97,14 @@
     <Compile Include="ExtensionMethods\OHLCBarExtensions.cs" />
     <Compile Include="ExtensionMethods\StatsExtensions.cs" />
     <Compile Include="Interfaces\IContinuousFuturesBroker.cs" />
+    <Compile Include="Interfaces\IDividendDataSource.cs" />
     <Compile Include="Interfaces\IEntity.cs" />
     <Compile Include="Interfaces\IJobSettings.cs" />
     <Compile Include="Interfaces\IEconomicReleaseSource.cs" />
     <Compile Include="Interfaces\ISession.cs" />
     <Compile Include="MessageType.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
+    <Compile Include="Requests\DividendRequest.cs" />
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
     <Compile Include="Requests\PredicateSearchRequest.cs" />
     <Compile Include="Utils\CountryCodeHelper.cs" />

@@ -97,6 +97,10 @@
     <Compile Include="Migrations\201610231531254_EconomicReleases.Designer.cs">
       <DependentUpon>201610231531254_EconomicReleases.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201701291354200_Dividends.cs" />
+    <Compile Include="Migrations\201701291354200_Dividends.Designer.cs">
+      <DependentUpon>201701291354200_Dividends.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
     <Compile Include="MyDBContext.cs" />
@@ -144,6 +148,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201610231531254_EconomicReleases.resx">
       <DependentUpon>201610231531254_EconomicReleases.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701291354200_Dividends.resx">
+      <DependentUpon>201701291354200_Dividends.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

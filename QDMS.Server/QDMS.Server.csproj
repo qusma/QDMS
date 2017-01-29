@@ -139,6 +139,7 @@
   <ItemGroup>
     <Compile Include="ApiUser.cs" />
     <Compile Include="Brokers\ContinuousFuturesBroker.cs" />
+    <Compile Include="Brokers\DividendsBroker.cs" />
     <Compile Include="Brokers\EconomicReleaseBroker.cs" />
     <Compile Include="Brokers\HistoricalDataBroker.cs" />
     <Compile Include="Brokers\RealTimeDataBroker.cs" />

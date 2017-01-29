@@ -42,6 +42,7 @@ namespace EntityData
         public DbSet<EconomicRelease> EconomicReleases { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<Currency> Currencies { get; set; }
+        public DbSet<Dividend> Dividends { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -78,6 +79,8 @@ namespace EntityData
 
             modelBuilder.Entity<TemplateSession>().Property(x => x.OpeningTime).HasPrecision(0);
             modelBuilder.Entity<TemplateSession>().Property(x => x.ClosingTime).HasPrecision(0);
+
+            modelBuilder.Entity<Dividend>().Property(x => x.Amount).HasPrecision(16,8);
 
             // Instrument
 
@@ -185,6 +188,7 @@ namespace EntityData
         DbSet<EconomicRelease> EconomicReleases { get; set; }
         DbSet<Country> Countries { get; set; }
         DbSet<Currency> Currencies { get; set; }
+        DbSet<Dividend> Dividends { get; set; }
 
         DbChangeTracker ChangeTracker { get; }
         DbContextConfiguration Configuration { get; }
