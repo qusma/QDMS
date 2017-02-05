@@ -552,6 +552,10 @@
       <Project>{3c2b9ce3-9054-46c4-902b-ae500a61b613}</Project>
       <Name>QDMS.Server.DataSources.FXStreet</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Nasdaq\QDMS.Server.DataSources.Nasdaq.fsproj">
+      <Project>{4c4ef2b7-0ddc-42fc-902f-29c4f8161c12}</Project>
+      <Name>QDMS.Server.DataSources.Nasdaq</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
       <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
       <Name>QDMS.Server.DataSources.Quandl</Name>

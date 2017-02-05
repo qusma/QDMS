@@ -197,6 +197,10 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Nasdaq\QDMS.Server.DataSources.Nasdaq.fsproj">
+      <Project>{4c4ef2b7-0ddc-42fc-902f-29c4f8161c12}</Project>
+      <Name>QDMS.Server.DataSources.Nasdaq</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMSClient\QDMSClient.csproj">
       <Project>{28833ee8-5a50-4772-9071-3d16fbf21134}</Project>
       <Name>QDMSClient</Name>

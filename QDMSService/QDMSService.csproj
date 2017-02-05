@@ -123,6 +123,10 @@
       <Project>{3C2B9CE3-9054-46C4-902B-AE500A61B613}</Project>
       <Name>QDMS.Server.DataSources.FXStreet</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Nasdaq\QDMS.Server.DataSources.Nasdaq.fsproj">
+      <Project>{4C4EF2B7-0DDC-42FC-902F-29C4F8161C12}</Project>
+      <Name>QDMS.Server.DataSources.Nasdaq</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj">
       <Project>{0197ea02-a2ad-475f-9a73-7a0bcfc18891}</Project>
       <Name>QDMS.Server.DataStorage.MySql</Name>
