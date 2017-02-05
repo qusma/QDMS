@@ -155,6 +155,7 @@
     <Compile Include="Jobs\EconomicReleaseUpdateJob.cs" />
     <Compile Include="LocalStorageType.cs" />
     <Compile Include="NancyModules\DatasourceModule.cs" />
+    <Compile Include="NancyModules\DividendsModule.cs" />
     <Compile Include="NancyModules\EconomicReleasesModule.cs" />
     <Compile Include="NancyModules\ExchangeModule.cs" />
     <Compile Include="NancyModules\JobsModule.cs" />

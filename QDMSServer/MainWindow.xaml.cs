@@ -33,6 +33,7 @@ using QDMSServer.Properties;
 using Nancy.Hosting.Self;
 using Nancy.Authentication.Stateless;
 using QDMS.Server;
+using QDMS.Server.DataSources.Nasdaq;
 using QDMS.Server.Nancy;
 using QDMS.Server.Repositories;
 
@@ -54,6 +55,7 @@ namespace QDMSServer
         private readonly QDMSClient.QDMSClient _client;
 
         private ProgressBar _progressBar;
+        private IDividendsBroker _dividendBroker;
 
         public ObservableCollection<Instrument> Instruments { get; set; }
 
@@ -198,6 +200,9 @@ namespace QDMSServer
             EconomicReleaseBroker = new EconomicReleaseBroker("FXStreet",
                 new[] { new fx.FXStreet(countryCodeHelper) });
 
+            _dividendBroker = new DividendsBroker("Nasdaq",
+                new[] { new NasdaqDs.Nasdaq() });
+
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
             _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, HistoricalBroker);
@@ -252,6 +257,7 @@ namespace QDMSServer
                 EconomicReleaseBroker,
                 HistoricalBroker,
                 RealTimeBroker,
+                _dividendBroker,
                 _scheduler,
                 Properties.Settings.Default.apiKey);
             var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);

@@ -14,11 +14,11 @@ using Nancy.Serialization.JsonNet;
 using Nancy.TinyIoc;
 using NLog;
 using QDMS.Server.Brokers;
+using QDMS.Server.Repositories;
 using QDMSServer;
+using Quartz;
 using System.Data.SqlClient;
 using System.Linq;
-using QDMS.Server.Repositories;
-using Quartz;
 
 namespace QDMS.Server.Nancy
 {
@@ -28,16 +28,25 @@ namespace QDMS.Server.Nancy
         private readonly IEconomicReleaseBroker _erb;
         private readonly IHistoricalDataBroker _hdb;
         private readonly IRealTimeDataBroker _rtdb;
+        private readonly IDividendsBroker _divb;
         private readonly IScheduler _scheduler;
         private readonly string _apiKey;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public CustomBootstrapper(IDataStorage storage, IEconomicReleaseBroker erb, IHistoricalDataBroker hdb, IRealTimeDataBroker rtdb, IScheduler scheduler, string apiKey)
+        public CustomBootstrapper(
+            IDataStorage storage,
+            IEconomicReleaseBroker erb,
+            IHistoricalDataBroker hdb,
+            IRealTimeDataBroker rtdb,
+            IDividendsBroker divb,
+            IScheduler scheduler,
+            string apiKey)
         {
             _storage = storage;
             _erb = erb;
             _hdb = hdb;
             _rtdb = rtdb;
+            _divb = divb;
             _scheduler = scheduler;
             _apiKey = apiKey;
         }
@@ -55,6 +64,7 @@ namespace QDMS.Server.Nancy
             container.Register<IEconomicReleaseBroker>(_erb);
             container.Register<IHistoricalDataBroker>(_hdb);
             container.Register<IRealTimeDataBroker>(_rtdb);
+            container.Register<IDividendsBroker>(_divb);
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)

@@ -9,6 +9,7 @@ using QDMSServer;
 using System;
 using System.Linq;
 using QDMS.Server;
+using QDMS.Server.DataSources.Nasdaq;
 using Quartz;
 using Quartz.Impl;
 
@@ -28,6 +29,7 @@ namespace QDMSService
         private NancyHost _httpServer;
 
         private IScheduler _scheduler;
+        private IDividendsBroker _dividendBroker;
 
         public DataServer(Config.DataService config)
         {
@@ -94,6 +96,9 @@ namespace QDMSService
             _economicReleaseBroker = new EconomicReleaseBroker("FXStreet",
                 new[] { new fx.FXStreet(new CountryCodeHelper(entityContext.Countries.ToList())) });
 
+            _dividendBroker = new DividendsBroker("Nasdaq",
+                new[] { new NasdaqDs.Nasdaq() });
+
             // create servers
             _historicalDataServer = new HistoricalDataServer(_config.HistoricalDataService.Port, _historicalDataBroker);
             _realTimeDataServer = new RealTimeDataServer(_config.RealtimeDataService.PublisherPort, _config.RealtimeDataService.RequestPort, _realTimeDataBroker);
@@ -107,6 +112,7 @@ namespace QDMSService
                 _economicReleaseBroker,
                 _historicalDataBroker,
                 _realTimeDataBroker,
+                _dividendBroker,
                 _scheduler,
                _config.WebService.ApiKey);
             var uri = new Uri((_config.WebService.UseSsl ? "https" : "http") + "://localhost:" + _config.WebService.Port);
