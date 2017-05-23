@@ -192,6 +192,7 @@ namespace QDMSServer
                     //new Forexite(),
                     new IB(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, Properties.Settings.Default.histClientIBID),
                     new Quandl(Properties.Settings.Default.quandlAuthCode),
+                    new QuandlEODStocks(Properties.Settings.Default.quandlAuthCode),
                     new BarChart(Properties.Settings.Default.barChartApiKey)
                 });
 
@@ -246,7 +247,8 @@ namespace QDMSServer
                     toEmail: Properties.Settings.Default.updateJobEmail,
                     fromEmail: Properties.Settings.Default.updateJobEmailSender),
                 localStorage,
-                EconomicReleaseBroker);
+                EconomicReleaseBroker,
+                _dividendBroker);
             _scheduler.Start();
 
             //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version

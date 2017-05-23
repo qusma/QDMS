@@ -20,7 +20,7 @@ namespace QDMS
     /// Represents a futures contract specification, including the root symbol and expiration date rules
     /// </summary>
     [ProtoContract]
-    public class UnderlyingSymbol : ICloneable, IEntity
+    public class UnderlyingSymbol : IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
