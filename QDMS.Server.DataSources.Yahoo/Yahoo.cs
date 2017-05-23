@@ -11,12 +11,16 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
+using QDMS.Utils;
 
 #pragma warning disable 67
 namespace QDMSServer.DataSources
@@ -28,6 +32,10 @@ namespace QDMSServer.DataSources
         private Thread _downloaderThread;
         private ConcurrentQueue<HistoricalDataRequest> _queuedRequests;
         private bool _runDownloader;
+        private HttpClient _client;
+        private HttpClientHandler _handler;
+        private string _crumb;
+        private object _lockObj = new object();
 
         public Yahoo()
         {
@@ -36,14 +44,14 @@ namespace QDMSServer.DataSources
             _downloaderThread = new Thread(DownloaderLoop);
         }
 
-        private void DownloaderLoop()
+        private async void DownloaderLoop()
         {
             HistoricalDataRequest req;
             while(_runDownloader)
             {
                 while(_queuedRequests.TryDequeue(out req))
                 {
-                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(req, GetData(req)));
+                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(req, await GetData(req)));
                 }
                 Thread.Sleep(15);
             }
@@ -52,10 +60,44 @@ namespace QDMSServer.DataSources
         /// <summary>
         /// Connect to the data source.
         /// </summary>
-        public void Connect()
+        public async void Connect()
         {
+            //make sure only one connection attempt at a time
+            if (!Monitor.TryEnter(_lockObj)) return;
+
+            if (Connected) return;
+
+            var cookieContainer = new CookieContainer();
+            _handler = new HttpClientHandler { CookieContainer = cookieContainer };
+            _client = new HttpClient(_handler);
+
+            //Get cookie and crumb...they can be used across all requests
+
+            string url = $"https://uk.finance.yahoo.com/quote/AAPL/history";
+            var response = await _client.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.Error("Could not get crumb/cookie");
+                Monitor.Exit(_lockObj);
+                return;
+            }
+            string cookie = response.Headers.FirstOrDefault(x => x.Key == "Set-Cookie").Value.First().Split(';')[0];
+            cookieContainer.Add(new Uri("https://yahoo.com"), new Cookie("Cookie", cookie));
+
+            //get the crumb
+            string html = await response.Content.ReadAsStringAsync();
+            var match = Regex.Match(html, "\"CrumbStore\":{\"crumb\":\"(?<crumb>[^\"]+)\"}");
+            if (!match.Success)
+            {
+                _logger.Error("Failed to extract crumb");
+                Monitor.Exit(_lockObj);
+                return;
+            }
+            _crumb = Regex.Unescape(match.Groups[1].Value);
+
             _runDownloader = true;
             _downloaderThread.Start();
+            Monitor.Exit(_lockObj);
         }
 
         /// <summary>
@@ -65,12 +107,14 @@ namespace QDMSServer.DataSources
         {
             _runDownloader = false;
             _downloaderThread.Join();
+            _client?.Dispose();
+            _client = null;
         }
 
         /// <summary>
         /// Whether the connection to the data source is up or not.
         /// </summary>
-        public bool Connected { get { return _runDownloader; } }
+        public bool Connected => _runDownloader;
 
         /// <summary>
         /// The name of the data source.
@@ -83,7 +127,7 @@ namespace QDMSServer.DataSources
         }
 
         //Downloads data from yahoo. First dividends and splits, then actual price data
-        private List<OHLCBar> GetData(HistoricalDataRequest request)
+        private async Task<List<OHLCBar>> GetData(HistoricalDataRequest request)
         {
             var barSize = request.Frequency;
             var startDate = request.StartingDate;
@@ -96,148 +140,162 @@ namespace QDMSServer.DataSources
 
             var data = new List<OHLCBar>();
 
-            //start by downloading splits and dividends
-            using (WebClient webClient = new WebClient())
+            
+            //Splits
+            string splitURL = string.Format(@"https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=split&crumb={3}",
+                symbol,
+                ToTimestamp(startDate),
+                ToTimestamp(endDate),
+                _crumb);
+
+            var 
+
+            response = await _client.GetAsync(splitURL);
+
+            if (!response.IsSuccessStatusCode)
             {
-                string splitURL = string.Format("http://ichart.finance.yahoo.com/x?s={0}&a={1}&b={2}&c={3}&d={4}&e={5}&f={6}&g=v&y=0&z=30000",
-                    symbol,
-                    startDate.Month - 1,
-                    startDate.Day,
-                    startDate.Year,
-                    endDate.Month - 1,
-                    endDate.Day,
-                    endDate.Year);
-                string contents;
+                string errorMessage = string.Format("Error downloading split data from Yahoo, symbol {0}. Status code: {1} Url: ({2})",
+                    instrument.Symbol,
+                    response.StatusCode,
+                    splitURL);
+                _logger.Log(LogLevel.Error, errorMessage);
 
+                RaiseEvent(Error, this, new ErrorArgs(0, errorMessage));
+
+                return new List<OHLCBar>();
+            }
+
+            string contents = await response.Content.ReadAsStringAsync();
+
+            //stick dividends and splits into their respective dictionaries to be used later
+            //the key is the date in yyyy-MM-dd format
+
+            //Split format:
+            //Date,Stock Splits
+            //2014-06-09,7/1
+            var splits = new Dictionary<string, decimal>();
+            string[] rows = contents.Split("\n".ToCharArray());
+            for (int j = 1; j < rows.Length - 1; j++) //start at 1 because the first line's a header
+            {
+                string[] items = rows[j].Split(",".ToCharArray());
+                decimal splitNumerator, splitDenominator;
+                string date = items[0];
+
+                string[] splitFactors = items[1].Trim().Split("/".ToCharArray());
+
+                if (decimal.TryParse(splitFactors[0], out splitNumerator) && decimal.TryParse(splitFactors[1], out splitDenominator))
+                    splits.Add(date, splitNumerator / splitDenominator);
+            }
+
+
+            //Dividends
+            string divURL = string.Format(@"https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=div&crumb={3}",
+                symbol,
+                ToTimestamp(startDate),
+                ToTimestamp(endDate),
+                _crumb);
+
+            response = await _client.GetAsync(divURL);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = string.Format("Error downloading dividend data from Yahoo, symbol {0}. Status code: {1} Url: ({2})",
+                    instrument.Symbol,
+                    response.StatusCode,
+                    divURL);
+                _logger.Log(LogLevel.Error, errorMessage);
+
+                RaiseEvent(Error, this, new ErrorArgs(0, errorMessage));
+
+                return new List<OHLCBar>();
+            }
+
+            //Dividend Format
+            //Date,Dividends
+            //2014-11-06,0.47
+            contents = await response.Content.ReadAsStringAsync();
+            rows = contents.Split("\n".ToCharArray());
+            var dividends = new Dictionary<string, decimal>();
+            for (int j = 1; j < rows.Length - 1; j++) //start at 1 because the first line's a header
+            {
+                decimal dividend;
+                string[] items = rows[j].Split(",".ToCharArray());
+                string date = items[0];
+
+                if (decimal.TryParse(items[1], out dividend))
+                    dividends.Add(date, dividend);
+            }
+
+
+            //now download the actual price data
+            //csv file comes in the following format:
+            //Date,Open,High,Low,Close,Adj Close,Volume
+            //2014-06-02,90.565712,90.690002,88.928574,628.650024,89.807144,92337700
+            string dataURL = string.Format(@"https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=history&crumb={3}",
+                symbol,
+                ToTimestamp(startDate),
+                ToTimestamp(endDate),
+                _crumb);
+
+            response = await _client.GetAsync(dataURL);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = string.Format("Error downloading dividend data from Yahoo, symbol {0}. Status code: {1} Url: ({2})",
+                    instrument.Symbol,
+                    response.StatusCode,
+                    dataURL);
+                _logger.Log(LogLevel.Error, errorMessage);
+
+                RaiseEvent(Error, this, new ErrorArgs(0, errorMessage));
+
+                return new List<OHLCBar>();
+            }
+
+            contents = await response.Content.ReadAsStringAsync();
+
+            //parse the downloaded price data
+            rows = contents.Split("\n".ToCharArray());
+            for (int j = 1; j < rows.Count() - 1; j++) //start at 1 because the first line's a header
+            {
+                string[] items = rows[j].Split(",".ToCharArray());
+                var bar = new OHLCBar();
+
+                if (dividends.ContainsKey(items[0]))
+                    bar.Dividend = dividends[items[0]];
+
+                if (splits.ContainsKey(items[0]))
+                    bar.Split = splits[items[0]];
+
+
+                //The OHL values are actually split adjusted, we want to turn them back
                 try
                 {
-                    contents = webClient.DownloadString(splitURL);
-                }
-                catch (WebException ex)
-                {
-                    _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Yahoo, symbol {0}: {1} ({2})",
-                        instrument.Symbol,
-                        ex.Message,
-                        splitURL));
-
-                    if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
-                    {
-                        var resp = (HttpWebResponse)ex.Response;
-                        RaiseEvent(Error, this, new ErrorArgs((int)resp.StatusCode, ex.Message));
-                    }
-                    else
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(0, ex.Message));
-                    }
-                    return new List<OHLCBar>();
-                }
-
-                //stick dividends and splits into their respective dictionaries to be used later
-                //the key is the date in yyyy-MM-dd format
-                
-                //CSV file comes in the following format:
-                //DIVIDEND, 20031224,0.014000
-                //SPLIT, 20000320,2:1
-                var dividends = new Dictionary<string, decimal>();
-                var splits = new Dictionary<string, decimal>();
-                string[] rows = contents.Split("\n".ToCharArray());
-                for (int j = 1; j < rows.Count() - 1; j++) //start at 1 because the first line's a header
-                {
-                    string[] items = rows[j].Split(",".ToCharArray());
-
-
-                    if (items[0] == "DIVIDEND")
-                    {
-                        decimal dividend;
-                        string unformattedDate = items[1].Trim();
-                        string date = string.Format("{0}-{1}-{2}", unformattedDate.Substring(0, 4), unformattedDate.Substring(4, 2), unformattedDate.Substring(6, 2));
-
-                        if (decimal.TryParse(items[2], out dividend))
-                            dividends.Add(date, dividend);
-                    }
-                    else if (items[0] == "SPLIT")
-                    {
-                        decimal splitNumerator, splitDenominator;
-                        string unformattedDate = items[1].Trim();
-                        string date = string.Format("{0}-{1}-{2}", unformattedDate.Substring(0, 4), unformattedDate.Substring(4, 2), unformattedDate.Substring(6, 2));
-
-                        string[] splitFactors = items[2].Trim().Split(":".ToCharArray());
-
-                        if (decimal.TryParse(splitFactors[0], out splitNumerator) && decimal.TryParse(splitFactors[1], out splitDenominator))
-                            splits.Add(date, splitNumerator/splitDenominator);
-                    }
-                }
-
-                //now download the actual price data
-                //csv file comes in the following format:
-                //Date,Open,High,Low,Close,Volume,Adj Close
-                //2013-10-25,175.51,176.00,175.17,175.95,93505700,175.95
-                string dataURL = string.Format(@"http://ichart.finance.yahoo.com/table.csv?s={0}&a={1}&b={2}&c={3}&d={4}&e={5}&f={6}&g=d&ignore=.csv",
-                    symbol,
-                    startDate.Month - 1,
-                    startDate.Day,
-                    startDate.Year,
-                    endDate.Month - 1,
-                    endDate.Day,
-                    endDate.Year);
-
-                try
-                {
-                    contents = webClient.DownloadString(dataURL);
-                }
-                catch (WebException ex)
-                {
-                    _logger.Log(LogLevel.Error, string.Format("Error downloading price data from Yahoo, symbol {0}: {1} ({2})",
-                        instrument.Symbol,
-                        ex.Message,
-                        dataURL));
-
-                    if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
-                    {
-                        var resp = (HttpWebResponse)ex.Response;
-                        RaiseEvent(Error, this, new ErrorArgs((int)resp.StatusCode, ex.Message));
-                    }
-                    else
-                    {
-                        RaiseEvent(Error, this, new ErrorArgs(0, ex.Message));
-                    }
-                    return new List<OHLCBar>();
-                }
-
-                //parse the downloaded price data
-                rows = contents.Split("\n".ToCharArray());
-                for (int j = 1; j < rows.Count() - 1; j++) //start at 1 because the first line's a header
-                {
-                    string[] items = rows[j].Split(",".ToCharArray());
-                    var bar = new OHLCBar();
-
-                    if (dividends.ContainsKey(items[0]))
-                        bar.Dividend = dividends[items[0]];
-
-                    if (splits.ContainsKey(items[0]))
-                        bar.Split = splits[items[0]];
-
                     var dt = DateTime.ParseExact(items[0], "yyyy-MM-dd", CultureInfo.InvariantCulture);
                     bar.DT = dt;
-                    bar.Open = decimal.Parse(items[1]);
-                    bar.High = decimal.Parse(items[2]);
-                    bar.Low = decimal.Parse(items[3]);
+                    decimal adjRatio = decimal.Parse(items[4]) / decimal.Parse(items[5]);
+                    bar.Open = decimal.Parse(items[1]) * adjRatio;
+                    bar.High = decimal.Parse(items[2]) * adjRatio;
+                    bar.Low = decimal.Parse(items[3]) * adjRatio;
                     bar.Close = decimal.Parse(items[4]);
-                    bar.Volume = long.Parse(items[5]);
-                    bar.AdjClose = decimal.Parse(items[6]);
-                    decimal adjFactor = bar.AdjClose.Value / bar.Close;
-                    bar.AdjOpen = bar.Open * adjFactor;
-                    bar.AdjHigh = bar.High * adjFactor;
-                    bar.AdjLow = bar.Low * adjFactor;
+                    bar.Volume = long.Parse(items[6]);
 
                     data.Add(bar);
                 }
+                catch
+                {
+                    _logger.Error("Failed to parse line: " + rows[j]);
+                }
             }
+
+            //Note that due to the latest change, the adjusted close value is incorrect (doesn't include divs)
+            //so we need to calc adj values ourselves
+            PriceAdjuster.AdjustData(ref data);
 
             _logger.Log(LogLevel.Info, string.Format("Downloaded {0} bars from Yahoo, symbol {1}.",
                 data.Count,
                 instrument.Symbol));
-            data.Reverse(); //data comes sorted newest first, so we need to inverse the order
+
             return data;
         }
 
@@ -248,12 +306,11 @@ namespace QDMSServer.DataSources
         ///<param name="sender"></param>
         ///<param name="e"></param>
         ///<typeparam name="T"></typeparam>
-        static private void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
+        private static void RaiseEvent<T>(EventHandler<T> @event, object sender, T e)
         where T : EventArgs
         {
             EventHandler<T> handler = @event;
-            if (handler == null) return;
-            handler(sender, e);
+            handler?.Invoke(sender, e);
         }
 
         public event EventHandler<ErrorArgs> Error;
@@ -265,7 +322,12 @@ namespace QDMSServer.DataSources
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private int ToTimestamp(DateTime dt)
+        {
+            return (int)(dt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         }
     }
 }
