@@ -399,7 +399,7 @@ namespace QDMS
 
             sessions = sessions.OrderBy(x => x.ClosingDay).ThenBy(x => x.ClosingTime).ToList();
             //first test last vs first, then in a row
-            if (sessions.First().Overlaps(sessions.Last()))
+            if (sessions.Count > 1 && sessions.First().Overlaps(sessions.Last()))
             {
                 errors.Add($"Sessions overlap: {sessions.First()} and {sessions.Last()}");
                 return false;
