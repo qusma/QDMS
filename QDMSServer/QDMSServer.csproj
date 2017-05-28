@@ -121,8 +121,8 @@
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FluentValidation, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7de548da2fbae0f0, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentValidation.7.0.2\lib\net45\FluentValidation.dll</HintPath>
+    <Reference Include="FluentValidation, Version=6.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentValidation.6.4.1\lib\Net45\FluentValidation.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Krs.Ats.IBNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -272,6 +272,7 @@
     <Compile Include="ColumnOptions.cs" />
     <Compile Include="DataGridExtensions.cs" />
     <Compile Include="DataStorageFactory.cs" />
+    <Compile Include="Interfaces\IClosableView.cs" />
     <Compile Include="Interfaces\IJobViewModel.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -300,6 +301,7 @@
     <Compile Include="Utils\Seed.cs" />
     <Compile Include="Utils\SqlServerBackup.cs" />
     <Compile Include="ValidationRules\TimeValidationRule.cs" />
+    <Compile Include="ValueConverters\BoolToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
     <Compile Include="ValueConverters\EnumBooleanConverter.cs" />
     <Compile Include="ValueConverters\ExchangeMultiValueConverter.cs" />

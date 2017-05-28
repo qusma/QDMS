@@ -11,7 +11,8 @@
     BorderBrush="Black"
     BorderThickness="1"
     Icon="Resources\appbar.box.layered.png"
-    
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    Dialog:DialogParticipation.Register="{Binding}"
                Closing="DXWindow_Closing" >
     <controls:MetroWindow.Resources>
         <local:LogItemToColorConverter x:Key="LogColorConverter" />
@@ -38,7 +39,7 @@
 
         <MenuItem Header="Set Session Template" x:Key="InstrumentSetSessionMenu" />
 
-        <ContextMenu x:Key="RowMenu">
+        <ContextMenu x:Key="RowMenu" DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=PlacementTarget.DataContext}">
             <MenuItem Header="Data Request..." Name="NewDataRequestBtn" Click="NewDataRequestBtn_OnClick"/>
             <StaticResource ResourceKey="UpdateFreqSubMenu" />
             <Separator />
@@ -46,11 +47,15 @@
             <StaticResource ResourceKey="InstrumentTagMenu" />
             <StaticResource ResourceKey="InstrumentSetSessionMenu" />
 
-            <MenuItem Header="Clone" Name="InstrumentContextCloneBtn" Click="InstrumentContextCloneBtn_ItemClick"/>
+            <MenuItem Header="Clone" Name="InstrumentContextCloneBtn"
+                      CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                      Command="{Binding Path=DataContext.CloneInstrument, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
             <MenuItem Header="Import Data" Name="ImportDataBtn" Click="ImportDataBtn_ItemClick"/>
             <MenuItem Header="Edit Data" Name="EditDataBtn" Click="EditDataBtn_ItemClick"/>
             <MenuItem Header="Clear Data" Name="ClearDataBtn" Click="ClearDataBtn_ItemClick"/>
-            <MenuItem Header="Delete" Name="DeleteInstrumentBtn" Click="DeleteInstrumentBtn_ItemClick"/>
+            <MenuItem Header="Delete" Name="DeleteInstrumentBtn" 
+                      CommandParameter="{Binding Path=SelectedItems, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                      Command="{Binding Path=DataContext.DeleteInstrument, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
         </ContextMenu>
 
         <Style x:Key="DataGridRowStyle" TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource MetroDataGridRow}">
@@ -93,7 +98,7 @@
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="Add Instrument">
-                    <MenuItem Header="Manual" x:Name="AddInstrumentManuallyBtn" Click="AddInstrumentManuallyBtn_ItemClick"/>
+                    <MenuItem Header="Manual" x:Name="AddInstrumentManuallyBtn" Command="{Binding AddInstrumentManually}"/>
                     <MenuItem Header="Interactive Brokers" x:Name="AddInstrumentIBBtn" Click="AddInstrumentIBBtn_ItemClick"/>
                     <MenuItem Header="Quandl" x:Name="AddInstrumentQuandlBtn" Click="AddInstrumentQuandlBtn_OnClick"/>
                     <MenuItem Header="FRED" x:Name="AddInstrumentFredBtn" Click="AddInstrumentFredBtn_OnClick"/>
@@ -125,9 +130,7 @@
                 <Grid Background="Transparent">
                     <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Instruments}" RowStyle="{StaticResource DataGridRowStyle}"
                               Name="InstrumentsGrid" IsReadOnly="True" Margin="10,0,10,0"
-                              
                               filterLibrary:DataGridExtensions.UseBackgroundWorkerForFiltering="True"
-                              
                               ColumnHeaderStyle="{StaticResource FilterStyle}"
                               >
 
@@ -187,7 +190,9 @@
                         <RowDefinition Height="300*"/>
                     </Grid.RowDefinitions>
 
-                    <DataGrid IsReadOnly="True" x:Name="ActiveStreamGrid" AutoGenerateColumns="False" Margin="10"  Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                    <DataGrid IsReadOnly="True" x:Name="ActiveStreamGrid" 
+                              ItemsSource="{Binding RealTimeBroker.ActiveStreams}"
+                              AutoGenerateColumns="False" Margin="10"  Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                     >
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Req. ID" Binding="{Binding Path=RequestID}" />

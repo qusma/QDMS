@@ -166,7 +166,7 @@ namespace QDMS
         /// <summary>
         /// Update an existing instrument with new values
         /// </summary>
-        Task<ApiResponse<Instrument>> UpdateExchange(Instrument instrument);
+        Task<ApiResponse<Instrument>> UpdateInstrument(Instrument instrument);
         /// <summary>
         /// Update an existing session template with new values
         /// </summary>
@@ -188,9 +188,14 @@ namespace QDMS
         Task<ApiResponse<List<DataUpdateJobSettings>>> GetaDataUpdateJobs();
 
         /// <summary>
+        /// Get all dividend update jobs
+        /// </summary>
+        Task<ApiResponse<List<DividendUpdateJobSettings>>> GetDividendUpdateJobs();
+
+        /// <summary>
         /// Add a new job
         /// </summary>
-        Task<ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings;
+        Task <ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings;
 
         /// <summary>
         /// Delete a job
@@ -216,5 +221,15 @@ namespace QDMS
         /// Delete an underlying symbol
         /// </summary>
         Task<ApiResponse<UnderlyingSymbol>> DeleteUnderlyingSymbol(UnderlyingSymbol symbol);
+
+        /// <summary>
+        /// Get dividends
+        /// </summary>
+        Task<ApiResponse<List<Dividend>>> GetDividends(DividendRequest req);
+
+        /// <summary>
+        /// Get all datasources for dividends
+        /// </summary>
+        Task<ApiResponse<List<string>>> GetDividendDataSources();
     }
 }

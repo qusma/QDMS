@@ -174,7 +174,7 @@ namespace QDMS
         public TimeZoneInfo GetTZInfo()
         {
             return TimeZoneInfo.FindSystemTimeZoneById(
-                Exchange == null || string.IsNullOrEmpty(Exchange.Timezone)
+                string.IsNullOrEmpty(Exchange?.Timezone)
                     ? "UTC" 
                     : Exchange.Timezone);
         }

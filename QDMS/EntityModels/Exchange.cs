@@ -14,7 +14,7 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    public class Exchange : ICloneable, IEntity
+    public class Exchange : ICloneable, IEntity, IEquatable<Exchange>
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -60,6 +60,33 @@ namespace QDMS
                 Name,
                 LongName,
                 Timezone);
+        }
+
+        public bool Equals(Exchange other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return ID == other.ID && string.Equals(Name, other.Name) && string.Equals(LongName, other.LongName) && string.Equals(Timezone, other.Timezone);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Exchange) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = ID;
+                hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Timezone != null ? Timezone.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (LongName != null ? LongName.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 }

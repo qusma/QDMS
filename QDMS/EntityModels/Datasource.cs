@@ -12,7 +12,7 @@ using ProtoBuf;
 namespace QDMS
 {
     [ProtoContract]
-    public class Datasource : IEntity
+    public class Datasource : IEntity, IEquatable<Datasource>
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -26,6 +26,29 @@ namespace QDMS
         public override string ToString()
         {
             return Name;
+        }
+
+        public bool Equals(Datasource other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return ID == other.ID && string.Equals(Name, other.Name);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Datasource) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (ID * 397) ^ (Name != null ? Name.GetHashCode() : 0);
+            }
         }
     }
 }

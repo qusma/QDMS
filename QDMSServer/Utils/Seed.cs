@@ -1573,6 +1573,7 @@ namespace QDMSServer
             context.SaveChanges();
 
             #region exchangesessions
+            //TODO Add seed data on exchange sessions
             #endregion
 
             #region instruments

@@ -130,7 +130,7 @@ namespace QDMSClient
         /// <summary>
         /// Update an existing instrument with new values
         /// </summary>
-        public async Task<ApiResponse<Instrument>> UpdateExchange(Instrument instrument) =>
+        public async Task<ApiResponse<Instrument>> UpdateInstrument(Instrument instrument) =>
             await _apiClient.PutAsync<Instrument>("/instruments", instrument).ConfigureAwait(false);
 
         /// <summary>
@@ -211,12 +211,20 @@ namespace QDMSClient
         public async Task<ApiResponse<List<EconomicReleaseUpdateJobSettings>>> GetEconomicReleaseUpdateJobs() =>
             await _apiClient.GetAsync<List<EconomicReleaseUpdateJobSettings>>("/jobs/economicreleaseupdatejobs").ConfigureAwait(false);
 
+        /// <summary>
+        /// Get all dividend update jobs
+        /// </summary>
+        public async Task<ApiResponse<List<DividendUpdateJobSettings>>> GetDividendUpdateJobs() =>
+            await _apiClient.GetAsync<List<DividendUpdateJobSettings>>("/jobs/dividendupdatejobs").ConfigureAwait(false);
+
         private string GetJobPathFromType(IJobSettings job)
         {
             if (job is DataUpdateJobSettings)
                 return "/jobs/dataupdatejobs";
             if (job is EconomicReleaseUpdateJobSettings)
                 return "/jobs/economicreleaseupdatejobs";
+            if (job is DividendUpdateJobSettings)
+                return "jobs/dividendupdatejobs";
 
             throw new NotImplementedException();
         }
@@ -262,5 +270,21 @@ namespace QDMSClient
             await _apiClient.DeleteAsync<UnderlyingSymbol>($"/underlyingsymbols/{symbol?.ID}").ConfigureAwait(false);
 
         #endregion underlyingsymbols
+
+        #region dividends
+
+        /// <summary>
+        /// Get dividends
+        /// </summary>
+        public async Task<ApiResponse<List<Dividend>>> GetDividends(DividendRequest req) =>
+            await _apiClient.GetAsync<List<Dividend>>("/dividends", req).ConfigureAwait(false);
+
+        /// <summary>
+        /// Get all datasources for dividends
+        /// </summary>
+        public async Task<ApiResponse<List<string>>> GetDividendDataSources() =>
+            await _apiClient.GetAsync<List<string>>("/dividends/datasources").ConfigureAwait(false);
+
+        #endregion dividends
     }
 }

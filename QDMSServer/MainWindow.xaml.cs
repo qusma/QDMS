@@ -1,13 +1,11 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="MainWindow.xaml.cs" company="">
-// Copyright 2014 Alexander Soffronow Pagonidis
+// Copyright 2017 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Deployment.Application;
 using System.IO;
 using System.Linq;
@@ -23,19 +21,8 @@ using MahApps.Metro.Controls.Dialogs;
 using NLog;
 using NLog.Targets;
 using QDMS;
-using QDMS.Server.Brokers;
-using QDMS.Server.DataSources;
-using Quartz;
-using Quartz.Impl;
-using Quartz.Impl.Matchers;
-using QDMSServer.DataSources;
 using QDMSServer.Properties;
-using Nancy.Hosting.Self;
-using Nancy.Authentication.Stateless;
-using QDMS.Server;
-using QDMS.Server.DataSources.Nasdaq;
-using QDMS.Server.Nancy;
-using QDMS.Server.Repositories;
+using QDMSServer.ViewModels;
 
 namespace QDMSServer
 {
@@ -44,23 +31,11 @@ namespace QDMSServer
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        public RealTimeDataBroker RealTimeBroker { get; set; }
-        private readonly RealTimeDataServer _realTimeServer;
-        public HistoricalDataBroker HistoricalBroker { get; set; }
-        public EconomicReleaseBroker EconomicReleaseBroker { get; set; }
-        private readonly HistoricalDataServer _historicalDataServer;
-
-        private readonly IScheduler _scheduler;
-
         private readonly QDMSClient.QDMSClient _client;
 
         private ProgressBar _progressBar;
-        private IDividendsBroker _dividendBroker;
-
-        public ObservableCollection<Instrument> Instruments { get; set; }
-
-        public ConcurrentNotifierBlockingList<LogEventInfo> LogMessages { get; set; }
-
+        
+        private MainViewModel ViewModel { get; }
         public MainWindow()
         {
             Common.Logging.LogManager.Adapter = new NLogLoggerFactoryAdapter(new Common.Logging.Configuration.NameValueCollection());
@@ -78,7 +53,6 @@ namespace QDMSServer
             DBUtils.SetDbConfiguration();
 
             InitializeComponent();
-            DataContext = this;
 
             //load datagrid layout
             string layoutFile = AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml";
@@ -93,17 +67,8 @@ namespace QDMSServer
                 }
             }
 
-            LogMessages = new ConcurrentNotifierBlockingList<LogEventInfo>();
-
-            //target is where the log managers send their logs, here we grab the memory target which has a Subject to observe
-            var target = LogManager.Configuration.AllTargets.Single(x => x.Name == "myTarget") as MemoryTarget;
-
             //Log unhandled exceptions
             AppDomain.CurrentDomain.UnhandledException += AppDomain_CurrentDomain_UnhandledException;
-
-            //we subscribe to the messages and send them all to the LogMessages collection
-            if (target != null)
-                target.Messages.Subscribe(msg => LogMessages.TryAdd(msg));
 
             //build the instruments grid context menu
             //we want a button for each BarSize enum value in the UpdateFreqSubMenu menu
@@ -146,71 +111,9 @@ namespace QDMSServer
             //build session templates menu
             BuildSetSessionTemplateMenu();
 
-            Instruments = new ObservableCollection<Instrument>();
+            entityContext.Dispose();
 
-            var instrumentRepo = new InstrumentRepository(entityContext);
-            var instrumentList = instrumentRepo.FindInstruments().Result;
 
-            foreach (Instrument i in instrumentList)
-            {
-                Instruments.Add(i);
-            }
-
-            //create brokers
-            var cfRealtimeBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
-                    "RTDBCFClient",
-                    "127.0.0.1",
-                    Properties.Settings.Default.rtDBReqPort,
-                    Properties.Settings.Default.rtDBPubPort,
-                    Properties.Settings.Default.hDBPort,
-                    Properties.Settings.Default.httpPort,
-                    Properties.Settings.Default.apiKey,
-                    useSsl: Properties.Settings.Default.useSsl), 
-                    connectImmediately: false);
-            var cfHistoricalBroker = new ContinuousFuturesBroker(new QDMSClient.QDMSClient(
-                    "HDBCFClient",
-                    "127.0.0.1",
-                    Properties.Settings.Default.rtDBReqPort,
-                    Properties.Settings.Default.rtDBPubPort,
-                    Properties.Settings.Default.hDBPort,
-                    Properties.Settings.Default.httpPort,
-                    Properties.Settings.Default.apiKey,
-                    useSsl: Properties.Settings.Default.useSsl), 
-                    connectImmediately: false);
-            var localStorage = DataStorageFactory.Get();
-            RealTimeBroker = new RealTimeDataBroker(cfRealtimeBroker, localStorage,
-                new IRealTimeDataSource[] {
-                    //new Xignite(Properties.Settings.Default.xigniteApiToken),
-                    //new Oanda(Properties.Settings.Default.oandaAccountId, Properties.Settings.Default.oandaAccessToken),
-                    new IB(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, Properties.Settings.Default.rtdClientIBID),
-                    //new ForexFeed(Properties.Settings.Default.forexFeedAccessKey, ForexFeed.PriceType.Mid)
-                });
-            HistoricalBroker = new HistoricalDataBroker(cfHistoricalBroker, localStorage,
-                new IHistoricalDataSource[] {
-                    new Yahoo(),
-                    new FRED(),
-                    //new Forexite(),
-                    new IB(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, Properties.Settings.Default.histClientIBID),
-                    new Quandl(Properties.Settings.Default.quandlAuthCode),
-                    new BarChart(Properties.Settings.Default.barChartApiKey)
-                });
-
-            var countryCodeHelper = new CountryCodeHelper(entityContext.Countries.ToList());
-
-            EconomicReleaseBroker = new EconomicReleaseBroker("FXStreet",
-                new[] { new fx.FXStreet(countryCodeHelper) });
-
-            _dividendBroker = new DividendsBroker("Nasdaq",
-                new[] { new NasdaqDs.Nasdaq() });
-
-            //create the various servers
-            _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
-            _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, HistoricalBroker);
-
-            //and start them
-            _realTimeServer.StartServer();
-            _historicalDataServer.StartServer();
-            
             //we also need a client to make historical data requests with
             _client = new QDMSClient.QDMSClient(
                 "SERVERCLIENT",
@@ -224,63 +127,11 @@ namespace QDMSServer
             _client.Connect();
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
 
-            ActiveStreamGrid.ItemsSource = RealTimeBroker.ActiveStreams;
-
-            //create the scheduler
-            var quartzSettings = QuartzUtils.GetQuartzSettings(Settings.Default.databaseType);
-            ISchedulerFactory schedulerFactory = new StdSchedulerFactory(quartzSettings);
-            _scheduler = schedulerFactory.GetScheduler();
-            _scheduler.JobFactory = new JobFactory(HistoricalBroker,
-                Properties.Settings.Default.updateJobEmailHost,
-                Properties.Settings.Default.updateJobEmailPort,
-                Properties.Settings.Default.updateJobEmailUsername,
-                Properties.Settings.Default.updateJobEmailPassword,
-                Properties.Settings.Default.updateJobEmailSender,
-                Properties.Settings.Default.updateJobEmail,
-                new UpdateJobSettings(
-                    noDataReceived: Properties.Settings.Default.updateJobReportNoData,
-                    errors: Properties.Settings.Default.updateJobReportErrors,
-                    outliers: Properties.Settings.Default.updateJobReportOutliers,
-                    requestTimeouts: Properties.Settings.Default.updateJobTimeouts,
-                    timeout: Properties.Settings.Default.updateJobTimeout,
-                    toEmail: Properties.Settings.Default.updateJobEmail,
-                    fromEmail: Properties.Settings.Default.updateJobEmailSender),
-                localStorage,
-                EconomicReleaseBroker,
-                _dividendBroker);
-            _scheduler.Start();
-
-            //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
-            MigrateJobs(entityContext, _scheduler);
-
-            var bootstrapper = new CustomBootstrapper(
-                DataStorageFactory.Get(), 
-                EconomicReleaseBroker,
-                HistoricalBroker,
-                RealTimeBroker,
-                _dividendBroker,
-                _scheduler,
-                Properties.Settings.Default.apiKey);
-            var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);
-            var host = new NancyHost(bootstrapper, uri);
-            host.Start();
-
-            entityContext.Dispose();
+            //Create ViewModel
+            ViewModel = new MainViewModel(_client, DialogCoordinator.Instance);
+            DataContext = ViewModel;
 
             ShowChangelog();
-        }
-
-        private void MigrateJobs(MyDBContext context, IScheduler scheduler)
-        {
-            //Check if there are jobs in the QDMS db and no jobs in the quartz db - in that case we migrate them
-            var repo = new JobsRepository(context, scheduler);
-            if (context.DataUpdateJobs.Any() && scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()).Count == 0)
-            {
-                foreach (DataUpdateJobSettings job  in context.DataUpdateJobs)
-                {
-                    repo.ScheduleJob(job);
-                }
-            }
         }
 
         private void AppDomain_CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -442,22 +293,12 @@ namespace QDMSServer
                 InstrumentsGrid.SerializeLayout(file);
             }
 
-            //shut down quartz
-            _scheduler.Shutdown(true);
+            //Dispose main viewmodel
+            ViewModel.Dispose();
 
             //then take down the client, the servers, and the brokers
             _client.Disconnect();
             _client.Dispose();
-
-            _realTimeServer.StopServer();
-            _realTimeServer.Dispose();
-
-            _historicalDataServer.StopServer();
-            _historicalDataServer.Dispose();
-
-            RealTimeBroker.Dispose();
-
-            HistoricalBroker.Dispose();
         }
 
         //exiting the application
@@ -475,7 +316,7 @@ namespace QDMSServer
             {
                 foreach (Instrument i in window.ViewModel.AddedInstruments)
                 {
-                    Instruments.Add(i);
+                    ViewModel.Instruments.Add(i);
                 }
                 window.Close();
             }
@@ -490,7 +331,7 @@ namespace QDMSServer
             {
                 foreach (Instrument i in window.AddedInstruments)
                 {
-                    Instruments.Add(i);
+                    ViewModel.Instruments.Add(i);
                 }
                 window.Close();
             }
@@ -507,94 +348,23 @@ namespace QDMSServer
                 {
                     foreach (Instrument i in window.AddedInstruments)
                     {
-                        Instruments.Add(i);
+                        ViewModel.Instruments.Add(i);
                     }
                     window.Close();
                 }
             }
         }
 
-        //show a window to modify the selected instrument
-        private void TableView_RowDoubleClick(object sender, MouseButtonEventArgs mouseButtonEventArgs)
-        {
-            var inst = (Instrument)InstrumentsGrid.SelectedItem;
-            var window = new AddInstrumentManuallyWindow(inst, false);
-            window.ShowDialog();
-
-            CollectionViewSource.GetDefaultView(InstrumentsGrid.ItemsSource).Refresh();
-
-            window.Close();
-        }
-
         //show the window to add a new custom futures contract
         private void BtnAddCustomFutures_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var window = new AddInstrumentManuallyWindow(addingContFut: true);
+            var window = new AddInstrumentManuallyWindow(_client, addingContFut: true);
             window.ShowDialog();
-            if (window.InstrumentAdded)
+            if (window.ViewModel.AddedInstrument != null)
             {
-                Instruments.Add(window.TheInstrument);
+                ViewModel.Instruments.Add(window.ViewModel.AddedInstrument);
             }
             window.Close();
-        }
-
-        private void AddInstrumentManuallyBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
-        {
-            var window = new AddInstrumentManuallyWindow();
-            window.ShowDialog();
-            if (window.InstrumentAdded)
-            {
-                Instruments.Add(window.TheInstrument);
-            }
-            window.Close();
-        }
-
-        //clone an instrument
-        private void InstrumentContextCloneBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
-        {
-            var inst = (Instrument)InstrumentsGrid.SelectedItem;
-            var window = new AddInstrumentManuallyWindow(inst);
-            window.ShowDialog();
-            if (window.InstrumentAdded)
-            {
-                Instruments.Add(window.TheInstrument);
-            }
-            window.Close();
-        }
-
-        //delete one or more instruments
-        private async void DeleteInstrumentBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
-        {
-            var selectedInstruments = InstrumentsGrid.SelectedItems;
-            if (selectedInstruments.Count == 0) return;
-
-            if (selectedInstruments.Count == 1)
-            {
-                var inst = (Instrument)selectedInstruments[0];
-                MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete {0} @ {1}?", inst.Symbol, inst.Datasource.Name),
-                    "Delete", MessageBoxButton.YesNo);
-                if (res == MessageBoxResult.No) return;
-            }
-            else
-            {
-                MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete {0} instruments?", selectedInstruments.Count),
-                    "Delete", MessageBoxButton.YesNo);
-                if (res == MessageBoxResult.No) return;
-            }
-
-            List<Instrument> toRemove = new List<Instrument>();
-
-            foreach (Instrument i in InstrumentsGrid.SelectedItems)
-            {
-                await _client.DeleteInstrument(i).ConfigureAwait(true);
-                toRemove.Add(i);
-            }
-
-            while (toRemove.Count > 0)
-            {
-                Instruments.Remove(toRemove[toRemove.Count - 1]);
-                toRemove.RemoveAt(toRemove.Count - 1);
-            }
         }
 
         private void EditDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
@@ -921,6 +691,11 @@ namespace QDMSServer
         {
             var window = new TagsWindow(_client);
             window.Show();
+        }
+
+        private void TableView_RowDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            ViewModel.EditInstrument.Execute(InstrumentsGrid.SelectedItem as Instrument).Subscribe();
         }
     }
 }
