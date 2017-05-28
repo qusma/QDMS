@@ -78,6 +78,7 @@ namespace QDMSServer.ViewModels
             var oldErrors = _errors;
             _errors = newErrors;
             NotifyChangedErrors(oldErrors, newErrors);
+            HasErrors = _errors.Any(x => x.Value.Count > 0);
         }
 
         private void NotifyChangedErrors(Dictionary<string, List<string>> oldErrors, Dictionary<string, List<string>> newErrors)
