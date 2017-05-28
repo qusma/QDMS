@@ -66,7 +66,7 @@ namespace QDMS.Server.NancyModules
                 return instruments;
             };
 
-            Post["/"] = _ =>
+            Post["/", true] = async (parameters, token) =>
             {
                 Instrument instrument = this.BindAndValidate<Instrument>();
                 if (ModelValidationResult.IsValid == false)
@@ -74,7 +74,7 @@ namespace QDMS.Server.NancyModules
                     return this.ValidationFailure();
                 }
 
-                var addedInstrument = instrumentRepo.AddInstrument(instrument);
+                var addedInstrument = await instrumentRepo.AddInstrument(instrument);
                 return addedInstrument;
             };
 
