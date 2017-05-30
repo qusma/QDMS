@@ -9,6 +9,7 @@ module NasdaqDs =
     open System.Text.RegularExpressions
     open System.Globalization
     open System.Net.Http
+    open System.Threading.Tasks
 
     type SymbolDividends = HtmlProvider<"./DataSamples/AAPL.html">
     type DateDividends = HtmlProvider<"./DataSamples/Jan27.html">
@@ -21,7 +22,7 @@ module NasdaqDs =
         let parseNullableDate (str) = 
             match DateTime.TryParseExact(str, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None) with
             | (true, num) -> Nullable<DateTime>(num)
-            | _ -> Nullable<DateTime>() //TODO not working properly, also 
+            | _ -> System.Nullable()
 
         let parseDate str = 
              DateTime.ParseExact(str, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None)
@@ -41,12 +42,20 @@ module NasdaqDs =
                 return dividends;
             }
 
+        member this.getStrFromUrl(url : string) =
+            async {
+                let! httpResponse = httpClient.GetAsync(url) |> Async.AwaitTask
+                httpResponse.EnsureSuccessStatusCode() |> ignore
+                return! httpResponse.Content.ReadAsStreamAsync() |> Async.AwaitTask
+            }
+
         member this.getDividendsForDate(date : DateTime) =
             async {
                 let url = sprintf "http://www.nasdaq.com/dividend-stocks/dividend-calendar.aspx?date=%s" (date.ToString("yyyy-MMM-dd"))
                 logger.Info("Downloading dividends from " + url)
 
-                let! data = DateDividends.AsyncLoad(url)
+                let! html = this.getStrFromUrl(url)
+                let data = DateDividends.Load(html)
 
                 return data.Html.Body().Descendants(fun x -> x.HasId("Table1")).First().Descendants ["tr"]
                     |> Seq.skip 1
@@ -64,33 +73,30 @@ module NasdaqDs =
             async {
                 let url = sprintf "http://www.nasdaq.com/symbol/%s/dividend-history" request.Symbol
                 logger.Info("Downloading dividends from " + url)
-                let! httpResponse = httpClient.GetAsync(url) |> Async.AwaitTask
-                httpResponse.EnsureSuccessStatusCode() |> ignore
-                let! html = httpResponse.Content.ReadAsStreamAsync() |> Async.AwaitTask
-                let data = SymbolDividends.Load(html) //todo need to use httpclient for the download
+                let! html = this.getStrFromUrl(url)
+                let data = SymbolDividends.Load(html)
                 return data.Tables.Quotes_content_left_dividendhistoryGrid.Rows |> this.parseSymbolRows request
             }
 
         member this.parseSymbolRows request rows = 
-            let divs = rows 
+            rows 
                     |> Seq.filter(fun row -> row.``Ex/Eff Date`` >= request.FromDate.Date && row.``Ex/Eff Date`` <= request.ToDate.Date)
                     |> Seq.map(fun row -> new Dividend(
                                                         Amount = row.``Cash Amount``, 
                                                         ExDate = row.``Ex/Eff Date``,
                                                         DeclarationDate = parseNullableDate row.``Declaration Date``,
-                                                        RecordDate = new Nullable<DateTime>(row.``Record Date``),
+                                                        RecordDate = parseNullableDate row.``Record Date``,
                                                         PaymentDate = parseNullableDate row.``Payment Date``,
                                                         Type = row.Type,
                                                         Symbol = request.Symbol))
 
-            new System.Collections.Generic.List<Dividend>(divs)
+            |> System.Collections.Generic.List<Dividend>
 
         member this.getDividends(request: DividendRequest) = 
             async {
-                let! data = match String.IsNullOrEmpty(request.Symbol) with
+                return! match String.IsNullOrEmpty(request.Symbol) with
                                     | true -> this.getAllSymbols(request)
                                     | false -> this.getSpecificSymbol(request)
-                return data
             }
 
         interface IDividendDataSource with
@@ -102,4 +108,10 @@ module NasdaqDs =
             member this.Connect() = ()
 
             member this.RequestData(request: DividendRequest) = 
-                this.getDividends(request) |> Async.StartAsTask
+                async {
+                    try
+                        return! this.getDividends(request)
+                    with e -> 
+                            logger.Error(e, "Error downloading dividend data: " + e.Message)
+                            return System.Collections.Generic.List<Dividend>()
+                } |> Async.StartAsTask
