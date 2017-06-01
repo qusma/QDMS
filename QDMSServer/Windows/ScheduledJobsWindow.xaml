@@ -6,7 +6,7 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
     xmlns:qdmsServer="clr-namespace:QDMSServer"
-    Title="Schedule Data Updates" Height="553.723" Width="675"
+    Title="Schedule Data Updates" Height="625" Width="675"
     BorderBrush="Black"
     BorderThickness="1"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -26,6 +26,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:EconomicReleaseUpdateJobViewModel}">
             <userControls:EconomicReleaseJobControl/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:DividendUpdateJobViewModel}">
+            <userControls:DividendUpdateJobControl/>
         </DataTemplate>
     </controls:MetroWindow.Resources>
 

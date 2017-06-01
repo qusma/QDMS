@@ -20,14 +20,14 @@ namespace QDMSServer.ViewModels
         [Obsolete]
         public DataUpdateJobViewModel() { }
 
-        public DataUpdateJobViewModel(DataUpdateJobSettings job, IDataClient client, IDialogCoordinator dialogCoordinator) 
-            : base(job, new DataUpdateJobSettingsValidator(), client, dialogCoordinator)
+        public DataUpdateJobViewModel(DataUpdateJobSettings job, IDataClient client, IDialogCoordinator dialogCoordinator, object dialogContext) 
+            : base(job, new DataUpdateJobSettingsValidator(), client, dialogCoordinator, dialogContext)
         {
         }
 
         public Instrument Instrument
         {
-            get { return Model.Instrument; }
+            get => Model.Instrument;
             set
             {
                 Model.Instrument = value;
@@ -38,7 +38,7 @@ namespace QDMSServer.ViewModels
 
         public Tag Tag
         {
-            get { return Model.Tag; }
+            get => Model.Tag;
             set
             {
                 Model.Tag = value;
@@ -49,7 +49,7 @@ namespace QDMSServer.ViewModels
 
         public bool UseTag
         {
-            get { return Model.UseTag; }
+            get => Model.UseTag;
             set
             {
                 Model.UseTag = value;

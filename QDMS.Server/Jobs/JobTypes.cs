@@ -10,11 +10,13 @@ namespace QDMS.Server.Jobs
     {
         public const string DataUpdate = "DataUpdate";
         public const string EconomicRelease = "EconomicRelease";
+        public const string DividendUpdate = "DividendUpdate";
 
         public static string GetJobType(IJobSettings job)
         {
             if (job is DataUpdateJobSettings) return DataUpdate;
             if (job is EconomicReleaseUpdateJobSettings) return EconomicRelease;
+            if (job is DividendUpdateJobSettings) return DividendUpdate;
 
             return "";
         }

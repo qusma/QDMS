@@ -32,13 +32,19 @@ namespace QDMS.Server.NancyModules
 
             //Economic Release Jobs
 
-            Get["/economicreleaseupdatejobs/datasources"] = _ => erb.DataSources.Select(x => x.Value.Name).ToList();
-
             Get["/economicreleaseupdatejobs"] = _ => repo.GetEconomicReleaseUpdateJobs();
 
             Post["/economicreleaseupdatejobs"] = _ => AddJob<EconomicReleaseUpdateJobSettings>(repo);
 
             Delete["/economicreleaseupdatejobs"] = _ => DeleteJob<EconomicReleaseUpdateJobSettings>(repo);
+
+            //Dividend Update Jobs
+
+            Get["/dividendupdatejobs"] = _ => repo.GetDividendUpdateJobs();
+
+            Post["/dividendupdatejobs"] = _ => AddJob<DividendUpdateJobSettings>(repo);
+
+            Delete["/dividendupdatejobs"] = _ => DeleteJob<DividendUpdateJobSettings>(repo);
         }
 
         private dynamic AddJob<T>(IJobsRepository repo) where T : IJobSettings
@@ -51,7 +57,7 @@ namespace QDMS.Server.NancyModules
 
             //make sure name doesn't already exist
             var existingJob = repo.GetJobDetails(jobSettings.Name, JobTypes.GetJobType(jobSettings));
-            if (existingJob != null)//toto test
+            if (existingJob != null)
             {
                 return Negotiate
                     .WithModel(new ErrorResponse(

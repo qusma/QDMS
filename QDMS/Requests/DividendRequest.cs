@@ -10,6 +10,14 @@ namespace QDMS
 {
     public class DividendRequest
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fromDate"></param>
+        /// <param name="toDate"></param>
+        /// <param name="dataLocation"></param>
+        /// <param name="symbol">Leave empty to get all symbols</param>
+        /// <param name="dataSource">Leave empty to use default</param>
         public DividendRequest(DateTime fromDate, DateTime toDate, DataLocation dataLocation = DataLocation.LocalOnly, string symbol = null, string dataSource = null)
         {
             FromDate = fromDate;

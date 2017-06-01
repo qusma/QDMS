@@ -1,13 +1,9 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="SchedulerViewModel.cs" company="">
-// Copyright 2015 Alexander Soffronow Pagonidis
+// Copyright 2017 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
-using MahApps.Metro.Controls.Dialogs;
-using QDMS;
-using QDMSClient;
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +12,10 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using QDMS;
+using QDMSClient;
+using ReactiveUI;
 
 namespace QDMSServer.ViewModels
 {
@@ -40,6 +40,7 @@ namespace QDMSServer.ViewModels
             Tags = new ReactiveList<Tag>();
             Instruments = new ReactiveList<Instrument>();
             EconomicReleaseDataSources = new ReactiveList<string>();
+            DividendDataSources = new ReactiveList<string>();
 
             CreateCommands();
         }
@@ -53,22 +54,27 @@ namespace QDMSServer.ViewModels
             {
                 var dataUpdateJobs = _client.GetaDataUpdateJobs();
                 var econReleaseUpdateJobs = _client.GetEconomicReleaseUpdateJobs();
+                var dividendUpdateJobs = _client.GetDividendUpdateJobs();
                 var tags = _client.GetTags();
                 var instruments = _client.GetInstruments();
                 var econReleaseSources = _client.GetEconomicReleaseDataSources();
+                var dividendSources = _client.GetDividendDataSources();
 
-                await Task.WhenAll(dataUpdateJobs, econReleaseUpdateJobs, tags, instruments, econReleaseSources).ConfigureAwait(false);
+                await Task.WhenAll(dataUpdateJobs, econReleaseUpdateJobs, dividendUpdateJobs,
+                    tags, instruments, econReleaseSources, dividendSources).ConfigureAwait(false);
 
-                var responses = new ApiResponse[] { dataUpdateJobs.Result, econReleaseUpdateJobs.Result, tags.Result, instruments.Result, econReleaseSources.Result };
+                var responses = new ApiResponse[] { dataUpdateJobs.Result, econReleaseUpdateJobs.Result, dividendUpdateJobs.Result, tags.Result, instruments.Result, econReleaseSources.Result, dividendSources.Result };
                 if (await responses.DisplayErrors(this, DialogCoordinator).ConfigureAwait(true)) return null;
 
                 Tags.AddRange(tags.Result.Result);
                 Instruments.AddRange(instruments.Result.Result);
                 EconomicReleaseDataSources.AddRange(econReleaseSources.Result.Result);
+                DividendDataSources.AddRange(dividendSources.Result.Result);
 
                 var jobs = new List<IJobSettings>();
                 jobs.AddRange(dataUpdateJobs.Result.Result);
                 jobs.AddRange(econReleaseUpdateJobs.Result.Result);
+                jobs.AddRange(dividendUpdateJobs.Result.Result); //todo check if the tag system works properly
 
                 return jobs;
             });
@@ -101,7 +107,7 @@ namespace QDMSServer.ViewModels
                 SelectedJob.Name = SelectedJob.PreChangeName;
 
                 //Request deletion
-                var response = await _client.DeleteJob(SelectedJob.Job);
+                var response = await SelectedJob.Delete.Execute();
                 if (await response.DisplayErrors(this, DialogCoordinator)) return;
 
                 //if it was successful, remove the VM from the list
@@ -115,21 +121,19 @@ namespace QDMSServer.ViewModels
         {
             if (job is DataUpdateJobSettings)
             {
-                return new DataUpdateJobViewModel((DataUpdateJobSettings)job, _client, DialogCoordinator);
+                return new DataUpdateJobViewModel((DataUpdateJobSettings)job, _client, DialogCoordinator, this);
             }
             if (job is EconomicReleaseUpdateJobSettings)
             {
-                return new EconomicReleaseUpdateJobViewModel((EconomicReleaseUpdateJobSettings)job, _client, DialogCoordinator);
+                return new EconomicReleaseUpdateJobViewModel((EconomicReleaseUpdateJobSettings)job, _client, DialogCoordinator, this);
+            }
+            if (job is DividendUpdateJobSettings)
+            {
+                return new DividendUpdateJobViewModel((DividendUpdateJobSettings)job, _client, DialogCoordinator, this);
             }
 
             throw new NotImplementedException();
         }
-
-        public ReactiveCommand<Unit, Unit> Add { get; set; }
-
-        public ReactiveCommand<Unit, Unit> Update { get; set; }
-
-        public ReactiveCommand<Unit, List<IJobSettings>> Load { get; private set; }
 
         private void ExecuteAdd()
         {
@@ -140,6 +144,7 @@ namespace QDMSServer.ViewModels
             var panel = new StackPanel();
             panel.Children.Add(new RadioButton { Content = "Data Update", Margin = new Thickness(5), IsChecked = true });
             panel.Children.Add(new RadioButton { Content = "Economic Release Update", Margin = new Thickness(5), IsChecked = false });
+            panel.Children.Add(new RadioButton { Content = "Dividend Update", Margin = new Thickness(5), IsChecked = false });
 
             var addBtn = new Button { Content = "Add" };
             addBtn.Click += (s, e) =>
@@ -166,6 +171,10 @@ namespace QDMSServer.ViewModels
             {
                 job = new EconomicReleaseUpdateJobSettings { Name = GetJobName("EconomicReleaseUpdateJob"), BusinessDaysBack = 1, BusinessDaysAhead = 7, DataSource = "FXStreet" };
             }
+            else if (selectedJob == "Dividend Update")
+            {
+                job = new DividendUpdateJobSettings { Name = GetJobName("DividendUpdateJob"), BusinessDaysBack = 0, BusinessDaysAhead = 3, DataSource = "Nasdaq" };
+            }
 
             var jobVm = GetJobViewModel(job);
             Jobs.Add(jobVm);
@@ -189,6 +198,12 @@ namespace QDMSServer.ViewModels
             return newName;
         }
 
+        public ReactiveCommand<Unit, Unit> Add { get; set; }
+
+        public ReactiveCommand<Unit, Unit> Update { get; set; }
+
+        public ReactiveCommand<Unit, List<IJobSettings>> Load { get; private set; }
+
         public ReactiveCommand<Unit, Unit> Delete { get; private set; }
 
         public IDialogCoordinator DialogCoordinator { get; set; }
@@ -196,15 +211,15 @@ namespace QDMSServer.ViewModels
         public ReactiveList<Instrument> Instruments { get; set; }
 
         public ReactiveList<IJobViewModel> Jobs { get; }
+
         public ReactiveList<string> EconomicReleaseDataSources { get; set; }
+
+        public ReactiveList<string> DividendDataSources { get; set; }
 
         public IJobViewModel SelectedJob
         {
-            get { return _selectedJob; }
-            set
-            {
-                this.RaiseAndSetIfChanged(ref _selectedJob, value);
-            }
+            get => _selectedJob;
+            set => this.RaiseAndSetIfChanged(ref _selectedJob, value);
         }
 
         public ReactiveList<Tag> Tags { get; set; }

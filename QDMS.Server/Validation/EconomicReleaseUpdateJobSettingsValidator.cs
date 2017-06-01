@@ -13,7 +13,6 @@ namespace QDMS.Server.Validation
         public EconomicReleaseUpdateJobSettingsValidator()
         {
             RuleFor(x => x.Name).NotEmpty().WithMessage("Name must have a value");
-            RuleFor(x => x.DataSource).NotEmpty().WithMessage("DataSource must have a value");
             RuleFor(x => x.BusinessDaysAhead).GreaterThanOrEqualTo(0).WithMessage("Must be > 0");
             RuleFor(x => x.BusinessDaysBack).GreaterThanOrEqualTo(0).WithMessage("Must be > 0");
         }

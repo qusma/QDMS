@@ -4,10 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using QDMS;
+using QDMSClient;
+using ReactiveUI;
 using System.ComponentModel;
 using System.Reactive;
-using QDMS;
-using ReactiveUI;
 
 namespace QDMSServer
 {
@@ -24,5 +25,7 @@ namespace QDMSServer
         string PreChangeName { get; set; }
 
         ReactiveCommand<Unit, Unit> Save { get; }
+
+        ReactiveCommand<Unit, ApiResponse> Delete { get; }
     }
 }
