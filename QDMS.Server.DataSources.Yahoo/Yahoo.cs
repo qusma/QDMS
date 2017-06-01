@@ -16,7 +16,6 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
@@ -29,17 +28,16 @@ namespace QDMSServer.DataSources
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private Thread _downloaderThread;
-        private ConcurrentQueue<HistoricalDataRequest> _queuedRequests;
+        private readonly Thread _downloaderThread;
+        private readonly ConcurrentQueue<HistoricalDataRequest> _queuedRequests;
         private bool _runDownloader;
         private HttpClient _client;
         private HttpClientHandler _handler;
         private string _crumb;
-        private object _lockObj = new object();
+        private readonly object _lockObj = new object();
 
         public Yahoo()
         {
-            Name = "Yahoo";
             _queuedRequests = new ConcurrentQueue<HistoricalDataRequest>();
             _downloaderThread = new Thread(DownloaderLoop);
         }
@@ -64,8 +62,13 @@ namespace QDMSServer.DataSources
         {
             //make sure only one connection attempt at a time
             if (!Monitor.TryEnter(_lockObj)) return;
+            //make sure any async methods have ConfigureAwait(true) here, otherwise the lock fails
 
-            if (Connected) return;
+            if (Connected)
+            {
+                Monitor.Exit(_lockObj);
+                return;
+            }
 
             var cookieContainer = new CookieContainer();
             _handler = new HttpClientHandler { CookieContainer = cookieContainer };
@@ -73,8 +76,8 @@ namespace QDMSServer.DataSources
 
             //Get cookie and crumb...they can be used across all requests
 
-            string url = $"https://uk.finance.yahoo.com/quote/AAPL/history";
-            var response = await _client.GetAsync(url);
+            string url = "https://uk.finance.yahoo.com/quote/AAPL/history";
+            var response = await _client.GetAsync(url).ConfigureAwait(true);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.Error("Could not get crumb/cookie");
@@ -85,7 +88,7 @@ namespace QDMSServer.DataSources
             cookieContainer.Add(new Uri("https://yahoo.com"), new Cookie("Cookie", cookie));
 
             //get the crumb
-            string html = await response.Content.ReadAsStringAsync();
+            string html = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
             var match = Regex.Match(html, "\"CrumbStore\":{\"crumb\":\"(?<crumb>[^\"]+)\"}");
             if (!match.Success)
             {
@@ -119,7 +122,7 @@ namespace QDMSServer.DataSources
         /// <summary>
         /// The name of the data source.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name => "Yahoo";
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
@@ -150,7 +153,7 @@ namespace QDMSServer.DataSources
 
             var 
 
-            response = await _client.GetAsync(splitURL);
+            response = await _client.GetAsync(splitURL).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -165,7 +168,7 @@ namespace QDMSServer.DataSources
                 return new List<OHLCBar>();
             }
 
-            string contents = await response.Content.ReadAsStringAsync();
+            string contents = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             //stick dividends and splits into their respective dictionaries to be used later
             //the key is the date in yyyy-MM-dd format
@@ -195,7 +198,7 @@ namespace QDMSServer.DataSources
                 ToTimestamp(endDate),
                 _crumb);
 
-            response = await _client.GetAsync(divURL);
+            response = await _client.GetAsync(divURL).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -213,7 +216,7 @@ namespace QDMSServer.DataSources
             //Dividend Format
             //Date,Dividends
             //2014-11-06,0.47
-            contents = await response.Content.ReadAsStringAsync();
+            contents = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             rows = contents.Split("\n".ToCharArray());
             var dividends = new Dictionary<string, decimal>();
             for (int j = 1; j < rows.Length - 1; j++) //start at 1 because the first line's a header
@@ -237,7 +240,7 @@ namespace QDMSServer.DataSources
                 ToTimestamp(endDate),
                 _crumb);
 
-            response = await _client.GetAsync(dataURL);
+            response = await _client.GetAsync(dataURL).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -252,7 +255,7 @@ namespace QDMSServer.DataSources
                 return new List<OHLCBar>();
             }
 
-            contents = await response.Content.ReadAsStringAsync();
+            contents = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             //parse the downloaded price data
             rows = contents.Split("\n".ToCharArray());
