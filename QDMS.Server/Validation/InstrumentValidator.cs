@@ -43,7 +43,7 @@ namespace QDMS.Server.Validation
             AddRule(new DelegateValidator<Instrument>((inst, ctx) =>
             {
                 List<string> errors;
-                if (!MyUtils.ValidateSessions(inst.Sessions.ToList<ISession>(), out errors))
+                if (!MyUtils.ValidateSessions(inst.Sessions?.ToList<ISession>(), out errors))
                 {
                     return errors.Select(x => new ValidationFailure("Sessions", x));
                 }

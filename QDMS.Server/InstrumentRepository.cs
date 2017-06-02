@@ -58,7 +58,9 @@ namespace QDMS.Server
             instrument.Datasource = Context.GetAttachedEntity(instrument.Datasource);
             instrument.Exchange = Context.GetAttachedEntity(instrument.Exchange);
             instrument.PrimaryExchange = Context.GetAttachedEntity(instrument.PrimaryExchange);
-            instrument.Tags = new List<Tag>(instrument.Tags.Select(Context.GetAttachedEntity).ToList());
+            instrument.Tags = instrument.Tags != null 
+                ? new List<Tag>(instrument.Tags.Select(Context.GetAttachedEntity).ToList()) 
+                : new List<Tag>();
 
             //If necessary, load sessions from teplate or exchange
             if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange != null)
