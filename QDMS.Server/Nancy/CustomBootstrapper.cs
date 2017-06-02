@@ -100,7 +100,12 @@ namespace QDMS.Server.Nancy
                     return response;
                 }
 
-                return ctx.Response;
+                //generic handler
+                var genericResponse = new JsonResponse(
+                    new ErrorResponse(HttpStatusCode.InternalServerError, ex.Message, ""),
+                    new JsonNetSerializer());
+                genericResponse.StatusCode = HttpStatusCode.InternalServerError;
+                return genericResponse;
             });
 
             var statelessAuthConfiguration = new StatelessAuthenticationConfiguration(ctx =>
