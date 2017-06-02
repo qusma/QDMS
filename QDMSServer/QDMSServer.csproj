@@ -312,6 +312,7 @@
     <Compile Include="ValueConverters\StringToNullableConverter.cs" />
     <Compile Include="ValueConverters\TimeSpanConverter.cs" />
     <Compile Include="ValueConverters\TZToStringConverter.cs" />
+    <Compile Include="ViewModels\AddInstrumentFredViewModel.cs" />
     <Compile Include="ViewModels\AddInstrumentIbViewModel.cs" />
     <Compile Include="ViewModels\DividendUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />

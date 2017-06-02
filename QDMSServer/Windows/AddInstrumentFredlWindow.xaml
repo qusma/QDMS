@@ -8,7 +8,10 @@
     Title="Add Instrument: FRED" Height="563.887" Width="1443.762"
     FocusManager.FocusedElement="{Binding ElementName=SymbolTextBox}"
     BorderBrush="Black"
-    BorderThickness="1">
+    BorderThickness="1"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    Dialog:DialogParticipation.Register="{Binding}"
+    Loaded="MetroWindow_Loaded">
 
     <controls:MetroWindow.Resources>
         <ObjectDataProvider x:Key="InstrumentTypes" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
@@ -26,11 +29,16 @@
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Search: " VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0" KeyboardNavigation.IsTabStop="False" Width="50" Height="26"/>
 
-        <TextBox Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="26" Margin="89,10,0,0" KeyDown="SymbolTextBox_KeyDown"
-                 TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="149" />
+        <TextBox Text="{Binding Symbol}"
+            Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="26" Margin="89,10,0,0"
+                 TextWrapping="Wrap" VerticalAlignment="Top" Width="149">
+            <TextBox.InputBindings>
+                <KeyBinding Key="Return" Command="{Binding Search}" />
+            </TextBox.InputBindings>
+        </TextBox>
 
         <Button Grid.Row="0" Name="SearchBtn" Content="Search" HorizontalAlignment="Left" Margin="283,10,0,0" 
-                VerticalAlignment="Top"  Width="75" Height="26" Click="SearchBtn_Click" />
+                VerticalAlignment="Top"  Width="75" Height="26" Command="{Binding Search}" />
 
 
 
@@ -53,7 +61,10 @@
 
         <Button Name="CloseBtn" Click="CloseBtn_Click" Content="Close" HorizontalAlignment="Right" Margin="0,7,10,7" Grid.Row="2" 
                 VerticalAlignment="Center"  Width="75" Height="26"/>
-        <Button Name="AddBtn" Click="AddBtn_Click" Content="Add" HorizontalAlignment="Right" Margin="0,7,94,7" Grid.Row="2" VerticalAlignment="Center"  Width="75" Height="26"/>
-        <Label Name="StatusLabel" Content="" Width="500" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top" Height="23"/>
+        <Button Name="AddBtn" 
+                Command="{Binding Add}" 
+                CommandParameter="{Binding ElementName=InstrumentGrid,Path=SelectedItems}"
+                Content="Add" HorizontalAlignment="Right" Margin="0,7,94,7" Grid.Row="2" VerticalAlignment="Center"  Width="75" Height="26"/>
+        <Label Name="StatusLabel" Content="{Binding Status}" Width="500" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top" Height="23"/>
     </Grid>
 </controls:MetroWindow>

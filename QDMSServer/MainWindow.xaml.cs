@@ -310,7 +310,7 @@ namespace QDMSServer
         //show the interactive brokers add instrument window
         private void AddInstrumentIBBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var window = new AddInstrumentInteractiveBrokersWindow();
+            var window = new AddInstrumentInteractiveBrokersWindow(_client);
 
             if (window.ViewModel != null && window.ViewModel.AddedInstruments != null)
             {
@@ -340,18 +340,16 @@ namespace QDMSServer
         //show the FRED add instrument window
         private void AddInstrumentFredBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            using (var context = new MyDBContext())
-            {
-                var window = new AddInstrumentFredWindow(context);
+            var window = new AddInstrumentFredWindow(_client);
+            window.ShowDialog();
 
-                if (window.AddedInstruments != null)
+            if (window.ViewModel.AddedInstruments != null)
+            {
+                foreach (Instrument i in window.ViewModel.AddedInstruments)
                 {
-                    foreach (Instrument i in window.AddedInstruments)
-                    {
-                        ViewModel.Instruments.Add(i);
-                    }
-                    window.Close();
+                    ViewModel.Instruments.Add(i);
                 }
+                window.Close();
             }
         }
 
@@ -452,6 +450,7 @@ namespace QDMSServer
         //adds or removes a tag from one or more instruments
         private void SetTag_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
+            //todo move to mvvm
             using (var context = new MyDBContext())
             {
                 var selectedInstruments = InstrumentsGrid.SelectedItems;
