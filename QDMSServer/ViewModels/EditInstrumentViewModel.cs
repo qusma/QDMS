@@ -70,7 +70,7 @@ namespace QDMSServer.ViewModels
                 var underlyingSymbols = client.GetUnderlyingSymbols();
                 var datasources = client.GetDatasources();
 
-                await Task.WhenAll(tags, sessionTemplates, exchanges, underlyingSymbols, datasources);
+                await Task.WhenAll(tags, sessionTemplates, exchanges, underlyingSymbols, datasources).ConfigureAwait(true);
 
                 var responses = new ApiResponse[] { tags.Result, sessionTemplates.Result, exchanges.Result, underlyingSymbols.Result, datasources.Result };
                 if (await responses.DisplayErrors(this, DialogCoordinator).ConfigureAwait(true)) return;
@@ -78,6 +78,7 @@ namespace QDMSServer.ViewModels
                 foreach (var tag in tags.Result.Result.Select(x => new CheckBoxTag(x, model.Tags.Contains(x))))
                 {
                     AllTags.Add(tag);
+                    tag.PropertyChanged += Tag_PropertyChanged;
                 }
 
                 Exchanges.AddRange(exchanges.Result.Result);
@@ -131,7 +132,7 @@ namespace QDMSServer.ViewModels
             , saveCanExecute);
             Save.Subscribe(async result =>
             {
-                var errors = await result.DisplayErrors(this, DialogCoordinator);
+                var errors = await result.DisplayErrors(this, DialogCoordinator).ConfigureAwait(true);
                 if (!errors)
                 {
                     AddedInstrument = result.Result;
@@ -140,6 +141,23 @@ namespace QDMSServer.ViewModels
             });
 
             this.Validate();
+        }
+
+        private void Tag_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            //fires when a tag is checked
+            var checkbox = sender as CheckBoxTag;
+            if (checkbox == null) return;
+
+            if(checkbox.IsChecked && !Model.Tags.Contains(checkbox.Item))
+            {
+                Model.Tags.Add(checkbox.Item);
+            }
+            
+            if(!checkbox.IsChecked)
+            {
+                Model.Tags.Remove(checkbox.Item);
+            }
         }
 
         private void ClearSessions()
