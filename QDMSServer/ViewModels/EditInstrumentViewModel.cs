@@ -101,17 +101,6 @@ namespace QDMSServer.ViewModels
             AddNewSession = ReactiveCommand.Create(() => AddSession());
             RemoveSession = ReactiveCommand.Create<SessionViewModel>(ExecRemoveSession);
 
-            this.WhenAny(x => x.SessionsSource, x => x)
-                .Subscribe(x => RefreshSessions());
-
-            this.WhenAny(x => x.Exchange, x => x)
-                .Where(_ => this.SessionsSource == SessionsSource.Exchange)
-                .Subscribe(x => RefreshSessions());
-
-            this.WhenAny(x => x.SessionTemplateID, x => x)
-                .Where(_ => this.SessionsSource == SessionsSource.Template)
-                .Subscribe(x => RefreshSessions());
-
             //Save
             var saveCanExecute = this
                 .WhenAnyValue(x => x.HasErrors)
@@ -492,6 +481,7 @@ namespace QDMSServer.ViewModels
                 if (value == Model.SessionsSource) return;
                 Model.SessionsSource = value;
                 this.RaisePropertyChanged();
+                RefreshSessions(); //here because doing it as a command was buggy for some reason
             }
         }
 
