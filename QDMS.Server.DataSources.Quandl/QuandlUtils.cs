@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Net;
 using System.Xml.Linq;
 using System.Linq;
+using System.Threading.Tasks;
 using QDMS;
 
 namespace QDMSServer
@@ -148,25 +149,39 @@ namespace QDMSServer
         /// Searches Quandl for instruments matching the string search parameter.
         /// </summary>
         /// <param name="search">Search string.</param>
-        /// <param name="count">The number of items found.</param>
+        /// <param name="authToken"></param>
         /// <param name="page">The "page" of results to download.</param>
         /// <returns>A list of instruments matching the search parameter.</returns>
-        public static List<Instrument> FindInstruments(string search, out int count, int page = 1)
+        public static async Task<QuandlInstrumentSearchResult> FindInstruments(string search, string authToken, int page = 1)
         {
             page = Math.Max(1, page);
-            string url = string.Format("http://www.quandl.com/api/v1/datasets.xml?query={0}&page={1}",
+            string url = string.Format("http://www.quandl.com/api/v1/datasets.xml?query={0}&page={1}&auth_token={2}",
                 search,
-                page);
+                page,
+                authToken);
 
             string xml;
 
             using (var webClient = new WebClient())
             {
                 //exceptions should be handled further up
-                xml = webClient.DownloadString(url);
+                xml = await webClient.DownloadStringTaskAsync(url).ConfigureAwait(false);
             }
 
-            return ParseInstrumentXML(xml, out count);
+            int count;
+            var instruments = ParseInstrumentXML(xml, out count);
+            return new QuandlInstrumentSearchResult(instruments, count);
+        }
+
+        public class QuandlInstrumentSearchResult
+        {
+            public QuandlInstrumentSearchResult(List<Instrument> instruments, int count)
+            {
+                Instruments = instruments;
+                Count = count;
+            }
+            public List<Instrument> Instruments;
+            public int Count;
         }
 
 
