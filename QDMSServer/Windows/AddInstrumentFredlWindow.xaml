@@ -29,7 +29,7 @@
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Search: " VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0" KeyboardNavigation.IsTabStop="False" Width="50" Height="26"/>
 
-        <TextBox Text="{Binding Symbol}"
+        <TextBox Text="{Binding Symbol, UpdateSourceTrigger=PropertyChanged}"
             Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="26" Margin="89,10,0,0"
                  TextWrapping="Wrap" VerticalAlignment="Top" Width="149">
             <TextBox.InputBindings>

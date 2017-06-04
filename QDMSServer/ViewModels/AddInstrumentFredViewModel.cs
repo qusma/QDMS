@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using MahApps.Metro.Controls.Dialogs;
 using NLog;
 using QDMS;
@@ -23,6 +24,7 @@ namespace QDMSServer.ViewModels
         private readonly IDialogCoordinator _dialogCoordinator;
         private string _status;
         private Datasource _thisDS;
+        private string _symbol;
         private const string ApiKey = "f8d71bdcf1d7153e157e0baef35f67db";
 
         public string Status
@@ -31,7 +33,11 @@ namespace QDMSServer.ViewModels
             set => this.RaiseAndSetIfChanged(ref _status, value);
         }
 
-        public string Symbol { get; set; }
+        public string Symbol
+        {
+            get => _symbol;
+            set => this.RaiseAndSetIfChanged(ref _symbol, value);
+        }
 
         public ReactiveCommand<string, Unit> Search { get; }
 
@@ -58,7 +64,7 @@ namespace QDMSServer.ViewModels
                 }
             });
 
-
+            var canSearch = this.WhenAnyValue(x => x.Symbol).Select(string.IsNullOrEmpty);
             Search = ReactiveCommand.CreateFromTask<string>(async symbol =>
             {
                 Series.Clear();
@@ -77,7 +83,7 @@ namespace QDMSServer.ViewModels
                 {
                     await _dialogCoordinator.ShowMessageAsync(this, "Error", ex.Message).ConfigureAwait(true);
                 }
-            });
+            }, canSearch);
 
             Add = ReactiveCommand.CreateFromTask<IList>(async selectedInstruments =>
             {
