@@ -30,6 +30,10 @@ namespace QDMS.Server.NancyModules
                     return this.ValidationFailure();
                 }
 
+                //check for existing tag
+                var existingTag = context.Tags.FirstOrDefault(x => x.Name == tag.Name);
+                if (existingTag != null) return HttpStatusCode.Conflict;
+
                 context.Tags.Add(tag);
                 context.SaveChanges();
 
