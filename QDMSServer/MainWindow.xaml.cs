@@ -256,7 +256,7 @@ namespace QDMSServer
                 foreach (Instrument i in selectedInstruments)
                 {
                     if (!i.ID.HasValue) continue;
-
+                    //TODO add GetStorageInfo to client, then remove dependency on DataStorageFactory here
                     var storageInfo = localStorage.GetStorageInfo(i.ID.Value);
                     if (storageInfo.Any(x => x.Frequency == frequency))
                     {
@@ -325,11 +325,12 @@ namespace QDMSServer
         //show the Quandl add instrument window
         private void AddInstrumentQuandlBtn_OnClick(object sender, RoutedEventArgs e)
         {
-            var window = new AddInstrumentQuandlWindow();
+            var window = new AddInstrumentQuandlWindow(_client);
+            window.ShowDialog();
 
-            if (window.AddedInstruments != null)
+            if (window.ViewModel.AddedInstruments != null)
             {
-                foreach (Instrument i in window.AddedInstruments)
+                foreach (Instrument i in window.ViewModel.AddedInstruments)
                 {
                     ViewModel.Instruments.Add(i);
                 }
@@ -431,6 +432,7 @@ namespace QDMSServer
 
             using (var storage = DataStorageFactory.Get())
             {
+                //todo remove dependency on local storage here, use client instead
                 foreach (Instrument i in selectedInstruments)
                 {
                     try
@@ -448,38 +450,41 @@ namespace QDMSServer
         }
 
         //adds or removes a tag from one or more instruments
-        private void SetTag_ItemClick(object sender, RoutedEventArgs routedEventArgs)
+        private async void SetTag_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            //todo move to mvvm
-            using (var context = new MyDBContext())
+            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            var btn = (MenuItem)routedEventArgs.Source;
+            int tagID = (int)btn.Tag;
+            var tagResponse = await _client.GetTags().ConfigureAwait(true);
+            if (!tagResponse.WasSuccessful)
             {
-                var selectedInstruments = InstrumentsGrid.SelectedItems;
-                var btn = (MenuItem)routedEventArgs.Source;
+                await this.ShowMessageAsync("Error", string.Join("\n", tagResponse.Errors)).ConfigureAwait(true);
+                return;
+            }
 
-                //one instrument selected
-                foreach (Instrument instrument in selectedInstruments)
+            var tag = tagResponse.Result.FirstOrDefault(x => x.ID == tagID);
+            if (tag == null)
+            {
+                await this.ShowMessageAsync("Error", "Could not find tag on the server").ConfigureAwait(true);
+                return;
+            }
+
+            //one instrument selected
+            foreach (Instrument instrument in selectedInstruments)
+            {
+                if (btn.IsChecked)
                 {
-                    context.Instruments.Attach(instrument);
-
-                    if (btn.IsChecked)
-                    {
-                        var tag = context.Tags.First(x => x.ID == (int)btn.Tag);
-                        context.Tags.Attach(tag);
-                        instrument.Tags.Add(tag);
-                    }
-                    else
-                    {
-                        btn.IsChecked = false;
-                        var tmpTag = instrument.Tags.First(x => x.ID == (int)btn.Tag);
-                        context.Tags.Attach(tmpTag);
-                        instrument.Tags.Remove(tmpTag);
-                    }
+                    instrument.Tags.Add(tag);
+                }
+                else
+                {
+                    instrument.Tags.Remove(tag);
                 }
 
-                context.SaveChanges();
-
-                CollectionViewSource.GetDefaultView(InstrumentsGrid.ItemsSource).Refresh();
+                await _client.UpdateInstrument(instrument).ConfigureAwait(true);
             }
+
+            CollectionViewSource.GetDefaultView(InstrumentsGrid.ItemsSource).Refresh();
         }
 
         private void BtnSettings_OnItemClick(object sender, RoutedEventArgs routedEventArgs)
@@ -531,34 +536,36 @@ namespace QDMSServer
         }
 
         //add a new tag from the context menu and then apply it to the selected instruments
-        private void NewTagTextBox_KeyDown(object sender, KeyEventArgs e)
+        private async void NewTagTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
 
             var newTagTextBox = (TextBox)sender;
 
-            using (var context = new MyDBContext())
+            string newTagName = newTagTextBox.Text;
+
+            //add the tag
+            var addTagResult = await _client.AddTag(new Tag() { Name = newTagName }).ConfigureAwait(true);
+            if(!addTagResult.WasSuccessful)
             {
-                string newTagName = newTagTextBox.Text;
-                if (context.Tags.Any(x => x.Name == newTagName)) return; //tag already exists
+                await this.ShowMessageAsync("Error", "Could not add tag").ConfigureAwait(true);
+                return;
+            }
+            var newTag = addTagResult.Result;
 
-                //add the tag
-                var newTag = new Tag { Name = newTagName };
-                context.Tags.Add(newTag);
+            //apply the tag to the selected instruments
+            var selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>();
+            foreach (Instrument i in selectedInstruments)
+            {
+                i.Tags.Add(newTag);
+                await _client.UpdateInstrument(i).ConfigureAwait(true);
+            }
 
-                //apply the tag to the selected instruments
-                var selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>();
-                foreach (Instrument i in selectedInstruments)
-                {
-                    context.Instruments.Attach(i);
-                    i.Tags.Add(newTag);
-                }
-
-                context.SaveChanges();
-
-                //update the tag menu
-                var allTags = context.Tags.ToList();
-                BuildTagContextMenu(allTags);
+            //update the tag menu
+            var allTags = await _client.GetTags().ConfigureAwait(true);
+            if (allTags.WasSuccessful)
+            {
+                BuildTagContextMenu(allTags.Result);
             }
 
             newTagTextBox.Text = "";
@@ -620,7 +627,7 @@ namespace QDMSServer
         {
             var setSessionMenu = (MenuItem)Resources["InstrumentSetSessionMenu"];
             setSessionMenu.Items.Clear();
-
+            //todo remake to use client
             using (var context = new MyDBContext())
             {
                 foreach (SessionTemplate t in context.SessionTemplates.ToList())
@@ -637,47 +644,47 @@ namespace QDMSServer
             }
         }
 
-        private void SetSession_ItemClick(object sender, RoutedEventArgs e)
+        private async void SetSession_ItemClick(object sender, RoutedEventArgs e)
         {
-            using (var context = new MyDBContext())
+            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            var btn = (MenuItem)e.Source;
+
+            int templateID = (int)btn.Tag;
+
+            var templates = await _client.GetSessionTemplates().ConfigureAwait(true);
+            if(!templates.WasSuccessful)
             {
-                var selectedInstruments = InstrumentsGrid.SelectedItems;
-                var btn = (MenuItem)e.Source;
+                await this.ShowMessageAsync("Error", string.Join("\n", templates.Errors)).ConfigureAwait(true);
+                return;
+            }
 
-                int templateID = (int)btn.Tag;
+            var template = templates.Result.FirstOrDefault(x => x.ID == templateID);
+            if (template == null)
+            {
+                await this.ShowMessageAsync("Error", "Could not find template on the server").ConfigureAwait(true);
+                return;
+            }
 
-                var templateSessions = context.TemplateSessions.Where(x => x.TemplateID == templateID).ToList();
+            foreach (Instrument instrument in selectedInstruments)
+            {
+                instrument.SessionsSource = SessionsSource.Template;
+                instrument.SessionTemplateID = templateID;
 
-                //one instrument selected
-                foreach (Instrument instrument in selectedInstruments)
+                if(instrument.Sessions == null)
                 {
-                    context.Instruments.Attach(instrument);
-                    instrument.SessionsSource = SessionsSource.Template;
-                    instrument.SessionTemplateID = templateID;
-
-                    if(instrument.Sessions == null)
-                    {
-                        instrument.Sessions = new List<InstrumentSession>();
-                    }
-
-                    //Remove any old sessions
-                    var tmpSessions = new List<InstrumentSession>(instrument.Sessions);
-                    foreach (InstrumentSession isession in tmpSessions)
-                    {
-                        context.InstrumentSessions.Attach(isession);
-                        context.InstrumentSessions.Remove(isession);
-                    }
-
-                    instrument.Sessions.Clear();
-
-                    //Add the new sessions
-                    foreach(TemplateSession ts in templateSessions)
-                    {
-                        instrument.Sessions.Add(ts.ToInstrumentSession());
-                    }
+                    instrument.Sessions = new List<InstrumentSession>();
                 }
 
-                context.SaveChanges();
+                instrument.Sessions.Clear();
+
+                //Add the new sessions
+                foreach(TemplateSession ts in template.Sessions)
+                {
+                    instrument.Sessions.Add(ts.ToInstrumentSession());
+                }
+
+                //update the instruments
+                await _client.UpdateInstrument(instrument).ConfigureAwait(true);
             }
         }
 
@@ -690,6 +697,7 @@ namespace QDMSServer
         {
             var window = new TagsWindow(_client);
             window.Show();
+            BuildTagContextMenu(window.ViewModel.Tags.Select(x => x.Model));
         }
 
         private void TableView_RowDoubleClick(object sender, MouseButtonEventArgs e)
