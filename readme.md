@@ -2,7 +2,7 @@ QUSMA Data Management System (QDMS)
 ===================================
 
 [![Join the chat at https://gitter.im/qdms/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qdms/Lobby)
-[![Build status](https://ci.appveyor.com/api/projects/status/ma7h13iqscrl5h05/branch/master?svg=true)](https://ci.appveyor.com/project/LeonhardSchick/qdms/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/303iq159kj0giugu?svg=true)](https://ci.appveyor.com/project/qusma/qdms)
 
 The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
 
@@ -12,7 +12,7 @@ Here's a rough view of how the systems are connected to each other:
 
 ![Layer Overview](http://i.imgur.com/oRbwoiG.png).
 
-A client library is provided which can access the server either locally or over a network, to request data, metadata, etc. A simple sample application showing usage of the client can be found [here](https://github.com/leo90skk/qdms/blob/master/SampleApp/Program.cs).
+A client library is provided which can access the server either locally or over a network, to request data, metadata, etc. A simple sample application showing usage of the client can be found [here](https://github.com/qusma/qdms/blob/master/SampleApp/Program.cs).
 
 QDMS uses MySQL or SQL Server for storage, ZeroMQ and Protocol Buffers for client/server communications and MahApps.Metro for the interface.
 
@@ -64,11 +64,11 @@ Contributing
 ------------
 
 If you wish to contribute, you can easily fork the repo and send a pull request with your changes. Try to send pull requests that are dealing just with one topic - that makes reviewing easier.
-Or just create [create an issue](https://github.com/leo90skk/qdms/issues/new) and we can discuss your great ideas!
+Or just create [create an issue](https://github.com/qusma/qdms/issues/new) and we can discuss your great ideas!
 
 Roadmap
 -------
-Take a look at [Roadmap](roadmap.md), the github [issues](https://github.com/leo90skk/qdms/labels/enhancement) and the [milestones](https://github.com/leo90skk/qdms/milestones).
+Take a look at [Roadmap](roadmap.md), the github [issues](https://github.com/qusma/qdms/labels/enhancement) and the [milestones](https://github.com/qusma/qdms/milestones).
 
 
 License
