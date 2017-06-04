@@ -18,7 +18,7 @@ namespace QDMS.Server.Validation
         {
             RuleFor(req => req.Name).NotEmpty().WithMessage("Name must have a value");
             RuleFor(req => req.Symbol).NotEmpty().WithMessage("Symbol must have a value");
-            RuleFor(req => req.Exchange).NotNull().WithMessage("Must have an exchange");
+            //RuleFor(req => req.Exchange).NotNull().WithMessage("Must have an exchange"); //some instruments like FRED indexes have no natural exchange
             RuleFor(req => req.Datasource).NotNull().WithMessage("Must have a datasource");
             RuleFor(req => req.Multiplier).NotNull().WithMessage("Must have a multiplier");
 
