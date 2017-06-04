@@ -173,15 +173,15 @@
       <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.4.9\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.4.10\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="NodaTime, Version=2.0.2.0, Culture=neutral, PublicKeyToken=4226afe0d9b296d1, processorArchitecture=MSIL">
       <HintPath>..\packages\NodaTime.2.0.2\lib\net45\NodaTime.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework.Aero" />
     <Reference Include="PresentationUI, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="protobuf-net, Version=2.2.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <HintPath>..\packages\protobuf-net.2.2.0\lib\net40\protobuf-net.dll</HintPath>
+    <Reference Include="protobuf-net, Version=2.2.1.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.2.2.1\lib\net40\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="ProtoSharp.Core">
       <HintPath>..\Libraries\OEC\ProtoSharp.Core.dll</HintPath>
@@ -314,6 +314,7 @@
     <Compile Include="ValueConverters\TZToStringConverter.cs" />
     <Compile Include="ViewModels\AddInstrumentFredViewModel.cs" />
     <Compile Include="ViewModels\AddInstrumentIbViewModel.cs" />
+    <Compile Include="ViewModels\AddInstrumentQuandlViewModel.cs" />
     <Compile Include="ViewModels\DividendUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\EconomicReleaseUpdateJobViewModel.cs" />
