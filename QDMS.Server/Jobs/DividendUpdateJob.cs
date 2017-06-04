@@ -83,7 +83,6 @@ namespace QDMS.Server.Jobs
             }
             else
             {
-                //todo is the tag set correctly?
                 //get the symbols using the tag filter
                 var symbols = _instrumentManager
                     .FindInstruments(x => x.Tags.Any(y => y.ID == settings.TagID))

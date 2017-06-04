@@ -74,7 +74,7 @@ namespace QDMSServer.ViewModels
                 var jobs = new List<IJobSettings>();
                 jobs.AddRange(dataUpdateJobs.Result.Result);
                 jobs.AddRange(econReleaseUpdateJobs.Result.Result);
-                jobs.AddRange(dividendUpdateJobs.Result.Result); //todo check if the tag system works properly
+                jobs.AddRange(dividendUpdateJobs.Result.Result);
 
                 return jobs;
             });

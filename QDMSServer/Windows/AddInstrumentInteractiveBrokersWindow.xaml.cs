@@ -11,6 +11,7 @@ using QDMSServer.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Input;
+using QDMS;
 
 namespace QDMSServer
 {
@@ -21,11 +22,11 @@ namespace QDMSServer
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public AddInstrumentInteractiveBrokersWindow()
+        public AddInstrumentInteractiveBrokersWindow(IDataClient client)
         {
             try
             {
-                ViewModel = new AddInstrumentIbViewModel(DialogCoordinator.Instance);
+                ViewModel = new AddInstrumentIbViewModel(DialogCoordinator.Instance, client);
             }
             catch (Exception ex)
             {
