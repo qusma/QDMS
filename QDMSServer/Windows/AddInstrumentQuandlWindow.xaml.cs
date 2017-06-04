@@ -4,18 +4,21 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data.Entity;
-using System.Linq;
-using System.Windows;
-using System.Windows.Input;
 using EntityData;
 using MahApps.Metro.Controls;
 using NLog;
 using QDMS;
 using QDMS.Server;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data.Entity;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Windows;
+using System.Windows.Input;
+using MahApps.Metro.Controls.Dialogs;
+using QDMSServer.ViewModels;
 
 namespace QDMSServer
 {
@@ -24,69 +27,13 @@ namespace QDMSServer
     /// </summary>
     public partial class AddInstrumentQuandlWindow : MetroWindow
     {
-        public ObservableCollection<Exchange> Exchanges { get; set; }
-        public ObservableCollection<Instrument> Instruments { get; set; }
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
-        public List<Instrument> AddedInstruments { get; set; }
-
-        private readonly Datasource _thisDS;
-
-        public AddInstrumentQuandlWindow()
+        public AddInstrumentQuandlViewModel ViewModel { get; set; }
+        public AddInstrumentQuandlWindow(IDataClient client)
         {
-            DataContext = this;
-
-            AddedInstruments = new List<Instrument>();
-            Exchanges = new ObservableCollection<Exchange>();
-
-            Instruments = new ObservableCollection<Instrument>();
-
             InitializeComponent();
 
-            ExchangeComboBox.ItemsSource = Exchanges;
-            PrimaryExchangeComboBox.ItemsSource = Exchanges;
-
-            using (var entityContext = new MyDBContext())
-            {
-                _thisDS = entityContext.Datasources.First(x => x.Name == "Quandl");
-                foreach (Exchange e in entityContext.Exchanges.Include(x => x.Sessions))
-                {
-                    Exchanges.Add(e);
-                }
-            }
-
-            
-
-            ShowDialog();
-        }
-
-        private void Search(int page = 1)
-        {
-            Instruments.Clear();
-            int count = 0;
-            var foundInstruments = QuandlUtils.FindInstruments(SymbolTextBox.Text, out count, page);
-            foreach (var i in foundInstruments)
-            {
-                i.Datasource = _thisDS;
-                i.DatasourceID = _thisDS.ID;
-                i.Multiplier = 1;
-                Instruments.Add(i);
-            }
-
-            StatusLabel.Content = count + " contracts found";
-
-            CurrentPageTextBox.Text = page.ToString();
-        }
-
-        private void SymbolTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-                Search();
-        }
-
-        private void SearchBtn_Click(object sender, RoutedEventArgs e)
-        {
-            Search();
+            ViewModel = new AddInstrumentQuandlViewModel(client, DialogCoordinator.Instance, Properties.Settings.Default.quandlAuthCode);
+            DataContext = ViewModel;
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)
@@ -94,69 +41,9 @@ namespace QDMSServer
             Hide();
         }
 
-        private void AddBtn_Click(object sender, RoutedEventArgs e)
+        private async void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            int count = 0;
-            
-            using (var context = new MyDBContext())
-            {
-                var instrumentSource = new InstrumentRepository(context);
-                foreach (Instrument newInstrument in InstrumentGrid.SelectedItems)
-                {
-                    if (newInstrument.Exchange != null)
-                        newInstrument.ExchangeID = newInstrument.Exchange.ID;
-                    if (newInstrument.PrimaryExchange != null)
-                        newInstrument.PrimaryExchangeID = newInstrument.PrimaryExchange.ID;
-
-                    try
-                    {
-                        if (instrumentSource.AddInstrument(newInstrument) != null)
-                            count++;
-                        AddedInstruments.Add(newInstrument);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error");
-                    }
-                }
-            }
-            StatusLabel.Content = string.Format("{0}/{1} instruments added.", count, InstrumentGrid.SelectedItems.Count);
-        }
-
-        private void PageForwardBtn_Click(object sender, RoutedEventArgs e)
-        {
-            int currentPage;
-            bool parsed = int.TryParse(CurrentPageTextBox.Text, out currentPage);
-            if (parsed)
-            {
-                currentPage++;
-                Search(currentPage);
-            }
-        }
-
-        private void PageBackBtn_OnClick(object sender, RoutedEventArgs e)
-        {
-            int currentPage;
-            bool parsed = int.TryParse(CurrentPageTextBox.Text, out currentPage);
-            if (parsed && currentPage > 1)
-            {
-                currentPage++;
-                Search(currentPage);
-            }
-        }
-
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                int currentPage;
-                bool parsed = int.TryParse(CurrentPageTextBox.Text, out currentPage);
-                if (parsed)
-                {
-                    currentPage++;
-                    Search(currentPage);
-                }
-            }
+            await ViewModel.Load.Execute();
         }
     }
 }

@@ -8,7 +8,10 @@
     Title="Add Instrument: Quandl" Height="563.887" Width="1443.762"
     FocusManager.FocusedElement="{Binding ElementName=SymbolTextBox}"
     BorderBrush="Black"
-    BorderThickness="1">
+    BorderThickness="1"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    Dialog:DialogParticipation.Register="{Binding}"
+    Loaded="MetroWindow_Loaded">
 
     <controls:MetroWindow.Resources>
         <ObjectDataProvider x:Key="InstrumentTypes" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
@@ -26,11 +29,15 @@
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Search: " VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0" KeyboardNavigation.IsTabStop="False" Width="50" Height="26"/>
 
-        <TextBox Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="26" Margin="89,10,0,0" KeyDown="SymbolTextBox_KeyDown"
-                 TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="149" />
+        <TextBox Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="26" Margin="89,10,0,0" 
+                 TextWrapping="Wrap" Text="{Binding Symbol, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="149">
+            <TextBox.InputBindings>
+                <KeyBinding Key="Return" Command="{Binding Search}" />
+            </TextBox.InputBindings>
+        </TextBox>
 
         <Button Grid.Row="0" Name="SearchBtn" Content="Search" HorizontalAlignment="Left" Margin="283,10,0,0" 
-                VerticalAlignment="Top"  Width="75" Height="26" Click="SearchBtn_Click" />
+                VerticalAlignment="Top"  Width="75" Height="26" Command="{Binding Search}" />
 
 
 
@@ -55,11 +62,6 @@
                 <DataGridTextColumn Header="Category" Binding="{Binding Path=Category}" Width="85"/>
                 <DataGridTextColumn Header ="Sub Cat." Binding="{Binding Path=Subcategory}" Width="80"/>
 
-                <DataGridComboBoxColumn DisplayMemberPath="Name" x:Name="ExchangeComboBox"
-                                        SelectedItemBinding="{Binding Path=Exchange}" Header="Exchange" Width="60"/>
-                <DataGridComboBoxColumn DisplayMemberPath="Name" x:Name="PrimaryExchangeComboBox"
-                                        SelectedItemBinding="{Binding Path=PrimaryExchange}" Header="Prim. Exch." Width="60"/>
-                
                 <DataGridTextColumn Binding="{Binding Path=ValidExchanges}" Header="Valid Exch." Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
@@ -68,11 +70,14 @@
 
         <Button Name="CloseBtn" Click="CloseBtn_Click" Content="Close" HorizontalAlignment="Right" Margin="0,7,10,7" Grid.Row="2" 
                 VerticalAlignment="Center"  Width="75" Height="26"/>
-        <Button Name="AddBtn" Click="AddBtn_Click" Content="Add" HorizontalAlignment="Right" Margin="0,7,94,7" Grid.Row="2" VerticalAlignment="Center"  Width="75" Height="26"/>
-        <Label Name="StatusLabel" Content="" Width="500" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top" Height="23"/>
-        <TextBox Name="CurrentPageTextBox" KeyDown="TextBox_KeyDown" Grid.Row="0" HorizontalAlignment="Left" Height="23" Margin="640,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="42"/>
-        <Button Grid.Row="0" Name="PageBackBtn" Click="PageBackBtn_OnClick" Content="&lt;" HorizontalAlignment="Left" Margin="608,10,0,0" VerticalAlignment="Top" Width="27"/>
-        <Button Grid.Row="0" Name="PageForwardBtn" Click="PageForwardBtn_Click" Content=">" HorizontalAlignment="Left" Margin="687,10,0,0" VerticalAlignment="Top" Width="27"/>
+        <Button Name="AddBtn" Command="{Binding Add}" CommandParameter="{Binding ElementName=InstrumentGrid,Path=SelectedItems}" 
+                Content="Add" HorizontalAlignment="Right" Margin="0,7,94,7" Grid.Row="2" VerticalAlignment="Center"  Width="75" Height="26"/>
+        <Label Name="StatusLabel" Content="{Binding Status}" Width="500" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top" Height="23"/>
+        <TextBox Name="CurrentPageTextBox" 
+                 Text="{Binding CurrentPage}"
+                 Grid.Row="0" HorizontalAlignment="Left" Height="23" Margin="640,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="42"/>
+        <Button Grid.Row="0" Name="PageBackBtn" Command="{Binding DecrementPage}" Content="&lt;" HorizontalAlignment="Left" Margin="608,10,0,0" VerticalAlignment="Top" Width="27"/>
+        <Button Grid.Row="0" Name="PageForwardBtn" Command="{Binding IncrementPage}" Content=">" HorizontalAlignment="Left" Margin="687,10,0,0" VerticalAlignment="Top" Width="27"/>
         <Label Grid.Row="0"  Content="Page:" HorizontalAlignment="Left" Margin="556,10,0,0" VerticalAlignment="Top" Width="47"/>
     </Grid>
 </controls:MetroWindow>
