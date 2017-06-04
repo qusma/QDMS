@@ -1,14 +1,9 @@
 // -----------------------------------------------------------------------
 // <copyright file="AddInstrumentIbViewModel.cs" company="">
-// Copyright 2015 Alexander Soffronow Pagonidis
+// Copyright 2017 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
-using EntityData;
-using Krs.Ats.IBNet;
-using NLog;
-using QDMS;
-using ReactiveUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,17 +12,23 @@ using System.Data.Entity;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using EntityData;
+using Krs.Ats.IBNet;
 using MahApps.Metro.Controls.Dialogs;
-using QDMS.Server;
+using NLog;
+using QDMS;
+using ReactiveUI;
 
 namespace QDMSServer.ViewModels
 {
     public class AddInstrumentIbViewModel : ReactiveObject, IDisposable
     {
-        public AddInstrumentIbViewModel(IDialogCoordinator dialogService)
+        public AddInstrumentIbViewModel(IDialogCoordinator dialogService, IDataClient client)
         {
             _dialogService = dialogService;
+            _qdmsClient = client;
             CreateCommands();
 
             Random r = new Random();
@@ -98,21 +99,21 @@ namespace QDMSServer.ViewModels
             _tmpContractDetails.Add(e);
         }
 
-        private void _client_BatchContractDetailsEnd(object sender, ContractDetailsEndEventArgs e)
+        private async void _client_BatchContractDetailsEnd(object sender, ContractDetailsEndEventArgs e)
         {
-            if (_tmpContractDetails.Count == 1)
+            if (_tmpContractDetails.Count == 1) //we only want one because otherwise there is ambiguity in the contracts
             {
-                using (var context = new MyDBContext())
-                {
-                    var im = new InstrumentRepository(context);
-                    Instrument instrument = ContractToInstrument(_tmpContractDetails[0]);
+                Instrument instrument = ContractToInstrument(_tmpContractDetails[0]);
 
-                    if (instrument != null && TryAddInstrument(im, instrument))
-                    {
-                        //successfully added the symbol
-                        _symbolsAdded.Add(instrument.Symbol);
-                    }
+                if (instrument != null && await TryAddInstrument(instrument).ConfigureAwait(true) != null)
+                {
+                    //successfully added the symbol
+                    _symbolsAdded.Add(instrument.Symbol);
                 }
+            }
+            else
+            {
+                _logger.Info("Could not batch add " + _tmpContractDetails.FirstOrDefault()?.ContractDetails.Summary.Symbol + ", " + _tmpContractDetails.Count + " ambiguous contracts found.");
             }
 
             _tmpContractDetails.Clear();
@@ -191,29 +192,25 @@ namespace QDMSServer.ViewModels
 
         private void CreateCommands()
         {
-            AddSelectedInstruments = ReactiveCommand.Create<IList>(ExecuteAddSelectedInstruments);
+            AddSelectedInstruments = ReactiveCommand.CreateFromTask<IList>(async instruments => 
+                await ExecuteAddSelectedInstruments(instruments).ConfigureAwait(true));
 
             Search = ReactiveCommand.Create(ExecuteSearch, this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
 
             BatchAddMultipleSymbols = ReactiveCommand.Create(ExecuteBatchAddSymbols, this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
         }
 
-        private void ExecuteAddSelectedInstruments(IList selectedInstruments)
+        private async Task ExecuteAddSelectedInstruments(IList selectedInstruments)
         {
             if (selectedInstruments == null) throw new ArgumentNullException(nameof(selectedInstruments));
             if (selectedInstruments.Count == 0) return;
 
             int count = 0;
-            using (var context = new MyDBContext())
+            foreach (Instrument newInstrument in selectedInstruments)
             {
-                var instrumentSource = new InstrumentRepository(context);
-
-                foreach (Instrument newInstrument in selectedInstruments)
+                if (await TryAddInstrument(newInstrument).ConfigureAwait(true) != null)
                 {
-                    if (TryAddInstrument(instrumentSource, newInstrument))
-                    {
-                        count++;
-                    }
+                    count++;
                 }
             }
 
@@ -300,29 +297,27 @@ namespace QDMSServer.ViewModels
             SendContractDetailsRequest(nextSymbol);
         }
 
-        private bool TryAddInstrument(InstrumentRepository instrumentSource, Instrument newInstrument, bool showDialogs = true)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <returns>null if addition failed</returns>
+        private async Task<Instrument> TryAddInstrument(Instrument instrument)
         {
-            try
+            var result = await _qdmsClient.AddInstrument(instrument).ConfigureAwait(true);
+            if (await result.DisplayErrors(this, _dialogService).ConfigureAwait(true))
             {
-                if (instrumentSource.AddInstrument(newInstrument) != null)
-                {
-                    AddedInstruments.Add(newInstrument);
-                    return true;
-                }
+                //request failed
+                _logger.Error("IB add instrument failure: " + string.Join(",", result.Errors));
+                return null;
             }
-            catch (Exception ex)
-            {
-                if (showDialogs)
-                {
-                    _dialogService.ShowMessageAsync(this, "Error", ex.Message);
-                }
 
-                _logger.Log(NLog.LogLevel.Warn, ex, "Error adding instrument");
-            }
-            return false;
+            var addedInstrument = result.Result;
+            AddedInstruments.Add(addedInstrument);
+            return addedInstrument;
         }
 
-        public List<Instrument> AddedInstruments { get; private set; }
+        public List<Instrument> AddedInstruments { get; }
 
         public ReactiveCommand<IList, Unit> AddSelectedInstruments { get; private set; }
 
@@ -330,22 +325,22 @@ namespace QDMSServer.ViewModels
 
         public string Currency
         {
-            get { return _currency; }
-            set { this.RaiseAndSetIfChanged(ref _currency, value); }
+            get => _currency;
+            set => this.RaiseAndSetIfChanged(ref _currency, value);
         }
 
         public ObservableCollection<string> Exchanges { get; set; }
 
         public DateTime? ExpirationDate
         {
-            get { return _expirationDate; }
-            set { this.RaiseAndSetIfChanged(ref _expirationDate, value); }
+            get => _expirationDate;
+            set => this.RaiseAndSetIfChanged(ref _expirationDate, value);
         }
 
         public bool IncludeExpired
         {
-            get { return _includeExpired; }
-            set { this.RaiseAndSetIfChanged(ref _includeExpired, value); }
+            get => _includeExpired;
+            set => this.RaiseAndSetIfChanged(ref _includeExpired, value);
         }
 
         public ObservableCollection<Instrument> Instruments { get; set; }
@@ -357,49 +352,50 @@ namespace QDMSServer.ViewModels
         /// </summary>
         public string MultiSymbolText
         {
-            get { return _multiSymbolText; }
-            set { this.RaiseAndSetIfChanged(ref _multiSymbolText, value); }
+            get => _multiSymbolText;
+            set => this.RaiseAndSetIfChanged(ref _multiSymbolText, value);
         }
 
         public ReactiveCommand<Unit, Unit> Search { get; private set; }
 
         public bool SearchUnderway
         {
-            get { return _searchUnderway; }
-            private set { this.RaiseAndSetIfChanged(ref _searchUnderway, value); }
+            get => _searchUnderway;
+            private set => this.RaiseAndSetIfChanged(ref _searchUnderway, value);
         }
 
         public string SelectedExchange
         {
-            get { return _selectedExchange; }
-            set { this.RaiseAndSetIfChanged(ref _selectedExchange, value); }
+            get => _selectedExchange;
+            set => this.RaiseAndSetIfChanged(ref _selectedExchange, value);
         }
 
         public InstrumentType SelectedType
         {
-            get { return _selectedType; }
-            set { this.RaiseAndSetIfChanged(ref _selectedType, value); }
+            get => _selectedType;
+            set => this.RaiseAndSetIfChanged(ref _selectedType, value);
         }
 
         public string Status
         {
-            get { return _status; }
-            set { this.RaiseAndSetIfChanged(ref _status, value); }
+            get => _status;
+            set => this.RaiseAndSetIfChanged(ref _status, value);
         }
 
         public double? Strike
         {
-            get { return _strike; }
-            set { this.RaiseAndSetIfChanged(ref _strike, value); }
+            get => _strike;
+            set => this.RaiseAndSetIfChanged(ref _strike, value);
         }
 
         public string Symbol
         {
-            get { return _symbol; }
-            set { this.RaiseAndSetIfChanged(ref _symbol, value); }
+            get => _symbol;
+            set => this.RaiseAndSetIfChanged(ref _symbol, value);
         }
 
         private readonly IBClient _client;
+        private readonly IDataClient _qdmsClient;
         private readonly IDialogCoordinator _dialogService;
         private readonly Dictionary<string, Exchange> _exchanges;
 
