@@ -113,6 +113,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DataGridFilter.1.0.3\lib\DataGridFilterLibrary.dll</HintPath>
     </Reference>
+    <Reference Include="DynamicData, Version=4.12.0.1210, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DynamicData.4.12.0.1210\lib\net45\DynamicData.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
       <Private>True</Private>
@@ -319,6 +322,8 @@
     <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\EconomicReleaseUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\EditInstrumentViewModel.cs" />
+    <Compile Include="ViewModels\ExchangesViewModel.cs" />
+    <Compile Include="ViewModels\ExchangeViewModel.cs" />
     <Compile Include="ViewModels\JobViewModelBase.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SchedulerViewModel.cs" />
@@ -365,9 +370,6 @@
     </Compile>
     <Compile Include="Windows\DBConnectionWindow.xaml.cs">
       <DependentUpon>DBConnectionWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\EditExchangeWindow.xaml.cs">
-      <DependentUpon>EditExchangeWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ExchangesWindow.xaml.cs">
       <DependentUpon>ExchangesWindow.xaml</DependentUpon>
@@ -457,10 +459,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\DBConnectionWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\EditExchangeWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

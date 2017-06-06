@@ -7,6 +7,7 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
+using NLog;
 
 namespace QDMSServer
 {
@@ -22,7 +23,16 @@ namespace QDMSServer
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return null;
-            return TimeZoneInfo.FindSystemTimeZoneById((string)value);
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById((string)value);
+            }
+            catch(Exception ex)
+            {
+                var logger = LogManager.GetCurrentClassLogger();
+                logger.Warn("TZ parse error: " + ex.Message);
+                return null;
+            }
         }
 
         /// <summary>

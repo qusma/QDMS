@@ -388,7 +388,7 @@ namespace QDMSServer
 
         private void ExchangesBtn_OnItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var window = new ExchangesWindow();
+            var window = new ExchangesWindow(_client);
             window.ShowDialog();
         }
 

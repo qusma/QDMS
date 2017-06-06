@@ -62,6 +62,7 @@ namespace QDMSServer
             //grab the data info
             using (var localStorage = DataStorageFactory.Get())
             {
+                //TODO remove dependency on local storage here, use client instead
                 var storageInfo = localStorage.GetStorageInfo(TheInstrument.ID.Value);
 
                 if (storageInfo.Count == 0) //if it doesn't have any data, we just exit

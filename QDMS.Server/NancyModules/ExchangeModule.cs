@@ -41,7 +41,7 @@ namespace QDMS.Server.NancyModules
                 {
                     return this.ValidationFailure();
                 }
-
+                
                 dbSet.Add(exchange);
                 context.SaveChanges();
 
