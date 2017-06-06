@@ -11,8 +11,8 @@ module NasdaqDs =
     open System.Net.Http
     open System.Threading.Tasks
 
-    type SymbolDividends = HtmlProvider<"./DataSamples/AAPL.html">
-    type DateDividends = HtmlProvider<"./DataSamples/Jan27.html">
+    type SymbolDividends = HtmlProvider<"./AAPL.html">
+    type DateDividends = HtmlProvider<"./Jan27.html">
 
     type Nasdaq() = 
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
