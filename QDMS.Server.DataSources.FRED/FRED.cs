@@ -71,7 +71,7 @@ namespace QDMSServer.DataSources
             var instrument = request.Instrument;
             var symbol = string.IsNullOrEmpty(instrument.DatasourceSymbol) ? instrument.Symbol : instrument.DatasourceSymbol;
 
-            string dataURL = string.Format("http://api.stlouisfed.org/fred/series/observations?series_id={0}&api_key={1}&observation_start={2}&observation_end={3}&frequency={4}",
+            string dataURL = string.Format("https://api.stlouisfed.org/fred/series/observations?series_id={0}&api_key={1}&observation_start={2}&observation_end={3}&frequency={4}",
                 symbol,
                 ApiKey,
                 request.StartingDate.ToString("yyyy-MM-dd"),

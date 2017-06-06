@@ -64,7 +64,7 @@ namespace QDMSServer.ViewModels
                 }
             });
 
-            var canSearch = this.WhenAnyValue(x => x.Symbol).Select(string.IsNullOrEmpty);
+            var canSearch = this.WhenAnyValue(x => x.Symbol).Select(x => !string.IsNullOrEmpty(x));
             Search = ReactiveCommand.CreateFromTask<string>(async symbol =>
             {
                 Series.Clear();
