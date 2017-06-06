@@ -7,6 +7,7 @@
 using QDMSClient;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -22,6 +23,16 @@ namespace QDMS
 
         event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
         bool Connected { get; }
+
+        /// <summary>
+        /// Keeps track of historical requests that have been sent but the data has not been received yet.
+        /// </summary>
+        ObservableCollection<HistoricalDataRequest> PendingHistoricalRequests { get; }
+
+        /// <summary>
+        /// Keeps track of live real time data streams.
+        /// </summary>
+        ObservableCollection<RealTimeDataRequest> RealTimeDataStreams { get; }
 
         /// <summary>
         /// Add a new exchange
