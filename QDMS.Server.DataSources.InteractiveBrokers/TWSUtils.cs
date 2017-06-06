@@ -213,14 +213,11 @@ namespace QDMSServer
             string expirationString = "";
 
             //multiple options expire each month so the string needs to be more specific there
-            if(instrument.Type == InstrumentType.Option && instrument.Expiration.HasValue)
+            if(instrument.Expiration.HasValue)
             {
                 expirationString = instrument.Expiration.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
             }
-            else if (instrument.Expiration.HasValue)
-            {
-                expirationString = instrument.Expiration.Value.ToString("yyyyMM", CultureInfo.InvariantCulture);
-            }
+
 
             var contract = new Contract(
                 0,
