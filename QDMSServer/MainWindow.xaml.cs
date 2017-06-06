@@ -575,6 +575,7 @@ namespace QDMSServer
 
         private void NewDataRequestBtn_OnClick(object sender, RoutedEventArgs e)
         {
+            if (InstrumentsGrid.SelectedItem == null) return;
             var window = new HistoricalRequestWindow((Instrument)InstrumentsGrid.SelectedItem);
         }
 
