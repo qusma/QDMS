@@ -367,76 +367,15 @@ namespace QDMSServer.DataSources
             //if we asked for too much real time data at once, we need to re-queue the failed request
             if ((int)e.ErrorCode == 420) //a real time pacing violation
             {
-                lock (_queueLock)
-                {
-                    if (!_realTimeRequestQueue.Contains(e.TickerId))
-                    {
-                        //since the request did not succeed, what we do is re-queue it and it gets requested again by the timer
-                        _realTimeRequestQueue.Enqueue(e.TickerId);
-                    }
-                }
+                HandleRealTimePacingViolationError(e);
             }
             else if ((int)e.ErrorCode == 162) //a historical data pacing violation
             {
-                //turns out that more than one error uses the same error code! What were they thinking?
-                if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:HMDS query returned no data") ||
-                    e.ErrorMsg.StartsWith("Historical Market Data Service error message:No market data permissions"))
-                {
-                    //no data returned = we return an empty data set
-                    int origId;
-
-                    lock (_subReqMapLock)
-                    {
-                        //if the data is arriving for a sub-request, we must get the id of the original request first
-                        //otherwise it's just the same id
-                        origId = _subRequestIDMap.ContainsKey(e.TickerId)
-                                                    ? _subRequestIDMap[e.TickerId]
-                                                    : e.TickerId;
-                    }
-
-                    if (origId != e.TickerId)
-                    {
-                        //this is a subrequest - only complete the
-                        if (ControlSubRequest(e.TickerId))
-                        {
-                            HistoricalDataRequestComplete(origId);
-                        }
-                    }
-                    else
-                    {
-                        HistoricalDataRequestComplete(origId);
-                    }
-                }
-
-                else
-                {
-                    //simply a data pacing violation
-                    lock (_queueLock)
-                    {
-                        if (!_historicalRequestQueue.Contains(e.TickerId))
-                        {
-                            //same as above
-                            _historicalRequestQueue.Enqueue(e.TickerId);
-                        }
-                    }
-                }
+                HandleHistoricalDataPacingViolationError(e);
             }
             else if ((int)e.ErrorCode == 200) //No security definition has been found for the request.
             {
-                //Again multiple errors share the same code...
-                if (e.ErrorMsg.Contains("No security definition has been found for the request"))
-                {
-                    //this will happen for example when asking for data on expired futures
-                    //return an empty data list
-                    if(_historicalDataRequests.ContainsKey(e.TickerId))
-                        HistoricalDataRequestComplete(e.TickerId);
-                }
-                else //in this case we're handling a "Invalid destination exchange specified" error
-                {
-                    //not sure if there's anything else to do, if it's a real time request it just fails...
-                    if (_historicalDataRequests.ContainsKey(e.TickerId))
-                        HistoricalDataRequestComplete(e.TickerId);
-                }
+                HandleNoSecurityDefinitionError(e);
             }
 
             //different messages depending on the type of request
@@ -470,6 +409,102 @@ namespace QDMSServer.DataSources
             }
 
             RaiseEvent(Error, this, errorArgs);
+        }
+
+        private void HandleNoSecurityDefinitionError(ErrorEventArgs e)
+        {
+            //multiple errors share the same code...
+            if (e.ErrorMsg.Contains("No security definition has been found for the request") ||
+                e.ErrorMsg.Contains("Invalid destination exchange specified"))
+            {
+                //this will happen for example when asking for data on expired futures
+                //return an empty data list
+                //also handle the case where the error is for a subrequest
+                int origId;
+
+                lock (_subReqMapLock)
+                {
+                    //if the data is arriving for a sub-request, we must get the id of the original request first
+                    //otherwise it's just the same id
+                    origId = _subRequestIDMap.ContainsKey(e.TickerId)
+                        ? _subRequestIDMap[e.TickerId]
+                        : e.TickerId;
+                }
+
+                if (origId != e.TickerId)
+                {
+                    //this is a subrequest - only complete the
+                    if (ControlSubRequest(e.TickerId))
+                    {
+                        HistoricalDataRequestComplete(origId);
+                    }
+                }
+                else
+                {
+                    HistoricalDataRequestComplete(origId);
+                }
+            }
+            else
+            {
+                _logger.Error("Unexpected error: " + e.ErrorMsg);
+            }
+        }
+
+        private void HandleRealTimePacingViolationError(ErrorEventArgs e)
+        {
+            lock (_queueLock)
+            {
+                if (!_realTimeRequestQueue.Contains(e.TickerId))
+                {
+                    //since the request did not succeed, what we do is re-queue it and it gets requested again by the timer
+                    _realTimeRequestQueue.Enqueue(e.TickerId);
+                }
+            }
+        }
+
+        private void HandleHistoricalDataPacingViolationError(ErrorEventArgs e)
+        {
+            if (e.ErrorMsg.StartsWith("Historical Market Data Service error message:HMDS query returned no data") ||
+                e.ErrorMsg.StartsWith("Historical Market Data Service error message:No market data permissions"))
+            {
+                //no data returned = we return an empty data set
+                int origId;
+
+                lock (_subReqMapLock)
+                {
+                    //if the data is arriving for a sub-request, we must get the id of the original request first
+                    //otherwise it's just the same id
+                    origId = _subRequestIDMap.ContainsKey(e.TickerId)
+                        ? _subRequestIDMap[e.TickerId]
+                        : e.TickerId;
+                }
+
+                if (origId != e.TickerId)
+                {
+                    //this is a subrequest - only complete the
+                    if (ControlSubRequest(e.TickerId))
+                    {
+                        HistoricalDataRequestComplete(origId);
+                    }
+                }
+                else
+                {
+                    HistoricalDataRequestComplete(origId);
+                }
+            }
+
+            else
+            {
+                //simply a data pacing violation
+                lock (_queueLock)
+                {
+                    if (!_historicalRequestQueue.Contains(e.TickerId))
+                    {
+                        //same as above
+                        _historicalRequestQueue.Enqueue(e.TickerId);
+                    }
+                }
+            }
         }
 
         /// <summary>
