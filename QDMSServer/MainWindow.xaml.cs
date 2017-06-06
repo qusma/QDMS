@@ -394,7 +394,7 @@ namespace QDMSServer
 
         private void SessionTemplateBtn_OnItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var window = new SessionTemplatesWindow();
+            var window = new SessionTemplatesWindow(_client);
             window.ShowDialog();
             BuildSetSessionTemplateMenu();
         }

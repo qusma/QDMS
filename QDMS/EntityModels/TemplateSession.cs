@@ -36,28 +36,16 @@ namespace QDMS
         [NotMapped]
         public double OpeningAsSeconds
         {
-            get
-            {
-                return OpeningTime.TotalSeconds;
-            }
-            set
-            {
-                OpeningTime = TimeSpan.FromSeconds(value);
-            }
+            get => OpeningTime.TotalSeconds;
+            set => OpeningTime = TimeSpan.FromSeconds(value);
         }
 
         [ProtoMember(4)]
         [NotMapped]
         public double ClosingAsSeconds
         {
-            get
-            {
-                return ClosingTime.TotalSeconds;
-            }
-            set
-            {
-                ClosingTime = TimeSpan.FromSeconds(value);
-            }
+            get => ClosingTime.TotalSeconds;
+            set => ClosingTime = TimeSpan.FromSeconds(value);
         }
 
 
@@ -88,6 +76,11 @@ namespace QDMS
                 OpeningDay = OpeningDay,
                 ClosingDay = ClosingDay
             };
+        }
+
+        public override string ToString()
+        {
+            return $"{OpeningDay} {OpeningTime} - {ClosingDay} {ClosingTime}";
         }
     }
 }

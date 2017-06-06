@@ -322,6 +322,8 @@
     <Compile Include="ViewModels\JobViewModelBase.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SchedulerViewModel.cs" />
+    <Compile Include="ViewModels\SessionTemplatesViewModel.cs" />
+    <Compile Include="ViewModels\SessionTemplateViewModel.cs" />
     <Compile Include="ViewModels\SessionViewModel.cs" />
     <Compile Include="ViewModels\TagsViewModel.cs" />
     <Compile Include="ViewModels\TagViewModel.cs" />
@@ -366,9 +368,6 @@
     </Compile>
     <Compile Include="Windows\EditExchangeWindow.xaml.cs">
       <DependentUpon>EditExchangeWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\EditSessionTemplateWindow.xaml.cs">
-      <DependentUpon>EditSessionTemplateWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\ExchangesWindow.xaml.cs">
       <DependentUpon>ExchangesWindow.xaml</DependentUpon>
@@ -462,10 +461,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\EditExchangeWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\EditSessionTemplateWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

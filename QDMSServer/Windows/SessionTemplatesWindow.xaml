@@ -3,36 +3,142 @@
     x:Class="QDMSServer.SessionTemplatesWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Session Templates" Height="558" Width="445.906"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:qdmsServer="clr-namespace:QDMSServer"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
+    Title="Session Templates" Height="558" Width="717.785"
     BorderBrush="Black"
     BorderThickness="1"
+    Loaded="MetroWindow_Loaded"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    Dialog:DialogParticipation.Register="{Binding}"
     >
     <controls:MetroWindow.Resources>
+        <qdmsServer:TimeSpanConverter x:Key="TimeSpanConverter" />
 
+        <ObjectDataProvider x:Key="DOTWEnum" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:DayOfTheWeek"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
     </controls:MetroWindow.Resources>
-    
+
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="37*"/>
+            <RowDefinition Height="492*"/>
+        </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="97*"/>
-            <ColumnDefinition Width="95"/>
+            <ColumnDefinition Width="225"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Button Click="AddBtn_Click" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
-        <Button Click="ModifyBtn_Click" x:Name="ModifyBtn" Content="Modify" HorizontalAlignment="Right" Margin="0,34,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
-        <Button Click="DeleteBtn_Click" x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,58,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
-
-        <DataGrid Name="TemplatesGrid" Grid.Column="0" AutoGenerateColumns="False" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" ItemsSource="{Binding Templates}" IsReadOnly="True">
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="10,10,0,0">
+        <Button Command="{Binding Add}" x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+        <Button Command="{Binding SelectedTemplate.Save}" x:Name="ModifyBtn" Content="Save" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19"/>
+        <Button Command="{Binding Delete}" x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Top" Width="75" Grid.Column="1" Height="19" />
+        </StackPanel>
+        <DataGrid Grid.Row="0" Name="TemplatesGrid" Grid.Column="0" AutoGenerateColumns="False" 
+                  HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" 
+                  ItemsSource="{Binding Templates}" 
+                  SelectedItem="{Binding SelectedTemplate}"
+                  IsReadOnly="True" Grid.RowSpan="2">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Path=Name}"  Width="250" />
             </DataGrid.Columns>
 
             <DataGrid.RowStyle>
                 <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource MetroDataGridRow}" >
-                    <EventSetter Event="MouseDoubleClick" Handler="TableView_RowDoubleClick"/>
                     <Setter Property="MinHeight" Value="20"/>
                 </Style>
             </DataGrid.RowStyle>
         </DataGrid>
 
+
+        <Grid Grid.Row="1" Grid.Column="1" DataContext="{Binding SelectedTemplate}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="0"/>
+                <RowDefinition Height="0"/>
+                <RowDefinition Height="249*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="85"/>
+                <ColumnDefinition Width="80*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Column="0" Content="Name: " HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"  Width="68" Grid.Row="0"/>
+            <Label Grid.Column="0" Content="Sessions: " HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"  Width="68" Grid.Row="3"/>
+
+            <TextBox Grid.Column="1" HorizontalAlignment="Stretch" Height="20" Margin="10,2,10,0" TextWrapping="Wrap" 
+                     Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Grid.Row="0" Grid.RowSpan="2"/>
+
+
+            <DataGrid  Name="SessionsGrid"  ItemsSource="{Binding Sessions}" 
+                       SelectedItem="{Binding SelectedSession}"
+                       AutoGenerateColumns="False"  HorizontalAlignment="Stretch" 
+                       Margin="10,10,10,5" VerticalAlignment="Stretch" Grid.Row="3" Grid.Column="1"  CanUserAddRows="False">
+
+                <DataGrid.Columns>
+                    <DataGridComboBoxColumn SelectedItemBinding="{Binding Path=OpeningDay}" SortDirection="Ascending" Header="Close" Width="75" ItemsSource="{Binding Source={StaticResource DOTWEnum}}" />
+
+                    <DataGridTemplateColumn  Header="Time" Width="65">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <xctk:MaskedTextBox Mask="00:00:00" ValueDataType="system:String" >
+                                    <xctk:MaskedTextBox.Text>
+                                        <Binding Path="OpeningTime" Converter="{StaticResource TimeSpanConverter}" Mode="TwoWay" UpdateSourceTrigger="LostFocus">
+                                            <Binding.ValidationRules>
+                                                <qdmsServer:TimeValidationRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:MaskedTextBox.Text>
+                                </xctk:MaskedTextBox>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridComboBoxColumn SelectedItemBinding="{Binding Path=ClosingDay}" Header="Close" Width="75" ItemsSource="{Binding Source={StaticResource DOTWEnum}}" />
+
+                    <DataGridTemplateColumn  Header="Time" Width="65">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <xctk:MaskedTextBox Mask="00:00:00" ValueDataType="system:String" >
+                                    <xctk:MaskedTextBox.Text>
+                                        <Binding Path="ClosingTime" Converter="{StaticResource TimeSpanConverter}" Mode="TwoWay" UpdateSourceTrigger="LostFocus">
+                                            <Binding.ValidationRules>
+                                                <qdmsServer:TimeValidationRule />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </xctk:MaskedTextBox.Text>
+                                </xctk:MaskedTextBox>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Width="45" Header="End">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox Style="{StaticResource DataGridCheckBoxStyle}" IsChecked="{Binding Path=IsSessionEnd}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Button Name="AddSessionBtn"  
+                    Command="{Binding AddSession}"
+                    Grid.Column="0"  Content="Add" HorizontalAlignment="Left" Margin="10,5,0,35" Grid.Row="3" VerticalAlignment="Bottom" Width="65"/>
+            <Button Name="RemoveSessionBtn"  
+                    Command="{Binding RemoveSession}"
+                    CommandParameter="{Binding ElementName=SessionsGrid,Path=SelectedItem}"
+                    Grid.Column="0" Content="Remove" HorizontalAlignment="Left" Margin="10,0,0,5" Grid.Row="3" VerticalAlignment="Bottom" Width="65"/>
+
+
+
+        </Grid>
     </Grid>
 </controls:MetroWindow>
