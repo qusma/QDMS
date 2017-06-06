@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
@@ -11,14 +12,14 @@ using System.Windows;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMSServer.ViewModels;
+using ReactiveUI;
 
 namespace QDMSServer
 {
-    public partial class AddInstrumentManuallyWindow : IClosableView
+    public partial class AddInstrumentManuallyWindow : IClosableView, IViewFor<EditInstrumentViewModel>
     {
         public ObservableCollection<Exchange> Exchanges { get; set; }
         public ObservableCollection<KeyValuePair<int, string>> ContractMonths { get; set; }
-        public EditInstrumentViewModel ViewModel { get; }
 
         ///  <summary>
         ///
@@ -82,6 +83,15 @@ namespace QDMSServer
                 if (t != ContinuousFuturesRolloverType.Time)
                     RolloverRuleType.Items.Add(t);
             }
+
+            //reactive bindings
+            this.WhenActivated(d =>
+            {
+                d(this.OneWayBind(this.ViewModel, 
+                    x => x.IsContinuousFuture, 
+                    x => x.ContFutTabItem.Visibility, 
+                    x => x ? Visibility.Visible : Visibility.Hidden));
+            });
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
@@ -93,5 +103,20 @@ namespace QDMSServer
         {
             await ViewModel.Load.Execute();
         }
+
+        object IViewFor.ViewModel
+        {
+            get => ViewModel;
+            set => ViewModel = (EditInstrumentViewModel)value;
+        }
+
+        public EditInstrumentViewModel ViewModel
+        {
+            get => (EditInstrumentViewModel)GetValue(ViewModelProperty);
+            set => SetValue(ViewModelProperty, value);
+        }
+
+        public static readonly DependencyProperty ViewModelProperty =
+            DependencyProperty.Register("ViewModel", typeof(EditInstrumentViewModel), typeof(AddInstrumentManuallyWindow));
     }
 }

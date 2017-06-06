@@ -296,8 +296,7 @@
                     <Button IsEnabled="{Binding ElementName=CustomRadioBtn,Path=IsChecked}" Command="{Binding RemoveSession}" Name="DeleteSessionItemBtn" Content="Delete" HorizontalAlignment="Left" Margin="88,445,0,0" VerticalAlignment="Top" Width="75" Grid.Row="1" Grid.RowSpan="2"/>
                 </Grid>
             </TabItem>
-            <TabItem Name="ContFutTabItem" Header="Cont. Fut." HorizontalAlignment="Left" VerticalAlignment="Top"
-                     Visibility="{Binding IsContinuousFuture, Converter={StaticResource BoolToVisibilityConverter}}">
+            <TabItem Name="ContFutTabItem" Header="Cont. Fut." HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid Background="Transparent">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="45"/>
