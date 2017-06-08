@@ -12,6 +12,7 @@ using EntityData;
 using Nancy;
 using Nancy.Responses.Negotiation;
 using QDMS.Server.Nancy;
+using MySql.Data.MySqlClient;
 
 namespace QDMS.Server
 {
@@ -42,12 +43,12 @@ namespace QDMS.Server
         /// <param name="context"></param>
         public static void UpdateCollection<T>(this ICollection<T> collection, IEnumerable<T> newValues, IMyDbContext context) where T : class, IEntity
         {
-            var comparer = new LambdaEqualityComparer<T>((x,y) => x.ID == y.ID, x => x.ID);
+            var comparer = new LambdaEqualityComparer<T>((x, y) => x.ID == y.ID, x => x.ID);
             var toAdd = newValues.Except(collection, comparer).ToList();
             var toRemove = collection.Except(newValues, comparer).ToList();
             //grab everything so we don't need an individual query for every item
             var allItems = context.Set<T>().ToList().ToDictionary(x => x.ID, x => x);
-                
+
             foreach (var element in toAdd)
             {
                 var entry = allItems[element.ID];
@@ -101,7 +102,7 @@ namespace QDMS.Server
         /// <param name="context"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static T GetLocal<T>(this IMyDbContext context, T entity) where T: class, IEntity
+        public static T GetLocal<T>(this IMyDbContext context, T entity) where T : class, IEntity
         {
             if (entity == null) return null;
 
@@ -125,6 +126,15 @@ namespace QDMS.Server
         public static bool IsUniqueKeyException(this SqlException ex)
         {
             return ex.Errors.Cast<SqlError>().Any(x => x.Number == 2601 || x.Number == 2627);
+        }
+
+        public static bool IsUniqueKeyException(this MySqlException ex)
+        {
+            return ex.Number == 1060 ||
+                ex.Number == 1061 ||
+                ex.Number == 1062 ||
+                ex.Number == 1088 ||
+                ex.Number == 1092;
         }
     }
 }

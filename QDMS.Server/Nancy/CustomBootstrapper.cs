@@ -19,6 +19,7 @@ using QDMSServer;
 using Quartz;
 using System.Data.SqlClient;
 using System.Linq;
+using MySql.Data.MySqlClient;
 
 namespace QDMS.Server.Nancy
 {
@@ -95,6 +96,16 @@ namespace QDMS.Server.Nancy
                 {
                     var response = new JsonResponse(
                         new ErrorResponse(HttpStatusCode.Conflict, sqlException.Message, ""),
+                        new JsonNetSerializer());
+                    response.StatusCode = HttpStatusCode.Conflict;
+                    return response;
+                }
+
+                var mysqlException = ex.GetBaseException() as MySqlException;
+                if (mysqlException != null && mysqlException.IsUniqueKeyException())
+                {
+                    var response = new JsonResponse(
+                        new ErrorResponse(HttpStatusCode.Conflict, mysqlException.Message, ""),
                         new JsonNetSerializer());
                     response.StatusCode = HttpStatusCode.Conflict;
                     return response;
