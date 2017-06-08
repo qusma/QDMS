@@ -32,6 +32,7 @@ namespace QDMSServer
     public partial class MainWindow : MetroWindow
     {
         private readonly QDMSClient.QDMSClient _client;
+        private readonly Logger _clientLogger = LogManager.GetLogger("client");
 
         private ProgressBar _progressBar;
         
@@ -113,7 +114,6 @@ namespace QDMSServer
 
             entityContext.Dispose();
 
-
             //we also need a client to make historical data requests with
             _client = new QDMSClient.QDMSClient(
                 "SERVERCLIENT",
@@ -124,8 +124,8 @@ namespace QDMSServer
                 Properties.Settings.Default.httpPort,
                 Properties.Settings.Default.apiKey,
                 useSsl: Properties.Settings.Default.useSsl);
-            _client.Connect();
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
+            _client.Error += (s, e) => _clientLogger.Error(e.ErrorMessage);
 
             //Create ViewModel
             ViewModel = new MainViewModel(_client, DialogCoordinator.Instance);
