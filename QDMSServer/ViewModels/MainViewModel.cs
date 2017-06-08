@@ -272,7 +272,8 @@ namespace QDMSServer.ViewModels
             var repo = new JobsRepository(context, scheduler);
             if (context.DataUpdateJobs.Any() && scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()).Count == 0)
             {
-                foreach (DataUpdateJobSettings job in context.DataUpdateJobs)
+                var jobs = context.DataUpdateJobs.Include("Tag").ToList();
+                foreach (DataUpdateJobSettings job in jobs)
                 {
                     repo.ScheduleJob(job);
                 }
