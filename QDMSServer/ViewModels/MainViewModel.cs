@@ -44,6 +44,11 @@ namespace QDMSServer.ViewModels
         public ReactiveCommand<Instrument, Instrument> CloneInstrument { get; set; }
         public ReactiveCommand<Instrument, Instrument> EditInstrument { get; set; }
 
+        public string ClientStatus
+        {
+            get => _clientStatus;
+            set => this.RaiseAndSetIfChanged(ref _clientStatus, value);
+        }
 
         private readonly IDataClient _client;
         private readonly IDialogCoordinator _dialogCoordinator;
@@ -51,6 +56,7 @@ namespace QDMSServer.ViewModels
         private IScheduler _scheduler;
         private RealTimeDataServer _realTimeServer;
         private HistoricalDataServer _historicalDataServer;
+        private string _clientStatus;
 
         public MainViewModel(IDataClient client, IDialogCoordinator dialogCoordinator)
         {
@@ -73,6 +79,12 @@ namespace QDMSServer.ViewModels
             //Start brokers, servers, scheduler
             StartServers();
 
+            //hook up client status
+            this.WhenAnyValue(x => x._client.Connected)
+                .Subscribe(x => ClientStatus = "Client Status: " + (x ? "Connected" : "Disconnected"));
+
+            //Start the client
+            client.Connect();
 
             //Load data
             LoadData();

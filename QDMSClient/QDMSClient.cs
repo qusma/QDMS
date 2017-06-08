@@ -8,15 +8,18 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using LZ4;
 using NetMQ;
 using NetMQ.Sockets;
 using QDMS;
+using QDMS.Annotations;
 
 // TODO: Fix comments at the end of lines
 namespace QDMSClient
@@ -79,11 +82,23 @@ namespace QDMSClient
         /// Keep in mind this is unique to the CLIENT. AssignedID is unique to the server.
         /// </summary>
         private int _requestCount;
+
+        private bool _connected;
+
         #endregion
 
         private bool PollerRunning => (_poller != null) && _poller.IsRunning;
 
-        public bool Connected => PollerRunning && ((DateTime.Now - _lastHeartBeat).TotalSeconds < 5);
+        public bool Connected
+        {
+            get => _connected;
+            set
+            {
+                if (value == _connected) return;
+                _connected = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// Keeps track of historical requests that have been sent but the data has not been received yet.
@@ -337,6 +352,8 @@ namespace QDMSClient
                     return;
                 }
 
+                Connected = true;
+
                 _realTimeRequestSocket.ReceiveReady += RealTimeRequestSocketReceiveReady;
             }
 
@@ -384,7 +401,7 @@ namespace QDMSClient
                     CancelRealTimeData(RealTimeDataStreams.First().Instrument);
                 }
             }
-
+            Connected = false;
             _poller?.Stop();
             _poller?.Dispose();
 
@@ -656,6 +673,9 @@ namespace QDMSClient
                     _realTimeRequestSocket.SendFrame(MessageType.Ping);
                 }
             }
+
+            //update connection status
+            Connected = PollerRunning && ((DateTime.Now - _lastHeartBeat).TotalSeconds < 5);
         }
 
         /// <summary>
@@ -828,5 +848,13 @@ namespace QDMSClient
         [Obsolete("Use GetInstruments instead")]
         public List<Instrument> FindInstruments(Instrument instrument = null) =>
             GetInstruments(instrument).Result.Result;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

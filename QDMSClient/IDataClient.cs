@@ -8,12 +8,13 @@ using QDMSClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace QDMS
 {
-    public interface IDataClient : IDisposable
+    public interface IDataClient : IDisposable, INotifyPropertyChanged
     {
         event EventHandler<ErrorArgs> Error;
 
