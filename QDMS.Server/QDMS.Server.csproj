@@ -136,6 +136,7 @@
     <Compile Include="Brokers\RealTimeDataBroker.cs" />
     <Compile Include="Collections\ConcurrentNotifierBlockingList.cs" />
     <Compile Include="Collections\ObservableDictionary.cs" />
+    <Compile Include="CustomJsonSerializer.cs" />
     <Compile Include="DataSources\RealTimeFromHistoricalDataSource.cs" />
     <Compile Include="DataSources\RealTimeSim.cs" />
     <Compile Include="DataSources\TickStorage.cs" />

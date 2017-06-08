@@ -20,6 +20,7 @@ using Quartz;
 using System.Data.SqlClient;
 using System.Linq;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace QDMS.Server.Nancy
 {
@@ -66,6 +67,7 @@ namespace QDMS.Server.Nancy
             container.Register<IHistoricalDataBroker>(_hdb);
             container.Register<IRealTimeDataBroker>(_rtdb);
             container.Register<IDividendsBroker>(_divb);
+            container.Register<JsonSerializer, CustomJsonSerializer>();
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
