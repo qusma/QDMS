@@ -309,7 +309,7 @@ namespace QDMSClient
         /// </summary>
         public void Connect()
         {
-            if (Connected)
+            if (PollerRunning)
             {
                 return;
             }
