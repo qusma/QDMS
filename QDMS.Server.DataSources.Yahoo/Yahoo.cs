@@ -282,6 +282,11 @@ namespace QDMSServer.DataSources
                     bar.Low = decimal.Parse(items[3]) * adjRatio;
                     bar.Close = decimal.Parse(items[4]);
                     bar.Volume = long.Parse(items[6]);
+                    //set adj values so that in case they're not set later (eg if we only get one bar), they're still filled in
+                    bar.AdjOpen = bar.Open;
+                    bar.AdjHigh = bar.High;
+                    bar.AdjLow = bar.Low;
+                    bar.AdjClose = bar.Close;
 
                     data.Add(bar);
                 }
