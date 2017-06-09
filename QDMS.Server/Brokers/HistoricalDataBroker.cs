@@ -53,6 +53,7 @@ namespace QDMSServer
         private readonly ConcurrentDictionary<int, HistoricalDataRequest> _originalRequests;
 
         private readonly ConcurrentDictionary<int, List<HistoricalDataRequest>> _subRequests;
+        public ConcurrentNotifierBlockingList<HistoricalDataRequest> PendingRequests { get; } = new ConcurrentNotifierBlockingList<HistoricalDataRequest>();
 
         public void Dispose()
         {
@@ -257,6 +258,9 @@ namespace QDMSServer
         /// </summary>
         private void ReturnData(HistoricalDataEventArgs e)
         {
+            //Remove request from the list
+            PendingRequests.TryRemove(e.Request);
+
             //if needed, we filter out the data outside of regular trading hours
             if (e.Request.RTHOnly &&
                 e.Request.Frequency < BarSize.OneDay &&
@@ -340,6 +344,7 @@ namespace QDMSServer
                 request.Instrument.Datasource.Name);
 
             _originalRequests.TryAdd(request.AssignedID, request);
+            PendingRequests.TryAdd(request);
 
             //request says to ignore the external data source, just send the request as-is to the local storage
             if (request.DataLocation == DataLocation.LocalOnly)

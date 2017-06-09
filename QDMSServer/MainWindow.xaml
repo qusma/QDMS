@@ -202,6 +202,20 @@
                             <DataGridTextColumn Header="RTH Only" Binding="{Binding Path=RTHOnly}" />
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <DataGrid Name="HistoricalRequestGrid"
+                        Grid.Column="1" Grid.Row="1" Margin="10" AutoGenerateColumns="False" ItemsSource="{Binding HistoricalBroker.PendingRequests}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Req. ID" Binding="{Binding Path=RequestID}" />
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Instrument.Symbol}" />
+                            <DataGridTextColumn Header="Source" Binding="{Binding Path=Datasource}" />
+                            <DataGridTextColumn Header="Frequency" Binding="{Binding Path=Frequency}" />
+                            <DataGridTextColumn Header="RTH Only" Binding="{Binding Path=RTHOnly}" />
+                            <DataGridTextColumn Header="From" Binding="{Binding Path=StartingDate}" />
+                            <DataGridTextColumn Header="To" Binding="{Binding Path=EndingDate}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
                     <Label Grid.Row="0" Grid.Column="0" Content="Active Real Time Data Streams:" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" Width="208"/>
                     <Label Grid.Row="0" Grid.Column="1" Content="Active Historical Data Requests:" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" Width="208"/>
 
