@@ -19,6 +19,7 @@ namespace QDMS.Utils
         public static void AdjustData(ref List<OHLCBar> data)
         {
             if (data == null) return;
+            if (data.Count <= 1) return;
             if (data[data.Count - 1].DT < data[0].DT)
             {
                 throw new System.Exception("Data must be in chronological order");
