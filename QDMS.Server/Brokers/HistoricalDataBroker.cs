@@ -14,6 +14,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Timers;
 using System.Windows;
 using NLog;
@@ -53,6 +54,11 @@ namespace QDMSServer
         private readonly ConcurrentDictionary<int, HistoricalDataRequest> _originalRequests;
 
         private readonly ConcurrentDictionary<int, List<HistoricalDataRequest>> _subRequests;
+
+        private readonly ConcurrentQueue<HistoricalDataRequest> _requestQueue = new ConcurrentQueue<HistoricalDataRequest>();
+        private readonly Thread _requestHandlerThread;
+        private readonly AutoResetEvent _eventWait = new AutoResetEvent(false);
+        private Random _rand = new Random();
         public ConcurrentNotifierBlockingList<HistoricalDataRequest> PendingRequests { get; } = new ConcurrentNotifierBlockingList<HistoricalDataRequest>();
 
         public void Dispose()
@@ -62,6 +68,10 @@ namespace QDMSServer
                 _connectionTimer.Dispose();
                 _connectionTimer = null;
             }
+
+            _eventWait.Set();
+            _requestHandlerThread?.Join();
+
 
             foreach(var ds in DataSources.Values)
             {
@@ -131,7 +141,25 @@ namespace QDMSServer
             _subRequests = new ConcurrentDictionary<int, List<HistoricalDataRequest>>();
             _usedIDs = new List<int>();
 
+            _requestHandlerThread = new Thread(Poll) { Name = "HDBPoller" };
+            _requestHandlerThread.Start();
+
             TryConnect();
+        }
+
+        /// <summary>
+        /// Poll for requests and fill them
+        /// </summary>
+        private void Poll()
+        {
+            while(!_eventWait.WaitOne(5))
+            {
+                HistoricalDataRequest request;
+                while(_requestQueue.TryDequeue(out request))
+                {
+                    HandleRequest(request);
+                }
+            }
         }
 
         /// <summary>
@@ -343,9 +371,24 @@ namespace QDMSServer
                 request.SaveDataToStorage ? 0 : 1,
                 request.Instrument.Datasource.Name);
 
+            //make sure data source is present and available
+            try
+            {
+                CheckDataSource(request.Instrument.Datasource.Name);
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, string.Format("Could not fulfill request ID {0}, error: {1}", request.AssignedID, ex.Message));
+                throw;
+            }
+
             _originalRequests.TryAdd(request.AssignedID, request);
             PendingRequests.TryAdd(request);
+            _requestQueue.Enqueue(request);
+        }
 
+        private void HandleRequest(HistoricalDataRequest request)
+        {
             //request says to ignore the external data source, just send the request as-is to the local storage
             if (request.DataLocation == DataLocation.LocalOnly)
             {
@@ -359,17 +402,6 @@ namespace QDMSServer
             //request is for fresh data ONLY -- send the request directly to the external data source
             if (request.DataLocation == DataLocation.ExternalOnly)
             {
-                //make sure data source is present and available
-                try
-                {
-                    CheckDataSource(request.Instrument.Datasource.Name);
-                }
-                catch (Exception ex)
-                {
-                    Log(LogLevel.Error, string.Format("Could not fulfill request ID {0}, error: {1}", request.AssignedID, ex.Message));
-                    throw;
-                }
-
                 ForwardHistoricalRequest(request);
                 return;
             }
@@ -428,7 +460,7 @@ namespace QDMSServer
                 //we have no data available at all, send off the request as it is
                 if (localDataInfo == null ||
                     (request.Instrument.IsContinuousFuture &&
-                        request.Instrument.ContinuousFuture.AdjustmentMode != ContinuousFuturesAdjustmentMode.NoAdjustment))
+                     request.Instrument.ContinuousFuture.AdjustmentMode != ContinuousFuturesAdjustmentMode.NoAdjustment))
                 {
                     //if the instruemnt is a continuous future and it has ratio or difference adjustment mode
                     //then we can't load data from local storage, because it would screw up the adjustment calcs
@@ -520,11 +552,11 @@ namespace QDMSServer
         private int GetUniqueRequestID()
         {
             //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
-            var rand = new Random();
             int id;
             do
             {
-                id = rand.Next(1, int.MaxValue);
+                id = _rand.Next(1, int.MaxValue);
+                Console.WriteLine(id);
             } while (_usedIDs.Contains(id));
 
             _usedIDs.Add(id);

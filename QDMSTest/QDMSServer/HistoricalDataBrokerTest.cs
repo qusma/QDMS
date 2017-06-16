@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using Moq;
 using NUnit.Framework;
 using QDMS;
@@ -89,6 +90,8 @@ namespace QDMSTest
 
             _broker.RequestHistoricalData(request);
 
+            Thread.Sleep(50);
+
             _dataSourceMock.Verify(x => x.RequestHistoricalData(
                 It.Is<HistoricalDataRequest>(
                     i =>
@@ -122,6 +125,7 @@ namespace QDMSTest
                 .Callback<HistoricalDataRequest>(req => modifiedRequest = req);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             Assert.AreEqual(now.Year, modifiedRequest.EndingDate.Year, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Year, now.Year));
             Assert.AreEqual(now.Month, modifiedRequest.EndingDate.Month, string.Format("Expected: {0} Was: {1}", modifiedRequest.EndingDate.Month, now.Month));
@@ -149,6 +153,7 @@ namespace QDMSTest
             _localStorageMock.Setup(x => x.GetStorageInfo(1, BarSize.OneDay)).Returns(sdInfo);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             //first subrequest
             _dataSourceMock.Verify(x => x.RequestHistoricalData(
@@ -157,7 +162,7 @@ namespace QDMSTest
                     y.StartingDate.Day == 1 &&
                     y.EndingDate.Month == 5 &&
                     y.EndingDate.Day == 31
-                    )), Times.Once);
+                )), Times.Once);
 
             //second subrequest
             _dataSourceMock.Verify(x => x.RequestHistoricalData(
@@ -166,7 +171,7 @@ namespace QDMSTest
                     y.StartingDate.Day == 1 &&
                     y.EndingDate.Month == 1 &&
                     y.EndingDate.Day == 1
-                    )), Times.Once);
+                )), Times.Once);
         }
 
         [Test]
@@ -192,6 +197,7 @@ namespace QDMSTest
                 rthOnly: true);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             _dataSourceMock.Verify(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()), Times.Never);
             _localStorageMock.Verify(x => x.RequestHistoricalData(
@@ -230,6 +236,7 @@ namespace QDMSTest
                 .Callback<HistoricalDataRequest>(req => newRequest = req);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
 
@@ -263,6 +270,7 @@ namespace QDMSTest
                 .Callback<HistoricalDataRequest>(req => newRequest = req);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
 
@@ -281,6 +289,7 @@ namespace QDMSTest
                 rthOnly: true);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             _cfBrokerMock.Verify(x => x.RequestHistoricalData(
                 It.Is<HistoricalDataRequest>(
@@ -343,6 +352,7 @@ namespace QDMSTest
 
             //send in the request
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             //fake the data return from the datasource
             _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
@@ -376,6 +386,7 @@ namespace QDMSTest
                 .Callback<HistoricalDataRequest>(req => newRequest = req);
 
             _broker.RequestHistoricalData(request);
+            Thread.Sleep(50);
 
             _dataSourceMock.Raise(x => x.HistoricalDataArrived += null, new HistoricalDataEventArgs(newRequest, data));
 
@@ -396,16 +407,20 @@ namespace QDMSTest
                 dataLocation: DataLocation.ExternalOnly,
                 saveToLocalStorage: false,
                 rthOnly: true);
+            var req2 = (HistoricalDataRequest)request.Clone();
+            var req3 = (HistoricalDataRequest)request.Clone();
 
             var assignedIDs = new List<int>();
             _dataSourceMock
                 .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
                 .Callback<HistoricalDataRequest>(req => assignedIDs.Add(req.AssignedID));
 
-            for (int i = 0; i < 3; i++)
-            {
-            	_broker.RequestHistoricalData(request);
-            }
+
+            _broker.RequestHistoricalData(request);
+            _broker.RequestHistoricalData(req2);
+            _broker.RequestHistoricalData(req3);
+
+            Thread.Sleep(50);
 
             Assert.AreEqual(3, assignedIDs.Count);
             Assert.AreEqual(3, assignedIDs.Distinct().Count());
