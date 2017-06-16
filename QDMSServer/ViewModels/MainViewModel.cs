@@ -257,7 +257,7 @@ namespace QDMSServer.ViewModels
                 localStorage,
                 EconomicReleaseBroker,
                 DividendBroker);
-            _scheduler.Start();
+            _scheduler.StartDelayed(TimeSpan.FromSeconds(10));
 
             //Create http server
             var bootstrapper = new CustomBootstrapper(
