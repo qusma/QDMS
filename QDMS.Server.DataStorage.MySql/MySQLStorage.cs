@@ -140,26 +140,27 @@ namespace QDMSServer.DataSources
 
                 var data = new List<OHLCBar>();
 
-                using (var reader = cmd.ExecuteReader())
+                using (var reader = cmd.ExecuteReader(System.Data.CommandBehavior.SequentialAccess))
                 {
                     while (reader.Read())
                     {
                         var bar = new OHLCBar
                         {
                             DT = reader.GetDateTime(0),
-                            DTOpen = reader.IsDBNull(15) ? null : (DateTime?)reader.GetDateTime(15),
-                            Open = reader.GetDecimal("Open"),
-                            High = reader.GetDecimal("High"),
-                            Low = reader.GetDecimal("Low"),
-                            Close = reader.GetDecimal("Close"),
-                            AdjOpen = reader.IsDBNull(7) ? null : (decimal?)reader.GetDecimal("AdjOpen"),
-                            AdjHigh = reader.IsDBNull(8) ? null : (decimal?)reader.GetDecimal("AdjHigh"),
-                            AdjLow = reader.IsDBNull(9) ? null : (decimal?)reader.GetDecimal("AdjLow"),
-                            AdjClose = reader.IsDBNull(10) ? null : (decimal?)reader.GetDecimal("AdjClose"),
-                            Volume = reader.IsDBNull(11) ? null : (long?)reader.GetInt64("Volume"),
-                            OpenInterest = reader.IsDBNull(12) ? null : (int?)reader.GetInt32("OpenInterest"),
-                            Dividend = reader.IsDBNull(13) ? null : (decimal?)reader.GetDecimal("Dividend"),
-                            Split = reader.IsDBNull(14) ? null : (decimal?)reader.GetDecimal("Split")
+                            
+                            Open = (decimal)reader[3],
+                            High = (decimal)reader[4],
+                            Low = (decimal)reader[5],
+                            Close = (decimal)reader[6],
+                            AdjOpen = reader[7] as decimal?,
+                            AdjHigh = reader[8] as decimal?,
+                            AdjLow = reader[9] as decimal?,
+                            AdjClose = reader[10] as decimal?,
+                            Volume = reader[11] as long?,
+                            OpenInterest = reader[12] as int?, 
+                            Dividend = reader[13] as decimal?,
+                            Split = reader[14] as decimal?,
+                            DTOpen = reader.IsDBNull(15) ? null : (DateTime?)reader.GetDateTime(15)
                         };
 
                         data.Add(bar);
