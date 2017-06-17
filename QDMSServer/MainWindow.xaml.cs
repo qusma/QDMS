@@ -92,7 +92,8 @@ namespace QDMSServer
             Seed.SeedDatasources(entityContext);
 
             //check for any exchanges, seed the db with initial values if nothing is found
-            if (!entityContext.Exchanges.Any())
+            if (!entityContext.Exchanges.Any() || 
+                (ApplicationDeployment.IsNetworkDeployed && ApplicationDeployment.CurrentDeployment.IsFirstRun))
             {
                 Seed.DoSeed();
             }
