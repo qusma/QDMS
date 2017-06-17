@@ -19,7 +19,6 @@ namespace QDMS
 
         public DateTime? DeclarationDate { get; set; }
 
-        [Index]
         public DateTime ExDate { get; set; }
 
         [Key]
@@ -30,7 +29,6 @@ namespace QDMS
 
         public DateTime? RecordDate { get; set; }
 
-        [Index]
         [MaxLength(20)]
         public string Symbol { get; set; }
 

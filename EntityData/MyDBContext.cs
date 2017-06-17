@@ -158,6 +158,104 @@ namespace EntityData
                     )
                 );
 
+            //Dividend
+            modelBuilder.Entity<Dividend>().Property(t => t.ExDate)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_ExDate")
+                    )
+                );
+
+            modelBuilder.Entity<Dividend>().Property(t => t.Symbol)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Symbol")
+                    )
+                );
+
+            //Currency
+            modelBuilder.Entity<Currency>().Property(t => t.Code)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Code")
+                        {
+                            IsUnique = true
+                        }
+                    )
+                );
+
+            //Currency
+            modelBuilder.Entity<Country>().Property(t => t.Name)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Country")
+                        {
+                            IsUnique = true
+                        }
+                    )
+                );
+
+            //EconomicRelease
+            modelBuilder.Entity<EconomicRelease>().Property(t => t.Name)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Unique")
+                        {
+                            IsUnique = true,
+                            Order = 1
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<EconomicRelease>().Property(t => t.Country)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Unique")
+                        {
+                            IsUnique = true,
+                            Order = 2
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<EconomicRelease>().Property(t => t.DateTime)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Unique")
+                        {
+                            IsUnique = true,
+                            Order = 3
+                        }
+                    )
+                );
+
+            modelBuilder.Entity<EconomicRelease>().Property(t => t.Currency)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Currency")
+                    )
+                );
+
+            //UnderlyingSymbol
+            modelBuilder.Entity<UnderlyingSymbol>().Property(t => t.Symbol)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Symbol")
+                        {
+                            IsUnique = true
+                        }
+                    )
+                );
+
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
 

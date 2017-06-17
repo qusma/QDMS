@@ -22,7 +22,6 @@ namespace QDMS
         /// ISO 4217 3-letter currency code
         /// </summary>
         [MaxLength(3)]
-        [Index(IsUnique = true)]
         [Required]
         public string Code { get; set; }
 

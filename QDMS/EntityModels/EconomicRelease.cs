@@ -23,7 +23,6 @@ namespace QDMS
         [ProtoMember(1)]
         [MaxLength(100)]
         [Required]
-        [Index("IX_Unique", IsUnique = true, Order = 1)]
         public string Name { get; set; }
 
         /// <summary>
@@ -32,7 +31,6 @@ namespace QDMS
         [ProtoMember(2)]
         [MaxLength(2)]
         [Required]
-        [Index("IX_Unique", IsUnique = true, Order = 2)]
         public string Country { get; set; }
 
         /// <summary>
@@ -40,14 +38,12 @@ namespace QDMS
         /// </summary>
         [ProtoMember(3)]
         [MaxLength(3)]
-        [Index]
         public string Currency { get; set; }
 
         /// <summary>
         /// Date and time in UTC
         /// </summary>
         [ProtoMember(4)]
-        [Index("IX_Unique", IsUnique = true, Order = 3)]
         public DateTime DateTime { get; set; }
 
         [ProtoMember(5)]
