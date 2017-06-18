@@ -225,7 +225,7 @@ namespace QDMSServer.ViewModels
                 new[] { new fx.FXStreet(countryCodeHelper) });
 
             DividendBroker = new DividendsBroker("Nasdaq",
-                new[] { new NasdaqDs.Nasdaq() });
+                new IDividendDataSource[] { new NasdaqDs.Nasdaq(), new QDMS.Server.DataSources.DivDotCom.DividendDotCom() });
 
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);

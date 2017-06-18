@@ -56,8 +56,15 @@ namespace QDMS.Server.Jobs
             var requests = GenerateRequests(settings);
             foreach (var req in requests)
             {
-                var releases = _broker.RequestDividends(req).Result; //no async support in Quartz, and no need for it anyway, this runs on its own thread
-                totalCount += releases.Count;
+                try
+                {
+                    var releases = _broker.RequestDividends(req).Result; //no async support in Quartz, and no need for it anyway, this runs on its own thread
+                    totalCount += releases.Count;
+                }
+                catch (Exception ex)
+                {
+                    _errors.Add(ex.Message);
+                }
             }
             
             _logger.Trace($"Dividend update job downloaded {totalCount} items");

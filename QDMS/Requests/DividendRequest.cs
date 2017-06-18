@@ -48,6 +48,6 @@ namespace QDMS
         /// <summary>
         /// If this is not specified, the default datasource will be used.
         /// </summary>
-        public string DataSource { get; }
+        public string DataSource { get; set;  }
     }
 }

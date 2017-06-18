@@ -97,7 +97,7 @@ namespace QDMSService
                 new[] { new fx.FXStreet(new CountryCodeHelper(entityContext.Countries.ToList())) });
 
             _dividendBroker = new DividendsBroker("Nasdaq",
-                new[] { new NasdaqDs.Nasdaq() });
+                new IDividendDataSource[] { new NasdaqDs.Nasdaq(), new DivDotCom.DividendDotCom()  });
 
             // create servers
             _historicalDataServer = new HistoricalDataServer(_config.HistoricalDataService.Port, _historicalDataBroker);

@@ -531,6 +531,10 @@
       <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
       <Name>QDMS.Server.DataSources.Bloomberg</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Dividend.com\QDMS.Server.DataSources.Dividend.com.fsproj">
+      <Project>{95eef323-701b-44d9-bbce-8308edb23073}</Project>
+      <Name>QDMS.Server.DataSources.Dividend.com</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.ForexFeed\QDMS.Server.DataSources.ForexFeed.csproj">
       <Project>{55180c6d-a985-4171-bc78-e9b161164785}</Project>
       <Name>QDMS.Server.DataSources.ForexFeed</Name>

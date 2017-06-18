@@ -115,6 +115,10 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Dividend.com\QDMS.Server.DataSources.Dividend.com.fsproj">
+      <Project>{95eef323-701b-44d9-bbce-8308edb23073}</Project>
+      <Name>QDMS.Server.DataSources.Dividend.com</Name>
+    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
       <Project>{3C2B9CE3-9054-46C4-902B-AE500A61B613}</Project>
       <Name>QDMS.Server.DataSources.FXStreet</Name>
