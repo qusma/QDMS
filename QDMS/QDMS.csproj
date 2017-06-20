@@ -61,7 +61,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataSourceStatus.cs" />
+    <Compile Include="EntityModels\EarningsAnnouncement.cs" />
+    <Compile Include="Enums\EarningsCallTime.cs" />
+    <Compile Include="Interfaces\IEarningsAnnouncementSource.cs" />
     <Compile Include="Jobs\DividendUpdateJobSettings.cs" />
+    <Compile Include="Jobs\EarningsUpdateJobSettings.cs" />
     <Compile Include="Jobs\EconomicReleaseUpdateJobSettings.cs" />
     <Compile Include="EntityModels\Country.cs" />
     <Compile Include="EntityModels\Currency.cs" />
@@ -94,6 +98,7 @@
     <Compile Include="MessageType.cs" />
     <Compile Include="RealTimeStreamInfo.cs" />
     <Compile Include="Requests\DividendRequest.cs" />
+    <Compile Include="Requests\EarningsAnnouncementRequest.cs" />
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
     <Compile Include="Requests\PredicateSearchRequest.cs" />
     <Compile Include="Utils\CountryCodeHelper.cs" />

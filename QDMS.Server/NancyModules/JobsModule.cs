@@ -45,6 +45,13 @@ namespace QDMS.Server.NancyModules
             Post["/dividendupdatejobs"] = _ => AddJob<DividendUpdateJobSettings>(repo);
 
             Delete["/dividendupdatejobs"] = _ => DeleteJob<DividendUpdateJobSettings>(repo);
+
+            //Earnings update jobs
+            Get["/earningsupdatejobs"] = _ => repo.GetEarningsUpdateJobs();
+
+            Post["/earningsupdatejobs"] = _ => AddJob<EarningsUpdateJobSettings>(repo);
+
+            Delete["/earningsupdatejobs"] = _ => DeleteJob<EarningsUpdateJobSettings>(repo);
         }
 
         private dynamic AddJob<T>(IJobsRepository repo) where T : IJobSettings

@@ -31,6 +31,7 @@ namespace QDMS.Server.Nancy
         private readonly IHistoricalDataBroker _hdb;
         private readonly IRealTimeDataBroker _rtdb;
         private readonly IDividendsBroker _divb;
+        private readonly IEarningsAnnouncementBroker _eab;
         private readonly IScheduler _scheduler;
         private readonly string _apiKey;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -41,6 +42,7 @@ namespace QDMS.Server.Nancy
             IHistoricalDataBroker hdb,
             IRealTimeDataBroker rtdb,
             IDividendsBroker divb,
+            IEarningsAnnouncementBroker eab,
             IScheduler scheduler,
             string apiKey)
         {
@@ -49,6 +51,7 @@ namespace QDMS.Server.Nancy
             _hdb = hdb;
             _rtdb = rtdb;
             _divb = divb;
+            _eab = eab;
             _scheduler = scheduler;
             _apiKey = apiKey;
         }
@@ -67,6 +70,7 @@ namespace QDMS.Server.Nancy
             container.Register<IHistoricalDataBroker>(_hdb);
             container.Register<IRealTimeDataBroker>(_rtdb);
             container.Register<IDividendsBroker>(_divb);
+            container.Register<IEarningsAnnouncementBroker>(_eab);
             container.Register<JsonSerializer, CustomJsonSerializer>();
         }
 

@@ -131,6 +131,7 @@
     <Compile Include="ApiUser.cs" />
     <Compile Include="Brokers\ContinuousFuturesBroker.cs" />
     <Compile Include="Brokers\DividendsBroker.cs" />
+    <Compile Include="Brokers\EarningsAnnouncementBroker.cs" />
     <Compile Include="Brokers\EconomicReleaseBroker.cs" />
     <Compile Include="Brokers\HistoricalDataBroker.cs" />
     <Compile Include="Brokers\RealTimeDataBroker.cs" />
@@ -144,11 +145,13 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="InstrumentRepository.cs" />
     <Compile Include="Jobs\DividendUpdateJob.cs" />
+    <Compile Include="Jobs\EarningsUpdateJob.cs" />
     <Compile Include="Jobs\JobTypes.cs" />
     <Compile Include="Jobs\EconomicReleaseUpdateJob.cs" />
     <Compile Include="LocalStorageType.cs" />
     <Compile Include="NancyModules\DatasourceModule.cs" />
     <Compile Include="NancyModules\DividendsModule.cs" />
+    <Compile Include="NancyModules\EarningsAnnouncementModule.cs" />
     <Compile Include="NancyModules\EconomicReleasesModule.cs" />
     <Compile Include="NancyModules\ExchangeModule.cs" />
     <Compile Include="NancyModules\JobsModule.cs" />
@@ -162,6 +165,7 @@
     <Compile Include="Repositories\JobsRepository.cs" />
     <Compile Include="Validation\DataUpdateJobSettingsValidator.cs" />
     <Compile Include="Validation\DividendUpdateJobSettingsValidator.cs" />
+    <Compile Include="Validation\EarningsUpdatEJobSettingsValidator.cs" />
     <Compile Include="Validation\EconomicReleaseUpdateJobSettingsValidator.cs" />
     <Compile Include="Validation\ExchangeValidator.cs" />
     <Compile Include="NancyModules\InstrumentModule.cs" />

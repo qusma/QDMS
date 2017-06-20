@@ -123,6 +123,35 @@ namespace QDMS.Server.Repositories
             return result;
         }
 
+        public List<EarningsUpdateJobSettings> GetEarningsUpdateJobs()
+        {
+            var result = new List<EarningsUpdateJobSettings>();
+            var jobKeys = _scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals(JobTypes.EarningsUpdate));
+
+            foreach (var job in jobKeys)
+            {
+                IJobDetail jobDetails = _scheduler.GetJobDetail(job);
+
+                try
+                {
+                    var jd = JsonConvert.DeserializeObject<EarningsUpdateJobSettings>((string)jobDetails.JobDataMap["settings"]);
+
+                    if (jd.TagID.HasValue)
+                    {
+                        jd.Tag = _context.Set<Tag>().FirstOrDefault(x => x.ID == jd.TagID.Value);
+                    }
+
+                    result.Add(jd);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, "Failed to deserialize earnings update job");
+                }
+            }
+
+            return result;
+        }
+
         public IJobDetail GetJobDetails(string name, string type)
         {
             return _scheduler.GetJobDetail(new JobKey(name, type));
@@ -202,5 +231,6 @@ namespace QDMS.Server.Repositories
 
         IJobDetail GetJobDetails(string name, string type);
         List<DividendUpdateJobSettings> GetDividendUpdateJobs();
+        List<EarningsUpdateJobSettings> GetEarningsUpdateJobs();
     }
 }

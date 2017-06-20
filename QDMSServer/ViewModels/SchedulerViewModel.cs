@@ -41,6 +41,7 @@ namespace QDMSServer.ViewModels
             Instruments = new ReactiveList<Instrument>();
             EconomicReleaseDataSources = new ReactiveList<string>();
             DividendDataSources = new ReactiveList<string>();
+            EarningsDataSources = new ReactiveList<string>();
 
             CreateCommands();
         }
@@ -55,26 +56,30 @@ namespace QDMSServer.ViewModels
                 var dataUpdateJobs = _client.GetaDataUpdateJobs();
                 var econReleaseUpdateJobs = _client.GetEconomicReleaseUpdateJobs();
                 var dividendUpdateJobs = _client.GetDividendUpdateJobs();
+                var earningsUpdateJobs = _client.GetEarningsUpdateJobs();
                 var tags = _client.GetTags();
                 var instruments = _client.GetInstruments();
                 var econReleaseSources = _client.GetEconomicReleaseDataSources();
                 var dividendSources = _client.GetDividendDataSources();
+                var earningsSources = _client.GetEarningsDataSources();
 
                 await Task.WhenAll(dataUpdateJobs, econReleaseUpdateJobs, dividendUpdateJobs,
-                    tags, instruments, econReleaseSources, dividendSources).ConfigureAwait(false);
+                    tags, instruments, econReleaseSources, dividendSources, earningsUpdateJobs, earningsSources).ConfigureAwait(false);
 
-                var responses = new ApiResponse[] { dataUpdateJobs.Result, econReleaseUpdateJobs.Result, dividendUpdateJobs.Result, tags.Result, instruments.Result, econReleaseSources.Result, dividendSources.Result };
+                var responses = new ApiResponse[] { dataUpdateJobs.Result, econReleaseUpdateJobs.Result, dividendUpdateJobs.Result, tags.Result, instruments.Result, econReleaseSources.Result, dividendSources.Result, earningsUpdateJobs.Result, earningsSources.Result };
                 if (await responses.DisplayErrors(this, DialogCoordinator).ConfigureAwait(true)) return null;
 
                 Tags.AddRange(tags.Result.Result);
                 Instruments.AddRange(instruments.Result.Result);
                 EconomicReleaseDataSources.AddRange(econReleaseSources.Result.Result);
                 DividendDataSources.AddRange(dividendSources.Result.Result);
+                EarningsDataSources.AddRange(earningsSources.Result.Result);
 
                 var jobs = new List<IJobSettings>();
                 jobs.AddRange(dataUpdateJobs.Result.Result);
                 jobs.AddRange(econReleaseUpdateJobs.Result.Result);
                 jobs.AddRange(dividendUpdateJobs.Result.Result);
+                jobs.AddRange(earningsUpdateJobs.Result.Result);
 
                 return jobs;
             });
@@ -131,6 +136,10 @@ namespace QDMSServer.ViewModels
             {
                 return new DividendUpdateJobViewModel((DividendUpdateJobSettings)job, _client, DialogCoordinator, this);
             }
+            if (job is EarningsUpdateJobSettings)
+            {
+                return new EarningsUpdateJobViewModel((EarningsUpdateJobSettings)job, _client, DialogCoordinator, this);
+            }
 
             throw new NotImplementedException();
         }
@@ -145,6 +154,7 @@ namespace QDMSServer.ViewModels
             panel.Children.Add(new RadioButton { Content = "Data Update", Margin = new Thickness(5), IsChecked = true });
             panel.Children.Add(new RadioButton { Content = "Economic Release Update", Margin = new Thickness(5), IsChecked = false });
             panel.Children.Add(new RadioButton { Content = "Dividend Update", Margin = new Thickness(5), IsChecked = false });
+            panel.Children.Add(new RadioButton { Content = "Earnings Update", Margin = new Thickness(5), IsChecked = false });
 
             var addBtn = new Button { Content = "Add" };
             addBtn.Click += (s, e) =>
@@ -174,6 +184,10 @@ namespace QDMSServer.ViewModels
             else if (selectedJob == "Dividend Update")
             {
                 job = new DividendUpdateJobSettings { Name = GetJobName("DividendUpdateJob"), BusinessDaysBack = 0, BusinessDaysAhead = 3, DataSource = "Nasdaq" };
+            }
+            else if (selectedJob == "Earnings Update")
+            {
+                job = new EarningsUpdateJobSettings { Name = GetJobName("EarningsUpdateJob"), BusinessDaysBack = 0, BusinessDaysAhead = 3, DataSource = "Nasdaq" };
             }
 
             var jobVm = GetJobViewModel(job);
@@ -215,6 +229,8 @@ namespace QDMSServer.ViewModels
         public ReactiveList<string> EconomicReleaseDataSources { get; set; }
 
         public ReactiveList<string> DividendDataSources { get; set; }
+
+        public ReactiveList<string> EarningsDataSources { get; set; }
 
         public IJobViewModel SelectedJob
         {

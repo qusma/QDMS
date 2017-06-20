@@ -43,6 +43,7 @@ namespace EntityData
         public DbSet<Country> Countries { get; set; }
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Dividend> Dividends { get; set; }
+        public DbSet<EarningsAnnouncement> EarningsAnnouncements { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -256,6 +257,23 @@ namespace EntityData
                     )
                 );
 
+            //EarningsAnnouncement
+            modelBuilder.Entity<EarningsAnnouncement>().Property(t => t.Symbol)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Symbol")
+                    )
+                );
+
+            modelBuilder.Entity<EarningsAnnouncement>().Property(t => t.Date)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(
+                        new IndexAttribute("IX_Date")
+                    )
+                );
+
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
         }
 
@@ -287,6 +305,7 @@ namespace EntityData
         DbSet<Country> Countries { get; set; }
         DbSet<Currency> Currencies { get; set; }
         DbSet<Dividend> Dividends { get; set; }
+        DbSet<EarningsAnnouncement> EarningsAnnouncements { get; set; }
 
         DbChangeTracker ChangeTracker { get; }
         DbContextConfiguration Configuration { get; }

@@ -217,6 +217,12 @@ namespace QDMSClient
         public async Task<ApiResponse<List<DividendUpdateJobSettings>>> GetDividendUpdateJobs() =>
             await _apiClient.GetAsync<List<DividendUpdateJobSettings>>("/jobs/dividendupdatejobs").ConfigureAwait(false);
 
+        /// <summary>
+        /// Get all earnings update jobs
+        /// </summary>
+        public async Task<ApiResponse<List<EarningsUpdateJobSettings>>> GetEarningsUpdateJobs() =>
+            await _apiClient.GetAsync<List<EarningsUpdateJobSettings>>("/jobs/earningsupdatejobs").ConfigureAwait(false);
+
         private string GetJobPathFromType(IJobSettings job)
         {
             if (job is DataUpdateJobSettings)
@@ -225,6 +231,8 @@ namespace QDMSClient
                 return "/jobs/economicreleaseupdatejobs";
             if (job is DividendUpdateJobSettings)
                 return "jobs/dividendupdatejobs";
+            if (job is EarningsUpdateJobSettings)
+                return "jobs/earningsupdatejobs";
 
             throw new NotImplementedException();
         }
@@ -280,10 +288,22 @@ namespace QDMSClient
             await _apiClient.GetAsync<List<Dividend>>("/dividends", req).ConfigureAwait(false);
 
         /// <summary>
+        /// Get earnings announcements
+        /// </summary>
+        public async Task<ApiResponse<List<EarningsAnnouncement>>> GetEarningsAnnouncements(EarningsAnnouncementRequest req) =>
+            await _apiClient.GetAsync<List<EarningsAnnouncement>>("/earningsannouncements", req).ConfigureAwait(false);
+
+        /// <summary>
         /// Get all datasources for dividends
         /// </summary>
         public async Task<ApiResponse<List<string>>> GetDividendDataSources() =>
             await _apiClient.GetAsync<List<string>>("/dividends/datasources").ConfigureAwait(false);
+
+        /// <summary>
+        /// Get all datasources for earnings announcements
+        /// </summary>
+        public async Task<ApiResponse<List<string>>> GetEarningsDataSources() =>
+            await _apiClient.GetAsync<List<string>>("/earningsannouncements/datasources").ConfigureAwait(false);
 
         #endregion dividends
     }

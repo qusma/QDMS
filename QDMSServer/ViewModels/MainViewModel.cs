@@ -38,6 +38,8 @@ namespace QDMSServer.ViewModels
 
         public HistoricalDataBroker HistoricalBroker { get; set; }
         public EconomicReleaseBroker EconomicReleaseBroker { get; set; }
+        public DividendsBroker DividendBroker { get; set; }
+        public IEarningsAnnouncementBroker EarningsAnnouncementBroker { get; set; }
 
         public ReactiveCommand<IList, Unit> DeleteInstrument { get; set; }
         public ReactiveCommand<Unit, Instrument> AddInstrumentManually { get; set; }
@@ -227,6 +229,8 @@ namespace QDMSServer.ViewModels
             DividendBroker = new DividendsBroker("Nasdaq",
                 new IDividendDataSource[] { new NasdaqDs.Nasdaq(), new QDMS.Server.DataSources.DivDotCom.DividendDotCom() });
 
+            EarningsAnnouncementBroker = new EarningsAnnouncementBroker("CBOE", new IEarningsAnnouncementSource[] { });
+
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
             _historicalDataServer = new HistoricalDataServer(Properties.Settings.Default.hDBPort, HistoricalBroker);
@@ -256,7 +260,8 @@ namespace QDMSServer.ViewModels
                     fromEmail: Properties.Settings.Default.updateJobEmailSender),
                 localStorage,
                 EconomicReleaseBroker,
-                DividendBroker);
+                DividendBroker,
+                EarningsAnnouncementBroker);
             _scheduler.StartDelayed(TimeSpan.FromSeconds(10));
 
             //Create http server
@@ -266,6 +271,7 @@ namespace QDMSServer.ViewModels
                 HistoricalBroker,
                 RealTimeBroker,
                 DividendBroker,
+                EarningsAnnouncementBroker,
                 _scheduler,
                 Properties.Settings.Default.apiKey);
             var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);
@@ -292,7 +298,6 @@ namespace QDMSServer.ViewModels
             }
         }
 
-        public DividendsBroker DividendBroker { get; set; }
         public void Dispose()
         {
             _scheduler.Shutdown(true);

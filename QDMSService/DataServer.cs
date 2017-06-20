@@ -30,6 +30,7 @@ namespace QDMSService
 
         private IScheduler _scheduler;
         private IDividendsBroker _dividendBroker;
+        private EarningsAnnouncementBroker _earningsAnnouncementBroker;
 
         public DataServer(Config.DataService config)
         {
@@ -99,20 +100,23 @@ namespace QDMSService
             _dividendBroker = new DividendsBroker("Nasdaq",
                 new IDividendDataSource[] { new NasdaqDs.Nasdaq(), new DivDotCom.DividendDotCom()  });
 
+            _earningsAnnouncementBroker = new EarningsAnnouncementBroker("CBOE", new IEarningsAnnouncementSource[] { });
+
             // create servers
             _historicalDataServer = new HistoricalDataServer(_config.HistoricalDataService.Port, _historicalDataBroker);
             _realTimeDataServer = new RealTimeDataServer(_config.RealtimeDataService.PublisherPort, _config.RealtimeDataService.RequestPort, _realTimeDataBroker);
-
+            
             // create scheduler
             ISchedulerFactory schedulerFactory = new StdSchedulerFactory(); //todo need settings for scheduler + jobfactory
             _scheduler = schedulerFactory.GetScheduler();
-
+            
             var bootstrapper = new CustomBootstrapper(
                 localStorage,
                 _economicReleaseBroker,
                 _historicalDataBroker,
                 _realTimeDataBroker,
                 _dividendBroker,
+                _earningsAnnouncementBroker,
                 _scheduler,
                _config.WebService.ApiKey);
             var uri = new Uri((_config.WebService.UseSsl ? "https" : "http") + "://localhost:" + _config.WebService.Port);

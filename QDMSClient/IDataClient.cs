@@ -205,6 +205,11 @@ namespace QDMS
         Task<ApiResponse<List<DividendUpdateJobSettings>>> GetDividendUpdateJobs();
 
         /// <summary>
+        /// Get all earnings update jobs
+        /// </summary>
+        Task<ApiResponse<List<EarningsUpdateJobSettings>>> GetEarningsUpdateJobs();
+
+        /// <summary>
         /// Add a new job
         /// </summary>
         Task <ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings;
@@ -240,8 +245,18 @@ namespace QDMS
         Task<ApiResponse<List<Dividend>>> GetDividends(DividendRequest req);
 
         /// <summary>
+        /// Get earnings announcements
+        /// </summary>
+        Task<ApiResponse<List<EarningsAnnouncement>>> GetEarningsAnnouncements(EarningsAnnouncementRequest req);
+
+        /// <summary>
         /// Get all datasources for dividends
         /// </summary>
         Task<ApiResponse<List<string>>> GetDividendDataSources();
+
+        /// <summary>
+        /// Get all datasources for earnings announcements
+        /// </summary>
+        Task<ApiResponse<List<string>>> GetEarningsDataSources();
     }
 }

@@ -19,6 +19,7 @@ namespace QDMSServer
         private readonly IHistoricalDataBroker _hdb;
         private readonly IEconomicReleaseBroker _erb;
         private readonly IDividendsBroker _divb;
+        private readonly IEarningsAnnouncementBroker _eab;
 
         private string _host;
         private int _port;
@@ -40,7 +41,8 @@ namespace QDMSServer
             UpdateJobSettings updateJobSettings,
             QDMS.IDataStorage localStorage,
             IEconomicReleaseBroker erb,
-            IDividendsBroker divb) : base()
+            IDividendsBroker divb,
+            IEarningsAnnouncementBroker eab) : base()
         {
             _hdb = hdb;
 
@@ -54,6 +56,7 @@ namespace QDMSServer
             _localStorage = localStorage;
             _erb = erb;
             _divb = divb;
+            _eab = eab;
         }
 
         /// <summary>
@@ -91,6 +94,10 @@ namespace QDMSServer
             {
                 return GetDividendUpdateJob(bundle, scheduler);
             }
+            else if (type == JobTypes.EarningsUpdate)
+            {
+                return GetEarningsUpdateJob(bundle, scheduler);
+            }
 
             throw new Exception("Uknown job type " + type);
         }
@@ -109,6 +116,11 @@ namespace QDMSServer
         private IJob GetDividendUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
             return new DividendUpdateJob(_divb, GetEmailSender(), _updateJobSettings, new InstrumentRepository(new MyDBContext()));
+        }
+
+        private IJob GetEarningsUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
+        {
+            return new EarningsUpdateJob(_eab, GetEmailSender(), _updateJobSettings, new InstrumentRepository(new MyDBContext()));
         }
 
         private EmailSender GetEmailSender()

@@ -284,6 +284,9 @@
     </Compile>
     <Compile Include="ListBoxExt.cs" />
     <Compile Include="UpdateHelper.cs" />
+    <Compile Include="UserControls\EarningsUpdateJobControl.xaml.cs">
+      <DependentUpon>EarningsUpdateJobControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\DividendUpdateJobControl.xaml.cs">
       <DependentUpon>DividendUpdateJobControl.xaml</DependentUpon>
     </Compile>
@@ -320,6 +323,7 @@
     <Compile Include="ViewModels\AddInstrumentQuandlViewModel.cs" />
     <Compile Include="ViewModels\DividendUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\EarningsUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\EconomicReleaseUpdateJobViewModel.cs" />
     <Compile Include="ViewModels\EditInstrumentViewModel.cs" />
     <Compile Include="ViewModels\ExchangesViewModel.cs" />
@@ -398,6 +402,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="UserControls\EarningsUpdateJobControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UserControls\DividendUpdateJobControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
