@@ -51,6 +51,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "QDMS.Server.DataSources.Nas
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "QDMS.Server.DataSources.Dividend.com", "QDMS.Server.DataSources.Dividend.com\QDMS.Server.DataSources.Dividend.com.fsproj", "{95EEF323-701B-44D9-BBCE-8308EDB23073}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "QDMS.Server.DataSources.CBOE", "QDMS.Server.DataSources.CBOE\QDMS.Server.DataSources.CBOE.fsproj", "{8F48BA67-7EBD-4620-815C-32EA5BCB4181}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -289,6 +291,18 @@ Global
 		{95EEF323-701B-44D9-BBCE-8308EDB23073}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{95EEF323-701B-44D9-BBCE-8308EDB23073}.Release|x86.ActiveCfg = Release|Any CPU
 		{95EEF323-701B-44D9-BBCE-8308EDB23073}.Release|x86.Build.0 = Release|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Debug|x86.Build.0 = Debug|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Release|x86.ActiveCfg = Release|Any CPU
+		{8F48BA67-7EBD-4620-815C-32EA5BCB4181}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
