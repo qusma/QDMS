@@ -19,12 +19,12 @@ namespace QDMS
         /// <summary>
         /// Average estimation of the earnings per share before release
         /// </summary>
-        public double? Forecast { get; set; }
+        public decimal? Forecast { get; set; }
 
         /// <summary>
         /// The actual reported value of earnings per share
         /// </summary>
-        public double? EarningsPerShare { get; set; }
+        public decimal? EarningsPerShare { get; set; }
 
         [MaxLength(25)]
         public string Symbol { get; set; }

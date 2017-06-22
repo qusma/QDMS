@@ -83,6 +83,10 @@ namespace EntityData
 
             modelBuilder.Entity<Dividend>().Property(x => x.Amount).HasPrecision(16,8);
 
+            modelBuilder.Entity<EarningsAnnouncement>().Property(x => x.EarningsPerShare).HasPrecision(16, 8);
+            modelBuilder.Entity<EarningsAnnouncement>().Property(x => x.Forecast).HasPrecision(16, 8);
+
+
             // Instrument
 
             string uniqueIndex = "IX_Unique";

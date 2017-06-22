@@ -105,9 +105,9 @@
     <Compile Include="Migrations\201706162144440_IndexFix3.Designer.cs">
       <DependentUpon>201706162144440_IndexFix3.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201706201034476_Earnings.cs" />
-    <Compile Include="Migrations\201706201034476_Earnings.Designer.cs">
-      <DependentUpon>201706201034476_Earnings.cs</DependentUpon>
+    <Compile Include="Migrations\201706220016038_Earnings.cs" />
+    <Compile Include="Migrations\201706220016038_Earnings.Designer.cs">
+      <DependentUpon>201706220016038_Earnings.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\DataDBContextConfiguration.cs" />
     <Compile Include="Migrations\MyDbContextConfiguration.cs" />
@@ -163,8 +163,8 @@
     <EmbeddedResource Include="Migrations\201706162144440_IndexFix3.resx">
       <DependentUpon>201706162144440_IndexFix3.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201706201034476_Earnings.resx">
-      <DependentUpon>201706201034476_Earnings.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201706220016038_Earnings.resx">
+      <DependentUpon>201706220016038_Earnings.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -12,8 +12,8 @@ namespace EntityData.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        Forecast = c.Double(),
-                        EarningsPerShare = c.Double(),
+                        Forecast = c.Decimal(precision: 16, scale: 8),
+                        EarningsPerShare = c.Decimal(precision: 16, scale: 8),
                         Symbol = c.String(maxLength: 25, storeType: "nvarchar"),
                         CompanyName = c.String(maxLength: 100, storeType: "nvarchar"),
                         Date = c.DateTime(nullable: false, precision: 0),
