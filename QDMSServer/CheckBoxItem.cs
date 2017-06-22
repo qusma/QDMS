@@ -8,7 +8,7 @@ using System.ComponentModel;
 
 namespace QDMSServer
 {
-    public class CheckBoxItem<T>
+    public class CheckBoxItem<T> : INotifyPropertyChanged
     {
         private bool _isChecked;
         private T _item;
