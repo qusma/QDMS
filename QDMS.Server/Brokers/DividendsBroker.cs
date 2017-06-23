@@ -90,7 +90,7 @@ namespace QDMS.Server.Brokers
             {
                 _logger.Error($"DivB: Could not find specified data source {request.DataSource}");
                 RaiseEvent(Error, this, new ErrorArgs(-1, $"DivB: Could not find specified data source {request.DataSource}"));
-                return new List<Dividend>();
+                throw new Exception("Could not find specified data source {request.DataSource}");
             }
 
             var data = await client.RequestData(request).ConfigureAwait(false);

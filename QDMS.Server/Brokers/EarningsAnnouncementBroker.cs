@@ -24,8 +24,7 @@ namespace QDMS.Server.Brokers
 
         Task<List<EarningsAnnouncement>> Request(EarningsAnnouncementRequest request);
     }
-    //TODO source of dividends, earnings, splits, guidance, and economic events: http://www.cboe.com/news/earnings-calendar
-    //todo CBOE client
+
     public class EarningsAnnouncementBroker : IEarningsAnnouncementBroker
     {
         private readonly string _defaultDataSource;
@@ -91,7 +90,7 @@ namespace QDMS.Server.Brokers
             {
                 _logger.Error($"EAB: Could not find specified data source {request.DataSource}");
                 RaiseEvent(Error, this, new ErrorArgs(-1, $"EAB: Could not find specified data source {request.DataSource}"));
-                return new List<EarningsAnnouncement>();
+                throw new Exception("Could not find specified data source {request.DataSource}");
             }
 
             var data = await client.RequestData(request).ConfigureAwait(false);
