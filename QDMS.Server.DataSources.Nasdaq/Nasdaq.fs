@@ -11,8 +11,8 @@ module NasdaqDs =
     open System.Net.Http
     open System.Threading.Tasks
 
-    type SymbolDividends = HtmlProvider<"./AAPL.html">
-    type DateDividends = HtmlProvider<"./Jan27.html">
+    type SymbolDividends = HtmlProvider<"./AAPL.html", IncludeLayoutTables=true, PreferOptionals=true>
+    type DateDividends = HtmlProvider<"./Jan27.html", IncludeLayoutTables=true, PreferOptionals=true>
 
     type Nasdaq() = 
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
@@ -20,9 +20,12 @@ module NasdaqDs =
         let httpClient = new HttpClient()
 
         let parseNullableDate (str) = 
-            match DateTime.TryParseExact(str, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None) with
-            | (true, num) -> Nullable<DateTime>(num)
-            | _ -> System.Nullable()
+            match str with
+            | Some value -> 
+                match DateTime.TryParseExact(value, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None) with
+                | (true, num) -> Nullable<DateTime>(num)
+                | _ -> System.Nullable()
+            | None -> System.Nullable()
 
         let parseDate str = 
              DateTime.ParseExact(str, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None)
@@ -57,15 +60,13 @@ module NasdaqDs =
                 let! html = this.getStrFromUrl(url)
                 let data = DateDividends.Load(html)
 
-                return data.Html.Body().Descendants(fun x -> x.HasId("Table1")).First().Descendants ["tr"]
-                    |> Seq.skip 1
-                    |> Seq.map(fun tr -> tr.Descendants ["td"] |> Seq.map(fun td -> td.InnerText()) |> Seq.toArray)
-                    |> Seq.map(fun x -> new Dividend(Symbol = Regex.Match(x.[0], @"\([^\)]*\)$").Value.Trim('(', ')'),
-                                                     ExDate = parseDate x.[1],
-                                                     Amount = Decimal.Parse x.[2],
-                                                     RecordDate = parseNullableDate x.[4],
-                                                     DeclarationDate = parseNullableDate x.[5],
-                                                     PaymentDate = parseNullableDate x.[6])) 
+                return data.Tables.Table1.Rows
+                    |> Seq.map(fun row -> new Dividend(Symbol = Regex.Match(row.``Company (Symbol)``, @"\([^\)]*\)$").Value.Trim('(', ')'),
+                                                     ExDate = row.``Ex-Dividend Date``,
+                                                     Amount = row.Dividend,
+                                                     RecordDate = parseNullableDate row.``Record Date``,
+                                                     DeclarationDate = parseNullableDate row.``Announcement Date``,
+                                                     PaymentDate = parseNullableDate row.``Payment Date``)) 
             }
 
 
