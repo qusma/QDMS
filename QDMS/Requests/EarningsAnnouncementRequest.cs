@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="DividendRequest.cs" company="">
+// <copyright file="EarningsAnnouncementRequest.cs" company="">
 // Copyright 2017 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------

@@ -229,7 +229,8 @@ namespace QDMSServer.ViewModels
             DividendBroker = new DividendsBroker("Nasdaq",
                 new IDividendDataSource[] { new NasdaqDs.Nasdaq(), new QDMS.Server.DataSources.DivDotCom.DividendDotCom() });
 
-            EarningsAnnouncementBroker = new EarningsAnnouncementBroker("CBOE", new IEarningsAnnouncementSource[] { });
+            EarningsAnnouncementBroker = new EarningsAnnouncementBroker("CBOE", 
+                new IEarningsAnnouncementSource[] { new CBOEModule.CBOE() });
 
             //create the various servers
             _realTimeServer = new RealTimeDataServer(Properties.Settings.Default.rtDBPubPort, Properties.Settings.Default.rtDBReqPort, RealTimeBroker);
