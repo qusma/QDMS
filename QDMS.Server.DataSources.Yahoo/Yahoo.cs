@@ -296,6 +296,9 @@ namespace QDMSServer.DataSources
                 }
             }
 
+            //For some reason the order of the data is sometimes reversed, make sure it's correct
+            data = data.OrderBy(x => x.DT).ToList();
+
             //Note that due to the latest change, the adjusted close value is incorrect (doesn't include divs)
             //so we need to calc adj values ourselves
             PriceAdjuster.AdjustData(ref data);
