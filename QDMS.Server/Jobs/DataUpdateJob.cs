@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Calendar = QLNet.Calendar;
 
 namespace QDMSServer
 {
@@ -28,6 +29,11 @@ namespace QDMSServer
         private readonly IDataStorage _localStorage;
         private readonly object _reqIDLock = new object();
         private readonly IInstrumentSource _instrumentManager;
+
+        /// <summary>
+        /// If the exchanges get their own calendar at some point, this could be changed to be per-exchange
+        /// </summary>
+        private readonly Calendar _calendar = new QLNet.UnitedStates(QLNet.UnitedStates.Market.NYSE);
 
         /// <summary>
         /// </summary>
@@ -295,17 +301,49 @@ namespace QDMSServer
             //count how many bars are not newly updated
             int toSkip = data.Count(x => x.DT < request.StartingDate);
 
-            var closePrices = data
-                .Select(x => x.AdjClose.HasValue ? (double)x.AdjClose.Value : (double)x.Close);
-            var absRets = closePrices.Zip(closePrices.Skip(1), (x, y) => Math.Abs(y / x - 1));
+            CheckForAbnormalReturns(data, toSkip, abnormalLimit, inst, freq);
 
-            if (absRets.Skip(Math.Max(0, toSkip - 1)).Max() >= abnormalLimit)
+            CheckForAbnormalRanges(data, toSkip, abnormalStDevRange, inst, freq);
+
+            CheckForMissingDays(request, data, inst);
+
+            CheckForZeroPrices(request, data, inst);
+        }
+
+        private void CheckForZeroPrices(HistoricalDataRequest request, List<OHLCBar> data, Instrument inst)
+        {
+            foreach (var bar in data)
             {
-                _errors.Add(string.Format("Possible dirty data detected, abnormally large returns in instrument {0} at frequency {1}.",
-                    inst,
-                    freq));
+                if (bar.Open == 0 || bar.High == 0 || bar.Low == 0 || bar.Close == 0)
+                {
+                    _errors.Add($"{inst} has zero price at {bar.DT}");
+                }
             }
+        }
 
+
+        private void CheckForMissingDays(HistoricalDataRequest request, List<OHLCBar> data, Instrument inst)
+        {
+            //check for missing data
+            //note: does not check if the latest date failed to get downloaded
+            var availableDates = data.Select(x => x.DT.Date).ToList();
+            if (request.Frequency == BarSize.OneDay)
+            {
+                var tmpDate = data[0].DT.Date;
+                while (tmpDate <= data[data.Count - 1].DT.Date)
+                {
+                    if (_calendar.isBusinessDay(new QLNet.Date(tmpDate)) && !availableDates.Contains(tmpDate))
+                    {
+                        _errors.Add($"{inst.Symbol} missing data on business day {tmpDate}");
+                    }
+
+                    tmpDate = tmpDate.AddDays(1);
+                }
+            }
+        }
+
+        private void CheckForAbnormalRanges(List<OHLCBar> data, int toSkip, double abnormalStDevRange, Instrument inst, BarSize freq)
+        {
             //Check for abnormally large ranges
             var highs = data.Select(x => x.AdjHigh.HasValue ? x.AdjHigh.Value : x.High);
             var lows = data.Select(x => x.AdjLow.HasValue ? x.AdjLow.Value : x.Low);
@@ -316,7 +354,28 @@ namespace QDMSServer
 
             if (ranges.Skip(toSkip).Any(x => x > mean + stDev * abnormalStDevRange))
             {
-                _errors.Add(string.Format("Possible dirty data detected, abnormally large range in instrument {0} at frequency {1}.",
+                _errors.Add(string.Format(
+                    "Possible dirty data detected, abnormally large range in instrument {0} at frequency {1}.",
+                    inst,
+                    freq));
+            }
+        }
+
+        private void CheckForAbnormalReturns(List<OHLCBar> data, int toSkip, double abnormalLimit, Instrument inst, BarSize freq)
+        {
+            var closePrices = data
+                .Select(x => x.AdjClose.HasValue ? (double)x.AdjClose.Value : (double)x.Close);
+            if (closePrices.Any(x => x == 0))
+            {
+                //avoid div by 0
+                return;
+            }
+            var absRets = closePrices.Zip(closePrices.Skip(1), (x, y) => Math.Abs(y / x - 1));
+
+            if (absRets.Skip(Math.Max(0, toSkip - 1)).Max() >= abnormalLimit)
+            {
+                _errors.Add(string.Format(
+                    "Possible dirty data detected, abnormally large returns in instrument {0} at frequency {1}.",
                     inst,
                     freq));
             }
