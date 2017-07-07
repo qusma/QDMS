@@ -77,7 +77,17 @@ namespace QDMSServer.DataSources
             //Get cookie and crumb...they can be used across all requests
 
             string url = "https://uk.finance.yahoo.com/quote/AAPL/history";
-            var response = await _client.GetAsync(url).ConfigureAwait(true);
+            HttpResponseMessage response;
+            try
+            {
+                response = await _client.GetAsync(url).ConfigureAwait(true);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.Error(ex, "Yahoo crumb/cookie request failed");
+                return;
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.Error("Could not get crumb/cookie");
