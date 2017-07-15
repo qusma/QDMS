@@ -58,17 +58,23 @@ module NasdaqDs =
                 logger.Info("Downloading dividends from " + url)
 
                 let! html = this.getStrFromUrl(url)
-                let data = DateDividends.Load(html)
+                try 
+                    let data = DateDividends.Load(html)
+                    return data.Tables.Table1.Rows
+                        |> Seq.map(this.parseRow) 
+                with e -> 
+                    logger.Error(e, "Failed to parse dividends on " + date.ToString() + ". No divs available?")
+                    return Seq.empty<Dividend>
+            }
 
-                return data.Tables.Table1.Rows
-                    |> Seq.map(fun row -> new Dividend(Symbol = Regex.Match(row.``Company (Symbol)``, @"\([^\)]*\)$").Value.Trim('(', ')'),
+            
+        member this.parseRow row =
+            new Dividend(Symbol = Regex.Match(row.``Company (Symbol)``, @"\([^\)]*\)$").Value.Trim('(', ')'),
                                                      ExDate = row.``Ex-Dividend Date``,
                                                      Amount = row.Dividend,
                                                      RecordDate = parseNullableDate row.``Record Date``,
                                                      DeclarationDate = parseNullableDate row.``Announcement Date``,
-                                                     PaymentDate = parseNullableDate row.``Payment Date``)) 
-            }
-
+                                                     PaymentDate = parseNullableDate row.``Payment Date``)
 
         member this.getSpecificSymbol(request: DividendRequest) =
             async {
