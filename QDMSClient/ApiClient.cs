@@ -23,6 +23,9 @@ namespace QDMSClient
     public class ApiClient : IDisposable
     {
         private HttpClient _httpClient = new HttpClient();
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+            {PreserveReferencesHandling = PreserveReferencesHandling.Objects};
         private readonly string _baseAddr;
 
         public ApiClient(string host, int httpPort, string apiKey, bool useSsl)
@@ -181,7 +184,7 @@ namespace QDMSClient
         {
             return body == null
                 ? null
-                : new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+                : new StringContent(JsonConvert.SerializeObject(body, SerializerSettings), Encoding.UTF8, "application/json");
         }
 
         /// <summary>

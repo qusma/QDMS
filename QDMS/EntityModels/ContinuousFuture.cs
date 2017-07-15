@@ -156,6 +156,7 @@ namespace QDMS
         {
             var clone = new ContinuousFuture
             {
+                ID = ID,
                 InstrumentID = InstrumentID,
                 Instrument = Instrument,
                 UnderlyingSymbol = UnderlyingSymbol,

@@ -152,7 +152,7 @@ namespace QDMS
         public string DatasourceSymbol { get; set; }
 
         [ProtoMember(29)]
-        public ContinuousFuture ContinuousFuture { get; set; }
+        public virtual ContinuousFuture ContinuousFuture { get; set; }
 
         [ProtoMember(30)]
         [MaxLength(20)]
@@ -260,6 +260,7 @@ namespace QDMS
                 Category = Category,
                 Subcategory = Subcategory,
                 IsContinuousFuture = IsContinuousFuture,
+                ContinuousFutureID = ContinuousFutureID,
                 ValidExchanges = ValidExchanges,
                 DatasourceID = DatasourceID,
                 Exchange = Exchange,

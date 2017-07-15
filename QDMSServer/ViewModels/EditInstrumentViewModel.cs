@@ -251,6 +251,22 @@ namespace QDMSServer.ViewModels
             }
         }
 
+        /// <summary>
+        /// The continuous future root symbol
+        /// </summary>
+        public UnderlyingSymbol RootSymbol
+        {
+            get => Model.ContinuousFuture?.UnderlyingSymbol;
+            set
+            {
+                if (Model.ContinuousFuture == null) return;
+                Model.ContinuousFuture.UnderlyingSymbol = value;
+                Model.ContinuousFuture.UnderlyingSymbolID = value?.ID ?? 0;
+                this.RaisePropertyChanged();
+                this.RaisePropertyChanged("ContinuousFuture.UnderlyingSymbolID");
+            }
+        }
+
         public string DatasourceSymbol
         {
             get => Model.DatasourceSymbol;

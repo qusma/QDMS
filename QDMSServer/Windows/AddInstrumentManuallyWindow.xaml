@@ -307,7 +307,7 @@
 
                     <Label Grid.Row="0"  Content="Root Symbol:" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Height="23" Width="109"/>
                     <ComboBox Grid.Row="0"  Name="RootSymbolComboBox" HorizontalAlignment="Left" Margin="120,10,0,0" 
-                              SelectedItem="{Binding ContinuousFuture.UnderlyingSymbol}"
+                              SelectedItem="{Binding RootSymbol}"
                               ItemsSource="{Binding UnderlyingSymbols}"
                               DisplayMemberPath="Symbol" VerticalAlignment="Top" Width="120" Height="26"/>
 

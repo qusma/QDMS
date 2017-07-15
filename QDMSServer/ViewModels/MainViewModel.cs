@@ -168,6 +168,8 @@ namespace QDMSServer.ViewModels
         private void LoadData()
         {
             var instrumentsRes = _client.GetInstruments().Result;
+            var inst = instrumentsRes.Result.First(x => x.ID == 464);
+            Console.WriteLine(inst);
             if (instrumentsRes.WasSuccessful)
             {
                 Instruments.AddRange(instrumentsRes.Result);
@@ -278,7 +280,7 @@ namespace QDMSServer.ViewModels
             var uri = new Uri((Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Properties.Settings.Default.httpPort);
             var host = new NancyHost(bootstrapper, uri);
             host.Start();
-
+            //TODO https
             //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
             MigrateJobs(entityContext, _scheduler);
 

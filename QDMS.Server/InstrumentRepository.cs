@@ -144,6 +144,8 @@ namespace QDMS.Server
             if (attachedInstrument.IsContinuousFuture)
             {
                 Context.UpdateEntryValues(attachedInstrument.ContinuousFuture, newValues.ContinuousFuture);
+                var rootSymbol = Context.UnderlyingSymbols.Find(newValues.ContinuousFuture.UnderlyingSymbolID);
+                attachedInstrument.ContinuousFuture.UnderlyingSymbol = rootSymbol;
             }
 
             //Exchange/PrimaryExchange/Datasource just works (because they work by the ID properties), we don't need to do any attaching

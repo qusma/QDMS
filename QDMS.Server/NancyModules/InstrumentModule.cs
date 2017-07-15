@@ -12,6 +12,7 @@ using QDMSServer;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using Nancy.Extensions;
 
 namespace QDMS.Server.NancyModules
 {

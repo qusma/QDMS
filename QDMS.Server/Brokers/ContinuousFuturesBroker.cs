@@ -270,7 +270,7 @@ namespace QDMSServer
                 x.DatasourceID == request.Instrument.DatasourceID).Result;
 
 
-            if (futures == null)
+            if (futures == null || futures.Count == 0)
             {
                 Log(LogLevel.Error, "CFB: Error in GetRequiredRequests, failed to return any contracts to historical request ID: " + request.AssignedID);
                 return requests;

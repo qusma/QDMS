@@ -20,7 +20,7 @@ namespace QDMS
     /// Represents a futures contract specification, including the root symbol and expiration date rules
     /// </summary>
     [ProtoContract]
-    public class UnderlyingSymbol : IEntity
+    public class UnderlyingSymbol : IEntity, IEquatable<UnderlyingSymbol>
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -150,6 +150,31 @@ namespace QDMS
         public override string ToString()
         {
             return Symbol;
+        }
+
+        public bool Equals(UnderlyingSymbol other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return ID == other.ID && string.Equals(Symbol, other.Symbol);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((UnderlyingSymbol)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = ID;
+                hashCode = (hashCode * 397) ^ (Symbol != null ? Symbol.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 }
