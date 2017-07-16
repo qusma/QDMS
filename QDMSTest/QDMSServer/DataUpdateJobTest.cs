@@ -267,7 +267,7 @@ namespace QDMSTest
                     {
                         Frequency = BarSize.OneDay,
                         InstrumentID = inst.ID.Value,
-                        LatestDate = DateTime.Now.AddDays(-2)
+                        LatestDate = new DateTime(2017, 6, 29)
                     } });
 
             HistoricalDataRequest req = null;
