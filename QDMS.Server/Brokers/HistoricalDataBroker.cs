@@ -345,11 +345,13 @@ namespace QDMSServer
         /// Ensures that the data source specified is present and connected.
         /// Throws an exception otherwise.
         /// </summary>
-        private void CheckDataSource(string name)
+        private void CheckDataSource(HistoricalDataRequest request)
         {
+            string name = request.Instrument.Datasource.Name;
+
             if (!DataSources.ContainsKey(name))
                 throw new Exception(string.Format("Data source {0} does not exist.", name));
-            if (!DataSources[name].Connected)
+            if (request.DataLocation != DataLocation.LocalOnly && !DataSources[name].Connected)
                 throw new Exception(string.Format("Data source {0} is not connected.", name));
         }
 
@@ -374,7 +376,7 @@ namespace QDMSServer
             //make sure data source is present and available
             try
             {
-                CheckDataSource(request.Instrument.Datasource.Name);
+                CheckDataSource(request); //todo if requesting local data, ds does not need to be connected
             }
             catch (Exception ex)
             {
@@ -410,7 +412,7 @@ namespace QDMSServer
             //if not, simply send the request to local storage and throw an exception
             try
             {
-                CheckDataSource(request.Instrument.Datasource.Name);
+                CheckDataSource(request);
             }
             catch (Exception ex)
             {

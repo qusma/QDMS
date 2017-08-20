@@ -461,5 +461,18 @@ namespace QDMSTest
 
             Assert.Throws<Exception>(() =>_broker.RequestHistoricalData(request));
         }
+
+        [Test]
+        public void DoesNotThrowExceptionWhenMakingLocalOnlyRequestForInstrumentWithDataSourceThatIsDisconnected()
+        {
+            var request = new HistoricalDataRequest(_instrument, BarSize.OneDay, new DateTime(2012, 1, 1), new DateTime(2013, 1, 1),
+                dataLocation: DataLocation.LocalOnly,
+                saveToLocalStorage: false,
+                rthOnly: true);
+
+            _dataSourceMock.SetupGet(x => x.Connected).Returns(false);
+
+            Assert.DoesNotThrow(() => _broker.RequestHistoricalData(request));
+        }
     }
 }
