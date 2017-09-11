@@ -318,7 +318,6 @@
       <xs:pattern value="RescheduleNowWithExistingRepeatCount" />
       <xs:pattern value="RescheduleNowWithRemainingRepeatCount" />
       <xs:pattern value="FireNow" />
-      <xs:pattern value="IgnoreMisfirePolicy" />
     </xs:restriction>
   </xs:simpleType>
 
@@ -330,7 +329,6 @@
       <xs:pattern value="SmartPolicy" />
       <xs:pattern value="DoNothing" />
       <xs:pattern value="FireOnceNow" />
-      <xs:pattern value="IgnoreMisfirePolicy" />
     </xs:restriction>
   </xs:simpleType>
 
@@ -342,7 +340,6 @@
       <xs:pattern value="SmartPolicy" />
       <xs:pattern value="DoNothing" />
       <xs:pattern value="FireOnceNow" />
-      <xs:pattern value="IgnoreMisfirePolicy" />
     </xs:restriction>
   </xs:simpleType>
 
