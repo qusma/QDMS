@@ -44,6 +44,7 @@ namespace QDMSServer
             Data = new ObservableCollection<OHLCBar>();
 
             //grab and update the instrument
+            //TODO rewrite to use client
             using (var context = new MyDBContext())
             {
                 context.Instruments.Attach(instrument);
@@ -60,9 +61,9 @@ namespace QDMSServer
             if (!TheInstrument.ID.HasValue) return;
 
             //grab the data info
+            //todo remove dependency on DataStorageFactory
             using (var localStorage = DataStorageFactory.Get())
             {
-                //TODO remove dependency on local storage here, use client instead
                 var storageInfo = localStorage.GetStorageInfo(TheInstrument.ID.Value);
 
                 if (storageInfo.Count == 0) //if it doesn't have any data, we just exit
@@ -88,6 +89,7 @@ namespace QDMSServer
             Data.Clear();
 
             //grab the data
+            //todo remove dependency on DataStorageFactory
             using (var localStorage = DataStorageFactory.Get())
             {
                 
@@ -166,7 +168,7 @@ namespace QDMSServer
                 }
             }
 
-
+            //todo remove dependency on DataStorageFactory
             using (var localStorage = DataStorageFactory.Get())
             {
                 localStorage.DeleteData(TheInstrument, _loadedFrequency, toDelete);
@@ -200,6 +202,7 @@ namespace QDMSServer
 
         private void SaveChangesBtn_Click(object sender, RoutedEventArgs e)
         {
+            //todo remove dependency on DataStorageFactory
             using (var localStorage = DataStorageFactory.Get())
             {
                 try

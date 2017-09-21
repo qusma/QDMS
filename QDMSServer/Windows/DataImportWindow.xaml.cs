@@ -38,8 +38,9 @@ namespace QDMSServer
         public DataImportWindow(Instrument instrument)
         {
             InitializeComponent();
-            
+
             //reload the instrument first to make sure we have up-to-date data
+            //TODO rewrite to use client
             using (var context = new MyDBContext())
             {
                 context.Instruments.Attach(instrument);
@@ -457,6 +458,9 @@ namespace QDMSServer
                         ConvertTimeZone(bars, tzInfo);
 
                         //low frequencies, < 1 day. No adjustment required and inserting data at intervals instead of all at once
+                        IDataClient client;
+                        //client.PushData(new DataAdditionRequest(frequency, _instrument, bars, OverwriteCheckbox.IsChecked.HasValue && OverwriteCheckbox.IsChecked.Value, false));
+                        //todo remove dependency on DataStorageFactory
                         using (var storage = DataStorageFactory.Get())
                         {
                             try
@@ -527,6 +531,7 @@ namespace QDMSServer
                 bars.Sort((x, y) => x.DT.CompareTo(y.DT));
 
             //try to import
+            //todo remove dependency on DataStorageFactory
             using (var storage = DataStorageFactory.Get())
             {
                 try

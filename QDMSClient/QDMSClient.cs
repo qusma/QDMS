@@ -327,6 +327,7 @@ namespace QDMSClient
 
                     if (_realTimeRequestSocket.TryReceiveFrameString(TimeSpan.FromSeconds(1), out reply))
                     {
+                        //first reply is an empty frame that starts the REP message, second is "PONG"
                         _realTimeRequestSocket.TryReceiveFrameString(TimeSpan.FromMilliseconds(50), out reply);
                     }
                 }

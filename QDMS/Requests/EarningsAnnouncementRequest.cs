@@ -27,8 +27,9 @@ namespace QDMS
             DataSource = dataSource;
         }
 
+        //we could make these internal, but requires [JsonConstructor] or ConstructorHandling.AllowNonPublicDefaultConstructor in json.net
         [Obsolete("FOR SERIALIZATION USE ONLY")]
-        public EarningsAnnouncementRequest()
+        public EarningsAnnouncementRequest() 
         { }
 
         public DateTime FromDate { get; set; }

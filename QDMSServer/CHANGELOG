@@ -1,3 +1,15 @@
+Version 0.9.6
+ - HTTP API
+ - Tons of additional functionality added to the client.
+ - Additional datasources.
+ - Improved performance on historical data requests.
+ - Download and store info on past/upcoming dividends. Includes automated update support.
+ - Download and store info on past/upcoming earnings announcements. Includes automated update support.
+ - Download and store info on past/upcoming economic info releases. Includes automated update support.
+ - Tons of minor changes & fixes.
+
+The NuGet package for the client library has been updated.
+ 
 Version 0.9.2
 - Slight change to the way adding new instruments works. You now received the added instrument in response to the addition request.
 

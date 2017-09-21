@@ -66,6 +66,7 @@ namespace QDMSServer.ViewModels
             Exchanges = new ObservableCollection<string> { "All" };
             _exchanges = new Dictionary<string, Exchange>();
 
+            //TODO rewrite to use client
             using (var context = new MyDBContext())
             {
                 _thisDS = context.Datasources.First(x => x.Name == "Interactive Brokers");
