@@ -302,7 +302,7 @@ namespace QDMSTest
                     It.IsAny<string>(),
                     It.Is<string>(y => y == "test@test.test"),
                     It.IsAny<string>(),
-                    It.Is<string>(y => y.Contains("missing data"))));
+                    It.Is<string>(y => y.Contains("missing data"))), Times.Once);
         }
     }
 }
