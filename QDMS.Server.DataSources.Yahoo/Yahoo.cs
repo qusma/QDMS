@@ -280,16 +280,26 @@ namespace QDMSServer.DataSources
                 if (splits.ContainsKey(items[0]))
                     bar.Split = splits[items[0]];
 
-
                 //The OHL values are actually split adjusted, we want to turn them back
+                if (bar.Split.HasValue)
+                {
+                    var ratio = bar.Split.Value;
+                    for (int i = j - 2; i >= 0; i--)
+                    {
+                        data[i].Open = data[i].Open * ratio;
+                        data[i].High = data[i].High * ratio;
+                        data[i].Low = data[i].Low * ratio;
+                        data[i].Close = data[i].Close * ratio;
+                    }
+                }
+
                 try
                 {
                     var dt = DateTime.ParseExact(items[0], "yyyy-MM-dd", CultureInfo.InvariantCulture);
                     bar.DT = dt;
-                    decimal adjRatio = decimal.Parse(items[4]) / decimal.Parse(items[5]);
-                    bar.Open = decimal.Parse(items[1]) * adjRatio;
-                    bar.High = decimal.Parse(items[2]) * adjRatio;
-                    bar.Low = decimal.Parse(items[3]) * adjRatio;
+                    bar.Open = decimal.Parse(items[1]);
+                    bar.High = decimal.Parse(items[2]);
+                    bar.Low = decimal.Parse(items[3]);
                     bar.Close = decimal.Parse(items[4]);
                     bar.Volume = long.Parse(items[6]);
                     //set adj values so that in case they're not set later (eg if we only get one bar), they're still filled in
