@@ -19,7 +19,7 @@ namespace QDMSServer.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -61,15 +61,17 @@ namespace QDMSServer.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Version 0.9.2
-        ///- Slight change to the way adding new instruments works. You now received the added instrument in response to the addition request.
+        ///   Looks up a localized string similar to Version 0.9.6
+        /// - HTTP API
+        /// - Tons of additional functionality added to the client.
+        /// - Additional datasources.
+        /// - Improved performance on historical data requests.
+        /// - Download and store info on past/upcoming dividends. Includes automated update support.
+        /// - Download and store info on past/upcoming earnings announcements. Includes automated update support.
+        /// - Download and store info on past/upcoming economic info releases. Includes automated update support.
+        /// - Tons of minor changes &amp; fixes.
         ///
-        ///Version 0.9.1
-        ///- Client update: renamed extension method to prevent naming clash with Math.NET Numerics library.
-        ///
-        ///Version 0.9.0
-        ///- Changed ZeroMQ libraries from clrzmq to NetMQ, streamlining a lot of server code in the process.
-        ///	ATTENTION! If you are using the NuGet QDMS Client package you need to update it to work with the latest version of the server. Not [rest of string was truncated]&quot;;.
+        ///The NuGe [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CHANGELOG {
             get {

@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>QDMS.Server.DataSources.FXStreet</RootNamespace>
     <AssemblyName>QDMS.Server.DataSources.FXStreet</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>QDMS.Server.DataSources.FXStreet</Name>

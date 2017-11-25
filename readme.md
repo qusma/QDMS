@@ -23,6 +23,7 @@ Features
 * Download historical and real time data from external data sources.
 * Local storage of historical data.
 * Continuous futures data.
+* Earnings announcement data, dividend data, economic release data.
 * Schedule automatic data updates.
 * CSV import/export.
 
@@ -47,7 +48,7 @@ Requirements:
 ------------------------
 * MySQL/MariaDB or SQL Server (2008+)
 * Windows Client
-* .NET 4.5 *(.NET Core support planned)*
+* .NET 4.7 *(.NET Core support planned)*
 
 
 Screenshots
