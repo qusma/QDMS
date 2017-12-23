@@ -558,7 +558,6 @@ namespace QDMSServer
             do
             {
                 id = _rand.Next(1, int.MaxValue);
-                Console.WriteLine(id);
             } while (_usedIDs.Contains(id));
 
             _usedIDs.Add(id);

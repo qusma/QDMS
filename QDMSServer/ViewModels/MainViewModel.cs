@@ -168,8 +168,7 @@ namespace QDMSServer.ViewModels
         private void LoadData()
         {
             var instrumentsRes = _client.GetInstruments().Result;
-            var inst = instrumentsRes.Result.First(x => x.ID == 464);
-            Console.WriteLine(inst);
+
             if (instrumentsRes.WasSuccessful)
             {
                 Instruments.AddRange(instrumentsRes.Result);
