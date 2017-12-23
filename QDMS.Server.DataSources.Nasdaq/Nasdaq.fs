@@ -108,7 +108,7 @@ module NasdaqDs =
         member this.getSpecificSymbols(request: DividendRequest) =
             async {
                 let dividends = new System.Collections.Generic.List<Dividend>()
-                for symbol in request.Symbols do
+                for symbol in request.Symbol do
                     let! divs = this.getSpecificSymbol(request, symbol)
                     dividends.AddRange(divs)
 
@@ -117,7 +117,7 @@ module NasdaqDs =
 
         member this.getDividends(request: DividendRequest) = 
             async {
-                return! match this.nullOrEmpty(request.Symbols) with
+                return! match this.nullOrEmpty(request.Symbol) with
                                     | true -> this.getAllSymbols(request)
                                     | false -> this.getSpecificSymbols(request)
             }

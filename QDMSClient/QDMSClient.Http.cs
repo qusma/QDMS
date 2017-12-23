@@ -230,9 +230,9 @@ namespace QDMSClient
             if (job is EconomicReleaseUpdateJobSettings)
                 return "/jobs/economicreleaseupdatejobs";
             if (job is DividendUpdateJobSettings)
-                return "jobs/dividendupdatejobs";
+                return "/jobs/dividendupdatejobs";
             if (job is EarningsUpdateJobSettings)
-                return "jobs/earningsupdatejobs";
+                return "/jobs/earningsupdatejobs";
 
             throw new NotImplementedException();
         }

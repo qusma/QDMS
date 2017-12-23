@@ -24,7 +24,11 @@ namespace QDMS
             FromDate = fromDate;
             ToDate = toDate;
             DataLocation = dataLocation;
-            Symbol = new List<string> { symbol };
+            Symbol = new List<string>();
+            if (symbol != null)
+            {
+                Symbol.Add(symbol);
+            }
             DataSource = dataSource;
         }
 
