@@ -794,7 +794,7 @@ namespace QDMSClient
         }
 
         /// <summary>
-        ///     Called ona reply to a historical data request
+        ///     Called on a reply to a historical data request
         /// </summary>
         private void HandleHistoricalDataRequestReply()
         {
