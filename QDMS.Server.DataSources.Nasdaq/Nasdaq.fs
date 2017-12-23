@@ -30,6 +30,11 @@ module NasdaqDs =
         let parseDate str = 
              DateTime.ParseExact(str, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None)
 
+        member this.nullOrEmpty<'T>(list: System.Collections.Generic.List<'T>) = 
+            match list with
+            | null -> true
+            | l -> l.Count = 0
+
         member this.getAllSymbols(request: DividendRequest) = 
             async {
                 let dayCount = (int) ((request.ToDate.Date - request.FromDate.Date).TotalDays + 0.5)
@@ -76,16 +81,17 @@ module NasdaqDs =
                                                      DeclarationDate = parseNullableDate row.``Announcement Date``,
                                                      PaymentDate = parseNullableDate row.``Payment Date``)
 
-        member this.getSpecificSymbol(request: DividendRequest) =
+
+        member this.getSpecificSymbol(request: DividendRequest, symbol: string) =
             async {
-                let url = sprintf "http://www.nasdaq.com/symbol/%s/dividend-history" request.Symbol
+                let url = sprintf "http://www.nasdaq.com/symbol/%s/dividend-history" symbol
                 logger.Info("Downloading dividends from " + url)
                 let! html = this.getStrFromUrl(url)
                 let data = SymbolDividends.Load(html)
-                return data.Tables.Quotes_content_left_dividendhistoryGrid.Rows |> this.parseSymbolRows request
+                return data.Tables.Quotes_content_left_dividendhistoryGrid.Rows |> this.parseSymbolRows request symbol
             }
 
-        member this.parseSymbolRows request rows = 
+        member this.parseSymbolRows request symbol rows = 
             rows 
                     |> Seq.filter(fun row -> row.``Ex/Eff Date`` >= request.FromDate.Date && row.``Ex/Eff Date`` <= request.ToDate.Date)
                     |> Seq.map(fun row -> new Dividend(
@@ -95,15 +101,25 @@ module NasdaqDs =
                                                         RecordDate = parseNullableDate row.``Record Date``,
                                                         PaymentDate = parseNullableDate row.``Payment Date``,
                                                         Type = row.Type,
-                                                        Symbol = request.Symbol))
+                                                        Symbol = symbol))
 
             |> System.Collections.Generic.List<Dividend>
 
+        member this.getSpecificSymbols(request: DividendRequest) =
+            async {
+                let dividends = new System.Collections.Generic.List<Dividend>()
+                for symbol in request.Symbols do
+                    let! divs = this.getSpecificSymbol(request, symbol)
+                    dividends.AddRange(divs)
+
+                return dividends;
+            }
+
         member this.getDividends(request: DividendRequest) = 
             async {
-                return! match String.IsNullOrEmpty(request.Symbol) with
+                return! match this.nullOrEmpty(request.Symbols) with
                                     | true -> this.getAllSymbols(request)
-                                    | false -> this.getSpecificSymbol(request)
+                                    | false -> this.getSpecificSymbols(request)
             }
 
         interface IDividendDataSource with

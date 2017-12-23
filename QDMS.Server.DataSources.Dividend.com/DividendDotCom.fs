@@ -111,7 +111,7 @@ module DivDotCom =
 
             member this.RequestData(request: DividendRequest) = 
                 async {
-                    if not (String.IsNullOrEmpty(request.Symbol)) then
+                    if (request.Symbol <> null && request.Symbol.Count > 0) then
                         failwith "Dividend.com does not support symbol-based requests";
 
                     try

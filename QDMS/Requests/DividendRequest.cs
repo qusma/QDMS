@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace QDMS
 {
@@ -23,7 +24,24 @@ namespace QDMS
             FromDate = fromDate;
             ToDate = toDate;
             DataLocation = dataLocation;
-            Symbol = symbol;
+            Symbol = new List<string> { symbol };
+            DataSource = dataSource;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fromDate"></param>
+        /// <param name="toDate"></param>
+        /// <param name="dataLocation"></param>
+        /// <param name="symbols">Request multiple symbols at once</param>
+        /// <param name="dataSource">Leave empty to use default</param>
+        public DividendRequest(DateTime fromDate, DateTime toDate, List<string> symbols, DataLocation dataLocation = DataLocation.LocalOnly, string dataSource = null)
+        {
+            FromDate = fromDate;
+            ToDate = toDate;
+            DataLocation = dataLocation;
+            Symbol = symbols;
             DataSource = dataSource;
         }
 
@@ -41,7 +59,7 @@ namespace QDMS
         /// </summary>
         public DateTime ToDate { get; set; }
 
-        public string Symbol { get; set; }
+        public List<string> Symbol { get; set; }
 
         public DataLocation DataLocation { get; set; }
 

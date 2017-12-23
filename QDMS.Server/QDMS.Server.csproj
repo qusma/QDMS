@@ -160,6 +160,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Repositories\JobsRepository.cs" />
+    <Compile Include="Utils\EfUtils.cs" />
     <Compile Include="Validation\DataUpdateJobSettingsValidator.cs" />
     <Compile Include="Validation\DividendUpdateJobSettingsValidator.cs" />
     <Compile Include="Validation\EarningsUpdatEJobSettingsValidator.cs" />
