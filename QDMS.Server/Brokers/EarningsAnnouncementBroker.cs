@@ -52,7 +52,7 @@ namespace QDMS.Server.Brokers
 
         public async Task<List<EarningsAnnouncement>> Request(EarningsAnnouncementRequest request)
         {
-            _logger.Info($"EAB: filling request from {request.FromDate:yyyyMMdd} to {request.ToDate:yyyyMMdd} {request.Symbol} from {request.DataSource ?? "default"} ({request.DataLocation})");
+            _logger.Info($"EAB: filling request from {request.FromDate:yyyyMMdd} to {request.ToDate:yyyyMMdd} {string.Join(", ", request.Symbol)} from {request.DataSource ?? "default"} ({request.DataLocation})");
 
             if (request.DataLocation == DataLocation.LocalOnly)
             {
@@ -128,9 +128,9 @@ namespace QDMS.Server.Brokers
                         x.Date >= request.FromDate &&
                         x.Date <= request.ToDate);//TODO wew want end of day as cutoff
 
-                if (!string.IsNullOrEmpty(request.Symbol))
+                if (request.Symbol != null && request.Symbol.Count > 0)
                 {
-                    queryableData = queryableData.Where(x => x.Symbol == request.Symbol);
+                    queryableData = queryableData.BuildContainsExpression(request.Symbol, x => x.Symbol);
                 }
 
                 try

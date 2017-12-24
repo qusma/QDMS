@@ -91,7 +91,7 @@ module CBOEModule =
 
             member this.RequestData(request: EarningsAnnouncementRequest) = 
                 async {
-                    if not (String.IsNullOrEmpty(request.Symbol)) then
+                    if (request.Symbol <> null && request.Symbol.Count > 0) then
                         failwith "CBOE does not support symbol-based requests";
 
                     try

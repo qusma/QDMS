@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace QDMS
 {
@@ -23,6 +24,27 @@ namespace QDMS
             FromDate = fromDate;
             ToDate = toDate;
             DataLocation = dataLocation;
+            Symbol = new List<string>();
+            if (symbol != null)
+            {
+                Symbol.Add(symbol);
+            }
+            DataSource = dataSource;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fromDate"></param>
+        /// <param name="toDate"></param>
+        /// <param name="dataLocation"></param>
+        /// <param name="symbol">Leave empty to get all symbols</param>
+        /// <param name="dataSource">Leave empty to use default</param>
+        public EarningsAnnouncementRequest(DateTime fromDate, DateTime toDate, List<string> symbol, DataLocation dataLocation = DataLocation.LocalOnly, string dataSource = null)
+        {
+            FromDate = fromDate;
+            ToDate = toDate;
+            DataLocation = dataLocation;
             Symbol = symbol;
             DataSource = dataSource;
         }
@@ -36,7 +58,7 @@ namespace QDMS
 
         public DateTime ToDate { get; set; }
 
-        public string Symbol { get; set; }
+        public List<string> Symbol { get; set; }
 
         public DataLocation DataLocation { get; set; }
 
