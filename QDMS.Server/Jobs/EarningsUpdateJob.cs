@@ -53,40 +53,34 @@ namespace QDMS.Server.Jobs
             _broker.Error += _broker_Error;
 
             int totalCount = 0;
-            var requests = GenerateRequests(settings);
-            foreach (var req in requests)
+            var request = GenerateRequests(settings);
+            try
             {
-                try
-                {
-                    var releases = _broker.Request(req).Result; //no async support in Quartz, and no need for it anyway, this runs on its own thread
-                    totalCount += releases.Count;
-                }
-                catch (Exception ex)
-                {
-                    _errors.Add(ex.Message);
-                }
+                var releases = _broker.Request(request).Result; //no async support in Quartz, and no need for it anyway, this runs on its own thread
+                totalCount += releases.Count;
             }
-
+            catch (Exception ex)
+            {
+                _errors.Add(ex.Message);
+            }
             _logger.Trace($"EarningsAnnouncement update job downloaded {totalCount} items");
 
             JobComplete();
         }
 
-        private List<EarningsAnnouncementRequest> GenerateRequests(EarningsUpdateJobSettings settings)
+        private EarningsAnnouncementRequest GenerateRequests(EarningsUpdateJobSettings settings)
         {
             var startDate = DateTime.Now.Date.AddBusinessDays(-settings.BusinessDaysBack);
             var endDate = DateTime.Now.Date.AddBusinessDays(settings.BusinessDaysAhead);
-            var requests = new List<EarningsAnnouncementRequest>();
 
             if (!settings.UseTag)
             {
                 //grab all symbols
-                requests.Add(new EarningsAnnouncementRequest(
+                return new EarningsAnnouncementRequest(
                     startDate,
                     endDate,
                     dataLocation: DataLocation.ExternalOnly,
-                    dataSource: settings.DataSource,
-                    symbol: string.Empty));
+                    dataSource: settings.DataSource);
             }
             else
             {
@@ -98,18 +92,13 @@ namespace QDMS.Server.Jobs
                     .Distinct()
                     .ToList();
 
-                foreach (var symbol in symbols)
-                {
-                    requests.Add(new EarningsAnnouncementRequest(
-                        startDate,
-                        endDate,
-                        dataLocation: DataLocation.ExternalOnly,
-                        dataSource: settings.DataSource,
-                        symbol: symbol));
-                }
+                return new EarningsAnnouncementRequest(
+                    startDate,
+                    endDate,
+                    symbols.ToList(),
+                    dataLocation: DataLocation.ExternalOnly,
+                    dataSource: settings.DataSource);
             }
-
-            return requests;
         }
 
         private void _broker_Error(object sender, ErrorArgs e)

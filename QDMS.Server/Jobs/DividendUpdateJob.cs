@@ -53,40 +53,35 @@ namespace QDMS.Server.Jobs
             _broker.Error += _broker_Error;
 
             int totalCount = 0;
-            var requests = GenerateRequests(settings);
-            foreach (var req in requests)
+            var request = GenerateRequests(settings);
+            try
             {
-                try
-                {
-                    var releases = _broker.RequestDividends(req).Result; //no async support in Quartz, and no need for it anyway, this runs on its own thread
-                    totalCount += releases.Count;
-                }
-                catch (Exception ex)
-                {
-                    _errors.Add(ex.Message);
-                }
+                var releases = _broker.RequestDividends(request).Result; //no async support in Quartz, and no need for it anyway, this runs on its own thread
+                totalCount += releases.Count;
             }
-            
+            catch (Exception ex)
+            {
+                _errors.Add(ex.Message);
+            }
+
             _logger.Trace($"Dividend update job downloaded {totalCount} items");
 
             JobComplete();
         }
 
-        private List<DividendRequest> GenerateRequests(DividendUpdateJobSettings settings)
+        private DividendRequest GenerateRequests(DividendUpdateJobSettings settings)
         {
             var startDate = DateTime.Now.Date.AddBusinessDays(-settings.BusinessDaysBack);
             var endDate = DateTime.Now.Date.AddBusinessDays(settings.BusinessDaysAhead);
-            var requests = new List<DividendRequest>();
 
             if (!settings.UseTag)
             {
                 //grab all symbols
-                requests.Add(new DividendRequest(
+                return new DividendRequest(
                     startDate,
                     endDate,
                     dataLocation: DataLocation.ExternalOnly,
-                    dataSource: settings.DataSource,
-                    symbol: string.Empty));
+                    dataSource: settings.DataSource);
             }
             else
             {
@@ -97,19 +92,15 @@ namespace QDMS.Server.Jobs
                     .Select(x => x.Symbol)
                     .Distinct()
                     .ToList();
-                
-                foreach (var symbol in symbols)
-                {
-                    requests.Add(new DividendRequest(
-                        startDate,
-                        endDate,
-                        dataLocation: DataLocation.ExternalOnly,
-                        dataSource: settings.DataSource,
-                        symbol: symbol));
-                }
-            }
 
-            return requests;
+                
+                return new DividendRequest(
+                    startDate,
+                    endDate,
+                    symbols.ToList(),
+                    dataLocation: DataLocation.ExternalOnly,
+                    dataSource: settings.DataSource);
+            }
         }
 
         private void _broker_Error(object sender, ErrorArgs e)
