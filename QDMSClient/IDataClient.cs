@@ -14,15 +14,34 @@ using System.Threading.Tasks;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Interface for the QDMS client
+    /// </summary>
     public interface IDataClient : IDisposable, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Raised on errors
+        /// </summary>
         event EventHandler<ErrorArgs> Error;
 
+        /// <summary>
+        /// Raised when historical data arrives
+        /// </summary>
         event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
 
+        /// <summary>
+        /// Raised when receiving info on what data is stored in the local database
+        /// </summary>
         event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
 
+        /// <summary>
+        /// Raised when real time data arrives
+        /// </summary>
         event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
+
+        /// <summary>
+        /// Set to true if currently connected to a QDMS server
+        /// </summary>
         bool Connected { get; }
 
         /// <summary>

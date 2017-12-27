@@ -25,6 +25,7 @@ using QDMS.Annotations;
 namespace QDMSClient
 {
     // ReSharper disable once InconsistentNaming
+    /// <inheritdoc />
     public partial class QDMSClient : IDataClient
     {
         private const int HistoricalDataRequestsPeriodInSeconds = 1;
@@ -118,6 +119,7 @@ namespace QDMSClient
         #endregion
 
         #region IDataClient implementation
+
         public event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
