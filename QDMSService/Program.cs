@@ -31,7 +31,7 @@ namespace QDMSService
         {
             Config.DataService config = (Config.DataService)System.Configuration.ConfigurationManager.GetSection("QDMS");
             _server = new DataServer(config);
-            _server.Initialisize();
+            _server.Initialize();
         }
 
         protected override void OnStop()

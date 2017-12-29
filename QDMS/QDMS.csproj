@@ -73,6 +73,7 @@
     <Compile Include="EntityModels\EarningsAnnouncement.cs" />
     <Compile Include="Enums\EarningsCallTime.cs" />
     <Compile Include="Interfaces\IEarningsAnnouncementSource.cs" />
+    <Compile Include="Interfaces\ISettings.cs" />
     <Compile Include="Jobs\DividendUpdateJobSettings.cs" />
     <Compile Include="Jobs\EarningsUpdateJobSettings.cs" />
     <Compile Include="Jobs\EconomicReleaseUpdateJobSettings.cs" />
@@ -110,7 +111,6 @@
     <Compile Include="Requests\EarningsAnnouncementRequest.cs" />
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
     <Compile Include="Requests\PredicateSearchRequest.cs" />
-    <Compile Include="Utils\CountryCodeHelper.cs" />
     <Compile Include="Utils\ExpressionSerializer.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />

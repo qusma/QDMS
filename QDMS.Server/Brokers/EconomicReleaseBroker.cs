@@ -34,9 +34,9 @@ namespace QDMS.Server.Brokers
 
         public ObservableDictionary<string, IEconomicReleaseSource> DataSources { get; }
 
-        public EconomicReleaseBroker(string defaultDataSource, IEnumerable<IEconomicReleaseSource> sources)
+        public EconomicReleaseBroker(ISettings settings, IEnumerable<IEconomicReleaseSource> sources)
         {
-            _defaultDataSource = defaultDataSource;
+            _defaultDataSource = settings.EconomicReleaseDefaultDatasource;
             DataSources = new ObservableDictionary<string, IEconomicReleaseSource>();
             if (sources != null)
             {

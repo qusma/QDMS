@@ -33,7 +33,11 @@ namespace QDMSTest
         {
             _ibClientMock = new Mock<IIBClient>();
             _ibClientMock.Setup(x => x.Connected).Returns(true);
-            _ibDatasource = new IB(Host, Port, client: _ibClientMock.Object);
+
+            var settings = new Mock<ISettings>();
+
+
+            _ibDatasource = new IB(settings.Object, client: _ibClientMock.Object);
             _ibDatasource.Connect();
         }
 

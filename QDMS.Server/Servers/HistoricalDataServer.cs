@@ -26,7 +26,7 @@ using QDMS;
 // ReSharper disable once CheckNamespace
 namespace QDMSServer
 {
-    public class HistoricalDataServer : IDisposable
+    public class HistoricalDataServer : IDisposable, IHistoricalDataServer
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly string _connectionString;
@@ -48,14 +48,14 @@ namespace QDMSServer
         }
         #endregion
 
-        public HistoricalDataServer(int port, IHistoricalDataBroker broker)
+        public HistoricalDataServer(ISettings settings, IHistoricalDataBroker broker)
         {
             if (broker == null)
             {
                 throw new ArgumentNullException(nameof(broker), $"{nameof(broker)} cannot be null");
             }
 
-            _connectionString = $"tcp://*:{port}";
+            _connectionString = $"tcp://*:{settings.hDBPort}";
             _broker = broker;
             _broker.HistoricalDataArrived += BrokerHistoricalDataArrived;
         }

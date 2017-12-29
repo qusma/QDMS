@@ -24,7 +24,7 @@ using System.Net;
 
 namespace QDMSServer
 {
-    public class RealTimeDataBroker : IDisposable, IRealTimeDataBroker
+    public class RealTimeDataBroker : IRealTimeDataBroker
     {
         /// <summary>
         /// Holds the real time data sources.

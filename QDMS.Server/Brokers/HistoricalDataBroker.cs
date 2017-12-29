@@ -24,7 +24,7 @@ using Timer = System.Timers.Timer;
 
 namespace QDMSServer
 {
-    public class HistoricalDataBroker : IDisposable, IHistoricalDataBroker
+    public class HistoricalDataBroker : IHistoricalDataBroker
     {
         /// <summary>
         /// Holds the real time data sources.

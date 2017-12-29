@@ -6,6 +6,7 @@
 
 using System;
 using EntityData;
+using QDMS;
 using QDMS.Server;
 using QDMS.Server.Brokers;
 using QDMS.Server.Jobs;
@@ -32,13 +33,7 @@ namespace QDMSServer
         private QDMS.IDataStorage _localStorage;
 
         public JobFactory(IHistoricalDataBroker hdb,
-            string host,
-            int port,
-            string username,
-            string password,
-            string sender,
-            string email,
-            UpdateJobSettings updateJobSettings,
+            ISettings settings,
             QDMS.IDataStorage localStorage,
             IEconomicReleaseBroker erb,
             IDividendsBroker divb,
@@ -46,13 +41,20 @@ namespace QDMSServer
         {
             _hdb = hdb;
 
-            _host = host;
-            _port = port;
-            _username = username;
-            _password = password;
-            _sender = sender;
-            _email = email;
-            _updateJobSettings = updateJobSettings;
+            _host = settings.updateJobEmailHost;
+            _port = settings.updateJobEmailPort;
+            _username = settings.updateJobEmailUsername;
+            _password = settings.updateJobEmailPassword;
+            _sender = settings.updateJobEmailSender;
+            _email = settings.updateJobEmail;
+            _updateJobSettings = new UpdateJobSettings(
+                noDataReceived: settings.updateJobReportNoData,
+                errors: settings.updateJobReportErrors,
+                outliers: settings.updateJobReportOutliers,
+                requestTimeouts: settings.updateJobTimeouts,
+                timeout: settings.updateJobTimeout,
+                toEmail: settings.updateJobEmail,
+                fromEmail: settings.updateJobEmailSender);
             _localStorage = localStorage;
             _erb = erb;
             _divb = divb;

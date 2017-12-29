@@ -9,7 +9,7 @@ using QDMS;
 
 namespace QDMSServer
 {
-    public interface IRealTimeDataBroker
+    public interface IRealTimeDataBroker : IDisposable
     {
         /// <summary>
         /// Holds the real time data sources.

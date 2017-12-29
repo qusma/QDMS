@@ -10,7 +10,7 @@ using QDMS;
 
 namespace QDMSServer
 {
-    public interface IHistoricalDataBroker
+    public interface IHistoricalDataBroker : IDisposable
     {
         /// <summary>
         /// Holds the historical data sources.
@@ -23,6 +23,5 @@ namespace QDMSServer
 
         event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
         event EventHandler<ErrorArgs> Error;
-        void Dispose();
     }
 }

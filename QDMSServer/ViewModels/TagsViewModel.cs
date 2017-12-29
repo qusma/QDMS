@@ -19,7 +19,7 @@ namespace QDMSServer.ViewModels
 {
     public class TagsViewModel : ReactiveObject
     {
-        private readonly QDMSClient.QDMSClient _client;
+        private readonly IDataClient _client;
         private readonly IDialogCoordinator _dialogCoordinator;
         private ObservableCollection<TagViewModel> _tags;
         private TagViewModel _selectedTag;
@@ -55,7 +55,7 @@ namespace QDMSServer.ViewModels
         /// </summary>
         public bool SelectedTagHasErrors => SelectedTag?.HasErrors ?? false;
 
-        public TagsViewModel(QDMSClient.QDMSClient client, IDialogCoordinator dialogCoordinator)
+        public TagsViewModel(IDataClient client, IDialogCoordinator dialogCoordinator)
         {
             _client = client;
             _dialogCoordinator = dialogCoordinator;

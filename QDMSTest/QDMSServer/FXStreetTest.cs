@@ -8,7 +8,11 @@ using NUnit.Framework;
 using QDMS;
 using QDMS.Server.DataSources;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using EntityData;
+using EntityData.Utils;
+using Moq;
 using QDMSServer;
 
 namespace QDMSTest
@@ -109,7 +113,13 @@ namespace QDMSTest
         [Test]
         public void ParsesDataCorrectly()
         {
-            var countryCodeHelper = new CountryCodeHelper(Seed.Countries);
+            var dbSetMock = new Mock<DbSet<Country>>();
+            dbSetMock.As<IEnumerable<Country>>().Setup(x => x.GetEnumerator()).Returns(Seed.Countries.GetEnumerator());
+            var contextMock = new Mock<IMyDbContext>();
+            contextMock.SetupGet(x => x.Countries).Returns(dbSetMock.Object);
+
+
+            var countryCodeHelper = new CountryCodeHelper(contextMock.Object);
             var fxStreet = new fx.FXStreet(countryCodeHelper);
             var errors = new List<string>();
             ((IEconomicReleaseSource)fxStreet).Error += (s, e) => errors.Add(e.ErrorMessage);

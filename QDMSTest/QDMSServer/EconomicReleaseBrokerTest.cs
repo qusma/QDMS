@@ -29,7 +29,10 @@ namespace QDMSTest
             _source2 = new Mock<IEconomicReleaseSource>();
             _source2.SetupGet(x => x.Name).Returns("Source2");
 
-            _broker = new EconomicReleaseBroker("Source2", new[] { _source1.Object, _source2.Object });
+            var settings = new Mock<ISettings>();
+            settings.SetupGet(x => x.EconomicReleaseDefaultDatasource).Returns("Source2");
+
+            _broker = new EconomicReleaseBroker(settings.Object, new[] { _source1.Object, _source2.Object });
         }
 
         [Test]

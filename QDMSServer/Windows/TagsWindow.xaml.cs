@@ -7,6 +7,7 @@
 using System.Reactive.Linq;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
+using QDMS;
 using QDMSServer.ViewModels;
 
 namespace QDMSServer
@@ -18,7 +19,7 @@ namespace QDMSServer
     {
         public TagsViewModel ViewModel { get; set; }
 
-        public TagsWindow(QDMSClient.QDMSClient client)
+        public TagsWindow(IDataClient client)
         {
             InitializeComponent();
             ViewModel = new TagsViewModel(client, DialogCoordinator.Instance);

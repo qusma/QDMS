@@ -44,7 +44,7 @@ namespace QDMS.Server.Nancy
             IDividendsBroker divb,
             IEarningsAnnouncementBroker eab,
             IScheduler scheduler,
-            string apiKey)
+            ISettings settings)
         {
             _storage = storage;
             _erb = erb;
@@ -53,7 +53,7 @@ namespace QDMS.Server.Nancy
             _divb = divb;
             _eab = eab;
             _scheduler = scheduler;
-            _apiKey = apiKey;
+            _apiKey = settings.apiKey;
         }
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)

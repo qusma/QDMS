@@ -58,10 +58,10 @@ namespace QDMSServer.DataSources
 
         private string authToken;
 
-        public Quandl(string authToken)
+        public Quandl(ISettings settings)
         {
             Name = "Quandl";
-            this.authToken = authToken;
+            this.authToken = settings.quandlAuthCode;
         }
 
         public void RequestHistoricalData(HistoricalDataRequest request)

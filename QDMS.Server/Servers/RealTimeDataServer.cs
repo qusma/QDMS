@@ -23,7 +23,7 @@ using QDMS;
 // ReSharper disable once CheckNamespace
 namespace QDMSServer
 {
-    public class RealTimeDataServer : IDisposable
+    public class RealTimeDataServer : IDisposable, IRealTimeDataServer
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly IRealTimeDataBroker _broker;
@@ -48,20 +48,20 @@ namespace QDMSServer
         }
         #endregion
 
-        public RealTimeDataServer(int publisherPort, int requestPort, IRealTimeDataBroker broker)
+        public RealTimeDataServer(ISettings settings, IRealTimeDataBroker broker)
         {
             if (broker == null)
             {
                 throw new ArgumentNullException(nameof(broker), $"{nameof(broker)} cannot be null");
             }
 
-            if (publisherPort == requestPort)
+            if (settings.rtDBPubPort == settings.rtDBReqPort)
             {
                 throw new ArgumentException("Publish and request ports must be different");
             }
 
-            _publisherConnectionString = $"tcp://*:{publisherPort}";
-            _requestConnectionString = $"tcp://*:{requestPort}";
+            _publisherConnectionString = $"tcp://*:{settings.rtDBPubPort}";
+            _requestConnectionString = $"tcp://*:{settings.rtDBReqPort}";
 
             _broker = broker;
             _broker.RealTimeDataArrived += BrokerRealTimeDataArrived;

@@ -21,11 +21,7 @@ namespace EntityData
         public MyDBContext()
             : base("Name=qdmsEntities")
         {
-        }
 
-        public MyDBContext(string connectionString)
-        {
-            Database.Connection.ConnectionString = connectionString;
         }
 
         public DbSet<Instrument> Instruments { get; set; }

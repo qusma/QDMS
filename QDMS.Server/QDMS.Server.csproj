@@ -161,6 +161,8 @@
     </Compile>
     <Compile Include="Repositories\JobsRepository.cs" />
     <Compile Include="Utils\EfUtils.cs" />
+	<Compile Include="Interfaces\IRealTimeDataServer.cs" />
+    <Compile Include="Interfaces\IHistoricalDataServer.cs" />
     <Compile Include="Validation\DataUpdateJobSettingsValidator.cs" />
     <Compile Include="Validation\DividendUpdateJobSettingsValidator.cs" />
     <Compile Include="Validation\EarningsUpdatEJobSettingsValidator.cs" />

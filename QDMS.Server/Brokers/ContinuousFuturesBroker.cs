@@ -118,7 +118,7 @@ namespace QDMSServer
 
         private readonly Timer _reconnectTimer;
 
-        public ContinuousFuturesBroker(IDataClient client, bool connectImmediately = true, IInstrumentSource instrumentRepo = null)
+        public ContinuousFuturesBroker(IDataClient client, IInstrumentSource instrumentRepo = null)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
@@ -128,8 +128,6 @@ namespace QDMSServer
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
-            if (connectImmediately)
-                _client.Connect();
 
             _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();

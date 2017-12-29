@@ -27,8 +27,13 @@ namespace QDMSTest
         public void SetUp()
         {
             _brokerMock = new Mock<IRealTimeDataBroker>();
+
+            var settings = new Mock<ISettings>();
+            settings.SetupGet(x => x.rtDBPubPort).Returns(5555);
+            settings.SetupGet(x => x.rtDBReqPort).Returns(5554);
+
             // Also need the real time server to keep the "heartbeat" going
-            _rtServer = new RealTimeDataServer(5555, 5554, _brokerMock.Object);
+            _rtServer = new RealTimeDataServer(settings.Object, _brokerMock.Object);
             _rtServer.StartServer();
 
             _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5557, 5559, "");

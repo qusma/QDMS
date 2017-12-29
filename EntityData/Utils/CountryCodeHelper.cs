@@ -6,19 +6,27 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using QDMS;
 
-namespace QDMS
+namespace EntityData.Utils
 {
+    public interface ICountryCodeHelper
+    {
+        string GetCountryCode(string countryName);
+        string GetCurrencyCode(string countryCode);
+    }
+
     /// <summary>
     /// Used to get country codes and currency codes from country names
     /// </summary>
-    public class CountryCodeHelper
+    public class CountryCodeHelper : ICountryCodeHelper
     {
         private readonly Dictionary<string, string> _countryCodes;
         private readonly Dictionary<string, string> _currencyCodes;
 
-        public CountryCodeHelper(List<Country> countries)
+        public CountryCodeHelper(IMyDbContext context)
         {
+            var countries = context.Countries.ToList();
             _countryCodes = countries.ToDictionary(x => x.Name, x => x.CountryCode);
             _currencyCodes = countries
                 .Distinct((x, y) => x.CountryCode == y.CountryCode)

@@ -6,8 +6,9 @@ module fx =
     open System.Linq
     open FSharp.Data
     open NLog
+    open EntityData.Utils
 
-    type FXStreet(countryCodeHelper:CountryCodeHelper)  = 
+    type FXStreet(countryCodeHelper:ICountryCodeHelper)  = 
         let countryCodeHelper = countryCodeHelper
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
         let logger = NLog.LogManager.GetCurrentClassLogger()

@@ -113,6 +113,7 @@
     <Compile Include="EntityConfigs\SessionTemplateConfig.cs" />
     <Compile Include="EntityConfigs\TagConfig.cs" />
     <Compile Include="EntityConfigs\UnderlyingSymbolConfig.cs" />
+    <Compile Include="Utils\CountryCodeHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

@@ -31,9 +31,9 @@ namespace QDMSServer.DataSources
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public BarChart(string apiKey)
+        public BarChart(ISettings settings)
         {
-            _apiKey = apiKey;
+            _apiKey = settings.barChartApiKey;
             _queuedRequests = new ConcurrentQueue<HistoricalDataRequest>();
             _downloaderThread = new Thread(DownloaderLoop);
         }

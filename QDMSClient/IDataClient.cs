@@ -107,7 +107,7 @@ namespace QDMS
         /// <summary>
         /// Disconnects from the server.
         /// </summary>
-        void Disconnect(bool cancelStreams);
+        void Disconnect(bool cancelStreams = true);
 
         /// <summary>
         /// Get all datasources

@@ -32,9 +32,9 @@ namespace QDMS.Server.Brokers
 
         public event EventHandler<ErrorArgs> Error;
 
-        public EarningsAnnouncementBroker(string defaultDataSource, IEnumerable<IEarningsAnnouncementSource> dataSources)
+        public EarningsAnnouncementBroker(IEnumerable<IEarningsAnnouncementSource> dataSources)
         {
-            _defaultDataSource = defaultDataSource;
+            _defaultDataSource = "CBOE";
             DataSources = new ObservableDictionary<string, IEarningsAnnouncementSource>();
             if (dataSources != null)
             {

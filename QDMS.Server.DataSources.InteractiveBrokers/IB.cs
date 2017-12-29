@@ -94,15 +94,13 @@ namespace QDMSServer.DataSources
             }
         }
 
-        public IB(string host, int port, int clientID = -1, IIBClient client = null)
+        public IB(ISettings settings, IIBClient client = null)
         {
             Name = "Interactive Brokers";
 
-            if (clientID < 0)
-                clientID = 99;
-            _host = host;
-            _port = port;
-            _clientID = clientID;
+            _host = settings.ibClientHost;
+            _port = settings.ibClientPort;
+            _clientID = settings.histClientIBID;
 
             _realTimeDataRequests = new Dictionary<int, RealTimeDataRequest>();
             _realTimeRequestQueue = new Queue<int>();

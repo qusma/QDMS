@@ -5,7 +5,10 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.SqlClient;
 using System.Deployment.Application;
 using System.IO;
 using System.Linq;
@@ -14,64 +17,63 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using Common.Logging.NLog;
 using EntityData;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
+using MySql.Data.MySqlClient;
 using NLog;
 using NLog.Targets;
 using QDMS;
+using QDMSClient;
 using QDMSServer.Properties;
 using QDMSServer.ViewModels;
 
 namespace QDMSServer
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        private readonly QDMSClient.QDMSClient _client;
+        private readonly IDataClient _client;
         private readonly Logger _clientLogger = LogManager.GetLogger("client");
 
         private ProgressBar _progressBar;
-        
+
         private MainViewModel ViewModel { get; }
-        public MainWindow()
+
+        public MainWindow(MainViewModel viewModel, IDataClient client)
         {
-            Common.Logging.LogManager.Adapter = new NLogLoggerFactoryAdapter(new Common.Logging.Configuration.NameValueCollection());
-
-            //make sure we can connect to the database
-            CheckDBConnection();
-
-            //set the log directory
-            SetLogDirectory();
-
-            //set the connection string
-            DBUtils.SetConnectionString();
-
-            //set EF configuration, necessary for MySql to work
-            DBUtils.SetDbConfiguration();
+            _client = client;
+            _client.HistoricalDataReceived += _client_HistoricalDataReceived;
+            _client.Error += (s, e) => _clientLogger.Error(e.ErrorMessage);
 
             InitializeComponent();
 
             //load datagrid layout
-            string layoutFile = AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml";
-            if (File.Exists(layoutFile))
-            {
-                try
-                {
-                    InstrumentsGrid.DeserializeLayout(File.ReadAllText(layoutFile));
-                }
-                catch 
-                {
-                }
-            }
-
-            //Log unhandled exceptions
-            AppDomain.CurrentDomain.UnhandledException += AppDomain_CurrentDomain_UnhandledException;
+            RestoreDatagridLayout();
 
             //build the instruments grid context menu
+            BuildInstrumentsGridContextMenu();
+
+            //build the tags menu
+            using (var entityContext = new MyDBContext())
+            {
+                List<Tag> allTags = entityContext.Tags.ToList();
+                BuildTagContextMenu(allTags);
+            }
+
+            //build session templates menu
+            BuildSetSessionTemplateMenu();
+
+            ViewModel = viewModel;
+            DataContext = ViewModel;
+
+            ShowChangelog();
+        }
+
+        private void BuildInstrumentsGridContextMenu()
+        {
             //we want a button for each BarSize enum value in the UpdateFreqSubMenu menu
             foreach (int value in Enum.GetValues(typeof(BarSize)))
             {
@@ -83,62 +85,21 @@ namespace QDMSServer
                 button.Click += UpdateHistoricalDataBtn_ItemClick;
                 ((MenuItem)Resources["UpdateFreqSubMenu"]).Items.Add(button);
             }
-
-            //create metadata db if it doesn't exist
-            var entityContext = new MyDBContext();
-            entityContext.Database.Initialize(false);
-
-            //seed the datasources no matter what, because these are added frequently
-            Seed.SeedDatasources(entityContext);
-
-            //check for any exchanges, seed the db with initial values if nothing is found
-            if (!entityContext.Exchanges.Any() || 
-                (ApplicationDeployment.IsNetworkDeployed && ApplicationDeployment.CurrentDeployment.IsFirstRun))
-            {
-                Seed.DoSeed();
-            }
-
-            //create data db if it doesn't exist
-            var dataContext = new DataDBContext();
-            dataContext.Database.Initialize(false);
-            dataContext.Dispose();
-
-            //create quartz db if it doesn't exist
-            QuartzUtils.InitializeDatabase(Settings.Default.databaseType);
-
-            //build the tags menu
-            var allTags = entityContext.Tags.ToList();
-            BuildTagContextMenu(allTags);
-
-            //build session templates menu
-            BuildSetSessionTemplateMenu();
-
-            entityContext.Dispose();
-
-            //we also need a client to make historical data requests with
-            _client = new QDMSClient.QDMSClient(
-                "SERVERCLIENT",
-                "localhost",
-                Properties.Settings.Default.rtDBReqPort,
-                Properties.Settings.Default.rtDBPubPort,
-                Properties.Settings.Default.hDBPort,
-                Properties.Settings.Default.httpPort,
-                Properties.Settings.Default.apiKey,
-                useSsl: Properties.Settings.Default.useSsl);
-            _client.HistoricalDataReceived += _client_HistoricalDataReceived;
-            _client.Error += (s, e) => _clientLogger.Error(e.ErrorMessage);
-
-            //Create ViewModel
-            ViewModel = new MainViewModel(_client, DialogCoordinator.Instance);
-            DataContext = ViewModel;
-
-            ShowChangelog();
         }
 
-        private void AppDomain_CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private void RestoreDatagridLayout()
         {
-            Logger logger = LogManager.GetCurrentClassLogger();
-            logger.Error((Exception)e.ExceptionObject, "Unhandled exception");
+            string layoutFile = AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml";
+            if (File.Exists(layoutFile))
+            {
+                try
+                {
+                    InstrumentsGrid.DeserializeLayout(File.ReadAllText(layoutFile));
+                }
+                catch
+                {
+                }
+            }
         }
 
         private void ShowChangelog()
@@ -172,56 +133,7 @@ namespace QDMSServer
             }
             tagMenu.Items.Add(Resources["NewTagMenuItem"]);
         }
-
-        private void SetLogDirectory()
-        {
-            if (Directory.Exists(Properties.Settings.Default.logDirectory))
-            {
-                ((FileTarget)LogManager.Configuration.FindTargetByName("default")).FileName = Properties.Settings.Default.logDirectory + "Log.log";
-            }
-        }
-
-        private void CheckDBConnection()
-        {
-            //if no db type has been selected, we gotta show that window no matter what
-            if (Properties.Settings.Default.databaseType != "MySql" && Properties.Settings.Default.databaseType != "SqlServer")
-            {
-                var dbDetailsWindow = new DBConnectionWindow();
-                dbDetailsWindow.ShowDialog();
-            }
-
-            if (Properties.Settings.Default.databaseType == "MySql")
-            {
-                //try to establish a database connection. If not possible, prompt the user to enter details
-                var connection = DBUtils.CreateMySqlConnection(noDB: true);
-                try
-                {
-                    connection.Open();
-                }
-                catch (Exception)
-                {
-                    var dbDetailsWindow = new DBConnectionWindow();
-                    dbDetailsWindow.ShowDialog();
-                }
-                connection.Close();
-            }
-            else //SQL Server
-            {
-                //try to establish a database connection. If not possible, prompt the user to enter details
-                var connection = DBUtils.CreateSqlServerConnection(noDB: true, useWindowsAuthentication: Properties.Settings.Default.sqlServerUseWindowsAuthentication);
-                try
-                {
-                    connection.Open();
-                }
-                catch (Exception)
-                {
-                    var dbDetailsWindow = new DBConnectionWindow();
-                    dbDetailsWindow.ShowDialog();
-                }
-                connection.Close();
-            }
-        }
-
+        
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -241,7 +153,7 @@ namespace QDMSServer
                             e.Request.Frequency);
                     }
                 }
-                );
+            );
         }
 
         //check the latest date we have available in local storage, then request historical data from that date to the current time
@@ -252,23 +164,23 @@ namespace QDMSServer
 
             int requestCount = 0;
 
-            using (var localStorage = DataStorageFactory.Get())
+            using (IDataStorage localStorage = DataStorageFactory.Get())
             {
                 foreach (Instrument i in selectedInstruments)
                 {
                     if (!i.ID.HasValue) continue;
                     //TODO add GetStorageInfo to client, then remove dependency on DataStorageFactory here
-                    var storageInfo = localStorage.GetStorageInfo(i.ID.Value);
+                    List<StoredDataInfo> storageInfo = localStorage.GetStorageInfo(i.ID.Value);
                     if (storageInfo.Any(x => x.Frequency == frequency))
                     {
-                        var relevantStorageInfo = storageInfo.First(x => x.Frequency == frequency);
+                        StoredDataInfo relevantStorageInfo = storageInfo.First(x => x.Frequency == frequency);
                         _client.RequestHistoricalData(new HistoricalDataRequest(
                             i,
                             frequency,
                             relevantStorageInfo.LatestDate + frequency.ToTimeSpan(),
                             DateTime.Now,
-                            dataLocation: DataLocation.ExternalOnly,
-                            saveToLocalStorage: true));
+                            DataLocation.ExternalOnly,
+                            true));
                         requestCount++;
                     }
                 }
@@ -286,10 +198,10 @@ namespace QDMSServer
         }
 
         //the application is closing, shut down all the servers and stuff
-        private void DXWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void DXWindow_Closing(object sender, CancelEventArgs e)
         {
             //save grid layout
-            using (StreamWriter file = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml"))
+            using (var file = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "GridLayout.xml"))
             {
                 InstrumentsGrid.SerializeLayout(file);
             }
@@ -369,7 +281,7 @@ namespace QDMSServer
 
         private void EditDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            IList selectedInstruments = InstrumentsGrid.SelectedItems;
             if (selectedInstruments.Count != 1) return;
 
             var selectedInstrument = (Instrument)selectedInstruments[0];
@@ -379,7 +291,7 @@ namespace QDMSServer
 
         private void ImportDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            IList selectedInstruments = InstrumentsGrid.SelectedItems;
             if (selectedInstruments.Count != 1) return;
 
             var selectedInstrument = (Instrument)selectedInstruments[0];
@@ -414,24 +326,28 @@ namespace QDMSServer
         //delete data from selected instruments
         private void ClearDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            IList selectedInstruments = InstrumentsGrid.SelectedItems;
             if (selectedInstruments.Count == 0) return;
 
             if (selectedInstruments.Count == 1)
             {
                 var inst = (Instrument)selectedInstruments[0];
-                MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete all data from {0} @ {1}?", inst.Symbol, inst.Datasource.Name),
+                MessageBoxResult res = MessageBox.Show(
+                    string.Format("Are you sure you want to delete all data from {0} @ {1}?", inst.Symbol,
+                        inst.Datasource.Name),
                     "Delete", MessageBoxButton.YesNo);
                 if (res == MessageBoxResult.No) return;
             }
             else
             {
-                MessageBoxResult res = MessageBox.Show(string.Format("Are you sure you want to delete all data from {0} instruments?", selectedInstruments.Count),
+                MessageBoxResult res = MessageBox.Show(
+                    string.Format("Are you sure you want to delete all data from {0} instruments?",
+                        selectedInstruments.Count),
                     "Delete", MessageBoxButton.YesNo);
                 if (res == MessageBoxResult.No) return;
             }
 
-            using (var storage = DataStorageFactory.Get())
+            using (IDataStorage storage = DataStorageFactory.Get())
             {
                 //todo remove dependency on local storage here, use client instead
                 foreach (Instrument i in selectedInstruments)
@@ -453,17 +369,17 @@ namespace QDMSServer
         //adds or removes a tag from one or more instruments
         private async void SetTag_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            IList selectedInstruments = InstrumentsGrid.SelectedItems;
             var btn = (MenuItem)routedEventArgs.Source;
             int tagID = (int)btn.Tag;
-            var tagResponse = await _client.GetTags().ConfigureAwait(true);
+            ApiResponse<List<Tag>> tagResponse = await _client.GetTags().ConfigureAwait(true);
             if (!tagResponse.WasSuccessful)
             {
                 await this.ShowMessageAsync("Error", string.Join("\n", tagResponse.Errors)).ConfigureAwait(true);
                 return;
             }
 
-            var tag = tagResponse.Result.FirstOrDefault(x => x.ID == tagID);
+            Tag tag = tagResponse.Result.FirstOrDefault(x => x.ID == tagID);
             if (tag == null)
             {
                 await this.ShowMessageAsync("Error", "Could not find tag on the server").ConfigureAwait(true);
@@ -500,7 +416,6 @@ namespace QDMSServer
             List<Instrument> selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>().ToList();
             if (selectedInstruments.Count == 0)
             {
-                return;
             }
             else if (selectedInstruments.Count == 1)
             {
@@ -522,7 +437,8 @@ namespace QDMSServer
                 {
                     if (btn.Tag == null) continue;
 
-                    int tagCount = selectedInstruments.Count(x => x.Tags != null && x.Tags.Any(y => y.ID == (int)btn.Tag));
+                    int tagCount =
+                        selectedInstruments.Count(x => x.Tags != null && x.Tags.Any(y => y.ID == (int)btn.Tag));
                     if (tagCount == 0 || tagCount == selectedInstruments.Count)
                     {
                         btn.IsEnabled = true;
@@ -546,16 +462,16 @@ namespace QDMSServer
             string newTagName = newTagTextBox.Text;
 
             //add the tag
-            var addTagResult = await _client.AddTag(new Tag() { Name = newTagName }).ConfigureAwait(true);
-            if(!addTagResult.WasSuccessful)
+            ApiResponse<Tag> addTagResult = await _client.AddTag(new Tag {Name = newTagName}).ConfigureAwait(true);
+            if (!addTagResult.WasSuccessful)
             {
                 await this.ShowMessageAsync("Error", "Could not add tag").ConfigureAwait(true);
                 return;
             }
-            var newTag = addTagResult.Result;
+            Tag newTag = addTagResult.Result;
 
             //apply the tag to the selected instruments
-            var selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>();
+            IEnumerable<Instrument> selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>();
             foreach (Instrument i in selectedInstruments)
             {
                 i.Tags.Add(newTag);
@@ -563,7 +479,7 @@ namespace QDMSServer
             }
 
             //update the tag menu
-            var allTags = await _client.GetTags().ConfigureAwait(true);
+            ApiResponse<List<Tag>> allTags = await _client.GetTags().ConfigureAwait(true);
             if (allTags.WasSuccessful)
             {
                 BuildTagContextMenu(allTags.Result);
@@ -585,7 +501,7 @@ namespace QDMSServer
         {
             //horrible, but what can you do?
             bool multipleSelected = InstrumentsGrid.SelectedItems.Count > 1;
-            ContextMenu menu = (ContextMenu)Resources["RowMenu"];
+            var menu = (ContextMenu)Resources["RowMenu"];
 
             ((MenuItem)menu.Items[0]).IsEnabled = !multipleSelected; //new data request
             ((MenuItem)menu.Items[4]).IsEnabled = !multipleSelected; //clone
@@ -637,7 +553,7 @@ namespace QDMSServer
                     var button = new MenuItem
                     {
                         Header = t.Name,
-                        Tag = t.ID,
+                        Tag = t.ID
                     };
 
                     button.Click += SetSession_ItemClick;
@@ -648,19 +564,19 @@ namespace QDMSServer
 
         private async void SetSession_ItemClick(object sender, RoutedEventArgs e)
         {
-            var selectedInstruments = InstrumentsGrid.SelectedItems;
+            IList selectedInstruments = InstrumentsGrid.SelectedItems;
             var btn = (MenuItem)e.Source;
 
             int templateID = (int)btn.Tag;
 
-            var templates = await _client.GetSessionTemplates().ConfigureAwait(true);
-            if(!templates.WasSuccessful)
+            ApiResponse<List<SessionTemplate>> templates = await _client.GetSessionTemplates().ConfigureAwait(true);
+            if (!templates.WasSuccessful)
             {
                 await this.ShowMessageAsync("Error", string.Join("\n", templates.Errors)).ConfigureAwait(true);
                 return;
             }
 
-            var template = templates.Result.FirstOrDefault(x => x.ID == templateID);
+            SessionTemplate template = templates.Result.FirstOrDefault(x => x.ID == templateID);
             if (template == null)
             {
                 await this.ShowMessageAsync("Error", "Could not find template on the server").ConfigureAwait(true);
@@ -672,7 +588,7 @@ namespace QDMSServer
                 instrument.SessionsSource = SessionsSource.Template;
                 instrument.SessionTemplateID = templateID;
 
-                if(instrument.Sessions == null)
+                if (instrument.Sessions == null)
                 {
                     instrument.Sessions = new List<InstrumentSession>();
                 }
@@ -680,7 +596,7 @@ namespace QDMSServer
                 instrument.Sessions.Clear();
 
                 //Add the new sessions
-                foreach(TemplateSession ts in template.Sessions)
+                foreach (TemplateSession ts in template.Sessions)
                 {
                     instrument.Sessions.Add(ts.ToInstrumentSession());
                 }

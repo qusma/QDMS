@@ -37,7 +37,9 @@ x64/
 *.log
 *.vspscc
 *.vssscc
+*.cache
 .builds
+docs/
 
 # Visual C++ cache files
 ipch/
@@ -50,6 +52,7 @@ ipch/
 *.psess
 *.vsp
 *.vspx
+.vs/
 
 # Guidance Automation Toolkit
 *.gpState

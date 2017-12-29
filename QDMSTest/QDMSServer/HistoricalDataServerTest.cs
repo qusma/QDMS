@@ -30,11 +30,17 @@ namespace QDMSTest
         {
             _realTimeDataBrokerMock = new Mock<IRealTimeDataBroker>();
             _historicalDataBrokerMock = new Mock<IHistoricalDataBroker>();
+
+            var settings = new Mock<ISettings>();
+            settings.SetupGet(x => x.rtDBPubPort).Returns(5555);
+            settings.SetupGet(x => x.rtDBReqPort).Returns(5554);
+            settings.SetupGet(x => x.histClientIBID).Returns(5557);
+
             // Also need the real time server to keep the "heartbeat" going
-            _rtServer = new RealTimeDataServer(5555, 5554, _realTimeDataBrokerMock.Object);
+            _rtServer = new RealTimeDataServer(settings.Object, _realTimeDataBrokerMock.Object);
             _rtServer.StartServer();
 
-            _hdServer = new HistoricalDataServer(5557, _historicalDataBrokerMock.Object);
+            _hdServer = new HistoricalDataServer(settings.Object, _historicalDataBrokerMock.Object);
             _hdServer.StartServer();
 
             _client = new QDMSClient.QDMSClient("testingclient", "127.0.0.1", 5554, 5555, 5557, 5559, "");
