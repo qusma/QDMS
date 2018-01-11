@@ -200,11 +200,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Deployment" />
+    <Reference Include="System.Linq, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Linq.4.3.0\lib\net463\System.Linq.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -225,6 +229,12 @@
     <Reference Include="System.Reactive.Windows.Threading, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Rx-XAML.2.2.5\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Extensions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.Extensions.4.3.0\lib\net462\System.Runtime.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />
@@ -531,6 +541,10 @@
     <ProjectReference Include="..\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
       <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
       <Name>QDMS.Server.DataSources.BarChart</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Binance\QDMS.Server.DataSources.Binance.csproj">
+      <Project>{1975a3b2-fa08-4730-b00a-fdc41f14845b}</Project>
+      <Name>QDMS.Server.DataSources.Binance</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
       <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
