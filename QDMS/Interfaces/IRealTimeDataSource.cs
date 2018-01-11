@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Provides real time OHLC bars
+    /// </summary>
     public interface IRealTimeDataSource : INotifyPropertyChanged
     {
         /// <summary>
@@ -30,8 +33,7 @@ namespace QDMS
         /// Request real time data.
         /// </summary>
         /// <param name="request"></param>
-        /// <returns>The ID associated with this real time data request.</returns>
-        int RequestRealTimeData(RealTimeDataRequest request);
+        void RequestRealTimeData(RealTimeDataRequest request);
 
         /// <summary>
         /// Cancel a real time data stream.

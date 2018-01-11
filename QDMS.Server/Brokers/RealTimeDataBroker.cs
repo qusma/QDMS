@@ -219,8 +219,10 @@ namespace QDMSServer
             bool streamExists;
             lock (_activeStreamsLock)
             {
-                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID);
+                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID); //todo fix
             }
+
+            //todo add tick case
             if (streamExists)
             {
                 IncrementSubscriberCount(request.Instrument);
@@ -330,6 +332,8 @@ namespace QDMSServer
                     e.Time));
 #endif
         }
+
+
 
         /// <summary>
         /// Log stuff.
@@ -451,10 +455,9 @@ namespace QDMSServer
         private void ForwardRTDRequest(RealTimeDataRequest request)
         {
             //send the request to the correct data source
-            int reqID;
             try
             {
-                reqID = DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
+                DataSources[request.Instrument.Datasource.Name].RequestRealTimeData(request);
             }
             catch (Exception ex)
             {
@@ -468,12 +471,12 @@ namespace QDMSServer
                     request.Instrument.Symbol,
                     request.Instrument.Datasource.Name,
                     Enum.GetName(typeof(BarSize), request.Frequency),
-                    reqID));
+                    request.AssignedID));
 
             //add the request to the active streams, though it's not necessarily active yet
             var streamInfo = new RealTimeStreamInfo(
                 request.Instrument,
-                reqID,
+                request.AssignedID,
                 request.Instrument.Datasource.Name,
                 request.Frequency,
                 request.RTHOnly);

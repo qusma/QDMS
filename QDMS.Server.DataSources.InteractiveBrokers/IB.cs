@@ -636,7 +636,7 @@ namespace QDMSServer.DataSources
         /// <summary>
         /// real time data request
         /// </summary>
-        public int RequestRealTimeData(RealTimeDataRequest request)
+        public void RequestRealTimeData(RealTimeDataRequest request)
         {
             lock (_requestIDMapLock)
             {
@@ -660,7 +660,6 @@ namespace QDMSServer.DataSources
                 Log(LogLevel.Error, "IB: Could not send real time data request: " + ex.Message);
                 RaiseEvent(Error, this, new ErrorArgs(-1, "Could not send real time data request: " + ex.Message));
             }
-            return _requestCounter;
         }
 
         public void CancelRealTimeData(int requestID)

@@ -173,7 +173,7 @@ namespace QDMS.Server.DataSources
             StopAllTimers();
         }
 
-        public int RequestRealTimeData(RealTimeDataRequest request)
+        public void RequestRealTimeData(RealTimeDataRequest request)
         {
             if (!request.Instrument.ID.HasValue) throw new Exception("ID doesn't have value.");
 
@@ -219,8 +219,6 @@ namespace QDMS.Server.DataSources
                     controller.AsyncResult = controller.Caller.BeginInvoke(controller, request.Frequency, null, null);
                 }
             }
-
-            return _requestIDs;
         }
 
         public void CancelRealTimeData(int requestID)

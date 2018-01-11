@@ -150,7 +150,7 @@ namespace QDMSServer.DataSources
         /// </summary>
         /// <param name="request"></param>
         /// <returns>The ID associated with this real time data request.</returns>
-        public int RequestRealTimeData(RealTimeDataRequest request)
+        public void RequestRealTimeData(RealTimeDataRequest request)
         {
             throw new NotImplementedException();
         }

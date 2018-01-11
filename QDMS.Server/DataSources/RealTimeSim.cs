@@ -60,7 +60,7 @@ namespace QDMSServer.DataSources
             _timer.Stop();
         }
 
-        public int RequestRealTimeData(RealTimeDataRequest request)
+        public void RequestRealTimeData(RealTimeDataRequest request)
         {
             if (!request.Instrument.ID.HasValue) throw new Exception("ID doesn't have value.");
 
@@ -77,7 +77,7 @@ namespace QDMSServer.DataSources
             _loopLimit.TryAdd(request.Instrument.ID.Value, number);
             _idMap.TryAdd(request.Instrument.ID.Value, request.AssignedID);
             
-            return ++_requestIDs;
+            _requestIDs++;
         }
 
         public void CancelRealTimeData(int requestID)

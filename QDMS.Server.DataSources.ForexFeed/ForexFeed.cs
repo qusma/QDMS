@@ -169,7 +169,7 @@ namespace QDMSServer.DataSources
             );
         }
 
-        public int RequestRealTimeData(RealTimeDataRequest request)
+        public void RequestRealTimeData(RealTimeDataRequest request)
         {
             if (!Connected)
                 throw new Exception("The datasource is not connected. A request is not possible.");
@@ -200,8 +200,6 @@ namespace QDMSServer.DataSources
             // start timer if not is already started:
             if (!timer.Active)
                 timer.Start();
-
-            return _requestIDs;
         }
 
         public void CancelRealTimeData(int requestID)
