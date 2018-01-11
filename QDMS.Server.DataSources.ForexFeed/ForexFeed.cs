@@ -190,7 +190,7 @@ namespace QDMSServer.DataSources
             _requestIDs++;
 
             var requestList = _connectedRequests.GetOrAdd(request.Frequency, new ConcurrentDictionary<int, RealTimeDataRequest>());
-            bool success = requestList.TryAdd(_requestIDs, request);
+            bool success = requestList.TryAdd(request.AssignedID, request);
 
             FeedTimer timer;
             bool result = _timers.TryGetValue(request.Frequency, out timer);

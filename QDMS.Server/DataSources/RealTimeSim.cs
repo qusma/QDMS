@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
@@ -60,12 +61,15 @@ namespace QDMSServer.DataSources
             _timer.Stop();
         }
 
+        private Dictionary<int, int> _reqIdMap = new Dictionary<int, int>();
+
         public void RequestRealTimeData(RealTimeDataRequest request)
         {
             if (!request.Instrument.ID.HasValue) throw new Exception("ID doesn't have value.");
 
 
             bool success = _requestedInstrumentIDs.TryAdd(_requestIDs, request.Instrument.ID.Value);
+            _reqIdMap.Add(request.AssignedID, _requestIDs);
 
             int number;
             if (request.Frequency == BarSize.Tick)
@@ -83,7 +87,10 @@ namespace QDMSServer.DataSources
         public void CancelRealTimeData(int requestID)
         {
             int instrumentID;
-            _requestedInstrumentIDs.TryRemove(requestID, out instrumentID);
+            if (_reqIdMap.ContainsKey(requestID) && _requestedInstrumentIDs.ContainsKey(_reqIdMap[requestID]))
+            {
+                _requestedInstrumentIDs.TryRemove(_reqIdMap[requestID], out instrumentID);
+            }
         }
 
         private void SimulateData(object sender, ElapsedEventArgs e)

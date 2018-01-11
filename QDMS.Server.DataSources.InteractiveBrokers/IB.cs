@@ -52,6 +52,12 @@ namespace QDMSServer.DataSources
         /// </summary>
         private readonly Dictionary<int, int> _requestIDMap;
 
+        /// <summary>
+        /// Reverse of the request ID map.
+        /// Key: AssignedID, Value: TWS client ID
+        /// </summary>
+        private readonly Dictionary<int, int> _reverseRequestIDMap;
+
         private readonly Queue<int> _realTimeRequestQueue;
         private readonly Queue<int> _historicalRequestQueue;
 
@@ -113,6 +119,7 @@ namespace QDMSServer.DataSources
             _subRequestIDMap = new Dictionary<int, int>();
             _subRequestCount = new Dictionary<int, int>();
             _requestIDMap = new Dictionary<int, int>();
+            _reverseRequestIDMap = new Dictionary<int, int>();
 
             _requestRepeatTimer = new Timer(20000); //we wait 20 seconds to repeat failed requests
             _requestRepeatTimer.Elapsed += ReSendRequests;
@@ -643,6 +650,7 @@ namespace QDMSServer.DataSources
                 _requestCounter++;
                 _realTimeDataRequests.Add(_requestCounter, request);
                 _requestIDMap.Add(_requestCounter, request.AssignedID);
+                _reverseRequestIDMap.Add(request.AssignedID, _requestCounter);
             }
 
             try
@@ -664,7 +672,15 @@ namespace QDMSServer.DataSources
 
         public void CancelRealTimeData(int requestID)
         {
-            _client.CancelRealTimeBars(requestID);
+            if (_reverseRequestIDMap.TryGetValue(requestID, out int twsId))
+            {
+                _client.CancelRealTimeBars(twsId);
+            }
+            else
+            {
+                RaiseEvent(Error, this, new ErrorArgs(-1, "Real time stream requested for cancelation not found. ID: " + requestID));
+            }
+            
         }
 
         /// <summary>
