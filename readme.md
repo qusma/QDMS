@@ -1,7 +1,6 @@
 QUSMA Data Management System (QDMS)
 ===================================
 
-[![Join the chat at https://gitter.im/qdms/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qdms/Lobby)
 [![Build status](https://ci.appveyor.com/api/projects/status/303iq159kj0giugu?svg=true)](https://ci.appveyor.com/project/qusma/qdms)
 
 The QUSMA Data Management System (QDMS) is a client/server system for acquiring, managing, and distributing low-frequency historical and real-time data, written in C#. 
@@ -34,12 +33,12 @@ Supported Data Sources
 | Data Source                           | Historical Data supported | Real Time Data supported |
 |-------------------------------------- | ------------------------- | ------------------------ |
 | Interactive Brokers                   | :white_check_mark:    |                    |
-| Bloomberg                             | :white_check_mark:    | :white_check_mark: |
+| Binance                               | :white_check_mark:    | :white_check_mark: |
+| Bloomberg                             |                       |                    |
 | Quandl                                | :white_check_mark:    |                    |
 | FRED (Federal Reserve Economic Data)  | :white_check_mark:    |                    |
 | Yahoo                                 | :white_check_mark:    |                    |
 | BarChart                              | :white_check_mark:    |                    |
-| [OpenECry](http://futuresonline.com/) | :white_check_mark:    | :white_check_mark: |
 | [ForexFeed](http://forexfeed.net/)    | (not implemented)     | :white_check_mark: |
 
 When you miss a data service, feel free to ask...
