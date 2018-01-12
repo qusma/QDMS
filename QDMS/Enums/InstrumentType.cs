@@ -84,7 +84,12 @@ namespace QDMS
         /// Backtest result
         /// </summary>
         [Description("Backtest")]
-        Backtest = 13
+        Backtest = 13,
+        /// <summary>
+        /// Cryptocurrency
+        /// </summary>
+        [Description("Crypto")]
+        CryptoCurrency = 13
     }
 
 }
