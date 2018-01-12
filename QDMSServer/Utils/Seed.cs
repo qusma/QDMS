@@ -279,8 +279,9 @@ namespace QDMSServer
             var quandl = new Datasource { Name = "Quandl" };
             var fred = new Datasource { Name = "FRED" };
             var barChart = new Datasource { Name = "BarChart" };
+            var binance = new Datasource { Name = "Binance" };
 
-            context.Datasources.AddOrUpdate(x => x.Name, ib, yahoo, quandl, fred, barChart);
+            context.Datasources.AddOrUpdate(x => x.Name, ib, yahoo, quandl, fred, barChart, binance);
 
             context.SaveChanges();
         }

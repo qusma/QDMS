@@ -267,6 +267,22 @@ namespace QDMSServer
             }
         }
 
+        //show the Binance add instrument window
+        private void AddInstrumentBinanceBtn_OnClick(object sender, RoutedEventArgs e)
+        {
+            var window = new AddInstrumentBinanceWindow(_client);
+            window.ShowDialog();
+
+            if (window.ViewModel.AddedInstruments != null)
+            {
+                foreach (Instrument i in window.ViewModel.AddedInstruments)
+                {
+                    ViewModel.Instruments.Add(i);
+                }
+                window.Close();
+            }
+        }
+
         //show the window to add a new custom futures contract
         private void BtnAddCustomFutures_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {

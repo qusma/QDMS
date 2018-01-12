@@ -48,5 +48,19 @@ namespace QDMS.Server.DataSources.Binance.Model
         /// </summary>
         [JsonProperty(Order = 11)]
         public string Ignore { get; set; }
+
+        public OHLCBar ToOHLCBar()
+        {
+            return new OHLCBar
+            {
+                DTOpen = MyUtils.TimestampToDateTimeByMillisecond(OpenTime),
+                DT = MyUtils.TimestampToDateTimeByMillisecond(CloseTime),
+                Open = Open,
+                High = High,
+                Low = Low,
+                Close = Close,
+                Volume = (long?)Volume //this is an issue, might have to change volume type?
+            };
+        }
     }
 }

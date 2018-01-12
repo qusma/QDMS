@@ -34,6 +34,9 @@
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="SuperSocket.ClientEngine, Version=0.9.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
       <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.9.0\lib\net45\SuperSocket.ClientEngine.dll</HintPath>
     </Reference>
@@ -94,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binance.cs" />
+    <Compile Include="BinanceUtils.cs" />
     <Compile Include="Model\AggTrade.cs" />
     <Compile Include="Model\HistoricalBar.cs" />
     <Compile Include="Model\Kline.cs" />

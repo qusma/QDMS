@@ -15,6 +15,7 @@ using QDMS;
 using QDMS.Server;
 using QDMS.Server.Brokers;
 using QDMS.Server.DataSources;
+using QDMS.Server.DataSources.Binance;
 using QDMS.Server.DataSources.Nasdaq;
 using QDMS.Server.Nancy;
 using QDMSServer.DataSources;
@@ -163,8 +164,11 @@ namespace QDMSServer
             container.Register(DataStorageFactory.Get);
             container.Register<ICountryCodeHelper, CountryCodeHelper>(Lifestyle.Singleton);
 
-            //IB is a special case since it's both realtime and historical
+            //These sources provide both real time and historical data
             var ibReg = Lifestyle.Singleton.CreateRegistration<IB>(container);
+            var binanceReg = Lifestyle.Singleton.CreateRegistration<Binance>(container);
+
+            var bothSources = new[] { ibReg, binanceReg };
 
             //Realtime sources
             container.Register<IIBClient, IBClient>();
@@ -175,7 +179,7 @@ namespace QDMSServer
 
             container.RegisterCollection<IRealTimeDataSource>(realtimeSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container))
-                .Concat(new [] { ibReg }));
+                .Concat(bothSources));
 
 
             //Historical sources
@@ -189,7 +193,7 @@ namespace QDMSServer
 
             container.RegisterCollection<IHistoricalDataSource>(historicalSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container))
-                .Concat(new[] { ibReg }));
+                .Concat(bothSources));
 
             //economic release sources
             var econReleaseSources = new[]

@@ -48,5 +48,23 @@ namespace QDMS.Server.DataSources.Binance.Model
         /// </summary>
         [JsonProperty("M")]
         public bool M { get; set; }
+
+        public RealTimeTickEventArgs ToTickEventArgs()
+        {
+            var args = new RealTimeTickEventArgs(TickType.Trade);
+            if (decimal.TryParse(Price, out decimal price))
+            {
+                args.Last= price;
+            }
+
+            if (decimal.TryParse(Quantity, out decimal lastQuant))
+            {
+                args.LastQuantity = lastQuant;
+            }
+
+            args.DT = MyUtils.TimestampToDateTimeByMillisecond(TradeTime);
+
+            return args;
+        }
     }
 }

@@ -99,9 +99,12 @@
             <MenuItem Header="_Tools">
                 <MenuItem Header="Add Instrument">
                     <MenuItem Header="Manual" x:Name="AddInstrumentManuallyBtn" Command="{Binding AddInstrumentManually}"/>
+                    <Separator/>
                     <MenuItem Header="Interactive Brokers" x:Name="AddInstrumentIBBtn" Click="AddInstrumentIBBtn_ItemClick"/>
                     <MenuItem Header="Quandl" x:Name="AddInstrumentQuandlBtn" Click="AddInstrumentQuandlBtn_OnClick"/>
                     <MenuItem Header="FRED" x:Name="AddInstrumentFredBtn" Click="AddInstrumentFredBtn_OnClick"/>
+                    <MenuItem Header="Binance" x:Name="AddInstrumentBinanceBtn" Click="AddInstrumentBinanceBtn_OnClick"/>
+                    <Separator/>
                     <MenuItem Header="Continuous Futures" x:Name="BtnAddCustomFutures" Click="BtnAddCustomFutures_ItemClick"/>
                 </MenuItem>
                 <Separator/>

@@ -325,6 +325,7 @@
     <Compile Include="ValueConverters\StringToNullableConverter.cs" />
     <Compile Include="ValueConverters\TimeSpanConverter.cs" />
     <Compile Include="ValueConverters\TZToStringConverter.cs" />
+    <Compile Include="ViewModels\AddInstrumentBinanceViewModel.cs" />
     <Compile Include="ViewModels\AddInstrumentFredViewModel.cs" />
     <Compile Include="ViewModels\AddInstrumentIbViewModel.cs" />
     <Compile Include="ViewModels\AddInstrumentQuandlViewModel.cs" />
@@ -348,6 +349,9 @@
     <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentBinanceWindow.xaml.cs">
+      <DependentUpon>AddInstrumentBinanceWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\AddInstrumentInteractiveBrokersWindow.xaml.cs">
       <DependentUpon>AddInstrumentInteractiveBrokersWindow.xaml</DependentUpon>
@@ -430,6 +434,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\AboutWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\AddInstrumentBinanceWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

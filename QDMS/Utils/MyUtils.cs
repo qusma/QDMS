@@ -169,12 +169,23 @@ namespace QDMS
             return (long)elapsedTime.TotalSeconds;
         }
 
+        /// <summary>
+        /// Epoch is in UTC, input DateTime should also be in UTC.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static long ConvertToMillisecondTimestamp(DateTime value)
+        {
+            TimeSpan elapsedTime = value - Epoch;
+            return (long)elapsedTime.TotalMilliseconds;
+        }
+
         public static DateTime TimestampToDateTime(long timestamp)
         {
             return Epoch.AddSeconds(timestamp);
         }
 
-        public static DateTime TimestampToDateTimeByMillisecound(long timestamp)
+        public static DateTime TimestampToDateTimeByMillisecond(long timestamp)
         {
             return Epoch.AddMilliseconds(timestamp);
         }
