@@ -72,7 +72,10 @@
     <Compile Include="DataSourceStatus.cs" />
     <Compile Include="EntityModels\EarningsAnnouncement.cs" />
     <Compile Include="Enums\EarningsCallTime.cs" />
+    <Compile Include="Enums\TickType.cs" />
+    <Compile Include="EventArguments\RealTimeTickEventArgs.cs" />
     <Compile Include="Interfaces\IEarningsAnnouncementSource.cs" />
+    <Compile Include="Interfaces\IRealTimeTickDataSource.cs" />
     <Compile Include="Interfaces\ISettings.cs" />
     <Compile Include="Jobs\DividendUpdateJobSettings.cs" />
     <Compile Include="Jobs\EarningsUpdateJobSettings.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="Requests\EarningsAnnouncementRequest.cs" />
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
     <Compile Include="Requests\PredicateSearchRequest.cs" />
+    <Compile Include="Requests\RealTimeTickRequest.cs" />
     <Compile Include="Utils\ExpressionSerializer.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />

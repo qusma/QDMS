@@ -35,9 +35,14 @@ namespace QDMS
         event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
 
         /// <summary>
-        /// Raised when real time data arrives
+        /// Raised when real time bar data arrives
         /// </summary>
         event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
+
+        /// <summary>
+        /// Raised when real time tick data arrives
+        /// </summary>
+        event EventHandler<RealTimeTickEventArgs> RealTimeTickReceived;
 
         /// <summary>
         /// Set to true if currently connected to a QDMS server

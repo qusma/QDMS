@@ -151,6 +151,7 @@ namespace QDMSServer
             foreach (IRealTimeDataSource s in DataSources.Values)
             {
                 s.DataReceived += RealTimeData;
+                s.TickReceived += TickReceived;
                 s.Disconnected += SourceDisconnects;
                 s.Error += s_Error;
             }
@@ -331,6 +332,27 @@ namespace QDMSServer
                     e.Volume,
                     e.Time));
 #endif
+        }
+
+        private void TickReceived(object sender, RealTimeTickEventArgs e)
+        {
+            RaiseEvent(RealTimeTickArrived, this, e);
+
+            //continuous futures aliases
+            lock (_aliasLock)
+            {
+                int instrumentID = e.InstrumentID;
+                if (_aliases.ContainsKey(instrumentID))
+                {
+                    for (int i = 0; i < _aliases[instrumentID].Count; i++)
+                    {
+                        e.InstrumentID = _aliases[instrumentID][i];
+                        RaiseEvent(RealTimeTickArrived, this, e);
+                    }
+                }
+            }
+
+            //todo add saving to storage after we get a tick storage
         }
 
 
@@ -636,5 +658,6 @@ namespace QDMSServer
         }
 
         public event EventHandler<RealTimeDataEventArgs> RealTimeDataArrived;
+        public event EventHandler<RealTimeTickEventArgs> RealTimeTickArrived;
     }
 }

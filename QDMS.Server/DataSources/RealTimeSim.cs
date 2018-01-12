@@ -127,6 +127,7 @@ namespace QDMSServer.DataSources
         public string Name { get; private set; }
 
         public event EventHandler<RealTimeDataEventArgs> DataReceived;
+        public event EventHandler<RealTimeTickEventArgs> TickReceived;
         public event EventHandler<ErrorArgs> Error;
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
         public bool Connected { get; private set; }

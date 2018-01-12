@@ -187,6 +187,7 @@ namespace QDMSServer.DataSources
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
 
+        public event EventHandler<RealTimeTickEventArgs> TickReceived;
         public event EventHandler<ErrorArgs> Error;
 
         public event EventHandler<RealTimeDataEventArgs> DataReceived;

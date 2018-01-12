@@ -121,6 +121,7 @@ namespace QDMSClient
         #region IDataClient implementation
 
         public event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
+        public event EventHandler<RealTimeTickEventArgs> RealTimeTickReceived;
 
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
 
@@ -603,6 +604,7 @@ namespace QDMSClient
 
         private void RealTimeDataSocketReceiveReady(object sender, NetMQSocketEventArgs e)
         {
+            //todo need to get ticks here
             lock (_realTimeDataSocketLock)
             {
                 if (_realTimeDataSocket == null)
@@ -610,19 +612,26 @@ namespace QDMSClient
                     return;
                 }
 
-                bool hasMore;
+                _realTimeDataSocket.ReceiveFrameBytes(out bool hasMore);
+                if (!hasMore) return;
 
-                _realTimeDataSocket.ReceiveFrameBytes(out hasMore);
+                var type = _realTimeDataSocket.ReceiveFrameString();
+                var buffer = _realTimeDataSocket.ReceiveFrameBytes();
 
-                if (hasMore)
+                using (var ms = new MemoryStream())
                 {
-                    var buffer = _realTimeDataSocket.ReceiveFrameBytes();
-
-                    using (var ms = new MemoryStream())
+                    if (type == MessageType.RealTimeBars)
                     {
                         var bar = MyUtils.ProtoBufDeserialize<RealTimeDataEventArgs>(buffer, ms);
 
                         RaiseEvent(RealTimeDataReceived, null, bar);
+                    }
+                    else if (type == MessageType.RealTimeTick)
+                    {
+                        var bar = MyUtils.ProtoBufDeserialize<RealTimeTickEventArgs>(buffer, ms);
+
+                        RaiseEvent(RealTimeTickReceived, null, bar);
+                        //todo
                     }
                 }
             }

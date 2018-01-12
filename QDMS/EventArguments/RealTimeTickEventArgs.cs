@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Tick.cs" company="">
-// Copyright 2013 Alexander Soffronow Pagonidis
+// <copyright file="RealTimeTickEventArgs.cs" company="">
+// Copyright 2018 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -10,13 +10,12 @@ using ProtoBuf;
 namespace QDMS
 {
     /// <summary>
-    /// 
+    ///     Used to surface real-time tick data
     /// </summary>
     [ProtoContract]
-    public class Tick
+    public class RealTimeTickEventArgs : EventArgs
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="tickType"></param>
         /// <param name="last"></param>
@@ -25,7 +24,8 @@ namespace QDMS
         /// <param name="lastQuantity"></param>
         /// <param name="bidQuantity"></param>
         /// <param name="askQuantity"></param>
-        public Tick(TickType tickType, decimal last = 0, decimal bid = 0, decimal ask = 0, decimal lastQuantity = 0, decimal bidQuantity = 0, decimal askQuantity = 0)
+        public RealTimeTickEventArgs(TickType tickType, decimal last = 0, decimal bid = 0, decimal ask = 0,
+            decimal lastQuantity = 0, decimal bidQuantity = 0, decimal askQuantity = 0)
         {
             TickType = tickType;
             Last = last;
@@ -37,49 +37,56 @@ namespace QDMS
         }
 
         /// <summary>
-        /// Event time
+        ///     Used for serialization
+        /// </summary>
+        public RealTimeTickEventArgs()
+        {
+        }
+
+        /// <summary>
+        ///     Event time
         /// </summary>
         [ProtoMember(1)]
         public DateTime DT { get; set; }
 
         /// <summary>
-        /// Last trade price
+        ///     Last trade price
         /// </summary>
         [ProtoMember(2)]
         public decimal Last { get; set; }
 
         /// <summary>
-        /// Bid price at event time
+        ///     Bid price at event time
         /// </summary>
         [ProtoMember(3)]
         public decimal Bid { get; set; }
 
         /// <summary>
-        /// Ask price at event time
+        ///     Ask price at event time
         /// </summary>
         [ProtoMember(4)]
         public decimal Ask { get; set; }
 
         /// <summary>
-        /// Quantity of the last trade
+        ///     Quantity of the last trade
         /// </summary>
         [ProtoMember(5)]
         public decimal LastQuantity { get; set; }
 
         /// <summary>
-        /// Quantity available at the bid
+        ///     Quantity available at the bid
         /// </summary>
         [ProtoMember(6)]
         public decimal BidQuantity { get; set; }
 
         /// <summary>
-        /// Quantity available at the ask
+        ///     Quantity available at the ask
         /// </summary>
         [ProtoMember(7)]
         public decimal AskQuantity { get; set; }
 
         /// <summary>
-        /// Event type
+        ///     Event type
         /// </summary>
         [ProtoMember(8)]
         public TickType TickType { get; set; }
@@ -97,12 +104,9 @@ namespace QDMS
         public string ExchangeCode { get; set; }
 
         /// <summary>
-        /// For serialization
+        /// The ID of the instrument.
         /// </summary>
-        public Tick()
-        {
-        }
-
-
+        [ProtoMember(20)]
+        public int InstrumentID { get; set; }
     }
 }

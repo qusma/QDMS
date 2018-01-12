@@ -47,9 +47,14 @@ namespace QDMS
         string Name { get; }
 
         /// <summary>
-        /// Fires when new real time data is received.
+        /// Fires when new real bar time data is received.
         /// </summary>
         event EventHandler<RealTimeDataEventArgs> DataReceived;
+
+        /// <summary>
+        /// Fires when new real tick time data is received.
+        /// </summary>
+        event EventHandler<RealTimeTickEventArgs> TickReceived;
 
         /// <summary>
         /// Fires on any error.

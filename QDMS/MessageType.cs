@@ -73,6 +73,16 @@ namespace QDMS
         /// </summary>
         public const string AddInstrument = "ADD";
 
+        /// <summary>
+        /// Sent ahead of real time bar messages
+        /// </summary>
+        public const string RealTimeBars = "B";
+
+        /// <summary>
+        /// Sent ahead of real time tick messages
+        /// </summary>
+        public const string RealTimeTick = "T";
+
         public const string Ping = "PING";
         public const string Pong = "PONG";
         public const string Error = "ERROR";

@@ -65,6 +65,7 @@ namespace QDMSServer
 
             _broker = broker;
             _broker.RealTimeDataArrived += BrokerRealTimeDataArrived;
+            _broker.RealTimeTickArrived += BrokerRealTimeTickArrived;
         }
 
         /// <summary>
@@ -149,15 +150,35 @@ namespace QDMSServer
         {
             lock (_publisherSocketLock)
             {
-                if (_publisherSocket != null)
-                {
-                    using (var ms = new MemoryStream())
-                    {
-                        Serializer.Serialize(ms, e);
-                        _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); // Start by sending the ticker before the data
-                        _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
+                if (_publisherSocket == null) return;
 
-                    }
+                using (var ms = new MemoryStream())
+                {
+                    Serializer.Serialize(ms, e);
+                    _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); // Start by sending the ticker before the data
+                    _publisherSocket.SendMoreFrame(MessageType.RealTimeBars);
+                    _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
+
+                }
+            }
+        }
+
+        /// <summary>
+        ///     When tick data arrives from an external data source to the broker, this event is fired.
+        /// </summary>
+        private void BrokerRealTimeTickArrived(object sender, RealTimeTickEventArgs e)
+        {
+            lock (_publisherSocketLock)
+            {
+                if (_publisherSocket == null) return;
+
+                using (var ms = new MemoryStream())
+                {
+                    Serializer.Serialize(ms, e);
+                    _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); // Start by sending the ticker before the data
+                    _publisherSocket.SendMoreFrame(MessageType.RealTimeTick);
+                    _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
+
                 }
             }
         }
