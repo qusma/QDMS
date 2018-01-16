@@ -208,7 +208,7 @@ namespace QDMSServer
                         HandleRealTimeDataRequest();
                     }
                     // Manage cancellation requests
-                    // Two part message: first: MessageType.CancelRTD. Second: the instrument
+                    // Three part message: first: MessageType.CancelRTD. Second: the instrument ID. Third: frequency.
                     if (requestType.Equals(MessageType.CancelRTD, StringComparison.InvariantCultureIgnoreCase))
                     {
                         HandleRealTtimeDataCancelRequest();
@@ -280,6 +280,7 @@ namespace QDMSServer
             // Receive the instrument
             using (var ms = new MemoryStream())
             {
+                //todo change to id and freq
                 var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
                 if (instrument.ID != null)
@@ -288,7 +289,8 @@ namespace QDMSServer
                 }
                 // Two part message:
                 // 1: MessageType.RTDCanceled
-                // 2: the symbol
+                // 2: the instrument symbol
+                //todo do we need to reply here?
                 _requestSocket.SendMoreFrame(MessageType.RTDCanceled);
                 _requestSocket.SendFrame(instrument.Symbol);
             }

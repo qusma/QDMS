@@ -604,7 +604,6 @@ namespace QDMSClient
 
         private void RealTimeDataSocketReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            //todo need to get ticks here
             lock (_realTimeDataSocketLock)
             {
                 if (_realTimeDataSocket == null)
@@ -631,7 +630,6 @@ namespace QDMSClient
                         var bar = MyUtils.ProtoBufDeserialize<RealTimeTickEventArgs>(buffer, ms);
 
                         RaiseEvent(RealTimeTickReceived, null, bar);
-                        //todo
                     }
                 }
             }

@@ -220,10 +220,10 @@ namespace QDMSServer
             bool streamExists;
             lock (_activeStreamsLock)
             {
-                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID); //todo fix
+                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID && 
+                                                                 x.Frequency == request.Frequency);
             }
 
-            //todo add tick case
             if (streamExists)
             {
                 IncrementSubscriberCount(request.Instrument);
@@ -385,6 +385,7 @@ namespace QDMSServer
         {
             lock (_activeStreamsLock)
             {
+                //TODO cancelrealtimedata on the client needs to be more specific than just the instrument
                 //make sure there is a data stream for this instrument
                 if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID))
                 {
