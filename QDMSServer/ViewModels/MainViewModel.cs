@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using EntityData;
@@ -56,6 +57,7 @@ namespace QDMSServer.ViewModels
         private readonly IRealTimeDataServer _realTimeServer;
         private readonly IHistoricalDataServer _historicalDataServer;
         private readonly INancyBootstrapper _nancyBootstrapper;
+        private NancyHost _nancyHost;
         private string _clientStatus;
 
         public MainViewModel(
@@ -212,15 +214,28 @@ namespace QDMSServer.ViewModels
             _scheduler.StartDelayed(TimeSpan.FromSeconds(10));
 
             //Start http server
-            var uri = new Uri(
-                (Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Settings.Default.httpPort);
-            var host = new NancyHost(_nancyBootstrapper, uri);
+            try
+            {
+                StartHttpServer();
+            }
+            catch (HttpListenerException ex)
+            {
+                //wrong SSL settings can cause a crash right at the start, which can be a pain
+                _logger.Error(ex, "Nancy failed to start, try alternate SSL settings");
+                throw;
+            }
 
 
-            host.Start();
-            //TODO https
             //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
             MigrateJobs(_scheduler);
+        }
+
+        private void StartHttpServer()
+        {
+            var uri = new Uri(
+                (Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Settings.Default.httpPort);
+            _nancyHost = new NancyHost(_nancyBootstrapper, uri);
+            _nancyHost.Start();
         }
 
         private void MigrateJobs(IScheduler scheduler)
@@ -249,6 +264,8 @@ namespace QDMSServer.ViewModels
 
             _historicalDataServer.StopServer();
             _historicalDataServer.Dispose();
+
+            _nancyHost.Dispose();
 
             RealTimeBroker.Dispose();
 
