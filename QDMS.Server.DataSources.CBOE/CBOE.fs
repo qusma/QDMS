@@ -51,12 +51,20 @@ module CBOEModule =
                 httpResponse.EnsureSuccessStatusCode() |> ignore
 
                 let! html = httpResponse.Content.ReadAsStringAsync() |> Async.AwaitTask
-                return this.parse(html, date.Date)
+                try
+                    return this.parse(html, date.Date)
+                with e -> 
+                    //there's no way to cleanly prevent HtmlProvider from throwing if the table isn't present
+                    //so instead we do this nonsense
+                    logger.Error(e, "Error parsing announcements, probably empty: " + e.Message) 
+                    logger.Info(html)
+                    return Seq.empty<EarningsAnnouncement>
             }
 
+
         member this.parse(html, date) = 
-            let asdf = htmlProv.Parse(html)
-            asdf.Tables.Events_results.Rows
+            let parsedHtml = htmlProv.Parse(html)
+            parsedHtml.Tables.Events_results.Rows 
                 |> Seq.map(fun row -> new EarningsAnnouncement(Symbol = row.Symbol,
                                                                 CompanyName = row.Company,
                                                                 //todo get raw HTML instead and extract correct title from "title" tag
@@ -70,12 +78,12 @@ module CBOEModule =
             async {
                 let dayCount = (int) ((request.ToDate.Date - request.FromDate.Date).TotalDays + 0.5)
                 let dates = [0..dayCount] 
-                                |> Seq.map(fun x -> request.FromDate.Date.AddHours(5.0).AddDays(float x)) 
+                                |> Seq.map(fun x -> request.FromDate.Date.AddHours(8.0).AddDays(float x)) 
                                 |> Seq.filter(fun x -> x.DayOfWeek <> DayOfWeek.Saturday && x.DayOfWeek <> DayOfWeek.Sunday) //filter weekends
 
                 let earnings = new System.Collections.Generic.List<EarningsAnnouncement>()
                 for date in dates do
-                    let! earnsForDate = this.getAnnouncementsForDate date
+                    let! earnsForDate = this.getAnnouncementsForDate date 
                     earnings.AddRange(earnsForDate)
 
                 return earnings;
