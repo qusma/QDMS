@@ -52,8 +52,12 @@ namespace QDMS.Server.Brokers
 
         public async Task<List<Dividend>> RequestDividends(DividendRequest request)
         {
+            string symbols = request.Symbol == null
+                ? ""
+                : string.Join(", ", request.Symbol);
+
             _logger.Info($"DivB: filling request from {request.FromDate:yyyyMMdd} to {request.ToDate:yyyyMMdd} " +
-                         $"{string.Join(", ", request.Symbol)} from {request.DataSource ?? "default"} ({request.DataLocation})");
+                         $"{symbols} from {request.DataSource ?? "default"} ({request.DataLocation})");
 
             if (request.DataLocation == DataLocation.LocalOnly)
             {

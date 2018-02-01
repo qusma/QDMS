@@ -52,7 +52,10 @@ namespace QDMS.Server.Brokers
 
         public async Task<List<EarningsAnnouncement>> Request(EarningsAnnouncementRequest request)
         {
-            _logger.Info($"EAB: filling request from {request.FromDate:yyyyMMdd} to {request.ToDate:yyyyMMdd} {string.Join(", ", request.Symbol)} from {request.DataSource ?? "default"} ({request.DataLocation})");
+            string symbols = request.Symbol == null
+                ? ""
+                : string.Join(", ", request.Symbol);
+            _logger.Info($"EAB: filling request from {request.FromDate:yyyyMMdd} to {request.ToDate:yyyyMMdd} {symbols} from {request.DataSource ?? "default"} ({request.DataLocation})");
 
             if (request.DataLocation == DataLocation.LocalOnly)
             {
