@@ -422,7 +422,7 @@ namespace QDMSServer
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("Importing error: " + ex.Message);
+                        MessageBox.Show("Importing error: " + ex.Message + "\n" + line);
                         return;
                     }
 
@@ -445,7 +445,7 @@ namespace QDMSServer
                         }
 
                         int mostFrequent = secDiffs.MostFrequent();
-                        if ((int)Math.Round(frequency.ToTimeSpan().TotalSeconds) != mostFrequent)
+                        if ((int)Math.Round(frequency.ToTimeSpan().TotalSeconds) != Math.Abs(mostFrequent))
                         {
                             MessageBox.Show("You appear to have selected the wrong frequency.");
                             return;
