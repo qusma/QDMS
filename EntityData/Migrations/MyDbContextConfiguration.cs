@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Data.Entity.Migrations;
-using MySql.Data.Entity;
+using MySql.Data.EntityFramework;
 
 namespace EntityData.Migrations
 {

@@ -11,7 +11,7 @@ using System.Reflection;
 using MySql.Data.MySqlClient;
 using NUnit.Framework;
 using EntityData;
-using MySql.Data.Entity;
+using MySql.Data.EntityFramework;
 using QDMSServer;
 
 namespace QDMSTest

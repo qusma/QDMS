@@ -14,7 +14,7 @@ using System.Text;
 using MySql.Data.MySqlClient;
 using QDMSServer.Properties;
 using System.Security.Cryptography;
-using MySql.Data.Entity;
+using MySql.Data.EntityFramework;
 
 namespace QDMSServer
 {
@@ -73,7 +73,7 @@ namespace QDMSServer
             var fi = typeof(ConfigurationElement).GetField("_bReadOnly", BindingFlags.Instance | BindingFlags.NonPublic);
             fi.SetValue(conSettings, false);
 
-            conSettings.ConnectionString = string.Format("User Id={0};Password={1};Host={2};Database={3};Persist Security Info=True;UseCompression=True",
+            conSettings.ConnectionString = string.Format("User Id={0};Password={1};Host={2};Database={3};Persist Security Info=True;UseCompression=True;SslMode=none",
                 Settings.Default.mySqlUsername,
                 EncryptionUtils.Unprotect(Settings.Default.mySqlPassword),
                 Settings.Default.mySqlHost,

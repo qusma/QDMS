@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Data.Entity.Migrations;
-using MySql.Data.Entity;
+using MySql.Data.EntityFramework;
 
 //Note: the namespace is a hack, the two context files have to be in different namespaces for the thing to work.
 namespace EntityData.Migrations.DataDBContextNS
