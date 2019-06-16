@@ -6,8 +6,14 @@
 
 namespace QDMS
 {
+    /// <summary>
+    /// Information on the connection status of a datasource
+    /// </summary>
     public class DataSourceStatus
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public DataSourceStatus()
         {
         }

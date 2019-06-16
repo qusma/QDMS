@@ -20,9 +20,9 @@ namespace QDMS.Server.NancyModules
         {
             this.RequiresAuthentication();
 
-            Get["/", true] = async (_, token) => await context.Tags.ToListAsync(token).ConfigureAwait(false);
+            Get("/", async (_, token) => await context.Tags.ToListAsync(token).ConfigureAwait(false));
 
-            Post["/"] = _ =>
+            Post("/", _ =>
             {
                 var tag = this.BindAndValidate<Tag>();
                 if (ModelValidationResult.IsValid == false)
@@ -39,9 +39,9 @@ namespace QDMS.Server.NancyModules
 
                 //return the object with the id after inserting
                 return tag;
-            };
+            });
 
-            Put["/"] = _ =>
+            Put("/", _ =>
             {
                 var newTag = this.BindAndValidate<Tag>();
                 if (ModelValidationResult.IsValid == false)
@@ -59,9 +59,9 @@ namespace QDMS.Server.NancyModules
                 context.SaveChanges();
 
                 return tag;
-            };
+            });
 
-            Delete["/{Id:int}"] = parameters =>
+            Delete("/{Id:int}", parameters =>
             {
                 int id = parameters.Id;
                 var tag = context.Tags.FirstOrDefault(x => x.ID == id);
@@ -72,7 +72,7 @@ namespace QDMS.Server.NancyModules
                 context.SaveChanges();
 
                 return tag;
-            };
+            });
         }
     }
 }

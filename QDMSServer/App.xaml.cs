@@ -177,7 +177,7 @@ namespace QDMSServer
                 
             };
 
-            container.RegisterCollection<IRealTimeDataSource>(realtimeSources
+            container.Collection.Register<IRealTimeDataSource>(realtimeSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container))
                 .Concat(bothSources));
 
@@ -191,7 +191,7 @@ namespace QDMSServer
                 typeof(BarChart)
             };
 
-            container.RegisterCollection<IHistoricalDataSource>(historicalSources
+            container.Collection.Register<IHistoricalDataSource>(historicalSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container))
                 .Concat(bothSources));
 
@@ -201,7 +201,7 @@ namespace QDMSServer
                 typeof(fx.FXStreet)
             };
 
-            container.RegisterCollection<IEconomicReleaseSource>(econReleaseSources
+            container.Collection.Register<IEconomicReleaseSource>(econReleaseSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container)));
 
             //dividend sources
@@ -211,7 +211,7 @@ namespace QDMSServer
                 typeof(DivDotCom.DividendDotCom)
             };
 
-            container.RegisterCollection<IDividendDataSource>(dividendSources
+            container.Collection.Register<IDividendDataSource>(dividendSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container)));
 
             //earnings announcement sources
@@ -220,7 +220,7 @@ namespace QDMSServer
                 typeof(CBOEModule.CBOE)
             };
 
-            container.RegisterCollection<IEarningsAnnouncementSource>(earningsSources
+            container.Collection.Register<IEarningsAnnouncementSource>(earningsSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container)));
 
             //brokers

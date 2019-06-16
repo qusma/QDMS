@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,9 +61,9 @@ namespace QDMSTest.HttpServer
 
                 //Takes care of user athentication
                 with.RequestStartup((container, pipelines, context) =>
-                {
-                    context.CurrentUser = new ApiUser("testuser");
-                });
+                    {
+                        context.CurrentUser = new ClaimsPrincipal(new GenericIdentity("admin"));
+                    });
             });
 
             //The browser is used to create requests

@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace QDMSTest.HttpServer
 {
@@ -41,9 +42,9 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void GetReturnsAllExchanges()
+        public async Task GetReturnsAllExchanges()
         {
-            var response = Browser.Get("/exchanges", BrowserCtx);
+            var response = await Browser.Get("/exchanges", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             string s = response.Body.AsString();
@@ -55,9 +56,9 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void GetWithIdReturnsSpecificExchange()
+        public async Task GetWithIdReturnsSpecificExchange()
         {
-            var response = Browser.Get("/exchanges/1", BrowserCtx);
+            var response = await Browser.Get("/exchanges/1", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             string s = response.Body.AsString();
@@ -67,18 +68,18 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void GetWithIdReturns404WhenDoesNotExist()
+        public async Task GetWithIdReturns404WhenDoesNotExist()
         {
-            var response = Browser.Get("/exchanges/5", BrowserCtx);
+            var response = await Browser.Get("/exchanges/5", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Test]
-        public void PostInvalidExchangeReturns400BadRequest()
+        public async Task PostInvalidExchangeReturns400BadRequest()
         {
             var exchange = new Exchange { Name = "" };
-            var response = Browser.Post("/exchanges", with =>
+            var response = await Browser.Post("/exchanges", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(exchange);
@@ -88,10 +89,10 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void PutInvalidExchangeReturns400BadRequest()
+        public async Task PutInvalidExchangeReturns400BadRequest()
         {
             var exchange = new Exchange { Name = "" };
-            var response = Browser.Put("/exchanges", with =>
+            var response = await Browser.Put("/exchanges", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(exchange);
@@ -101,10 +102,10 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void PutNonExistentExchangeReturns404Notfound()
+        public async Task PutNonExistentExchangeReturns404Notfound()
         {
             var exchange = new Exchange { ID = 5, Name = "Name", LongName = "LongName", Timezone = "Eastern Standard Time" };
-            var response = Browser.Put("/exchanges", with =>
+            var response = await Browser.Put("/exchanges", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(exchange);
@@ -114,7 +115,7 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void SessionsCollectionIsUpdatedCorrectly()
+        public async Task SessionsCollectionIsUpdatedCorrectly()
         {
             var newOpenTime = new TimeSpan(10, 0, 0);
 
@@ -132,7 +133,7 @@ namespace QDMSTest.HttpServer
             //add one
             exchange.Sessions.Add(new ExchangeSession { OpeningDay = DayOfTheWeek.Wednesday, OpeningTime = new TimeSpan(11, 0, 0), ClosingTime = new TimeSpan(15, 0, 0) });
 
-            var response = Browser.Put("/exchanges", with =>
+            var response = await Browser.Put("/exchanges", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(exchange);
@@ -155,7 +156,7 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void InstrumentsWithExchangeAsSessionSourceHaveTheirSessionsUpdatedWhenExchangeIsUpdated()
+        public async Task InstrumentsWithExchangeAsSessionSourceHaveTheirSessionsUpdatedWhenExchangeIsUpdated()
         {
             //needed to simulate the update of the session
             ContextMock
@@ -180,7 +181,7 @@ namespace QDMSTest.HttpServer
             var exchange = (Exchange)_data[0].Clone(); //have to clone it, because the original is the one in the mocked context
             exchange.Sessions.First().OpeningTime = new TimeSpan(10, 0, 0);
 
-            var response = Browser.Put("/exchanges", with =>
+            var response = await Browser.Put("/exchanges", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(exchange);
@@ -193,19 +194,19 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void DeleteReturns404WhenDoesNotExist()
+        public async Task DeleteReturns404WhenDoesNotExist()
         {
-            var response = Browser.Delete("/exchanges/5", BrowserCtx);
+            var response = await Browser.Delete("/exchanges/5", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Test]
-        public void DeleteCallsRemoveOnDbSet()
+        public async Task DeleteCallsRemoveOnDbSet()
         {
             SetUpDbSet(new List<Instrument>());
 
-            var response = Browser.Delete("/exchanges/1", BrowserCtx);
+            var response = await Browser.Delete("/exchanges/1", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
@@ -213,12 +214,12 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void DeleteOnExchangeThatIsReferencedByAnInstrumentReturns409Conflict()
+        public async Task DeleteOnExchangeThatIsReferencedByAnInstrumentReturns409Conflict()
         {
             var instrument = new Instrument { ExchangeID = 1 };
             SetUpDbSet(new List<Instrument> { instrument });
 
-            var response = Browser.Delete("/exchanges/1", BrowserCtx);
+            var response = await Browser.Delete("/exchanges/1", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
         }

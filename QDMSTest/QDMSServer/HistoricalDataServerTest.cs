@@ -34,7 +34,7 @@ namespace QDMSTest
             var settings = new Mock<ISettings>();
             settings.SetupGet(x => x.rtDBPubPort).Returns(5555);
             settings.SetupGet(x => x.rtDBReqPort).Returns(5554);
-            settings.SetupGet(x => x.histClientIBID).Returns(5557);
+            settings.SetupGet(x => x.hDBPort).Returns(5557);
 
             // Also need the real time server to keep the "heartbeat" going
             _rtServer = new RealTimeDataServer(settings.Object, _realTimeDataBrokerMock.Object);

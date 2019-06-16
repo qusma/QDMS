@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using DynamicData;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMSClient;
@@ -36,12 +38,12 @@ namespace QDMSServer.ViewModels
             _client = client;
             DialogCoordinator = dialogCoordinator;
 
-            Jobs = new ReactiveList<IJobViewModel>();
-            Tags = new ReactiveList<Tag>();
-            Instruments = new ReactiveList<Instrument>();
-            EconomicReleaseDataSources = new ReactiveList<string>();
-            DividendDataSources = new ReactiveList<string>();
-            EarningsDataSources = new ReactiveList<string>();
+            Jobs = new ObservableCollection<IJobViewModel>();
+            Tags = new ObservableCollection<Tag>();
+            Instruments = new ObservableCollection<Instrument>();
+            EconomicReleaseDataSources = new ObservableCollection<string>();
+            DividendDataSources = new ObservableCollection<string>();
+            EarningsDataSources = new ObservableCollection<string>();
 
             CreateCommands();
         }
@@ -222,15 +224,15 @@ namespace QDMSServer.ViewModels
 
         public IDialogCoordinator DialogCoordinator { get; set; }
 
-        public ReactiveList<Instrument> Instruments { get; set; }
+        public ObservableCollection<Instrument> Instruments { get; set; }
 
-        public ReactiveList<IJobViewModel> Jobs { get; }
+        public ObservableCollection<IJobViewModel> Jobs { get; }
 
-        public ReactiveList<string> EconomicReleaseDataSources { get; set; }
+        public ObservableCollection<string> EconomicReleaseDataSources { get; set; }
 
-        public ReactiveList<string> DividendDataSources { get; set; }
+        public ObservableCollection<string> DividendDataSources { get; set; }
 
-        public ReactiveList<string> EarningsDataSources { get; set; }
+        public ObservableCollection<string> EarningsDataSources { get; set; }
 
         public IJobViewModel SelectedJob
         {
@@ -238,7 +240,7 @@ namespace QDMSServer.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedJob, value);
         }
 
-        public ReactiveList<Tag> Tags { get; set; }
+        public ObservableCollection<Tag> Tags { get; set; }
 
         private IJobViewModel _selectedJob;
     }

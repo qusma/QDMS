@@ -20,7 +20,7 @@ namespace QDMS.Server.NancyModules
         {
             this.RequiresAuthentication();
 
-            Get["/", runAsync: true] = async (_, token) =>
+            Get("/", async (_, token) =>
             {
                 var releases = context.EconomicReleases;
 
@@ -34,9 +34,9 @@ namespace QDMS.Server.NancyModules
 
                 // filter and return
                 return await erb.RequestEconomicReleases(request).ConfigureAwait(false);
-            };
+            });
 
-            Get["/datasources"] = _ => erb.DataSources.Keys.ToList();
+            Get("/datasources", _ => erb.DataSources.Keys.ToList());
         }
     }
 }

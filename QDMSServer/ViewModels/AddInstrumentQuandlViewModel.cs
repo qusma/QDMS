@@ -11,6 +11,7 @@ using ReactiveUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -115,7 +116,7 @@ namespace QDMSServer.ViewModels
 
         public ReactiveCommand<Unit, int> DecrementPage { get; set; }
         public ReactiveCommand<Unit, int?> IncrementPage { get; set; }
-        public ReactiveList<Instrument> Instruments { get; set; } = new ReactiveList<Instrument>();
+        public ObservableCollection<Instrument> Instruments { get; set; } = new ObservableCollection<Instrument>();
         public ReactiveCommand<Unit, Unit> Load { get; set; }
 
         public ReactiveCommand<Unit, Unit> Search { get; set; }

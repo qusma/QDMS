@@ -7,10 +7,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
+using DynamicData;
 using EntityData;
 using MahApps.Metro.Controls.Dialogs;
 using Nancy.Bootstrapper;
@@ -29,7 +31,7 @@ namespace QDMSServer.ViewModels
 {
     public class MainViewModel : ReactiveObject, IDisposable
     {
-        public ReactiveList<Instrument> Instruments { get; }
+        public ObservableCollection<Instrument> Instruments { get; }
         public ConcurrentNotifierBlockingList<LogEventInfo> LogMessages { get; set; }
 
         public IRealTimeDataBroker RealTimeBroker { get; set; }
@@ -84,7 +86,7 @@ namespace QDMSServer.ViewModels
             _historicalDataServer = historicalDataServer;
             _nancyBootstrapper = nancyBootstrapper;
             _dialogCoordinator = dialogCoordinator;
-            Instruments = new ReactiveList<Instrument>();
+            Instruments = new ObservableCollection<Instrument>();
 
             //Set up logging
             SetUpLogging();

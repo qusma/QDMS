@@ -19,16 +19,16 @@ namespace QDMS.Server.NancyModules
         {
             this.RequiresAuthentication();
 
-            Get["/", true] = async (_, token) =>
+            Get("/", async (_, token) =>
             {
                 var request = this.Bind<EarningsAnnouncementRequest>();
 
                 if (request == null) return HttpStatusCode.BadRequest;
 
                 return await broker.Request(request).ConfigureAwait(false);
-            };
+            });
 
-            Get["/datasources"] = _ => broker.DataSources.Keys.ToList();
+            Get("/datasources",_ => broker.DataSources.Keys.ToList());
         }
     }
 }

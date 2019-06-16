@@ -20,9 +20,9 @@ namespace QDMS.Server.NancyModules
             this.RequiresAuthentication();
             var dbSet = context.Set<UnderlyingSymbol>();
 
-            Get["/"] = _ => dbSet.ToList();
+            Get("/", _ => dbSet.ToList());
 
-            Get["/{Id:int}"] = parameters =>
+            Get("/{Id:int}", parameters =>
             {
                 var id = (int)parameters.Id;
                 var exchange = dbSet.FirstOrDefault(x => x.ID == id);
@@ -30,9 +30,9 @@ namespace QDMS.Server.NancyModules
                 if (exchange == null) return HttpStatusCode.NotFound;
 
                 return exchange;
-            };
+            });
 
-            Put["/"] = _ =>
+            Put("/", _ =>
             {
                 UnderlyingSymbol newValues = this.BindAndValidate<UnderlyingSymbol>();
                 if (ModelValidationResult.IsValid == false)
@@ -51,9 +51,9 @@ namespace QDMS.Server.NancyModules
                 context.SaveChanges();
 
                 return symbol;
-            };
+            });
 
-            Post["/"] = _ =>
+            Post("/", _ =>
             {
                 UnderlyingSymbol symbol = this.BindAndValidate<UnderlyingSymbol>();
                 if (ModelValidationResult.IsValid == false)
@@ -66,9 +66,9 @@ namespace QDMS.Server.NancyModules
 
                 //return the object with the id after inserting
                 return symbol;
-            };
+            });
 
-            Delete["/{Id:int}"] = parameters =>
+            Delete("/{Id:int}", parameters =>
             {
                 int id = parameters.Id;
                 var symbol = dbSet.FirstOrDefault(x => x.ID == id);
@@ -88,7 +88,7 @@ namespace QDMS.Server.NancyModules
                 dbSet.Remove(symbol);
                 context.SaveChanges();
                 return symbol;
-            };
+            });
         }
     }
 }

@@ -16,6 +16,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 
 namespace QDMSServer.ViewModels
 {
@@ -24,14 +25,14 @@ namespace QDMSServer.ViewModels
         private readonly IClosableView _view;
         public ReactiveCommand<Unit, Unit> Load { get; }
         public IDialogCoordinator DialogCoordinator { get; }
-        public ReactiveList<CheckBoxTag> AllTags { get; } = new ReactiveList<CheckBoxTag>();
-        public ReactiveList<Exchange> Exchanges { get; } = new ReactiveList<Exchange>();
-        public ReactiveList<SessionTemplate> SessionTemplates { get; } = new ReactiveList<SessionTemplate>();
-        public ReactiveList<UnderlyingSymbol> UnderlyingSymbols { get; } = new ReactiveList<UnderlyingSymbol>();
-        public ReactiveList<Datasource> Datasources { get; } = new ReactiveList<Datasource>();
+        public ObservableCollection<CheckBoxTag> AllTags { get; } = new ObservableCollection<CheckBoxTag>();
+        public ObservableCollection<Exchange> Exchanges { get; } = new ObservableCollection<Exchange>();
+        public ObservableCollection<SessionTemplate> SessionTemplates { get; } = new ObservableCollection<SessionTemplate>();
+        public ObservableCollection<UnderlyingSymbol> UnderlyingSymbols { get; } = new ObservableCollection<UnderlyingSymbol>();
+        public ObservableCollection<Datasource> Datasources { get; } = new ObservableCollection<Datasource>();
         public ReactiveCommand<SessionViewModel, Unit> RemoveSession { get; set; }
         public ReactiveCommand<Unit, Unit> AddNewSession { get; set; }
-        public ReactiveList<SessionViewModel> Sessions { get; } = new ReactiveList<SessionViewModel>();
+        public ObservableCollection<SessionViewModel> Sessions { get; } = new ObservableCollection<SessionViewModel>();
         public ReactiveCommand<Unit, ApiResponse<Instrument>> Save { get; set; }
         public ObservableCollection<KeyValuePair<int, string>> ContractMonths { get; set; }
 

@@ -8,10 +8,12 @@ using QDMS;
 using QDMS.Server.Validation;
 using ReactiveUI;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using MahApps.Metro.Controls.Dialogs;
+using ReactiveUI.Legacy;
 
 namespace QDMSServer.ViewModels
 {
@@ -79,7 +81,7 @@ namespace QDMSServer.ViewModels
             set { Model.Name = value; this.RaisePropertyChanged(); }
         }
 
-        public ReactiveList<SessionViewModel> Sessions { get; set; } = new ReactiveList<SessionViewModel>();
+        public ObservableCollection<SessionViewModel> Sessions { get; set; } = new ObservableCollection<SessionViewModel>();
 
         public SessionViewModel SelectedSession
         {

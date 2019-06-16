@@ -14,6 +14,7 @@ using QDMSTest.HttpServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace QDMSTest.HttpServer
 {
@@ -39,7 +40,7 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void InstrumentsWithTemplateAsSessionSourceHaveTheirSessionsUpdatedWhenTemplateIsUpdated()
+        public async Task InstrumentsWithTemplateAsSessionSourceHaveTheirSessionsUpdatedWhenTemplateIsUpdated()
         {
             //needed to simulate the update of the session
             ContextMock
@@ -64,7 +65,7 @@ namespace QDMSTest.HttpServer
             var template = (SessionTemplate)_data[0].Clone(); //have to clone it, because the original is the one in the mocked context
             template.Sessions.First().OpeningTime = new TimeSpan(10, 0, 0);
 
-            var response = Browser.Put("/sessiontemplates", with =>
+            var response = await Browser.Put("/sessiontemplates", with =>
             {
                 with.HttpRequest();
                 with.JsonBody(template);
@@ -77,12 +78,12 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void DeleteOnTemplateThatIsReferencedByAnInstrumentReturns409Conflict()
+        public async Task DeleteOnTemplateThatIsReferencedByAnInstrumentReturns409Conflict()
         {
             var instrument = new Instrument { SessionsSource = SessionsSource.Template, SessionTemplateID = 1 };
             SetUpDbSet(new List<Instrument> { instrument });
 
-            var response = Browser.Delete("/sessiontemplates/1", BrowserCtx);
+            var response = await Browser.Delete("/sessiontemplates/1", BrowserCtx);
 
             Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
         }

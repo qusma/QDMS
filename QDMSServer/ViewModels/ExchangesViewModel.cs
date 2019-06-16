@@ -29,7 +29,7 @@ namespace QDMSServer.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedExchange, value);
         }
 
-        public ReactiveList<TimeZoneInfo> Timezones { get; } = new ReactiveList<TimeZoneInfo>();
+        public ObservableCollection<TimeZoneInfo> Timezones { get; } = new ObservableCollection<TimeZoneInfo>();
 
         private string _searchTerm;
         private readonly ReadOnlyObservableCollection<ExchangeViewModel> _exchanges;

@@ -22,9 +22,9 @@ namespace QDMS.Server.NancyModules
 
             var dbSet = context.Set<SessionTemplate>();
 
-            Get["/", runAsync: true] = async (_, token) => await dbSet.Include(x => x.Sessions).ToListAsync(token).ConfigureAwait(false);
+            Get("/", async (_, token) => await dbSet.Include(x => x.Sessions).ToListAsync(token).ConfigureAwait(false));
 
-            Post["/"] = _ =>
+            Post("/", _ =>
             {
                 SessionTemplate template = this.BindAndValidate<SessionTemplate>();
                 if (ModelValidationResult.IsValid == false)
@@ -37,9 +37,9 @@ namespace QDMS.Server.NancyModules
 
                 //return the object with the id after inserting
                 return template;
-            };
+            });
 
-            Put["/"] = _ =>
+            Put("/", _ =>
             {
                 SessionTemplate newValues = this.BindAndValidate<SessionTemplate>();
                 if (ModelValidationResult.IsValid == false)
@@ -74,9 +74,9 @@ namespace QDMS.Server.NancyModules
                 context.SaveChanges();
 
                 return template;
-            };
+            });
 
-            Delete["/{Id:int}"] = parameters =>
+            Delete("/{Id:int}", parameters =>
             {
                 //It's possible to delete
                 int id = parameters.Id;
@@ -98,7 +98,7 @@ namespace QDMS.Server.NancyModules
                 dbSet.Remove(template);
                 context.SaveChanges();
                 return template;
-            };
+            });
         }
     }
 }

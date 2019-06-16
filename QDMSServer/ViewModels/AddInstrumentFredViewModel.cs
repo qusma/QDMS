@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -41,14 +42,14 @@ namespace QDMSServer.ViewModels
 
         public ReactiveCommand<string, Unit> Search { get; }
 
-        public ReactiveList<FredUtils.FredSeries> Series { get; }
+        public ObservableCollection<FredUtils.FredSeries> Series { get; }
         public List<Instrument> AddedInstruments { get; set; } = new List<Instrument>();
 
         public AddInstrumentFredViewModel(IDataClient client, IDialogCoordinator dialogCoordinator)
         {
             _client = client;
             _dialogCoordinator = dialogCoordinator;
-            Series = new ReactiveList<FredUtils.FredSeries>();
+            Series = new ObservableCollection<FredUtils.FredSeries>();
 
             //Create commands
             Load = ReactiveCommand.CreateFromTask(async _ =>

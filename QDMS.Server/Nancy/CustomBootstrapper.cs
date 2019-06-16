@@ -19,6 +19,7 @@ using QDMSServer;
 using Quartz;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Security.Principal;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
@@ -91,7 +92,7 @@ namespace QDMS.Server.Nancy
                 //special response for model binding exceptions
                 if (ex is ModelBindingException)
                 {
-                    var response = new JsonResponse(new ValidationErrorResponse(ex.Message), new JsonNetSerializer());
+                    var response = new JsonResponse(new ValidationErrorResponse(ex.Message), new JsonNetSerializer(), ctx.Environment);
                     response.StatusCode = HttpStatusCode.BadRequest;
                     return response;
                 }
@@ -102,7 +103,8 @@ namespace QDMS.Server.Nancy
                 {
                     var response = new JsonResponse(
                         new ErrorResponse(HttpStatusCode.Conflict, sqlException.Message, ""),
-                        new JsonNetSerializer());
+                        new JsonNetSerializer(), 
+                        ctx.Environment);
                     response.StatusCode = HttpStatusCode.Conflict;
                     return response;
                 }
@@ -112,7 +114,8 @@ namespace QDMS.Server.Nancy
                 {
                     var response = new JsonResponse(
                         new ErrorResponse(HttpStatusCode.Conflict, mysqlException.Message, ""),
-                        new JsonNetSerializer());
+                        new JsonNetSerializer(),
+                        ctx.Environment);
                     response.StatusCode = HttpStatusCode.Conflict;
                     return response;
                 }
@@ -120,7 +123,8 @@ namespace QDMS.Server.Nancy
                 //generic handler
                 var genericResponse = new JsonResponse(
                     new ErrorResponse(HttpStatusCode.InternalServerError, ex.Message, ""),
-                    new JsonNetSerializer());
+                    new JsonNetSerializer(), 
+                    ctx.Environment);
                 genericResponse.StatusCode = HttpStatusCode.InternalServerError;
                 return genericResponse;
             });
@@ -135,7 +139,7 @@ namespace QDMS.Server.Nancy
 
                 if (authHeader.First() == _apiKey)
                 {
-                    return new ApiUser("admin");
+                    return new System.Security.Claims.ClaimsPrincipal(new GenericIdentity("admin"));
                 }
 
                 return null;

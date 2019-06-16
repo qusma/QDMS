@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -111,7 +112,7 @@ namespace QDMSServer.ViewModels
             }
         }
 
-        public ReactiveList<SessionViewModel> Sessions { get; set; } = new ReactiveList<SessionViewModel>();
+        public ObservableCollection<SessionViewModel> Sessions { get; set; } = new ObservableCollection<SessionViewModel>();
 
         public SessionViewModel SelectedSession
         {

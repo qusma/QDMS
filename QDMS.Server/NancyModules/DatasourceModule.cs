@@ -22,9 +22,9 @@ namespace QDMS.Server.NancyModules
         {
             this.RequiresAuthentication();
 
-            Get["/", runAsync: true] = async (_, token) => await context.Datasources.ToListAsync(token).ConfigureAwait(false);
+            Get("/", async (_, token) => await context.Datasources.ToListAsync(token).ConfigureAwait(false));
 
-            Get["/status"] = _ =>
+            Get("/status", _ =>
             {
                 var realtime = rtb.DataSources.Values.ToDictionary(x => x.Name, x => x.Connected);
                 var historical = hdb.DataSources.Values.ToDictionary(x => x.Name, x => x.Connected);
@@ -46,9 +46,9 @@ namespace QDMS.Server.NancyModules
                 }
 
                 return statuses;
-            };
+            });
 
-            Get["/activestreams"] = _ => rtb.ActiveStreams;
+            Get("/activestreams", _ => rtb.ActiveStreams);
         }
     }
 }

@@ -24,34 +24,34 @@ namespace QDMS.Server.NancyModules
 
             //Data Update Jobs
 
-            Get["/dataupdatejobs"] = _ => repo.GetDataUpdateJobs();
+            Get("/dataupdatejobs", _ => repo.GetDataUpdateJobs());
 
-            Post["/dataupdatejobs"] = _ => AddJob<DataUpdateJobSettings>(repo);
+            Post("/dataupdatejobs", _ => AddJob<DataUpdateJobSettings>(repo));
 
-            Delete["/dataupdatejobs"] = _ => DeleteJob<DataUpdateJobSettings>(repo);
+            Delete("/dataupdatejobs", _ => DeleteJob<DataUpdateJobSettings>(repo));
 
             //Economic Release Jobs
 
-            Get["/economicreleaseupdatejobs"] = _ => repo.GetEconomicReleaseUpdateJobs();
+            Get("/economicreleaseupdatejobs", _ => repo.GetEconomicReleaseUpdateJobs());
 
-            Post["/economicreleaseupdatejobs"] = _ => AddJob<EconomicReleaseUpdateJobSettings>(repo);
+            Post("/economicreleaseupdatejobs", _ => AddJob<EconomicReleaseUpdateJobSettings>(repo));
 
-            Delete["/economicreleaseupdatejobs"] = _ => DeleteJob<EconomicReleaseUpdateJobSettings>(repo);
+            Delete("/economicreleaseupdatejobs", _ => DeleteJob<EconomicReleaseUpdateJobSettings>(repo));
 
             //Dividend Update Jobs
 
-            Get["/dividendupdatejobs"] = _ => repo.GetDividendUpdateJobs();
+            Get("/dividendupdatejobs", _ => repo.GetDividendUpdateJobs());
 
-            Post["/dividendupdatejobs"] = _ => AddJob<DividendUpdateJobSettings>(repo);
+            Post("/dividendupdatejobs", _ => AddJob<DividendUpdateJobSettings>(repo));
 
-            Delete["/dividendupdatejobs"] = _ => DeleteJob<DividendUpdateJobSettings>(repo);
+            Delete("/dividendupdatejobs", _ => DeleteJob<DividendUpdateJobSettings>(repo));
 
             //Earnings update jobs
-            Get["/earningsupdatejobs"] = _ => repo.GetEarningsUpdateJobs();
+            Get("/earningsupdatejobs", _ => repo.GetEarningsUpdateJobs());
 
-            Post["/earningsupdatejobs"] = _ => AddJob<EarningsUpdateJobSettings>(repo);
+            Post("/earningsupdatejobs", _ => AddJob<EarningsUpdateJobSettings>(repo));
 
-            Delete["/earningsupdatejobs"] = _ => DeleteJob<EarningsUpdateJobSettings>(repo);
+            Delete("/earningsupdatejobs", _ => DeleteJob<EarningsUpdateJobSettings>(repo));
         }
 
         private dynamic AddJob<T>(IJobsRepository repo) where T : IJobSettings

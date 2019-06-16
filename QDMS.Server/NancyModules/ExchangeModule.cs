@@ -22,9 +22,9 @@ namespace QDMS.Server.NancyModules
 
             var dbSet = context.Set<Exchange>();
 
-            Get["/", runAsync: true] = async (_, token) => await dbSet.Include(x => x.Sessions).ToListAsync(token).ConfigureAwait(false);
+            Get("/", async (_, token) => await dbSet.Include(x => x.Sessions).ToListAsync(token).ConfigureAwait(false));
 
-            Get["/{Id:int}"] = parameters =>
+            Get("/{Id:int}", parameters =>
             {
                 var id = (int)parameters.Id;
                 var exchange = dbSet.Include(x => x.Sessions).FirstOrDefault(x => x.ID == id);
@@ -32,9 +32,9 @@ namespace QDMS.Server.NancyModules
                 if (exchange == null) return HttpStatusCode.NotFound;
 
                 return exchange;
-            };
+            });
 
-            Post["/"] = _ =>
+            Post("/", _ =>
             {
                 Exchange exchange = this.BindAndValidate<Exchange>();
                 if (ModelValidationResult.IsValid == false)
@@ -47,9 +47,9 @@ namespace QDMS.Server.NancyModules
 
                 //return the object with the id after inserting
                 return exchange;
-            };
+            });
 
-            Put["/"] = _ =>
+            Put("/", _ =>
             {
                 Exchange newValues = this.BindAndValidate<Exchange>();
                 if (ModelValidationResult.IsValid == false)
@@ -85,9 +85,9 @@ namespace QDMS.Server.NancyModules
                 context.SaveChanges();
 
                 return exchange;
-            };
+            });
 
-            Delete["/{Id:int}"] = parameters =>
+            Delete("/{Id:int}", parameters =>
             {
                 int id = parameters.Id;
                 var exchange = dbSet.FirstOrDefault(x => x.ID == id);
@@ -107,7 +107,7 @@ namespace QDMS.Server.NancyModules
                 dbSet.Remove(exchange);
                 context.SaveChanges();
                 return exchange;
-            };
+            });
         }
     }
 }

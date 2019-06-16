@@ -36,7 +36,7 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void InstrumentSearchWorks()
+        public async Task InstrumentSearchWorks()
         {
             //Set up the repo
             InstrumentRepoMock
@@ -44,7 +44,7 @@ namespace QDMSTest.HttpServer
                 .Returns<Instrument>(async inst => await Task.FromResult(_data.AsQueryable().Where(x => x.Symbol == inst.Symbol).ToList()));
 
             //make the request
-            var response = Browser.Get("/instruments/search", with =>
+            var response = await Browser.Get("/instruments/search", with =>
             {
                 with.HttpRequest();
                 with.Query("Symbol", "QQQ"); //must use with.Query() for parameters
@@ -59,7 +59,7 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
-        public void PredicateSearchWorks()
+        public async Task PredicateSearchWorks()
         {
             //Set up the repo
             InstrumentRepoMock
@@ -68,7 +68,7 @@ namespace QDMSTest.HttpServer
 
             //make the request
             Expression<Func<Instrument, bool>> filter = i => i.ID == 1 && i.Symbol == "SPY";
-            var response = Browser.Get("/instruments/predsearch", with =>
+            var response = await Browser.Get("/instruments/predsearch", with =>
             {
                 with.HttpRequest();
                 with.Query("SerializedFilter", filter.Serialize()); //must use with.Query() for parameters

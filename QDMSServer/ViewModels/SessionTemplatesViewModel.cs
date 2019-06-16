@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using MahApps.Metro.Controls.Dialogs;
@@ -16,7 +17,7 @@ namespace QDMSServer.ViewModels
     public class SessionTemplatesViewModel : ReactiveObject
     {
         private SessionTemplateViewModel _selectedTemplate;
-        public ReactiveList<SessionTemplateViewModel> Templates { get; } = new ReactiveList<SessionTemplateViewModel>();
+        public ObservableCollection<SessionTemplateViewModel> Templates { get; } = new ObservableCollection<SessionTemplateViewModel>();
 
         public SessionTemplateViewModel SelectedTemplate
         {

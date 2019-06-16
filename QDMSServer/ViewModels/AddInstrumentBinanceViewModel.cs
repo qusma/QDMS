@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -15,6 +16,7 @@ using NLog;
 using QDMS;
 using QDMS.Server.DataSources.Binance;
 using ReactiveUI;
+using ReactiveUI.Legacy;
 
 namespace QDMSServer.ViewModels
 {
@@ -107,7 +109,7 @@ namespace QDMSServer.ViewModels
 
         public ReactiveCommand<Unit, Unit> Load { get; set; }
 
-        public ReactiveList<Instrument> Instruments { get; set; } = new ReactiveList<Instrument>();
+        public ObservableCollection<Instrument> Instruments { get; set; } = new ObservableCollection<Instrument>();
         public List<Instrument> AddedInstruments { get; set; } = new List<Instrument>();
         public string Status
         {

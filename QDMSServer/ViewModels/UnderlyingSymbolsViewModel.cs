@@ -9,6 +9,7 @@ using QDMS;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -28,7 +29,7 @@ namespace QDMSServer.ViewModels
 
         public UnderlyingSymbolsViewModel(IDataClient client, IDialogCoordinator dialogCoordinator)
         {
-            UnderlyingSymbols = new ReactiveList<UnderlyingSymbolViewModel>();
+            UnderlyingSymbols = new ObservableCollection<UnderlyingSymbolViewModel>();
 
             //Load the symbols
 
@@ -123,7 +124,7 @@ namespace QDMSServer.ViewModels
             }
         }
 
-        public ReactiveList<UnderlyingSymbolViewModel> UnderlyingSymbols { get; }
+        public ObservableCollection<UnderlyingSymbolViewModel> UnderlyingSymbols { get; }
         public ReactiveCommand<Unit, List<UnderlyingSymbol>> Load { get; }
         public ReactiveCommand<Unit, UnderlyingSymbol> Add { get; }
         public ReactiveCommand<Unit, Unit> Delete { get; }
