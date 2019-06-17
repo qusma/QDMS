@@ -22,33 +22,46 @@ namespace QDMS
     [ProtoContract]
     public class UnderlyingSymbol : IEntity, IEquatable<UnderlyingSymbol>
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(2)]
         [MaxLength(255)]
         public string Symbol { get; set; }
 
         //The byte is what we save to the database, the ExpirationRule is what we use in our applications
+        /// <summary>
+        /// 
+        /// </summary>
         [JsonIgnore]
         public byte[] ExpirationRule
         {
-            get
-            {
-                return MyUtils.ProtoBufSerialize(Rule, new MemoryStream());
-            }
-            set
-            {
-                Rule = MyUtils.ProtoBufDeserialize<ExpirationRule>(value, new MemoryStream());
-            }
+            get => MyUtils.ProtoBufSerialize(Rule, new MemoryStream());
+            set => Rule = MyUtils.ProtoBufDeserialize<ExpirationRule>(value, new MemoryStream());
         }
 
+        /// <summary>
+        /// The rules that determine the expiration date for future contracts of this class
+        /// </summary>
         [NotMapped]
         [ProtoMember(3)]
         public ExpirationRule Rule { get; set; }
 
+        /// <summary>
+        /// Returns the expiration date for a future expiring in a particular year/month.
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="countryCode"></param>
+        /// <returns></returns>
         public DateTime ExpirationDate(int year, int month, string countryCode = "US")
         {
             DateTime referenceDay = new DateTime(year, month, 1);
@@ -147,11 +160,13 @@ namespace QDMS
             return clone;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return Symbol;
         }
 
+        /// <inheritdoc />
         public bool Equals(UnderlyingSymbol other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -159,6 +174,7 @@ namespace QDMS
             return ID == other.ID && string.Equals(Symbol, other.Symbol);
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -167,6 +183,7 @@ namespace QDMS
             return Equals((UnderlyingSymbol)obj);
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked

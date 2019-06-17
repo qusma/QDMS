@@ -6,6 +6,9 @@
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public enum ReferenceDayType
     {
         /// <summary>

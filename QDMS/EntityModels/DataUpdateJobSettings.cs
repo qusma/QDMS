@@ -4,8 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-// Holds instructions on how a data update job is to be performed.
-
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -16,9 +14,15 @@ using QDMS.Annotations;
 //This one should be in QDMS.Server.Jobs.JobDetails but for now we leave it here because we still need the old jobs to remain in the db
 namespace QDMS
 {
+    /// <summary>
+    /// Holds instructions on how a data update job is to be performed.
+    /// </summary>
     public class 
         DataUpdateJobSettings : INotifyPropertyChanged, IJobSettings
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
@@ -72,9 +76,8 @@ namespace QDMS
         /// </summary>
         public bool WeekDaysOnly { get; set; }
 
-        /// <summary>
-        /// The time when the job runs.
-        /// </summary>
+
+        /// <inheritdoc />
         public TimeSpan Time { get; set; }
 
         /// <summary>
@@ -82,8 +85,15 @@ namespace QDMS
         /// </summary>
         public BarSize Frequency { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="propertyName"></param>
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

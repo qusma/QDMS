@@ -10,6 +10,9 @@ using System.IO;
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class OHLCBarExtensions
     {
         /// <summary>

@@ -8,11 +8,27 @@ using System;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Settings for the job that automatically updates dividend data
+    /// </summary>
     public class DividendUpdateJobSettings : IJobSettings
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public int BusinessDaysAhead { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public int BusinessDaysBack { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string DataSource { get; set; }
+
+        /// <inheritdoc />
         public string Name { get; set; }
         /// <summary>
         /// Tag.
@@ -24,8 +40,15 @@ namespace QDMS
         /// </summary>
         public int? TagID { get; set; }
 
+        /// <inheritdoc />
         public TimeSpan Time { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool UseTag { get; set; }
+
+        /// <inheritdoc />
         public bool WeekDaysOnly { get; set; }
     }
 }

@@ -9,8 +9,15 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Used internally for continuous futures construction
+    /// </summary>
     public class TimeSeries
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
         public TimeSeries(IEnumerable<OHLCBar> data)
         {
             Series = new List<OHLCBar>(data);
@@ -26,29 +33,20 @@ namespace QDMS
         /// </summary>
         public int CurrentBar { get; private set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected int PreviousBar;
 
         /// <summary>
         /// Returns true if CurrentBar at the end of the timeseries.
         /// </summary>
-        public bool ReachedEndOfSeries
-        {
-            get
-            {
-                return CurrentBar == Series.Count - 1;
-            }
-        }
+        public bool ReachedEndOfSeries => CurrentBar == Series.Count - 1;
 
         /// <summary>
         /// Length of the variable series.
         /// </summary>
-        public int Count
-        {
-            get
-            {
-                return Series.Count;
-            }
-        }
+        public int Count => Series.Count;
 
         /// <summary>
         /// Indexer access to current and past values of the VariableSeries.
@@ -73,15 +71,9 @@ namespace QDMS
         /// </summary>
         public OHLCBar Value
         {
-            get
-            {
-                return Series[CurrentBar];
-            }
+            get => Series[CurrentBar];
 
-            set
-            {
-                Series[CurrentBar] = value;
-            }
+            set => Series[CurrentBar] = value;
         }
 
         /// <summary>

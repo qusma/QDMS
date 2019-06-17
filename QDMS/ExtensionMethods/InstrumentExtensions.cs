@@ -10,6 +10,9 @@ using System.Linq;
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class InstrumentExtensions
     {
         /// <summary>

@@ -23,6 +23,9 @@ namespace QDMS
         /// </summary>
         TimeSpan Time { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         string Name { get; set; }
     }
 }

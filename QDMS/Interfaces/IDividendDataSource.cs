@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Interface for divident data sources
+    /// </summary>
     public interface IDividendDataSource
     {
         /// <summary>
@@ -17,14 +20,31 @@ namespace QDMS
         /// </summary>
         event EventHandler<ErrorArgs> Error;
 
+        /// <summary>
+        /// 
+        /// </summary>
         bool Connected { get; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         string Name { get; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         void Connect();
 
+        /// <summary>
+        /// 
+        /// </summary>
         void Disconnect();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         Task<List<Dividend>> RequestData(DividendRequest request);
     }
 }

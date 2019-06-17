@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Interface for historical data sources
+    /// </summary>
     public interface IHistoricalDataSource : INotifyPropertyChanged
     {
         /// <summary>
@@ -32,8 +35,15 @@ namespace QDMS
         string Name { get; }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
         void RequestHistoricalData(HistoricalDataRequest request);
 
+        /// <summary>
+        /// Fires when data arrives
+        /// </summary>
         event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
 
         /// <summary>

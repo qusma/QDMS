@@ -8,22 +8,34 @@ using System;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Settings for the job that automatically updates economic release data
+    /// </summary>
     public class EconomicReleaseUpdateJobSettings : IJobSettings
     {
-        /// <summary>
-        /// If true, updates will only happen monday through friday.
-        /// </summary>
+        /// <inheritdoc />
         public bool WeekDaysOnly { get; set; }
 
-        /// <summary>
-        /// The time when the job runs.
-        /// </summary>
+
+        /// <inheritdoc />
         public TimeSpan Time { get; set; }
 
+        /// <inheritdoc />
         public string Name { get; set; }
 
+        /// <summary>
+        /// How many business days back should be requested
+        /// </summary>
         public int BusinessDaysBack { get; set; }
+
+        /// <summary>
+        /// How many business days ahead should be requested
+        /// </summary>
         public int BusinessDaysAhead { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string DataSource { get; set; }
     }
 }

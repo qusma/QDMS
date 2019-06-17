@@ -9,9 +9,15 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Request to start a real time data stream
+    /// </summary>
     [ProtoContract]
     public class RealTimeDataRequest : ICloneable
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(1)]
         public BarSize Frequency { get; set; }
 
@@ -21,6 +27,9 @@ namespace QDMS
         [ProtoMember(2)]
         public bool RTHOnly { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(3)]
         public Instrument Instrument { get; set; }
 
@@ -47,10 +56,20 @@ namespace QDMS
         /// </summary>
         public int AssignedID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public RealTimeDataRequest()
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
+        /// <param name="rthOnly"></param>
+        /// <param name="savetoLocalStorage"></param>
         public RealTimeDataRequest(Instrument instrument, BarSize frequency, bool rthOnly = true, bool savetoLocalStorage = false)
         {
             Instrument = instrument;

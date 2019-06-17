@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Possible sources for an instrument's sessions
+    /// </summary>
     [Serializable]
     public enum SessionsSource : int
     {

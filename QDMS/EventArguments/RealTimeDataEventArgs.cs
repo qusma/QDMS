@@ -9,6 +9,9 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     [ProtoContract]
     public class RealTimeDataEventArgs : EventArgs

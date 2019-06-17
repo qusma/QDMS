@@ -10,12 +10,31 @@ using System.Net.Http;
 
 namespace QDMSClient
 {
+    /// <summary>
+    /// Holds responses to API requests
+    /// </summary>
     public class ApiResponse
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public bool WasSuccessful { get; protected set; }
+
+        /// <summary>
+        /// If the request was not successful, errors will be found here
+        /// </summary>
         public List<string> Errors { get; protected set; }
+
+        /// <summary>
+        /// Status code
+        /// </summary>
         public HttpStatusCode StatusCode { get; protected set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="error"></param>
         public ApiResponse(HttpResponseMessage response, string error = null)
         {
             WasSuccessful = response.IsSuccessStatusCode;
@@ -24,6 +43,11 @@ namespace QDMSClient
             if (error != null) Errors.Add(error);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="errors"></param>
         public ApiResponse(HttpResponseMessage response, List<string> errors)
         {
             WasSuccessful = response.IsSuccessStatusCode;
@@ -41,13 +65,23 @@ namespace QDMSClient
             Errors = new List<string> { error };
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public ApiResponse()
         {
         }
     }
 
+    /// <summary>
+    /// Holds responses to API requests, including a returned object T
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class ApiResponse<T> : ApiResponse
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public T Result { get; }
 
         /// <summary>

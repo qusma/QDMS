@@ -12,8 +12,17 @@ using MetaLinq;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Used internally to serialize LINQ expressions
+    /// </summary>
     public static class ExpressionSerializer
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static string Serialize<T>(this Expression<T> expression)
         {
             using (var stream = new StringWriter())
@@ -26,6 +35,12 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serialized"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static Expression<Func<T, bool>> Deserialize<T>(string serialized)
         {
             if (serialized == null) return null;

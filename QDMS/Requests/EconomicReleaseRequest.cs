@@ -10,6 +10,9 @@ using System.Linq.Expressions;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Request for economic release data
+    /// </summary>
     public class EconomicReleaseRequest
     {
         private string _serializedFilter;
@@ -46,10 +49,16 @@ namespace QDMS
             DataSource = dataSource;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("FOR SERIALIZATION USE ONLY")]
         public EconomicReleaseRequest()
         { }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DataLocation DataLocation { get; set; }
 
         /// <summary>
@@ -57,6 +66,9 @@ namespace QDMS
         /// </summary>
         public string DataSource { get; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [JsonIgnore]
         public Expression<Func<EconomicRelease, bool>> Filter
         {
@@ -76,6 +88,9 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("FOR SERIALIZATION USE ONLY")]
         public string SerializedFilter
         {
@@ -89,8 +104,14 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime FromDate { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime ToDate { get; set; }
     }
 }

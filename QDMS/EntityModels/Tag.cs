@@ -11,14 +11,23 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Instrument tags used for categorization etc
+    /// </summary>
     [ProtoContract]
     public class Tag : ICloneable, IEquatable<Tag>, IEntity
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(2)]
         [MaxLength(255)]
         public string Name { get; set; }
@@ -47,6 +56,7 @@ namespace QDMS
             return other.ID == ID && other.Name == Name;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return Name;

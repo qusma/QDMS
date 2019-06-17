@@ -11,9 +11,15 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Represents a composite instrument, which strings together futures of different maturities to create a continuous one
+    /// </summary>
     [ProtoContract]
     public class ContinuousFuture : ICloneable
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public ContinuousFuture()
         {
             UseJan = true;
@@ -32,17 +38,28 @@ namespace QDMS
             Month = 1;
         }
 
+        /// <summary>
+        /// Continuous future ID
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        /// <summary>
+        /// Instrument ID
+        /// </summary>
         [ProtoMember(2)]
         public int InstrumentID { get; set; }
 
+        /// <summary>
+        /// Instrument
+        /// </summary>
         public virtual Instrument Instrument { get; set; }
 
-
+        /// <summary>
+        /// Underlying symbol ID
+        /// </summary>
         [ProtoMember(3)]
         public int UnderlyingSymbolID { get; set; }
 
@@ -77,42 +94,83 @@ namespace QDMS
         [ProtoMember(7)]
         public ContinuousFuturesAdjustmentMode AdjustmentMode { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(8, IsRequired = true)]
         public bool UseJan { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(9, IsRequired = true)]
         public bool UseFeb { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(10, IsRequired = true)]
         public bool UseMar { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(11, IsRequired = true)]
         public bool UseApr { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(12, IsRequired = true)]
         public bool UseMay { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(13, IsRequired = true)]
         public bool UseJun { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(14, IsRequired = true)]
         public bool UseJul { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(15, IsRequired = true)]
         public bool UseAug { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(16, IsRequired = true)]
         public bool UseSep { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(17, IsRequired = true)]
         public bool UseOct { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(18, IsRequired = true)]
         public bool UseNov { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(19, IsRequired = true)]
         public bool UseDec { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="month"></param>
+        /// <returns></returns>
         public bool MonthIsUsed(int month)
         {
             switch (month)

@@ -13,6 +13,9 @@ using QLNet;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Used internally
+    /// </summary>
     public static class MyUtils
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -180,11 +183,21 @@ namespace QDMS
             return (long)elapsedTime.TotalMilliseconds;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="timestamp"></param>
+        /// <returns></returns>
         public static DateTime TimestampToDateTime(long timestamp)
         {
             return Epoch.AddSeconds(timestamp);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="timestamp"></param>
+        /// <returns></returns>
         public static DateTime TimestampToDateTimeByMillisecond(long timestamp)
         {
             return Epoch.AddMilliseconds(timestamp);

@@ -11,6 +11,9 @@ using System.Linq;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Used internally
+    /// </summary>
     public static class GenericExtensions
     {
         /// <summary>

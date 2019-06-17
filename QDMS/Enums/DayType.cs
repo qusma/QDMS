@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Calendar vs business day
+    /// </summary>
     [Serializable]
     public enum DayType : int
     {

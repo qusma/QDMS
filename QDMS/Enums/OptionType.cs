@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Call vs Put
+    /// </summary>
     [Serializable]
     public enum OptionType
     {

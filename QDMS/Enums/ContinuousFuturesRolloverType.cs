@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// How to determine the rollover point between different futures for a continuous future
+    /// </summary>
     [Serializable]
     public enum ContinuousFuturesRolloverType
     {

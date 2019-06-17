@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// How to adjust underlying data in order to form continuous futures
+    /// </summary>
     [Serializable]
     public enum ContinuousFuturesAdjustmentMode
     {

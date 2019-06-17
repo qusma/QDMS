@@ -20,7 +20,7 @@ namespace QDMSClient
     /// <summary>
     /// Wraps around HttpClient with various useful functions for consuming a REST API
     /// </summary>
-    public class ApiClient : IDisposable
+    internal class ApiClient : IDisposable
     {
         private HttpClient _httpClient = new HttpClient();
 
@@ -28,6 +28,13 @@ namespace QDMSClient
             {PreserveReferencesHandling = PreserveReferencesHandling.Objects};
         private readonly string _baseAddr;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="httpPort"></param>
+        /// <param name="apiKey"></param>
+        /// <param name="useSsl"></param>
         public ApiClient(string host, int httpPort, string apiKey, bool useSsl)
         {
             _baseAddr = (useSsl ? "https" : "http") + $"://{host}:{httpPort}";

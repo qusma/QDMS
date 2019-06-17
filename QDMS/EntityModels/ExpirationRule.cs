@@ -90,6 +90,9 @@ namespace QDMS
         [ProtoMember(11)]
         public bool ReferenceDayMustBeBusinessDay { get; set; }
 
+        /// <summary>
+        /// Rule for setting the reference day
+        /// </summary>
         [ProtoIgnore]
         public ReferenceDayType ReferenceDayType
         {

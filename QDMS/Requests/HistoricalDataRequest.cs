@@ -9,6 +9,9 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Request for historical OHLC data
+    /// </summary>
     [ProtoContract]
     public class HistoricalDataRequest : ICloneable
     {
@@ -104,10 +107,24 @@ namespace QDMS
         /// </summary>
         public string RequesterIdentity { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public HistoricalDataRequest()
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
+        /// <param name="startingDate"></param>
+        /// <param name="endingDate"></param>
+        /// <param name="dataLocation"></param>
+        /// <param name="saveToLocalStorage"></param>
+        /// <param name="rthOnly"></param>
+        /// <param name="requestID"></param>
         public HistoricalDataRequest(Instrument instrument, BarSize frequency, DateTime startingDate, DateTime endingDate, DataLocation dataLocation = DataLocation.Both, bool saveToLocalStorage = true, bool rthOnly = true, int requestID = 0)
         {
             Frequency = frequency;

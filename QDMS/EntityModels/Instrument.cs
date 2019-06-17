@@ -15,38 +15,68 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// A financial instrument
+    /// </summary>
     [ProtoContract]
     public class Instrument : ICloneable, IEquatable<Instrument>
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(20)]
         public int? ID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(1)]
         [MaxLength(100)]
         public string Symbol { get; set; }
 
+        /// <summary>
+        /// Typically used for derivatives, this is the underlying instrument symbol
+        /// </summary>
         [ProtoMember(2)]
         [MaxLength(255)]
         public string UnderlyingSymbol { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(89)]
         [MaxLength(255)]
         public string Name { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(3)]
         public int? PrimaryExchangeID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(4)]
         public int? ExchangeID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(5)]
         public InstrumentType Type { get; set; }
 
+        /// <summary>
+        /// When an instrument's value is based on some multiple of the displayed price (eg futures)
+        /// </summary>
         [ProtoMember(6)]
         public int? Multiplier { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime? Expiration
         {
             get
@@ -89,75 +119,141 @@ namespace QDMS
         [NonSerialized]
         private int _expirationDay;
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(10)]
         public OptionType? OptionType { get; set; }
 
+        /// <summary>
+        /// For options
+        /// </summary>
         [ProtoMember(11)]
         
         public decimal? Strike { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(12)]
         [MaxLength(25)]
         public string Currency { get; set; }
 
+        /// <summary>
+        /// Minimum allowed increment
+        /// </summary>
         [ProtoMember(13)]
         public decimal? MinTick { get; set; }
 
+        /// <summary>
+        /// Industry classification
+        /// </summary>
         [ProtoMember(14)]
         [MaxLength(255)]
         public string Industry { get; set; }
 
+        /// <summary>
+        /// Industry sub-classification
+        /// </summary>
         [ProtoMember(15)]
         [MaxLength(255)]
         public string Category { get; set; }
 
+        /// <summary>
+        /// Industry sub-sub-classification
+        /// </summary>
         [ProtoMember(16)]
         [MaxLength(255)]
         public string Subcategory { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(17)]
         public bool IsContinuousFuture { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(18)]
         public string ValidExchanges { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(19)]
         public virtual ICollection<Tag> Tags { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(90)]
         public int? DatasourceID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(21)]
         public virtual Exchange Exchange { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(22)]
         public virtual Exchange PrimaryExchange { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(23)]
         public virtual Datasource Datasource { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(24)]
         public int? ContinuousFutureID { get; set; }
 
+        /// <summary>
+        /// How should the sessions of this instrument be determined?
+        /// </summary>
         public SessionsSource SessionsSource { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(26)]
         public virtual ICollection<InstrumentSession> Sessions { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(27)]
         public int? SessionTemplateID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(28)]
         [MaxLength(255)]
         public string DatasourceSymbol { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(29)]
         public virtual ContinuousFuture ContinuousFuture { get; set; }
 
+        /// <summary>
+        /// For example, GBL Dec '13 future's trading class is "FGBL".
+        /// </summary>
         [ProtoMember(30)]
         [MaxLength(20)]
         public string TradingClass { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [NotMapped]
         public string TagsAsString
         {
@@ -194,6 +290,7 @@ namespace QDMS
             return other.ID.Equals(ID);
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             var sb = new StringBuilder();

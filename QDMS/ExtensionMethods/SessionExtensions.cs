@@ -9,8 +9,16 @@ using System.Globalization;
 
 namespace QDMS
 {
+    /// <summary>
+    /// For internal use
+    /// </summary>
     public static class SessionExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="session"></param>
+        /// <returns></returns>
         public static InstrumentSession ToInstrumentSession(this ISession session)
         {
             var result = new InstrumentSession();
@@ -22,6 +30,12 @@ namespace QDMS
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="session1"></param>
+        /// <param name="session2"></param>
+        /// <returns></returns>
         public static bool Overlaps(this ISession session1, ISession session2)
         {
             //Create starting and ending DTs for the sessions

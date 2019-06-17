@@ -18,6 +18,9 @@ namespace QDMS
         {
         }
 
+        /// <summary>
+        /// Name
+        /// </summary>
         public string Name { get; set; }
 
         /// <summary>

@@ -8,6 +8,9 @@ using System;
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DataSourceDisconnectEventArgs : EventArgs
     {
         /// <summary>

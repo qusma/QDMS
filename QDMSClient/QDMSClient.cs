@@ -90,6 +90,9 @@ namespace QDMSClient
 
         private bool PollerRunning => (_poller != null) && _poller.IsRunning;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool Connected
         {
             get => _connected;
@@ -112,6 +115,8 @@ namespace QDMSClient
         public ObservableCollection<RealTimeDataRequest> RealTimeDataStreams { get; } = new ObservableCollection<RealTimeDataRequest>();
 
         #region IDisposable implementation
+
+        /// <inheritdoc />
         public void Dispose()
         {
             Disconnect();
@@ -120,13 +125,29 @@ namespace QDMSClient
 
         #region IDataClient implementation
 
+        /// <summary>
+        /// Fires when real time bars are received
+        /// </summary>
         public event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
+
+        /// <summary>
+        /// Fires when real time ticks are received
+        /// </summary>
         public event EventHandler<RealTimeTickEventArgs> RealTimeTickReceived;
 
+        /// <summary>
+        /// Fires when historical bars are received
+        /// </summary>
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
 
+        /// <summary>
+        /// Fires when stored data info are received
+        /// </summary>
         public event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public event EventHandler<ErrorArgs> Error;
 
         /// <summary>
@@ -850,17 +871,38 @@ namespace QDMSClient
         }
 
         //These can be removed in a subsequent version
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [Obsolete("Use GetInstruments instead")]
         public List<Instrument> GetAllInstruments() => GetInstruments().Result.Result;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pred"></param>
+        /// <returns></returns>
         [Obsolete("Use GetInstruments instead")]
         public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred) =>
             GetInstruments(pred).Result.Result;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <returns></returns>
         [Obsolete("Use GetInstruments instead")]
         public List<Instrument> FindInstruments(Instrument instrument = null) =>
             GetInstruments(instrument).Result.Result;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="propertyName"></param>
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

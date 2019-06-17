@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// How important an economic announcement is expected to be
+    /// </summary>
     [Serializable]
     public enum Importance
     {

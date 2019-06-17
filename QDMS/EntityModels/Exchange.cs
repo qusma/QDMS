@@ -13,25 +13,43 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Represents a trading venue
+    /// </summary>
     [ProtoContract]
     public class Exchange : ICloneable, IEntity, IEquatable<Exchange>
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(2)]
         [MaxLength(100)]
         public string Name { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(3)]
         [MaxLength(255)]
         public string Timezone { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(4)]
         public virtual ICollection<ExchangeSession> Sessions { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(5)]
         [MaxLength(255)]
         public string LongName { get; set; }
@@ -53,6 +71,7 @@ namespace QDMS
             return clone;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return string.Format("{0} {1} ({2}) TZ: {3}",
@@ -62,6 +81,7 @@ namespace QDMS
                 Timezone);
         }
 
+        /// <inheritdoc />
         public bool Equals(Exchange other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -69,6 +89,7 @@ namespace QDMS
             return ID == other.ID && string.Equals(Name, other.Name) && string.Equals(LongName, other.LongName) && string.Equals(Timezone, other.Timezone);
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -77,6 +98,7 @@ namespace QDMS
             return Equals((Exchange) obj);
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked

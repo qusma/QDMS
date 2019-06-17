@@ -13,15 +13,27 @@ using System.Linq;
 namespace QDMS
 {
 
+    /// <summary>
+    /// A template from which instruments can inherit their trading sessions
+    /// </summary>
     public class SessionTemplate : ICloneable, IEntity
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [MaxLength(255)]
         public string Name { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual ICollection<TemplateSession> Sessions { get; set; }
 
         /// <summary>

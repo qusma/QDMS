@@ -8,6 +8,9 @@ using System;
 
 namespace QDMS
 {
+    /// <summary>
+    /// For internal use
+    /// </summary>
     public interface IContinuousFuturesBroker : IHistoricalDataSource, IDisposable
     {
         /// <summary>
@@ -16,6 +19,9 @@ namespace QDMS
         /// </summary>
         /// <returns>Returns an ID uniquely identifying this request.</returns>
         int RequestFrontContract(Instrument cfInstrument, DateTime? date = null);
+        /// <summary>
+        /// 
+        /// </summary>
         event EventHandler<FoundFrontContractEventArgs> FoundFrontContract;
     }
 }

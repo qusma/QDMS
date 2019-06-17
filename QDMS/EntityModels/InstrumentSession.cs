@@ -12,26 +12,41 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// A session (opening and closing times) belonging to an instrument
+    /// </summary>
     [ProtoContract]
     public class InstrumentSession : ISession, IEntity
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [ProtoMember(1)]
         public int ID { get; set; }
 
+        /// <inheritdoc />
         [JsonIgnore]
         public TimeSpan OpeningTime { get; set; }
 
+        /// <inheritdoc />
         [JsonIgnore]
         public TimeSpan ClosingTime { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(2)]
         public int InstrumentID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [JsonIgnore]
         public virtual Instrument Instrument { get; set; }
 
+        /// <inheritdoc />
         [ProtoMember(3)]
         [NotMapped]
         public double OpeningAsSeconds
@@ -46,6 +61,7 @@ namespace QDMS
             }
         }
 
+        /// <inheritdoc />
         [ProtoMember(4)]
         [NotMapped]
         public double ClosingAsSeconds
@@ -61,12 +77,15 @@ namespace QDMS
         }
 
 
+        /// <inheritdoc />
         [ProtoMember(5)]
         public bool IsSessionEnd { get; set; }
 
+        /// <inheritdoc />
         [ProtoMember(6)]
         public DayOfTheWeek OpeningDay { get; set; }
 
+        /// <inheritdoc />
         [ProtoMember(7)]
         public DayOfTheWeek ClosingDay { get; set; }
 
@@ -91,6 +110,7 @@ namespace QDMS
             return clone;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return string.Format("{0} {1} - {2} {3}", OpeningDay, OpeningTime, ClosingDay, ClosingTime);

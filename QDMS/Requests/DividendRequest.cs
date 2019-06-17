@@ -9,6 +9,9 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Request for dividend data
+    /// </summary>
     public class DividendRequest
     {
         /// <summary>
@@ -49,6 +52,9 @@ namespace QDMS
             DataSource = dataSource;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("FOR SERIALIZATION USE ONLY")]
         public DividendRequest()
         { }
@@ -63,8 +69,14 @@ namespace QDMS
         /// </summary>
         public DateTime ToDate { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public List<string> Symbol { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DataLocation DataLocation { get; set; }
 
         /// <summary>

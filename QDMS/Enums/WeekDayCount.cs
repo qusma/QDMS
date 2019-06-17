@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// For continuous futures
+    /// </summary>
     [Serializable]
     public enum WeekDayCount : int
     {

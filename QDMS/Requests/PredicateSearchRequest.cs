@@ -10,6 +10,9 @@ using System.Linq.Expressions;
 
 namespace QDMS
 {
+    /// <summary>
+    /// For internal use. Used to send predicate filter requests
+    /// </summary>
     public class PredicateSearchRequest
     {
         private string _serializedFilter;
@@ -19,11 +22,18 @@ namespace QDMS
         /// </summary>
         public PredicateSearchRequest() { }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filter"></param>
         public PredicateSearchRequest(Expression<Func<Instrument, bool>> filter)
         {
             Filter = filter;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [JsonIgnore]
         public Expression<Func<Instrument, bool>> Filter
         {
@@ -43,6 +53,9 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("FOR SERIALIZATION USE ONLY")]
         public string SerializedFilter
         {

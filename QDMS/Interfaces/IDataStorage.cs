@@ -9,8 +9,19 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Interface for storage of historical OHLC data
+    /// </summary>
     public interface IDataStorage : IHistoricalDataSource, IDisposable
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
+        /// <param name="overwrite"></param>
+        /// <param name="adjust"></param>
         void AddData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false, bool adjust = true);
 
         /// <summary>
@@ -22,15 +33,70 @@ namespace QDMS
         /// <param name="frequency"></param>
         /// <param name="overwrite"></param>
         void AddDataAsync(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
+        /// <param name="overwrite"></param>
         void AddDataAsync(OHLCBar data, Instrument instrument, BarSize frequency, bool overwrite = false);
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
+        /// <param name="adjust"></param>
         void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool adjust = false);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
+        /// <param name="barSize"></param>
+        /// <returns></returns>
         List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize barSize = BarSize.OneDay);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
         void DeleteAllInstrumentData(Instrument instrument);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
         void DeleteData(Instrument instrument, BarSize frequency);
+
+        /// <summary>
+        /// Delete specific bars
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <param name="frequency"></param>
+        /// <param name="bars"></param>
         void DeleteData(Instrument instrument, BarSize frequency, List<OHLCBar> bars);
+
+        /// <summary>
+        /// Get info on what data is stored on a particular instrument
+        /// </summary>
+        /// <param name="instrumentID"></param>
+        /// <returns></returns>
         List<StoredDataInfo> GetStorageInfo(int instrumentID);
+
+        /// <summary>
+        /// Get info on what data is stored on a particular instrument, for a particular frequency
+        /// </summary>
+        /// <param name="instrumentID"></param>
+        /// <param name="barSize"></param>
+        /// <returns></returns>
         StoredDataInfo GetStorageInfo(int instrumentID, BarSize barSize);
     }
 }

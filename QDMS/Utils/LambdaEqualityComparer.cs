@@ -9,21 +9,39 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Used internally
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class LambdaEqualityComparer<T> : IEqualityComparer<T>
     {
         private readonly Func<T, T, bool> _equalityFunc;
         private readonly Func<T, int> _hashFunc;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="equalityFunc"></param>
         public LambdaEqualityComparer(Func<T, T, bool> equalityFunc) 
             : this(equalityFunc, (obj) => 0)
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hashFunc"></param>
         public LambdaEqualityComparer(Func<T, int> hashFunc)
             : this((x, y) => true, hashFunc)
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="equalityFunc"></param>
+        /// <param name="hashFunc"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public LambdaEqualityComparer(Func<T, T, bool> equalityFunc, Func<T, int> hashFunc)
         {
             if (equalityFunc == null) throw new ArgumentNullException("equalityFunc");

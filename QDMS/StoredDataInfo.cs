@@ -10,19 +10,37 @@ using ProtoBuf;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Holds information on what data is available in local storage
+    /// </summary>
     [ProtoContract]
     public class StoredDataInfo
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(1)]
         public int InstrumentID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(2)]
         public BarSize Frequency { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime EarliestDate { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime LatestDate { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(3)]
         [NotMapped]
         public long EarliestDateAsLong
@@ -37,6 +55,9 @@ namespace QDMS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoMember(4)]
         [NotMapped]
         public long LatestDateAsLong

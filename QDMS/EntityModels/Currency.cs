@@ -9,12 +9,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Currency
+    /// </summary>
     public class Currency
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [MaxLength(100)]
         public string Name { get; set; }
 

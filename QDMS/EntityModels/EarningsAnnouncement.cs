@@ -10,8 +10,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Holds data for a specific earnings announcement
+    /// </summary>
     public class EarningsAnnouncement
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
@@ -26,14 +32,26 @@ namespace QDMS
         /// </summary>
         public decimal? EarningsPerShare { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [MaxLength(25)]
         public string Symbol { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [MaxLength(100)]
         public string CompanyName { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime Date { get; set; }
 
+        /// <summary>
+        /// When the earnings are released
+        /// </summary>
         public EarningsCallTime EarningsCallTime { get; set; }
 
         /// <summary>

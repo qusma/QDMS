@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     public enum DayOfTheWeek : int
     {

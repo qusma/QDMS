@@ -9,6 +9,9 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
+    /// <summary>
+    /// Request for earnings announcement data
+    /// </summary>
     public class EarningsAnnouncementRequest
     {
         /// <summary>
@@ -50,16 +53,31 @@ namespace QDMS
         }
 
         //we could make these internal, but requires [JsonConstructor] or ConstructorHandling.AllowNonPublicDefaultConstructor in json.net
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("FOR SERIALIZATION USE ONLY")]
         public EarningsAnnouncementRequest() 
         { }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime FromDate { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DateTime ToDate { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public List<string> Symbol { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public DataLocation DataLocation { get; set; }
 
         /// <summary>

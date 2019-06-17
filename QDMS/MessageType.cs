@@ -6,6 +6,9 @@
 
 namespace QDMS
 {
+    /// <summary>
+    /// Holds message type strings used for communicating between clients and server
+    /// </summary>
     public static class MessageType
     {
         /// <summary>
@@ -83,9 +86,21 @@ namespace QDMS
         /// </summary>
         public const string RealTimeTick = "T";
 
+        /// <summary>
+        /// 
+        /// </summary>
         public const string Ping = "PING";
+        /// <summary>
+        /// 
+        /// </summary>
         public const string Pong = "PONG";
+        /// <summary>
+        /// 
+        /// </summary>
         public const string Error = "ERROR";
+        /// <summary>
+        /// 
+        /// </summary>
         public const string Success = "SUCCESS";
     }
 }

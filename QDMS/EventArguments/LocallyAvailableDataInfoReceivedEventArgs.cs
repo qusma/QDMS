@@ -9,6 +9,9 @@ using System.Collections.Generic;
 
 namespace QDMS
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class LocallyAvailableDataInfoReceivedEventArgs : EventArgs
     {
         /// <summary>
