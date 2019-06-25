@@ -18,6 +18,10 @@ module NasdaqDs =
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
         let logger = NLog.LogManager.GetCurrentClassLogger()
         let httpClient = new HttpClient()
+        do
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8") |> ignore
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Encoding", "peerdist") |> ignore
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Language", "en-US") |> ignore
 
         let parseNullableDate (str) = 
             match str with
@@ -59,7 +63,7 @@ module NasdaqDs =
 
         member this.getDividendsForDate(date : DateTime) =
             async {
-                let url = sprintf "http://www.nasdaq.com/dividend-stocks/dividend-calendar.aspx?date=%s" (date.ToString("yyyy-MMM-dd"))
+                let url = sprintf "https://www.nasdaq.com/dividend-stocks/dividend-calendar.aspx?date=%s" (date.ToString("yyyy-MMM-dd"))
                 logger.Info("Downloading dividends from " + url)
 
                 let! html = this.getStrFromUrl(url)
@@ -84,7 +88,7 @@ module NasdaqDs =
 
         member this.getSpecificSymbol(request: DividendRequest, symbol: string) =
             async {
-                let url = sprintf "http://www.nasdaq.com/symbol/%s/dividend-history" symbol
+                let url = sprintf "https://www.nasdaq.com/symbol/%s/dividend-history" symbol
                 logger.Info("Downloading dividends from " + url)
                 let! html = this.getStrFromUrl(url)
                 let data = SymbolDividends.Load(html)
@@ -136,5 +140,6 @@ module NasdaqDs =
                         return! this.getDividends(request)
                     with e -> 
                             logger.Error(e, "Error downloading dividend data: " + e.Message)
+                            error.Trigger(this, new ErrorArgs(0, e.Message))
                             return System.Collections.Generic.List<Dividend>()
                 } |> Async.StartAsTask
