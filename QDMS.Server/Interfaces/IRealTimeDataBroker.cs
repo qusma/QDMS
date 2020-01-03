@@ -17,7 +17,7 @@ namespace QDMSServer
         ObservableDictionary<string, IRealTimeDataSource> DataSources { get; }
 
         event EventHandler<RealTimeDataEventArgs> RealTimeDataArrived;
-        event EventHandler<RealTimeTickEventArgs> RealTimeTickArrived;
+        event EventHandler<TickEventArgs> RealTimeTickArrived;
 
         bool RequestRealTimeData(RealTimeDataRequest request);
         bool CancelRTDStream(int instrumentID);

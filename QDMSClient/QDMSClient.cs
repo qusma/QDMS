@@ -133,7 +133,7 @@ namespace QDMSClient
         /// <summary>
         /// Fires when real time ticks are received
         /// </summary>
-        public event EventHandler<RealTimeTickEventArgs> RealTimeTickReceived;
+        public event EventHandler<TickEventArgs> RealTimeTickReceived;
 
         /// <summary>
         /// Fires when historical bars are received
@@ -648,7 +648,7 @@ namespace QDMSClient
                     }
                     else if (type == MessageType.RealTimeTick)
                     {
-                        var bar = MyUtils.ProtoBufDeserialize<RealTimeTickEventArgs>(buffer, ms);
+                        var bar = MyUtils.ProtoBufDeserialize<TickEventArgs>(buffer, ms);
 
                         RaiseEvent(RealTimeTickReceived, null, bar);
                     }

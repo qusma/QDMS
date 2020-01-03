@@ -42,6 +42,7 @@ namespace QDMS
         string apiKey { get; set; }
         int httpPort { get; set; }
         bool useSsl { get; set; }
+        string teaFilesDirectory { get; set; }
         SettingsContext Context { get; }
         SettingsPropertyCollection Properties { get; }
         SettingsPropertyValueCollection PropertyValues { get; }

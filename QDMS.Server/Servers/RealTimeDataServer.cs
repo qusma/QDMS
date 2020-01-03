@@ -166,7 +166,7 @@ namespace QDMSServer
         /// <summary>
         ///     When tick data arrives from an external data source to the broker, this event is fired.
         /// </summary>
-        private void BrokerRealTimeTickArrived(object sender, RealTimeTickEventArgs e)
+        private void BrokerRealTimeTickArrived(object sender, TickEventArgs e)
         {
             lock (_publisherSocketLock)
             {
@@ -175,9 +175,9 @@ namespace QDMSServer
                 using (var ms = new MemoryStream())
                 {
                     Serializer.Serialize(ms, e);
-                    _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); // Start by sending the ticker before the data
+                    _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.Tick.InstrumentID)); // Start by sending the ticker before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeTick);
-                    _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
+                    _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized tick
 
                 }
             }

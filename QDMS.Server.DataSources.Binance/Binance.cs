@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using QDMS.Server.DataSources.Binance.Model;
 using WebSocket4Net;
-
+//TODO eventually split off to its own QDMS-BinanceClient package that covers the entire API
 //API documentation: https://www.binance.com/restapipub.html
 namespace QDMS.Server.DataSources.Binance
 {
@@ -50,7 +50,17 @@ namespace QDMS.Server.DataSources.Binance
             {
                 while (_queuedRequests.TryDequeue(out HistoricalDataRequest req))
                 {
-                    RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(req, await ProcessHistoricalRequest(req)));
+                    try
+                    {
+                        RaiseEvent(HistoricalDataArrived, this,
+                            new HistoricalDataEventArgs(req, await ProcessHistoricalRequest(req)));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "Error downloading historical data from binance");
+                        RaiseEvent(Error, this,
+                            new ErrorArgs(0, "Error downloading historical data from binance: " + ex.Message));
+                    }
                 }
                 Thread.Sleep(15);
             }
@@ -79,7 +89,7 @@ namespace QDMS.Server.DataSources.Binance
             data = data.Distinct((x, y) => x.DTOpen == y.DTOpen).ToList();
             return data;
         }
-
+        //TODO historical tick data! aggTrades
         private async Task<List<OHLCBar>> GetData(HistoricalDataRequest req)
         {
             string symbol = string.IsNullOrEmpty(req.Instrument.DatasourceSymbol)
@@ -92,13 +102,10 @@ namespace QDMS.Server.DataSources.Binance
             _logger.Info("Binance filling historical req from URL: " + url);
 
             var result = await _httpClient.GetAsync(url);
-            if (result.IsSuccessStatusCode)
-            {
-                string contents = await result.Content.ReadAsStringAsync();
-                return ParseHistoricalData(JArray.Parse(contents));
-            }
+            result.EnsureSuccessStatusCode();
 
-            throw new Exception("Error downloading data from binance: " + result.StatusCode);
+            string contents = await result.Content.ReadAsStringAsync();
+            return ParseHistoricalData(JArray.Parse(contents));
         }
 
 
@@ -231,8 +238,7 @@ namespace QDMS.Server.DataSources.Binance
         private void RealTimeTick(int instrumentId, int reqId, MessageReceivedEventArgs e)
         {
             var aggTrade = JsonConvert.DeserializeObject<AggTrade>(e.Message);
-            var eventArgs = aggTrade.ToTickEventArgs();
-            eventArgs.InstrumentID = instrumentId;
+            var eventArgs = aggTrade.ToTickEventArgs(instrumentId);
 
             RaiseEvent(TickReceived, this, eventArgs);
         }
@@ -301,7 +307,7 @@ namespace QDMS.Server.DataSources.Binance
         }
 
         public event EventHandler<RealTimeDataEventArgs> DataReceived;
-        public event EventHandler<RealTimeTickEventArgs> TickReceived;
+        public event EventHandler<TickEventArgs> TickReceived;
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
         public event EventHandler<ErrorArgs> Error;
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;

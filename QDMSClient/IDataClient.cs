@@ -42,7 +42,7 @@ namespace QDMS
         /// <summary>
         /// Raised when real time tick data arrives
         /// </summary>
-        event EventHandler<RealTimeTickEventArgs> RealTimeTickReceived;
+        event EventHandler<TickEventArgs> RealTimeTickReceived;
 
         /// <summary>
         /// Set to true if currently connected to a QDMS server

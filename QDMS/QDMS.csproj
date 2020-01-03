@@ -11,10 +11,14 @@
     <AssemblyName>QDMS</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkProfile />
@@ -76,9 +80,12 @@
     <Compile Include="EntityModels\EarningsAnnouncement.cs" />
     <Compile Include="Enums\EarningsCallTime.cs" />
     <Compile Include="Enums\TickType.cs" />
-    <Compile Include="EventArguments\RealTimeTickEventArgs.cs" />
+    <Compile Include="EventArguments\HistoricalTickDataEventArgs.cs" />
+    <Compile Include="EventArguments\TickEventArgs.cs" />
     <Compile Include="Interfaces\IEarningsAnnouncementSource.cs" />
     <Compile Include="Interfaces\ISettings.cs" />
+    <Compile Include="Interfaces\ITickDataSource.cs" />
+    <Compile Include="Interfaces\ITickDataStorage.cs" />
     <Compile Include="Jobs\DividendUpdateJobSettings.cs" />
     <Compile Include="Jobs\EarningsUpdateJobSettings.cs" />
     <Compile Include="Jobs\EconomicReleaseUpdateJobSettings.cs" />
@@ -88,7 +95,6 @@
     <Compile Include="EntityModels\Dividend.cs" />
     <Compile Include="EntityModels\EconomicRelease.cs" />
     <Compile Include="EntityModels\ExpirationRule.cs" />
-    <Compile Include="EntityModels\Tick.cs" />
     <Compile Include="Enums\DataLocation.cs" />
     <Compile Include="Enums\DayType.cs" />
     <Compile Include="Enums\Importance.cs" />
@@ -116,6 +122,7 @@
     <Compile Include="Requests\EarningsAnnouncementRequest.cs" />
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
     <Compile Include="Requests\PredicateSearchRequest.cs" />
+    <Compile Include="Structs\Tick.cs" />
     <Compile Include="Utils\ExpressionSerializer.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />

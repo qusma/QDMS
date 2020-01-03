@@ -254,7 +254,7 @@ namespace QDMS.Server.DataSources
         }
 
         public event EventHandler<RealTimeDataEventArgs> DataReceived;
-        public event EventHandler<RealTimeTickEventArgs> TickReceived;
+        public event EventHandler<TickEventArgs> TickReceived;
         public event EventHandler<ErrorArgs> Error;
         public event EventHandler<DataSourceDisconnectEventArgs> Disconnected;
         public event PropertyChangedEventHandler PropertyChanged;
