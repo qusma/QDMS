@@ -145,6 +145,11 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Drawing.Design" />
     <Reference Include="System.IO" />
+    <Reference Include="System.Linq, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Linq.4.3.0\lib\net463\System.Linq.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -230,7 +235,7 @@
       <Name>QDMS.Server</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMSClient\QDMSClient.csproj">
-      <Project>{28833ee8-5a50-4772-9071-3d16fbf21134}</Project>
+      <Project>{1428051f-0912-4d36-a90f-0868c1c1d6b8}</Project>
       <Name>QDMSClient</Name>
     </ProjectReference>
     <ProjectReference Include="..\QDMSServer\QDMSServer.csproj">

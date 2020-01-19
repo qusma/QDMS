@@ -528,7 +528,7 @@ namespace QDMSClient
 
             lock (_realTimeDataSocketLock)
             {
-                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{frequency}"));
+                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{frequency}")); //todo repeat other client serevr
             }
 
             lock (_realTimeDataStreamsLock)
@@ -562,7 +562,7 @@ namespace QDMSClient
 
             _apiClient = new ApiClient(host, httpPort, apiKey, useSsl);
         }
-
+        
 
         #region Event handlers
         /// <summary>
