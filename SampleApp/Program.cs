@@ -104,7 +104,7 @@ namespace SampleApp
                 Thread.Sleep(3000);
 
                 //And then cancel the real time data stream
-                client.CancelRealTimeData(spy);
+                client.CancelRealTimeData(spy, BarSize.OneSecond);
             }
 
             Console.WriteLine("Press enter to exit.");

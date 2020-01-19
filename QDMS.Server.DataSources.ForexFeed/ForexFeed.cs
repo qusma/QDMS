@@ -289,6 +289,7 @@ namespace QDMSServer.DataSources
 
                             RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
                                 request.Instrument.ID.Value,
+                                request.Frequency,
                                 long.Parse((string)data[symbol]["time"], CultureInfo.InvariantCulture),
                                 decimal.Parse((string)data[symbol]["open"], CultureInfo.InvariantCulture),
                                 decimal.Parse((string)data[symbol]["high"], CultureInfo.InvariantCulture),

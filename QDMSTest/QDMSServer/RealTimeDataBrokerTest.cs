@@ -258,7 +258,7 @@ namespace QDMSTest
             _cfBrokerMock.Raise(x => x.FoundFrontContract += null, new FoundFrontContractEventArgs(0, frontFutureInstrument, DateTime.Now));
 
             _dataSourceMock.Raise(x => x.DataReceived += null,
-                new RealTimeDataEventArgs(2, MyUtils.ConvertToTimestamp(DateTime.Now), 100, 100, 100, 100, 50, 100, 2, assignedID));
+                new RealTimeDataEventArgs(2, BarSize.FiveSeconds, MyUtils.ConvertToTimestamp(DateTime.Now), 100, 100, 100, 100, 50, 100, 2, assignedID));
 
             Thread.Sleep(50);
 
@@ -284,7 +284,7 @@ namespace QDMSTest
             Thread.Sleep(100);
 
 
-            _dataSourceMock.Raise(x => x.DataReceived += null, new RealTimeDataEventArgs(1, 1389906576, 100, 100, 100, 100, 1000, 100, 5, assignedID));
+            _dataSourceMock.Raise(x => x.DataReceived += null, new RealTimeDataEventArgs(1, BarSize.FiveSeconds, 1389906576, 100, 100, 100, 100, 1000, 100, 5, assignedID));
 
             _localStorageMock.Verify(x => x.AddDataAsync(
                 It.Is<OHLCBar>(y => y.Open == 100 && y.Volume == 1000),

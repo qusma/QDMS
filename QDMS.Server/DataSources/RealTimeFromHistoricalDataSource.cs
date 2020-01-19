@@ -316,6 +316,7 @@ namespace QDMS.Server.DataSources
 
                         RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
                             pair2.Value.Instrument.ID.Value,
+                            barSize,
                             MyUtils.ConvertToTimestamp(currentBar.DT),
                             currentBar.Open,
                             currentBar.High,

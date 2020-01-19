@@ -76,11 +76,11 @@ namespace QDMSTest
             var ds = new Datasource { ID = 1, Name = "TestDS" };
             var inst = new Instrument { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
 
-            _client.CancelRealTimeData(inst);
+            _client.CancelRealTimeData(inst, BarSize.FiveSeconds);
 
             Thread.Sleep(DefaultDelayInMilliseconds);
 
-            _brokerMock.Verify(x => x.CancelRTDStream(It.Is<int>(y => y == 15)));
+            _brokerMock.Verify(x => x.CancelRTDStream(It.Is<int>(y => y == 15), It.Is<BarSize>(y => y == BarSize.FiveSeconds)));
         }
 
         [Test]
@@ -175,7 +175,7 @@ namespace QDMSTest
 
             var dt = DateTime.Now.ToBinary();
 
-            _brokerMock.Raise(x => x.RealTimeDataArrived += null, new RealTimeDataEventArgs(15, dt, 100m, 105m, 95m, 99m, 10000000, 101, 500, 1));
+            _brokerMock.Raise(x => x.RealTimeDataArrived += null, new RealTimeDataEventArgs(15, BarSize.FiveSeconds, dt, 100m, 105m, 95m, 99m, 10000000, 101, 500, 1));
 
             Thread.Sleep(DefaultDelayInMilliseconds);
 

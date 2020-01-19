@@ -423,7 +423,8 @@ namespace QDMSClient
             {
                 while (RealTimeDataStreams.Count > 0)
                 {
-                    CancelRealTimeData(RealTimeDataStreams.First().Instrument);
+                    var stream = RealTimeDataStreams.First();
+                    CancelRealTimeData(stream.Instrument, stream.Frequency);
                 }
             }
             Connected = false;
@@ -490,7 +491,7 @@ namespace QDMSClient
         /// <summary>
         ///     Cancel a live real time data stream.
         /// </summary>
-        public void CancelRealTimeData(Instrument instrument)
+        public void CancelRealTimeData(Instrument instrument, BarSize frequency)
         {
             if (instrument == null)
             {
@@ -513,24 +514,26 @@ namespace QDMSClient
                     // Two part message:
                     // 1: "CANCEL"
                     // 2: serialized Instrument object
+                    // 3: frequency
                     _realTimeRequestSocket.SendMoreFrame(string.Empty);
                     _realTimeRequestSocket.SendMoreFrame(MessageType.CancelRTD);
 
                     using (var ms = new MemoryStream())
                     {
-                        _realTimeRequestSocket.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
+                        _realTimeRequestSocket.SendMoreFrame(MyUtils.ProtoBufSerialize(instrument, ms));
+                        _realTimeRequestSocket.SendFrame(MyUtils.ProtoBufSerialize(frequency, ms));
                     }
                 }
             }
 
             lock (_realTimeDataSocketLock)
             {
-                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes(instrument.Symbol));
+                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{frequency}"));
             }
 
             lock (_realTimeDataStreamsLock)
             {
-                RealTimeDataStreams.RemoveAll(x => x.Instrument.ID == instrument.ID);
+                RealTimeDataStreams.RemoveAll(x => x.Instrument.ID == instrument.ID && x.Frequency == frequency);
             }
         }
 
@@ -559,7 +562,7 @@ namespace QDMSClient
 
             _apiClient = new ApiClient(host, httpPort, apiKey, useSsl);
         }
-        
+
 
         #region Event handlers
         /// <summary>
@@ -610,13 +613,14 @@ namespace QDMSClient
                         }
                         // TODO: Solve issue with null request
                         // Request worked, so we subscribe to the stream
-                        _realTimeDataSocket.Subscribe(BitConverter.GetBytes(request.Instrument.ID.Value));
+                        _realTimeDataSocket.Subscribe(Encoding.UTF8.GetBytes($"{request.Instrument.ID.Value}~{request.Frequency}"));
                     }
                     else if (reply.Equals(MessageType.RTDCanceled, StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Successful cancelation of a real time data stream
-                        // Also receive the symbol
+                        // Also receive the symbol and then frequency
                         var symbol = _realTimeRequestSocket.ReceiveFrameString();
+                        var freq = _realTimeRequestSocket.ReceiveFrameBytes();
                         // Nothing to do?
                     }
                 }

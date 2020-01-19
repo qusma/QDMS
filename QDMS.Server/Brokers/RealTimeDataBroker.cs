@@ -369,35 +369,20 @@ namespace QDMSServer
         /// Cancel a real time data stream and clean up after it.
         /// </summary>
         /// <returns>True if the stream was canceled, False if subsribers remain.</returns>
-        public bool CancelRTDStream(int instrumentID)
+        public bool CancelRTDStream(int instrumentID, BarSize frequency)
         {
             lock (_activeStreamsLock)
             {
-                //TODO cancelrealtimedata on the client needs to be more specific than just the instrument
                 //make sure there is a data stream for this instrument
-                if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID))
+                if (ActiveStreams.Collection.Any(x => x.Instrument.ID == instrumentID && x.Frequency == frequency))
                 {
-                    var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrumentID);
+                    var streamInfo = ActiveStreams.Collection.First(x => x.Instrument.ID == instrumentID && x.Frequency == frequency);
                     var instrument = streamInfo.Instrument;
 
                     //if it's a continuous future we also need to cancel the actual contract
                     if (instrument.IsContinuousFuture)
                     {
-                        var contractID = _continuousFuturesIDMap[instrumentID];
-                        var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
-
-                        //we must also clear the alias list
-                        lock (_aliasLock)
-                        {
-                            _aliases[contractID].Remove(instrumentID);
-                            if (_aliases[contractID].Count == 0)
-                            {
-                                _aliases.Remove(contractID);
-                            }
-                        }
-
-                        //finally cancel the contract's stream
-                        CancelRTDStream(contractID);
+                        CancelContinuousFutureRTD(instrumentID, frequency, instrument);
                     }
 
                     //log the request
@@ -430,7 +415,26 @@ namespace QDMSServer
             }
         }
 
-        
+        private void CancelContinuousFutureRTD(int instrumentID, BarSize frequency, Instrument instrument)
+        {
+                var contractID = _continuousFuturesIDMap[instrumentID];
+                var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
+
+                //we must also clear the alias list
+                lock (_aliasLock)
+                {
+                    _aliases[contractID].Remove(instrumentID);
+                    if (_aliases[contractID].Count == 0)
+                    {
+                        _aliases.Remove(contractID);
+                    }
+                }
+
+                //finally cancel the contract's stream
+                CancelRTDStream(contractID, frequency);
+        }
+
+
 
         /// <summary>
         /// Increments the number of subscribers to a real time data stream by 1.

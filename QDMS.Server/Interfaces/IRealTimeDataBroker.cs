@@ -20,7 +20,7 @@ namespace QDMSServer
         event EventHandler<TickEventArgs> RealTimeTickArrived;
 
         bool RequestRealTimeData(RealTimeDataRequest request);
-        bool CancelRTDStream(int instrumentID);
+        bool CancelRTDStream(int instrumentID, BarSize frequency);
 
         ConcurrentNotifierBlockingList<RealTimeStreamInfo> ActiveStreams { get; }
         

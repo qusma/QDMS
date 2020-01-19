@@ -23,6 +23,7 @@ namespace QDMSServer.DataSources
         private ConcurrentDictionary<int, int> _loopsPassed;
         private ConcurrentDictionary<int, int> _loopLimit;
         private ConcurrentDictionary<int, int> _idMap;
+        private Dictionary<int, RealTimeDataRequest> _requests;
         private Random _rand;
         private int _requestIDs;
 
@@ -42,6 +43,7 @@ namespace QDMSServer.DataSources
             _loopsPassed = new ConcurrentDictionary<int, int>();
             _loopLimit = new ConcurrentDictionary<int, int>();
             _idMap = new ConcurrentDictionary<int, int>();
+            _requests = new Dictionary<int, RealTimeDataRequest>();
 
             _timer = new Timer(1);
             _timer.Elapsed += SimulateData;
@@ -70,6 +72,7 @@ namespace QDMSServer.DataSources
 
             bool success = _requestedInstrumentIDs.TryAdd(_requestIDs, request.Instrument.ID.Value);
             _reqIdMap.Add(request.AssignedID, _requestIDs);
+            _requests.Add(request.AssignedID, request);
 
             int number;
             if (request.Frequency == BarSize.Tick)
@@ -110,7 +113,8 @@ namespace QDMSServer.DataSources
 
                 if(success)
                     RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
-                        instrumentID, 
+                        instrumentID,
+                        _requests[id].Frequency,
                         MyUtils.ConvertToTimestamp(DateTime.Now), 
                         (decimal) open,
                         (decimal) high,

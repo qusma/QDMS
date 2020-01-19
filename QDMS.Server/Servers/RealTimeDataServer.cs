@@ -14,6 +14,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using NetMQ;
 using NetMQ.Sockets;
 using NLog;
@@ -155,8 +156,9 @@ namespace QDMSServer
                 using (var ms = new MemoryStream())
                 {
                     Serializer.Serialize(ms, e);
-                    _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.InstrumentID)); // Start by sending the ticker before the data
+                    _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.InstrumentID}~{e.Frequency}")); // Start by sending the id+freq before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeBars);
+                    //todo here and on the receiving end, need to send frequency. First add barsize to rtdeventargs.
                     _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
 
                 }
@@ -280,19 +282,25 @@ namespace QDMSServer
             // Receive the instrument
             using (var ms = new MemoryStream())
             {
-                //todo change to id and freq
                 var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
+
+                var freqBuff = _requestSocket.ReceiveFrameBytes(out hasMore);
+                BarSize frequency = MyUtils.ProtoBufDeserialize<BarSize>(freqBuff, ms);
 
                 if (instrument.ID != null)
                 {
-                    _broker.CancelRTDStream(instrument.ID.Value);
+                    _broker.CancelRTDStream(instrument.ID.Value, frequency);
                 }
                 // Two part message:
                 // 1: MessageType.RTDCanceled
                 // 2: the instrument symbol
+                // 3: the frequency
                 //todo do we need to reply here?
                 _requestSocket.SendMoreFrame(MessageType.RTDCanceled);
-                _requestSocket.SendFrame(instrument.Symbol);
+                _requestSocket.SendMoreFrame(instrument.Symbol);
+                _requestSocket.SendFrame(freqBuff);
+
+                //todo fix this on the client
             }
         }
 

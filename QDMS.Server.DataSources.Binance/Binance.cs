@@ -162,6 +162,34 @@ namespace QDMS.Server.DataSources.Binance
             }
         }
 
+        private BarSize IntervalToBarSize(string interval)
+        {
+            //Available intervals: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
+            switch (interval)
+            {
+                case "1m":
+                    return BarSize.OneMinute;
+                case "5m":
+                    return BarSize.FiveMinutes;
+                case "15m":
+                    return BarSize.FifteenMinutes;
+                case "30m":
+                    return BarSize.ThirtyMinutes;
+                case "1h":
+                    return BarSize.OneHour;
+                case "1d":
+                    return BarSize.OneDay;
+                case "1w":
+                    return BarSize.OneWeek;
+                case "1M":
+                    return BarSize.OneMonth;
+
+
+                default:
+                    throw new ArgumentException("Unsupported interval: " + interval);
+            }
+        }
+
         /// <summary>
         /// Splits a historical data request into multiple pieces so that they obey the request limits
         /// </summary>
@@ -248,6 +276,7 @@ namespace QDMS.Server.DataSources.Binance
             var kline = JsonConvert.DeserializeObject<Kline>(e.Message);
             RaiseEvent(DataReceived, this,
                 new RealTimeDataEventArgs(instrumentId, 
+                    IntervalToBarSize(kline.Bar.Interval),
                     kline.Bar.StartTime, 
                     kline.Bar.Open, 
                     kline.Bar.High, 

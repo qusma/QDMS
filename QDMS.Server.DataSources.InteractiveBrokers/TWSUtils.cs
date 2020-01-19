@@ -252,10 +252,11 @@ namespace QDMSServer
         /// </summary>
         /// <param name="e">RealTimeBarEventArgs</param>
         /// <returns>RealTimeDataEventArgs </returns>
-        public static RealTimeDataEventArgs RealTimeDataEventArgsConverter(RealTimeBarEventArgs e)
+        public static RealTimeDataEventArgs RealTimeDataEventArgsConverter(RealTimeBarEventArgs e, QDMS.BarSize frequency)
         {
             return new RealTimeDataEventArgs(
                 0,
+                frequency,
                 e.Time,
                 e.Open,
                 e.High,

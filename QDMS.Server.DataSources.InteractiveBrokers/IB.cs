@@ -350,8 +350,9 @@ namespace QDMSServer.DataSources
         //We convert them and pass them on downstream
         private void _client_RealTimeBar(object sender, RealTimeBarEventArgs e)
         {
-            RealTimeDataEventArgs args = TWSUtils.RealTimeDataEventArgsConverter(e);
+            
             var originalRequest = _realTimeDataRequests[e.RequestId];
+            RealTimeDataEventArgs args = TWSUtils.RealTimeDataEventArgsConverter(e, originalRequest.Frequency);
             args.InstrumentID = originalRequest.Instrument.ID.Value;
             args.RequestID = _requestIDMap[e.RequestId];
             RaiseEvent(DataReceived, this, args);

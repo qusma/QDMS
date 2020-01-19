@@ -82,7 +82,7 @@ namespace QDMS
         /// <summary>
         /// Cancel a live real time data stream.
         /// </summary>
-        void CancelRealTimeData(Instrument instrument);
+        void CancelRealTimeData(Instrument instrument, BarSize frequency);
 
         /// <summary>
         /// Tries to connect to the QDMS server.
