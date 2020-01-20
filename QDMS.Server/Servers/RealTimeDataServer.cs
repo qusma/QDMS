@@ -156,7 +156,7 @@ namespace QDMSServer
                 using (var ms = new MemoryStream())
                 {
                     Serializer.Serialize(ms, e);
-                    _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.InstrumentID}~{e.Frequency}")); // Start by sending the id+freq before the data
+                    _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.InstrumentID}~{(int)e.Frequency}")); // Start by sending the id+freq before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeBars);
                     //todo here and on the receiving end, need to send frequency. First add barsize to rtdeventargs.
                     _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
@@ -177,7 +177,7 @@ namespace QDMSServer
                 using (var ms = new MemoryStream())
                 {
                     Serializer.Serialize(ms, e);
-                    _publisherSocket.SendMoreFrame(BitConverter.GetBytes(e.Tick.InstrumentID)); // Start by sending the ticker before the data
+                    _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.Tick.InstrumentID}~{(int)BarSize.Tick}")); // Start by sending the id+freq before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeTick);
                     _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized tick
 

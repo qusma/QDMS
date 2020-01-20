@@ -528,7 +528,7 @@ namespace QDMSClient
 
             lock (_realTimeDataSocketLock)
             {
-                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{frequency}")); //todo repeat other client serevr
+                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{(int)frequency}")); //todo repeat other client serevr
             }
 
             lock (_realTimeDataStreamsLock)
@@ -613,7 +613,7 @@ namespace QDMSClient
                         }
                         // TODO: Solve issue with null request
                         // Request worked, so we subscribe to the stream
-                        _realTimeDataSocket.Subscribe(Encoding.UTF8.GetBytes($"{request.Instrument.ID.Value}~{request.Frequency}"));
+                        _realTimeDataSocket.Subscribe(Encoding.UTF8.GetBytes($"{request.Instrument.ID.Value}~{(int)request.Frequency}"));
                     }
                     else if (reply.Equals(MessageType.RTDCanceled, StringComparison.InvariantCultureIgnoreCase))
                     {
