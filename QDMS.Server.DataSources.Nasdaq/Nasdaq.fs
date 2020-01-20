@@ -11,8 +11,8 @@ module NasdaqDs =
     open System.Net.Http
     open System.Threading.Tasks
 
-    type SymbolDividends = HtmlProvider<"./AAPL.html", IncludeLayoutTables=true, PreferOptionals=true>
-    type DateDividends = HtmlProvider<"./Jan27.html", IncludeLayoutTables=true, PreferOptionals=true>
+    type SymbolDividends = JsonProvider<"./AAPL.json">
+    type DateDividends = JsonProvider<"./date.json">
 
     type Nasdaq() = 
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
@@ -63,13 +63,13 @@ module NasdaqDs =
 
         member this.getDividendsForDate(date : DateTime) =
             async {
-                let url = sprintf "https://www.nasdaq.com/dividend-stocks/dividend-calendar.aspx?date=%s" (date.ToString("yyyy-MMM-dd"))
+                let url = sprintf "https://api.nasdaq.com/api/calendar/dividends?date=%s" (date.ToString("yyyy-MM-dd"))
                 logger.Info("Downloading dividends from " + url)
 
-                let! html = this.getStrFromUrl(url)
+                let! json = this.getStrFromUrl(url)
                 try 
-                    let data = DateDividends.Load(html)
-                    return data.Tables.Table1.Rows
+                    let data = DateDividends.Load(json)
+                    return data.Data.Calendar.Rows
                         |> Seq.map(this.parseRow) 
                 with e -> 
                     logger.Error(e, "Failed to parse dividends on " + date.ToString() + ". No divs available?")
@@ -78,32 +78,32 @@ module NasdaqDs =
 
             
         member this.parseRow row =
-            new Dividend(Symbol = Regex.Match(row.``Company (Symbol)``, @"\([^\)]*\)$").Value.Trim('(', ')'),
-                                                     ExDate = row.``Ex-Dividend Date``,
-                                                     Amount = row.Dividend,
-                                                     RecordDate = parseNullableDate row.``Record Date``,
-                                                     DeclarationDate = parseNullableDate row.``Announcement Date``,
-                                                     PaymentDate = parseNullableDate row.``Payment Date``)
+            new Dividend(Symbol = row.Symbol,
+                                                     ExDate = row.DividendExDate,
+                                                     Amount = row.DividendRate,
+                                                     RecordDate = System.Nullable row.RecordDate,
+                                                     DeclarationDate = System.Nullable row.AnnouncementDate,
+                                                     PaymentDate = System.Nullable row.PaymentDate)
 
 
         member this.getSpecificSymbol(request: DividendRequest, symbol: string) =
             async {
-                let url = sprintf "https://www.nasdaq.com/symbol/%s/dividend-history" symbol
+                let url = sprintf "https://api.nasdaq.com/api/quote/%s/dividends?assetclass=stocks" symbol
                 logger.Info("Downloading dividends from " + url)
-                let! html = this.getStrFromUrl(url)
-                let data = SymbolDividends.Load(html)
-                return data.Tables.Quotes_content_left_dividendhistoryGrid.Rows |> this.parseSymbolRows request symbol
+                let! json = this.getStrFromUrl(url)
+                let data = SymbolDividends.Load(json)
+                return data.Data.Dividends.Rows |> this.parseSymbolRows request symbol
             }
 
         member this.parseSymbolRows request symbol rows = 
             rows 
-                    |> Seq.filter(fun row -> row.``Ex/Eff Date`` >= request.FromDate.Date && row.``Ex/Eff Date`` <= request.ToDate.Date)
+                    |> Seq.filter(fun row -> row.ExOrEffDate >= request.FromDate.Date && row.ExOrEffDate <= request.ToDate.Date)
                     |> Seq.map(fun row -> new Dividend(
-                                                        Amount = row.``Cash Amount``, 
-                                                        ExDate = row.``Ex/Eff Date``,
-                                                        DeclarationDate = parseNullableDate row.``Declaration Date``,
-                                                        RecordDate = parseNullableDate row.``Record Date``,
-                                                        PaymentDate = parseNullableDate row.``Payment Date``,
+                                                        Amount = row.Amount, 
+                                                        ExDate = row.ExOrEffDate,
+                                                        DeclarationDate = parseNullableDate row.DeclarationDate.String,
+                                                        RecordDate = parseNullableDate row.RecordDate.String,
+                                                        PaymentDate = parseNullableDate row.PaymentDate.String,
                                                         Type = row.Type,
                                                         Symbol = symbol))
 
