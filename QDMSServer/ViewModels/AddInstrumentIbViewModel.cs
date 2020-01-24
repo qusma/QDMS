@@ -15,7 +15,8 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using EntityData;
-using Krs.Ats.IBNet;
+using QDMSIBClient;
+using IBApi;
 using MahApps.Metro.Controls.Dialogs;
 using NLog;
 using QDMS;
@@ -32,7 +33,7 @@ namespace QDMSServer.ViewModels
             CreateCommands();
 
             Random r = new Random();
-            _client = new IBClient();
+            _client = new Client();
 
             //random connection id for this one...
             _client.Connect(Properties.Settings.Default.ibClientHost, Properties.Settings.Default.ibClientPort, r.Next(1000, 200000));
@@ -43,7 +44,7 @@ namespace QDMSServer.ViewModels
             _client.ContractDetailsEnd += _client_ContractDetailsEnd;
 
             Observable
-                .FromEventPattern<ConnectionClosedEventArgs>(_client, "ConnectionClosed")
+                .FromEventPattern<EventArgs>(_client, "ConnectionClosed")
                 .Subscribe(e => _logger.Warn("IB Instrument Adder connection closed."));
 
             Observable
@@ -114,7 +115,7 @@ namespace QDMSServer.ViewModels
             }
             else
             {
-                _logger.Info("Could not batch add " + _tmpContractDetails.FirstOrDefault()?.ContractDetails.Summary.Symbol + ", " + _tmpContractDetails.Count + " ambiguous contracts found.");
+                _logger.Info("Could not batch add " + _tmpContractDetails.FirstOrDefault()?.ContractDetails.Contract.Symbol + ", " + _tmpContractDetails.Count + " ambiguous contracts found.");
             }
 
             _tmpContractDetails.Clear();
@@ -166,26 +167,26 @@ namespace QDMSServer.ViewModels
             var instrument = TWSUtils.ContractDetailsToInstrument(e.ContractDetails);
             instrument.Datasource = _thisDS;
             instrument.DatasourceID = _thisDS.ID;
-            if (e.ContractDetails.Summary.Exchange != null && _exchanges.ContainsKey(e.ContractDetails.Summary.Exchange))
+            if (e.ContractDetails.Contract.Exchange != null && _exchanges.ContainsKey(e.ContractDetails.Contract.Exchange))
             {
-                instrument.Exchange = _exchanges[e.ContractDetails.Summary.Exchange];
+                instrument.Exchange = _exchanges[e.ContractDetails.Contract.Exchange];
                 instrument.ExchangeID = instrument.Exchange.ID;
             }
             else
             {
-                _logger.Error("Could not find exchange in database: " + e.ContractDetails.Summary.Exchange);
+                _logger.Error("Could not find exchange in database: " + e.ContractDetails.Contract.Exchange);
                 return null;
             }
 
-            if (e.ContractDetails.Summary.PrimaryExchange != null &&
-                _exchanges.ContainsKey(e.ContractDetails.Summary.PrimaryExchange))
+            if (e.ContractDetails.Contract.PrimaryExch != null &&
+                _exchanges.ContainsKey(e.ContractDetails.Contract.PrimaryExch))
             {
-                instrument.PrimaryExchange = _exchanges[e.ContractDetails.Summary.PrimaryExchange];
+                instrument.PrimaryExchange = _exchanges[e.ContractDetails.Contract.PrimaryExch];
                 instrument.PrimaryExchangeID = instrument.PrimaryExchange.ID;
             }
-            else if (!string.IsNullOrEmpty(e.ContractDetails.Summary.PrimaryExchange))
+            else if (!string.IsNullOrEmpty(e.ContractDetails.Contract.PrimaryExch))
             {
-                _logger.Error("Could not find exchange in database: " + e.ContractDetails.Summary.PrimaryExchange);
+                _logger.Error("Could not find exchange in database: " + e.ContractDetails.Contract.PrimaryExch);
                 return null;
             }
             return instrument;
@@ -270,14 +271,14 @@ namespace QDMSServer.ViewModels
             var contract = new Contract
             {
                 Symbol = symbol,
-                SecurityType = TWSUtils.SecurityTypeConverter(SelectedType),
+                SecType = TWSUtils.SecurityTypeConverter(SelectedType),
                 Exchange = SelectedExchange == "All" ? "" : SelectedExchange,
                 IncludeExpired = IncludeExpired,
                 Currency = Currency
             };
 
             if (ExpirationDate.HasValue)
-                contract.Expiry = ExpirationDate.Value.ToString("yyyyMM");
+                contract.LastTradeDateOrContractMonth = ExpirationDate.Value.ToString("yyyyMM");
 
             if(Strike.HasValue)
             {
@@ -395,7 +396,7 @@ namespace QDMSServer.ViewModels
             set => this.RaiseAndSetIfChanged(ref _symbol, value);
         }
 
-        private readonly IBClient _client;
+        private readonly IIBClient _client;
         private readonly IDataClient _qdmsClient;
         private readonly IDialogCoordinator _dialogService;
         private readonly Dictionary<string, Exchange> _exchanges;

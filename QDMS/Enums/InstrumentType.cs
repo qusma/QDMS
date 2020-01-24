@@ -89,7 +89,12 @@ namespace QDMS
         /// Cryptocurrency
         /// </summary>
         [Description("Crypto")]
-        CryptoCurrency = 13
+        CryptoCurrency = 14,
+        /// <summary>
+        /// Fund
+        /// </summary>
+        [Description("FUND")]
+        Fund = 15
     }
 
 }

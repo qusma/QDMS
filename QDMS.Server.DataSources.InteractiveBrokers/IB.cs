@@ -17,7 +17,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Timers;
 using System.Windows;
-using Krs.Ats.IBNet;
+using QDMSIBClient;
+using IBApi;
 using NLog;
 using QDMS;
 using QDMS.Annotations;
@@ -79,6 +80,7 @@ namespace QDMSServer.DataSources
         private readonly string _host;
         private readonly int _port;
         private readonly int _clientID;
+        private readonly bool _ibUseNewRealTimeDataSystem;
         private readonly object _queueLock = new object();
         private readonly object _subReqMapLock = new object();
         private readonly object _requestIDMapLock = new object();
@@ -107,6 +109,7 @@ namespace QDMSServer.DataSources
             _host = settings.ibClientHost;
             _port = settings.ibClientPort;
             _clientID = settings.histClientIBID;
+            _ibUseNewRealTimeDataSystem = settings.ibUseNewRealTimeDataSystem;
 
             _realTimeDataRequests = new Dictionary<int, RealTimeDataRequest>();
             _realTimeRequestQueue = new Queue<int>();
@@ -130,11 +133,22 @@ namespace QDMSServer.DataSources
 
             _requestCounter = 1;
 
-            _client = client ?? new IBClient();
+            _client = client ?? new Client();
             _client.Error += _client_Error;
             _client.ConnectionClosed += _client_ConnectionClosed;
             _client.RealTimeBar += _client_RealTimeBar;
             _client.HistoricalData += _client_HistoricalData;
+            _client.HistoricalDataEnd += _client_HistoricalDataEnd;
+            _client.HistoricalDataUpdate += _client_HistoricalDataUpdate;
+        }
+
+        private void _client_HistoricalDataUpdate(object sender, QDMSIBClient.HistoricalDataEventArgs e)
+        {
+            if (e.Bar.Volume < 0) return;
+
+            var originalRequest = _realTimeDataRequests[e.RequestId];
+            var args = TWSUtils.HistoricalDataEventArgsToRealTimeDataEventArgs(e, originalRequest.Instrument.ID.Value, _requestIDMap[e.RequestId]);
+            RaiseEvent(DataReceived, this, args);
         }
 
         /// <summary>
@@ -148,10 +162,8 @@ namespace QDMSServer.DataSources
         /// <summary>
         /// This event is raised when historical data arrives from TWS
         /// </summary>
-        private void _client_HistoricalData(object sender, Krs.Ats.IBNet.HistoricalDataEventArgs e)
+        private void _client_HistoricalData(object sender, QDMSIBClient.HistoricalDataEventArgs e)
         {
-            //convert the bar and add it to the Dictionary of arrived data
-            var bar = TWSUtils.HistoricalDataEventArgsToOHLCBar(e);
             int id;
 
             lock (_subReqMapLock)
@@ -163,35 +175,55 @@ namespace QDMSServer.DataSources
                     : e.RequestId;
             }
 
+            if(!_historicalDataRequests.ContainsKey(id))
+            {
+                //this means we don't have a request with this key. If all works well,
+                //it should mean that this is actually a realtime data request using the new system
+                return;
+            }
+
+            var bar = TWSUtils.HistoricalDataEventArgsToOHLCBar(e);
+
             //stocks need to have their volumes multiplied by 100, I think all other instrument types do not
             if (_historicalDataRequests[id].Instrument.Type == InstrumentType.Stock)
                 bar.Volume *= 100;
 
             _arrivedHistoricalData[id].Add(bar);
+        }
 
-            if (e.RecordNumber >= e.RecordTotal - 1) //this was the last item to receive for this request, send it to the broker
+        private void _client_HistoricalDataEnd(object sender, HistoricalDataEndEventArgs e)
+        {
+            bool requestComplete = true;
+
+            int id = _subRequestIDMap.ContainsKey(e.RequestId)
+                    ? _subRequestIDMap[e.RequestId]
+                    : e.RequestId;
+
+            if (!_historicalDataRequests.ContainsKey(id))
             {
-                bool requestComplete = true;
+                //this means we don't have a request with this key. If all works well,
+                //it should mean that this is actually a realtime data request using the new system
+                return;
+            }
 
-                lock (_subReqMapLock)
+            lock (_subReqMapLock)
+            {
+                if (_subRequestIDMap.ContainsKey(e.RequestId))
                 {
-                    if (_subRequestIDMap.ContainsKey(e.RequestId))
-                    {
-                        //If there are sub-requests, here we check if this is the last one
-                        requestComplete = ControlSubRequest(e.RequestId);
+                    //If there are sub-requests, here we check if this is the last one
+                    requestComplete = ControlSubRequest(e.RequestId);
 
-                        if (requestComplete)
-                        {
-                            //If it was the last one, we need to order the data because sub-requests can arrive out of order
-                            _arrivedHistoricalData[id] = _arrivedHistoricalData[id].OrderBy(x => x.DTOpen).ToList();
-                        }
+                    if (requestComplete)
+                    {
+                        //If it was the last one, we need to order the data because sub-requests can arrive out of order
+                        _arrivedHistoricalData[id] = _arrivedHistoricalData[id].OrderBy(x => x.DTOpen).ToList();
                     }
                 }
+            }
 
-                if (requestComplete)
-                {
-                    HistoricalDataRequestComplete(id);
-                }
+            if (requestComplete)
+            {
+                HistoricalDataRequestComplete(id);
             }
         }
 
@@ -359,7 +391,7 @@ namespace QDMSServer.DataSources
         }
 
         //This event is raised when the connection to TWS client closed.
-        private void _client_ConnectionClosed(object sender, ConnectionClosedEventArgs e)
+        private void _client_ConnectionClosed(object sender, EventArgs e)
         {
             RaiseEvent(Disconnected, this, new DataSourceDisconnectEventArgs(Name, ""));
         }
@@ -587,8 +619,7 @@ namespace QDMSServer.DataSources
 
             TimeZoneInfo exchangeTZ = request.Instrument.GetTZInfo();
             //we need to convert time from the exchange TZ to Local...the ib client then converts it to UTC
-            var startingDate = TimeZoneInfo.ConvertTime(request.StartingDate, exchangeTZ, TimeZoneInfo.Local);
-            var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Local);
+            var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Utc);
 
             try
             {
@@ -596,11 +627,12 @@ namespace QDMSServer.DataSources
                 (
                     id,
                     TWSUtils.InstrumentToContract(request.Instrument),
-                    endingDate,
-                    TWSUtils.TimespanToDurationString((endingDate - startingDate), request.Frequency),
+                    endingDate.ToString("yyyyMMdd HH:mm:ss") + " GMT",
+                    TWSUtils.TimespanToDurationString(request.EndingDate - request.StartingDate, request.Frequency),
                     TWSUtils.BarSizeConverter(request.Frequency),
                     GetDataType(request.Instrument),
-                    request.RTHOnly ? 1 : 0
+                    request.RTHOnly,
+                    false
                 );
             }
             catch(Exception ex)
@@ -624,6 +656,8 @@ namespace QDMSServer.DataSources
 
         public void Connect()
         {
+            if (_client.Connected) return;
+
             try
             {
                 _client.Connect(_host, _port, _clientID);
@@ -646,23 +680,42 @@ namespace QDMSServer.DataSources
         /// </summary>
         public void RequestRealTimeData(RealTimeDataRequest request)
         {
+            var id = _requestCounter++;
             lock (_requestIDMapLock)
             {
-                _requestCounter++;
-                _realTimeDataRequests.Add(_requestCounter, request);
-                _requestIDMap.Add(_requestCounter, request.AssignedID);
-                _reverseRequestIDMap.Add(request.AssignedID, _requestCounter);
+                _realTimeDataRequests.Add(id, request);
+                _requestIDMap.Add(id, request.AssignedID);
+                if (_reverseRequestIDMap.ContainsKey(request.AssignedID))
+                {
+                    _reverseRequestIDMap[request.AssignedID] = id;
+                }
+                else
+                {
+                    _reverseRequestIDMap.Add(request.AssignedID, id);
+                }
             }
 
             try
             {
                 Contract contract = TWSUtils.InstrumentToContract(request.Instrument);
 
-                _client.RequestRealTimeBars(
-                    _requestCounter,
-                    contract,
-                    (int)TWSUtils.BarSizeConverter(request.Frequency),
-                    RealTimeBarType.Trades, request.RTHOnly);
+                if (_ibUseNewRealTimeDataSystem)
+                {
+                    //the new system uses the historical data update endpoint instead of realtime data
+                    _client.RequestHistoricalData(id, contract, "", 
+                        "60 S", QDMSIBClient.BarSize.FiveSeconds, HistoricalDataType.Trades, request.RTHOnly, true);
+                    //todo ignore the data
+                    //todo write test
+                    //todo does this request cause the historicaldataend event to fire?
+                }
+                else
+                {
+                    _client.RequestRealTimeBars(
+                        id,
+                        contract,
+                        "TRADES",
+                        request.RTHOnly);
+                }
             }
             catch(Exception ex)
             {
@@ -675,7 +728,14 @@ namespace QDMSServer.DataSources
         {
             if (_reverseRequestIDMap.TryGetValue(requestID, out int twsId))
             {
-                _client.CancelRealTimeBars(twsId);
+                if (_ibUseNewRealTimeDataSystem)
+                {
+                    _client.CancelHistoricalData(twsId);
+                }
+                else
+                {
+                    _client.CancelRealTimeBars(twsId);
+                }
             }
             else
             {

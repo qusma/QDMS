@@ -126,6 +126,7 @@
     <Compile Include="Requests\EconomicReleaseRequest.cs" />
     <Compile Include="Requests\PredicateSearchRequest.cs" />
     <Compile Include="Structs\Tick.cs" />
+    <Compile Include="Utils\EnumDescConverter.cs" />
     <Compile Include="Utils\ExpressionSerializer.cs" />
     <Compile Include="Utils\LambdaEqualityComparer.cs" />
     <Compile Include="Requests\DataAdditionRequest.cs" />

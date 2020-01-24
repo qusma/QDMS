@@ -6,8 +6,10 @@
 
 using System;
 using System.Globalization;
-using Krs.Ats.IBNet;
+using QDMSIBClient;
+using IBApi;
 using QDMS;
+using QDMS.Utils;
 
 namespace QDMSServer
 {
@@ -52,18 +54,34 @@ namespace QDMSServer
             return 365 * 24 * 3600;
         }
 
-        public static OHLCBar HistoricalDataEventArgsToOHLCBar(Krs.Ats.IBNet.HistoricalDataEventArgs e)
+        public static OHLCBar HistoricalDataEventArgsToOHLCBar(QDMSIBClient.HistoricalDataEventArgs e)
         {
             var bar = new OHLCBar
             {
-                DTOpen = e.Date,
-                Open = e.Open,
-                High = e.High,
-                Low = e.Low,
-                Close = e.Close,
-                Volume = e.Volume,
+                DTOpen = e.Bar.Time,
+                Open = (decimal)e.Bar.Open,
+                High = (decimal)e.Bar.High,
+                Low = (decimal)e.Bar.Low,
+                Close = (decimal)e.Bar.Close,
+                Volume = e.Bar.Volume,
             };
             return bar;
+        }
+
+        public static RealTimeDataEventArgs HistoricalDataEventArgsToRealTimeDataEventArgs(QDMSIBClient.HistoricalDataEventArgs e, int instrumentId, int reqId)
+        {
+            var rtdea = new RealTimeDataEventArgs(instrumentId,
+                QDMS.BarSize.FiveSeconds,
+                MyUtils.ConvertToTimestamp(e.Bar.Time),
+                (decimal)e.Bar.Open,
+                (decimal)e.Bar.High,
+                (decimal)e.Bar.Low,
+                (decimal)e.Bar.Close,
+                e.Bar.Volume,
+                e.Bar.WAP,
+                e.Bar.Count,
+                reqId);
+            return rtdea;
         }
 
         public static string TimespanToDurationString(TimeSpan t, QDMS.BarSize minFreq)
@@ -97,114 +115,122 @@ namespace QDMSServer
             return Math.Ceiling(t.TotalSeconds).ToString("0") + " S";
         }
 
-        public static Krs.Ats.IBNet.BarSize BarSizeConverter(QDMS.BarSize freq)
+        public static QDMSIBClient.BarSize BarSizeConverter(QDMS.BarSize freq)
         {
                 switch (freq)
                 {
                     case QDMS.BarSize.Tick:
                         throw new Exception("Bar size conversion impossible, TWS does not suppor tick BarSize");
                 	case QDMS.BarSize.OneSecond:
-                        return Krs.Ats.IBNet.BarSize.OneSecond;
+                        return QDMSIBClient.BarSize.OneSecond;
                     case QDMS.BarSize.FiveSeconds:
-                        return Krs.Ats.IBNet.BarSize.FiveSeconds;
+                        return QDMSIBClient.BarSize.FiveSeconds;
                     case QDMS.BarSize.FifteenSeconds:
-                        return Krs.Ats.IBNet.BarSize.FifteenSeconds;
+                        return QDMSIBClient.BarSize.FifteenSeconds;
                     case QDMS.BarSize.ThirtySeconds:
-                        return Krs.Ats.IBNet.BarSize.ThirtySeconds;
+                        return QDMSIBClient.BarSize.ThirtySeconds;
                     case QDMS.BarSize.OneMinute:
-                        return Krs.Ats.IBNet.BarSize.OneMinute;
+                        return QDMSIBClient.BarSize.OneMinute;
                     case QDMS.BarSize.TwoMinutes:
-                        return Krs.Ats.IBNet.BarSize.TwoMinutes;
+                        return QDMSIBClient.BarSize.TwoMinutes;
                     case QDMS.BarSize.FiveMinutes:
-                        return Krs.Ats.IBNet.BarSize.FiveMinutes;
+                        return QDMSIBClient.BarSize.FiveMinutes;
                     case QDMS.BarSize.FifteenMinutes:
-                        return Krs.Ats.IBNet.BarSize.FifteenMinutes;
+                        return QDMSIBClient.BarSize.FifteenMinutes;
                     case QDMS.BarSize.ThirtyMinutes:
-                        return Krs.Ats.IBNet.BarSize.ThirtyMinutes;
+                        return QDMSIBClient.BarSize.ThirtyMinutes;
                     case QDMS.BarSize.OneHour:
-                        return Krs.Ats.IBNet.BarSize.OneHour;
+                        return QDMSIBClient.BarSize.OneHour;
                     case QDMS.BarSize.OneDay:
-                        return Krs.Ats.IBNet.BarSize.OneDay;
+                        return QDMSIBClient.BarSize.OneDay;
                     case QDMS.BarSize.OneWeek:
-                        return Krs.Ats.IBNet.BarSize.OneWeek;
+                        return QDMSIBClient.BarSize.OneWeek;
                     case QDMS.BarSize.OneMonth:
-                        return Krs.Ats.IBNet.BarSize.OneMonth;
+                        return QDMSIBClient.BarSize.OneMonth;
                     case QDMS.BarSize.OneQuarter:
                         throw new Exception("Bar size conversion impossible, TWS does not suppor quarter BarSize.");
                     case QDMS.BarSize.OneYear:
-                        return Krs.Ats.IBNet.BarSize.OneYear;
+                        return QDMSIBClient.BarSize.OneYear;
 
                     default:
-                        return Krs.Ats.IBNet.BarSize.OneDay;
+                        return QDMSIBClient.BarSize.OneDay;
                 }
         }
 
-        public static QDMS.BarSize BarSizeConverter(Krs.Ats.IBNet.BarSize freq)
+        public static QDMS.BarSize BarSizeConverter(QDMSIBClient.BarSize freq)
         {
-            if (freq == Krs.Ats.IBNet.BarSize.OneYear) return QDMS.BarSize.OneYear;
+            if (freq == QDMSIBClient.BarSize.OneYear) return QDMS.BarSize.OneYear;
             return (QDMS.BarSize)(int)freq;
         }
 
-        public static RightType OptionTypeToRightType(OptionType? type)
+        public static string OptionTypeToRightType(OptionType? type)
         {
-            if (type == null) return RightType.Undefined;
-            if (type == OptionType.Call) return RightType.Call;
-            return RightType.Put;
+            if (type == OptionType.Put) return "PUT";
+            if (type == OptionType.Call) return "CALL";
+            return "";
         }
 
-        public static OptionType? RightTypeToOptionType(RightType right)
+        public static OptionType? RightTypeToOptionType(string right)
         {
-            if (right == RightType.Undefined) return null;
-            if (right == RightType.Call) return OptionType.Call;
-            return OptionType.Put;
+            if (right == "P" || right == "PUT") return OptionType.Put;
+            if (right == "C" || right == "CALL") return OptionType.Call;
+            return null;
         }
 
-        public static SecurityType SecurityTypeConverter(InstrumentType type)
+        public static string SecurityTypeConverter(InstrumentType type)
         {
             if((int)type >= 13)
             {
                 throw new Exception(string.Format("Can not convert InstrumentType {0} to SecurityType", type));
             }
-            return (SecurityType)(int)type;
+            return EnumDescConverter.GetEnumDescription(type);
         }
 
-        public static InstrumentType InstrumentTypeConverter(SecurityType type)
+        public static InstrumentType InstrumentTypeConverter(string type)
         {
-            return (InstrumentType)(int)type;
+            return (InstrumentType)EnumDescConverter.GetEnumValue(typeof(InstrumentType), type);
         }
 
 
-        public static Instrument ContractDetailsToInstrument(ContractDetails contract)
+        public static Instrument ContractDetailsToInstrument(ContractDetails contractDetails)
         {
-            var instrument =  new Instrument
+            var instrument = new Instrument
             {
-                Symbol = contract.Summary.LocalSymbol,
-                UnderlyingSymbol = contract.Summary.Symbol,
-                Name = contract.LongName,
-                OptionType = RightTypeToOptionType(contract.Summary.Right),
-                Type = InstrumentTypeConverter(contract.Summary.SecurityType),
-                Multiplier = contract.Summary.Multiplier == null ? 1 : int.Parse(contract.Summary.Multiplier),
-                Expiration = string.IsNullOrEmpty(contract.Summary.Expiry) ? (DateTime?)null : DateTime.ParseExact(contract.Summary.Expiry, "yyyyMMdd", CultureInfo.InvariantCulture),
-                Strike = (decimal)contract.Summary.Strike,
-                Currency = contract.Summary.Currency,
-                MinTick = (decimal)contract.MinTick,
-                Industry = contract.Industry,
-                Category = contract.Category,
-                Subcategory = contract.Subcategory,
+                Symbol = contractDetails.Contract.LocalSymbol,
+                UnderlyingSymbol = contractDetails.Contract.Symbol,
+                Name = contractDetails.LongName,
+                OptionType = RightTypeToOptionType(contractDetails.Contract.Right),
+                Type = InstrumentTypeConverter(contractDetails.Contract.SecType),
+                Multiplier = contractDetails.Contract.Multiplier == null ? 1 : int.Parse(contractDetails.Contract.Multiplier),
+                Expiration = ConvertExpiration(contractDetails),
+                Strike = (decimal)contractDetails.Contract.Strike,
+                Currency = contractDetails.Contract.Currency,
+                MinTick = (decimal)contractDetails.MinTick,
+                Industry = contractDetails.Industry,
+                Category = contractDetails.Category,
+                Subcategory = contractDetails.Subcategory,
                 IsContinuousFuture = false,
-                ValidExchanges = contract.ValidExchanges
+                ValidExchanges = contractDetails.ValidExchanges
             };
 
-            if (instrument.Type == InstrumentType.Future || 
+            if (instrument.Type == InstrumentType.Future ||
                 instrument.Type == InstrumentType.FutureOption ||
                 instrument.Type == InstrumentType.Option)
             {
-                instrument.TradingClass = contract.Summary.TradingClass;
+                instrument.TradingClass = contractDetails.Contract.TradingClass;
             }
 
-            if (!string.IsNullOrEmpty(contract.Summary.PrimaryExchange))
-                instrument.PrimaryExchange = new Exchange { Name = contract.Summary.PrimaryExchange };
+            if (!string.IsNullOrEmpty(contractDetails.Contract.PrimaryExch))
+                instrument.PrimaryExchange = new Exchange { Name = contractDetails.Contract.PrimaryExch };
             return instrument;
+        }
+
+        private static DateTime? ConvertExpiration(ContractDetails contractDetails)
+        {
+            return string.IsNullOrEmpty(contractDetails.Contract.LastTradeDateOrContractMonth) 
+                ? (DateTime?)null 
+                : DateTime.ParseExact(contractDetails.Contract.LastTradeDateOrContractMonth, "yyyyMMdd", CultureInfo.InvariantCulture);
+            //todo is this sometimes yyyyMM for options/futures "contract month"?
         }
 
         public static Contract InstrumentToContract(Instrument instrument)
@@ -219,20 +245,19 @@ namespace QDMSServer
             }
 
 
-            var contract = new Contract(
-                0,
-                symbol,
-                SecurityTypeConverter(instrument.Type),
-                expirationString,
-                0,
-                OptionTypeToRightType(instrument.OptionType),
-                instrument.Multiplier.ToString(),
-                "",
-                instrument.Currency,
-                instrument.Symbol,
-                instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
-                SecurityIdType.None,
-                string.Empty);
+            var contract = new Contract()
+            {
+                Symbol = symbol,
+                SecType = SecurityTypeConverter(instrument.Type),
+                LastTradeDateOrContractMonth = expirationString,
+                Right = OptionTypeToRightType(instrument.OptionType),
+                Multiplier = instrument.Multiplier.ToString(),
+                Currency = instrument.Currency,
+                PrimaryExch = instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
+                SecIdType = "None",
+                Exchange = "",
+                SecId = ""
+            };
 
             contract.TradingClass = instrument.TradingClass;
 
@@ -258,10 +283,10 @@ namespace QDMSServer
                 0,
                 frequency,
                 e.Time,
-                e.Open,
-                e.High,
-                e.Low,
-                e.Close,
+                (decimal)e.Open,
+                (decimal)e.High,
+                (decimal)e.Low,
+                (decimal)e.Close,
                 e.Volume,
                 e.Wap,
                 e.Count,

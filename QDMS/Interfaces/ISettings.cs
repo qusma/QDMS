@@ -8,6 +8,7 @@ namespace QDMS
     {
         string ibClientHost { get; set; }
         int ibClientPort { get; set; }
+        bool ibUseNewRealTimeDataSystem { get; set; }
         string mySqlHost { get; set; }
         string instrumentsGridLayout { get; set; }
         int rtDBPubPort { get; set; }

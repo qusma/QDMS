@@ -110,7 +110,10 @@ namespace QDMS
         /// <summary>
         /// The AssignedID of the original RealTimeDataRequest that started this stream.
         /// </summary>
+        [ProtoMember(10)]
         public int RequestID { get; set; }
+
+        [ProtoMember(11)]
         public BarSize Frequency { get; }
     }
 }

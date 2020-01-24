@@ -6,7 +6,7 @@ using System.Windows;
 using Common.Logging.NLog;
 using EntityData;
 using EntityData.Utils;
-using Krs.Ats.IBNet;
+using QDMSIBClient;
 using MahApps.Metro.Controls.Dialogs;
 using Nancy.Bootstrapper;
 using NLog;
@@ -171,7 +171,7 @@ namespace QDMSServer
             var bothSources = new[] { ibReg, binanceReg };
 
             //Realtime sources
-            container.Register<IIBClient, IBClient>();
+            container.Register<IIBClient, Client>();
             var realtimeSources = new Type[]
             {
                 
