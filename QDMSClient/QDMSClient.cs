@@ -15,7 +15,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using LZ4;
+using K4os.Compression.LZ4;
 using NetMQ;
 using NetMQ.Sockets;
 using QDMS;
@@ -847,7 +847,8 @@ namespace QDMSClient
                 var outputSize = BitConverter.ToInt32(sizeBuffer, 0);
                 // 4th message part: the compressed serialized data.
                 var dataBuffer = _historicalDataSocket.ReceiveFrameBytes();
-                var decompressed = LZ4Codec.Decode(dataBuffer, 0, dataBuffer.Length, outputSize);
+                var decompressed = new byte[outputSize];
+                LZ4Codec.Decode(dataBuffer, 0, dataBuffer.Length, decompressed, 0, outputSize);
                 var data = MyUtils.ProtoBufDeserialize<List<OHLCBar>>(decompressed, ms);
                 // Remove from pending requests
                 lock (_pendingHistoricalRequestsLock)

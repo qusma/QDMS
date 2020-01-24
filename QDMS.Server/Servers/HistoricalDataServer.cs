@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using LZ4;
+using K4os.Compression.LZ4;
 using NetMQ;
 using NetMQ.Sockets;
 using NLog;
@@ -180,9 +180,13 @@ namespace QDMSServer
 
                         _socket.SendMoreFrame(BitConverter.GetBytes(uncompressed.Length));
                         // 5th message part: the compressed serialized data.
-                        var compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); // compress
+                        var compressed = new byte[LZ4Codec.MaximumOutputSize(uncompressed.Length)];
+                        var targetSpan = new Span<byte>(compressed);
 
-                        _socket.SendFrame(compressed);
+                        int compressedLength = LZ4Codec.Encode(new Span<byte>(uncompressed), targetSpan, LZ4Level.L03_HC);
+                        //var compressed = LZ4Codec.EncodeHC(uncompressed, 0, uncompressed.Length); // compress
+
+                        _socket.SendFrame(targetSpan.Slice(0, compressedLength).ToArray());
                     }
                 }
             }
