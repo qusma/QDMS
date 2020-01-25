@@ -74,7 +74,7 @@ namespace QDMSServer.DataSources
         /// </summary>
         private Timer _connectionStatusUpdateTimer;
         
-        private int _requestCounter;
+        private int _requestCounter = 1;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly string _host;
@@ -553,7 +553,7 @@ namespace QDMSServer.DataSources
             //Historical data limitations: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
             //the issue here is that the request may not be fulfilled...so we need to keep track of the request
             //and if we get an error regarding its failure, send it again using a timer
-            int originalReqID = ++_requestCounter;
+            int originalReqID = _requestCounter++;
             _historicalDataRequests.TryAdd(originalReqID, request);
             
             _arrivedHistoricalData.TryAdd(originalReqID, new List<OHLCBar>());
