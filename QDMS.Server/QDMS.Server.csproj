@@ -172,6 +172,7 @@
     <Compile Include="DataSources\RealTimeSim.cs" />
     <Compile Include="EmailSender.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\DateTimeExtensions.cs" />
     <Compile Include="InstrumentRepository.cs" />
     <Compile Include="Jobs\DividendUpdateJob.cs" />
     <Compile Include="Jobs\EarningsUpdateJob.cs" />

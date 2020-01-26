@@ -1,0 +1,879 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>QDMSClient</name>
+    </assembly>
+    <members>
+        <member name="T:QDMSClient.ApiClient">
+            <summary>
+            Wraps around HttpClient with various useful functions for consuming a REST API
+            </summary>
+        </member>
+        <member name="M:QDMSClient.ApiClient.#ctor(System.String,System.Int32,System.String,System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="host"></param>
+            <param name="httpPort"></param>
+            <param name="apiKey"></param>
+            <param name="useSsl"></param>
+        </member>
+        <member name="M:QDMSClient.ApiClient.GetAsync``1(System.String,System.Object)">
+            <summary>
+            GET request
+            </summary>
+            <param name="path"></param>
+            <param name="message">Can't serialize nested objects for GET requests</param>
+            <typeparam name="T">Type of the object expected in response</typeparam>
+        </member>
+        <member name="M:QDMSClient.ApiClient.PostAsync``1(System.String,System.Object)">
+            <summary>
+            POST request
+            </summary>
+            <typeparam name="T">Type of the object expected in response</typeparam>
+        </member>
+        <member name="M:QDMSClient.ApiClient.PutAsync(System.String,System.Object)">
+            <summary>
+            PUT request without an expected response object
+            </summary>
+        </member>
+        <member name="M:QDMSClient.ApiClient.PutAsync``1(System.String,System.Object)">
+            <summary>
+            PUT request
+            </summary>
+            <typeparam name="T">Type of the object expected in response</typeparam>
+        </member>
+        <member name="M:QDMSClient.ApiClient.GetDeleteRequest(System.String,System.Object)">
+            <summary>
+            Construct a DELETE request with body.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.ApiClient.DeleteAsync(System.String,System.Object)">
+            <summary>
+            DELETE request without an expected response object
+            </summary>
+        </member>
+        <member name="M:QDMSClient.ApiClient.DeleteAsync``1(System.String,System.Object)">
+            <summary>
+            DELETE request
+            </summary>
+            <typeparam name="T">Type of the object expected in response</typeparam>
+        </member>
+        <member name="M:QDMSClient.ApiClient.GetBody(System.Object)">
+            <summary>
+            Serializes an object to JSON and returns it as a StringContent
+            </summary>
+            <param name="body"></param>
+            <returns></returns>
+        </member>
+        <member name="M:QDMSClient.ApiClient.ParseResponse``1(System.Net.Http.HttpResponseMessage)">
+            <summary>
+            Assuming the request is successful, parses the given type from JSON.
+            Only call after ValidateResponse
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="response"></param>
+            <exception cref="T:Newtonsoft.Json.JsonException"></exception>
+            <returns></returns>
+        </member>
+        <member name="M:QDMSClient.ApiClient.ValidateResponse(System.Net.Http.HttpResponseMessage)">
+            <summary>
+            Will throw an appropriate exception if the request is not successful
+            </summary>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="M:QDMSClient.ApiClient.Dispose">
+            <summary>
+            Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            </summary>
+        </member>
+        <member name="T:QDMSClient.ApiResponse">
+            <summary>
+            Holds responses to API requests
+            </summary>
+        </member>
+        <member name="P:QDMSClient.ApiResponse.WasSuccessful">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:QDMSClient.ApiResponse.Errors">
+            <summary>
+            If the request was not successful, errors will be found here
+            </summary>
+        </member>
+        <member name="P:QDMSClient.ApiResponse.StatusCode">
+            <summary>
+            Status code
+            </summary>
+        </member>
+        <member name="M:QDMSClient.ApiResponse.#ctor(System.Net.Http.HttpResponseMessage,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="response"></param>
+            <param name="error"></param>
+        </member>
+        <member name="M:QDMSClient.ApiResponse.#ctor(System.Net.Http.HttpResponseMessage,System.Collections.Generic.List{System.String})">
+            <summary>
+            
+            </summary>
+            <param name="response"></param>
+            <param name="errors"></param>
+        </member>
+        <member name="M:QDMSClient.ApiResponse.#ctor(System.String)">
+            <summary>
+            When the result is not successful
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:QDMSClient.ApiResponse.#ctor">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:QDMSClient.ApiResponse`1">
+            <summary>
+            Holds responses to API requests, including a returned object T
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:QDMSClient.ApiResponse`1.Result">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:QDMSClient.ApiResponse`1.#ctor(QDMSClient.ApiResponse)">
+            <summary>
+            When the result is not successful
+            </summary>
+            <param name="response"></param>
+        </member>
+        <member name="M:QDMSClient.ApiResponse`1.#ctor(System.String)">
+            <summary>
+            When the result is not successful
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:QDMSClient.ApiResponse`1.#ctor(`0)">
+            <summary>
+            When the request is successful
+            </summary>
+            <param name="result"></param>
+        </member>
+        <member name="M:QDMSClient.ExtensionMethods.GetSerializedPropertyValues(System.Object)">
+            <summary>
+            Returns a dictionary in which the keys are the names of each public property and the values the serialized values.
+            Ignores nested objects.
+            Ignore properties with the JsonIgnore attribute.
+            Used to construct URL query strings
+            </summary>
+            <param name="obj"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="obj"/> is <see langword="null" />.</exception>
+        </member>
+        <member name="T:QDMSClient.QDMSClient">
+            <inheritdoc />
+        </member>
+        <member name="F:QDMSClient.QDMSClient._name">
+            <summary>
+            This holds the zeromq identity string that we'll be using.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._historicalDataRequests">
+            <summary>
+            Queue of historical data requests waiting to be sent out.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._realTimeRequestSocket">
+            <summary>
+            This socket sends requests for real time data.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._realTimeDataSocket">
+            <summary>
+            This socket receives real time data.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._historicalDataSocket">
+            <summary>
+            This socket sends requests for and receives historical data.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._poller">
+            <summary>
+            Pooler class to manage all used sockets.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._historicalDataTimer">
+            <summary>
+            Periodically sends out requests for historical data and receives data when requests are fulfilled.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._heartBeatTimer">
+            <summary>
+            Periodically sends heartbeat messages to server to ensure the connection is up.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._lastHeartBeat">
+            <summary>
+            The time when the last heartbeat was received. If it's too long ago we're disconnected.
+            </summary>
+        </member>
+        <member name="F:QDMSClient.QDMSClient._requestCount">
+            <summary>
+            This int is used to give each historical request a unique RequestID.
+            Keep in mind this is unique to the CLIENT. AssignedID is unique to the server.
+            </summary>
+        </member>
+        <member name="P:QDMSClient.QDMSClient.Connected">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:QDMSClient.QDMSClient.PendingHistoricalRequests">
+            <summary>
+            Keeps track of historical requests that have been sent but the data has not been received yet.
+            </summary>
+        </member>
+        <member name="P:QDMSClient.QDMSClient.RealTimeDataStreams">
+            <summary>
+            Keeps track of live real time data streams.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="E:QDMSClient.QDMSClient.RealTimeDataReceived">
+            <summary>
+            Fires when real time bars are received
+            </summary>
+        </member>
+        <member name="E:QDMSClient.QDMSClient.RealTimeTickReceived">
+            <summary>
+            Fires when real time ticks are received
+            </summary>
+        </member>
+        <member name="E:QDMSClient.QDMSClient.HistoricalDataReceived">
+            <summary>
+            Fires when historical bars are received
+            </summary>
+        </member>
+        <member name="E:QDMSClient.QDMSClient.LocallyAvailableDataInfoReceived">
+            <summary>
+            Fires when stored data info are received
+            </summary>
+        </member>
+        <member name="E:QDMSClient.QDMSClient.Error">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.PushData(QDMS.DataAdditionRequest)">
+            <summary>
+                Pushes data to local storage.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetLocallyAvailableDataInfo(QDMS.Instrument)">
+            <summary>
+                Requests information on what historical data is available in local storage for this instrument.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.RequestHistoricalData(QDMS.HistoricalDataRequest)">
+            <summary>
+                Request historical data. Data will be delivered through the HistoricalDataReceived event.
+            </summary>
+            <returns>An ID uniquely identifying this historical data request. -1 if there was an error.</returns>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.RequestRealTimeData(QDMS.RealTimeDataRequest)">
+            <summary>
+                Request a new real time data stream. Data will be delivered through the RealTimeDataReceived event.
+            </summary>
+            <returns>An ID uniquely identifying this real time data request. -1 if there was an error.</returns>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.Connect">
+            <summary>
+                Tries to connect to the QDMS server.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.Disconnect(System.Boolean)">
+            <summary>
+                Disconnects from the server.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.CancelRealTimeData(QDMS.Instrument,QDMS.BarSize)">
+            <summary>
+                Cancel a live real time data stream.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.#ctor(System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.Boolean)">
+            <summary>
+                Initialization constructor.
+            </summary>
+            <param name="clientName">The name of this client. Should be unique. Used to route historical data.</param>
+            <param name="host">The address of the server.</param>
+            <param name="realTimeRequestPort">The port used for real time data requsts.</param>
+            <param name="realTimePublishPort">The port used for publishing new real time data.</param>
+            <param name="historicalDataPort">The port used for historical data.</param>
+            <param name="httpPort">The port used for the REST API.</param>
+            <param name="apiKey">The authentication key for the REST API.</param>
+            <param name="useSsl">Use an encrypted connection for the REST API.</param>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.RealTimeRequestSocketReceiveReady(System.Object,NetMQ.NetMQSocketEventArgs)">
+            <summary>
+                Process replies on the request socket.
+                Heartbeats, errors, and subscribing to real time data streams.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HistoricalDataSocketReceiveReady(System.Object,NetMQ.NetMQSocketEventArgs)">
+            <summary>
+                Handling replies to a data push, a historical data request, or an available data request
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HeartBeatTimerElapsed(System.Object,NetMQ.NetMQTimerEventArgs)">
+            <summary>
+                Sends heartbeat messages so we know that the server is still up.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HistoricalDataTimerElapsed(System.Object,NetMQ.NetMQTimerEventArgs)">
+            <summary>
+                Sends out requests for historical data and raises an event when it's received.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HandleErrorReply">
+            <summary>
+                Called when we get some sort of error reply
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HandleAvailabledataReply">
+            <summary>
+                Called when we get a reply on a request for available data in local storage.
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HandleDataPushReply">
+            <summary>
+                Called on a reply to a data push
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.HandleHistoricalDataRequestReply">
+            <summary>
+                Called on a reply to a historical data request
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.RaiseEvent``1(System.EventHandler{``0},System.Object,``0)">
+            <summary>
+            Raise the event in a threadsafe manner
+            </summary>
+            <param name="event"></param>
+            <param name="sender"></param>
+            <param name="e"></param>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetAllInstruments">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.FindInstruments(System.Linq.Expressions.Expression{System.Func{QDMS.Instrument,System.Boolean}})">
+            <summary>
+            
+            </summary>
+            <param name="pred"></param>
+            <returns></returns>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.FindInstruments(QDMS.Instrument)">
+            <summary>
+            
+            </summary>
+            <param name="instrument"></param>
+            <returns></returns>
+        </member>
+        <member name="E:QDMSClient.QDMSClient.PropertyChanged">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.OnPropertyChanged(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="propertyName"></param>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetExchanges">
+            <summary>
+            Get all exchanges
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetExchange(System.Int32)">
+            <summary>
+            Get a specific exchange by id
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.AddExchange(QDMS.Exchange)">
+            <summary>
+            Add a new exchange
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.UpdateExchange(QDMS.Exchange)">
+            <summary>
+            Update an existing exchange with new values
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.DeleteExchange(QDMS.Exchange)">
+            <summary>
+            Delete an exchange
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetDatasources">
+            <summary>
+            Get all datasources
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetDatasourceStatus">
+            <summary>
+            Returns connection status for all datasources
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetRealTimeStreamInfo">
+            <summary>
+            Returns active realtime data streams
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEconomicReleases">
+            <summary>
+            Get all economic releases
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEconomicReleases(QDMS.EconomicReleaseRequest)">
+            <summary>
+            Get economic releases
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEconomicReleaseDataSources">
+            <summary>
+            Get all datasources for economic releases
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetInstruments">
+            <summary>
+            Get all instruments
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetInstruments(System.Linq.Expressions.Expression{System.Func{QDMS.Instrument,System.Boolean}})">
+            <summary>
+            Search for instruments using a predicate
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetInstruments(QDMS.Instrument)">
+            <summary>
+            Search for instruments using an instrument object
+            Instruments with matching fields will be returned
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetInstrument(System.Int32)">
+            <summary>
+            Get instrument by id
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.AddInstrument(QDMS.Instrument)">
+            <summary>
+            Add a new instrument
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.UpdateInstrument(QDMS.Instrument)">
+            <summary>
+            Update an existing instrument with new values
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.DeleteInstrument(QDMS.Instrument)">
+            <summary>
+            Delete an instrument
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetTags">
+            <summary>
+            Get all tags
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.AddTag(QDMS.Tag)">
+            <summary>
+            Add a new tag
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.UpdateTag(QDMS.Tag)">
+            <summary>
+            Update an existing tag with new values
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.DeleteTag(QDMS.Tag)">
+            <summary>
+            Delete a tag
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetSessionTemplates">
+            <summary>
+            Get all session templates
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.AddSessionTemplate(QDMS.SessionTemplate)">
+            <summary>
+            Add a new session template
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.UpdateSessionTemplate(QDMS.SessionTemplate)">
+            <summary>
+            Update an existing session template with new values
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.DeleteSessionTemplate(QDMS.SessionTemplate)">
+            <summary>
+            Delete a session template
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetaDataUpdateJobs">
+            <summary>
+            Get all data update jobs
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEconomicReleaseUpdateJobs">
+            <summary>
+            Get all data economic release update jobs
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetDividendUpdateJobs">
+            <summary>
+            Get all dividend update jobs
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEarningsUpdateJobs">
+            <summary>
+            Get all earnings update jobs
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.AddJob``1(``0)">
+            <summary>
+            Add a new job
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.DeleteJob``1(``0)">
+            <summary>
+            Delete a job
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetUnderlyingSymbols">
+            <summary>
+            Get all underlying symbols
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.AddUnderlyingSymbol(QDMS.UnderlyingSymbol)">
+            <summary>
+            Add a new underlying symbol
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.UpdateUnderlyingSymbol(QDMS.UnderlyingSymbol)">
+            <summary>
+            Update an existing underlying symbol
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.DeleteUnderlyingSymbol(QDMS.UnderlyingSymbol)">
+            <summary>
+            Delete an underlying symbol
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetDividends(QDMS.DividendRequest)">
+            <summary>
+            Get dividends
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEarningsAnnouncements(QDMS.EarningsAnnouncementRequest)">
+            <summary>
+            Get earnings announcements
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetDividendDataSources">
+            <summary>
+            Get all datasources for dividends
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetEarningsDataSources">
+            <summary>
+            Get all datasources for earnings announcements
+            </summary>
+        </member>
+        <member name="T:QDMS.IDataClient">
+            <summary>
+            Interface for the QDMS client
+            </summary>
+        </member>
+        <member name="E:QDMS.IDataClient.Error">
+            <summary>
+            Raised on errors
+            </summary>
+        </member>
+        <member name="E:QDMS.IDataClient.HistoricalDataReceived">
+            <summary>
+            Raised when historical data arrives
+            </summary>
+        </member>
+        <member name="E:QDMS.IDataClient.LocallyAvailableDataInfoReceived">
+            <summary>
+            Raised when receiving info on what data is stored in the local database
+            </summary>
+        </member>
+        <member name="E:QDMS.IDataClient.RealTimeDataReceived">
+            <summary>
+            Raised when real time bar data arrives
+            </summary>
+        </member>
+        <member name="E:QDMS.IDataClient.RealTimeTickReceived">
+            <summary>
+            Raised when real time tick data arrives
+            </summary>
+        </member>
+        <member name="P:QDMS.IDataClient.Connected">
+            <summary>
+            Set to true if currently connected to a QDMS server
+            </summary>
+        </member>
+        <member name="P:QDMS.IDataClient.PendingHistoricalRequests">
+            <summary>
+            Keeps track of historical requests that have been sent but the data has not been received yet.
+            </summary>
+        </member>
+        <member name="P:QDMS.IDataClient.RealTimeDataStreams">
+            <summary>
+            Keeps track of live real time data streams.
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.AddExchange(QDMS.Exchange)">
+            <summary>
+            Add a new exchange
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.AddInstrument(QDMS.Instrument)">
+            <summary>
+            Add a new instrument
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.AddSessionTemplate(QDMS.SessionTemplate)">
+            <summary>
+            Add a new session template
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.AddTag(QDMS.Tag)">
+            <summary>
+            Add a new tag
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.CancelRealTimeData(QDMS.Instrument,QDMS.BarSize)">
+            <summary>
+            Cancel a live real time data stream.
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.Connect">
+            <summary>
+            Tries to connect to the QDMS server.
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.DeleteExchange(QDMS.Exchange)">
+            <summary>
+            Delete an exchange
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.DeleteInstrument(QDMS.Instrument)">
+            <summary>
+            Delete an instrument
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.DeleteSessionTemplate(QDMS.SessionTemplate)">
+            <summary>
+            Delete a session templaet
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.DeleteTag(QDMS.Tag)">
+            <summary>
+            Delete a tag
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.Disconnect(System.Boolean)">
+            <summary>
+            Disconnects from the server.
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetDatasources">
+            <summary>
+            Get all datasources
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEconomicReleaseDataSources">
+            <summary>
+            Get all datasources for economic releases
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEconomicReleases">
+            <summary>
+            Get all economic releases
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEconomicReleases(QDMS.EconomicReleaseRequest)">
+            <summary>
+            Get economic releases
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetExchange(System.Int32)">
+            <summary>
+            Get a specific exchange by id
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetExchanges">
+            <summary>
+            Get all exchanges
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetInstrument(System.Int32)">
+            <summary>
+            Get instrument by id
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetInstruments">
+            <summary>
+            Get all instruments
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetInstruments(System.Linq.Expressions.Expression{System.Func{QDMS.Instrument,System.Boolean}})">
+            <summary>
+            Search for instruments using a predicate
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetInstruments(QDMS.Instrument)">
+            <summary>
+            Search for instruments using an instrument object
+            Instruments with matching fields will be returned
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetLocallyAvailableDataInfo(QDMS.Instrument)">
+            <summary>
+            Requests information on what historical data is available in local storage for this instrument.
+            </summary>
+            <param name="instrument"></param>
+        </member>
+        <member name="M:QDMS.IDataClient.GetSessionTemplates">
+            <summary>
+            Get all session templates
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetTags">
+            <summary>
+            Get all tags
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.PushData(QDMS.DataAdditionRequest)">
+            <summary>
+            Pushes data to local storage.
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.RequestHistoricalData(QDMS.HistoricalDataRequest)">
+            <summary>
+            Request historical data. Data will be delivered through the HistoricalDataReceived event.
+            </summary>
+            <returns>An ID uniquely identifying this historical data request.</returns>
+        </member>
+        <member name="M:QDMS.IDataClient.RequestRealTimeData(QDMS.RealTimeDataRequest)">
+            <summary>
+            Request a new real time data stream. Data will be delivered through the RealTimeDataReceived event.
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.UpdateExchange(QDMS.Exchange)">
+            <summary>
+            Update an existing exchange with new values
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.UpdateInstrument(QDMS.Instrument)">
+            <summary>
+            Update an existing instrument with new values
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.UpdateSessionTemplate(QDMS.SessionTemplate)">
+            <summary>
+            Update an existing session template with new values
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.UpdateTag(QDMS.Tag)">
+            <summary>
+            Update an existing tag with new values
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEconomicReleaseUpdateJobs">
+            <summary>
+            Get all data economic release update jobs
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetaDataUpdateJobs">
+            <summary>
+            Get all data update jobs
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetDividendUpdateJobs">
+            <summary>
+            Get all dividend update jobs
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEarningsUpdateJobs">
+            <summary>
+            Get all earnings update jobs
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.AddJob``1(``0)">
+            <summary>
+            Add a new job
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.DeleteJob``1(``0)">
+            <summary>
+            Delete a job
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetUnderlyingSymbols">
+            <summary>
+            Get all underlying symbols
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.AddUnderlyingSymbol(QDMS.UnderlyingSymbol)">
+            <summary>
+            Add a new underlying symbol
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.UpdateUnderlyingSymbol(QDMS.UnderlyingSymbol)">
+            <summary>
+            Update an existing underlying symbol
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.DeleteUnderlyingSymbol(QDMS.UnderlyingSymbol)">
+            <summary>
+            Delete an underlying symbol
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetDividends(QDMS.DividendRequest)">
+            <summary>
+            Get dividends
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEarningsAnnouncements(QDMS.EarningsAnnouncementRequest)">
+            <summary>
+            Get earnings announcements
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetDividendDataSources">
+            <summary>
+            Get all datasources for dividends
+            </summary>
+        </member>
+        <member name="M:QDMS.IDataClient.GetEarningsDataSources">
+            <summary>
+            Get all datasources for earnings announcements
+            </summary>
+        </member>
+    </members>
+</doc>

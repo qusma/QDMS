@@ -4,23 +4,44 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>QDMSClient</AssemblyName>
     <RootNamespace>QDMSClient</RootNamespace>
+    <PackageId>QDMSClient</PackageId>
+    <Version>0.10.0</Version>
+    <Authors>QUSMA</Authors>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    
+    
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\Alex\Documents\Csharp\Projects\QDMS\QDMSClient\QDMSClient.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AsyncIO" Version="0.1.69" />
     <PackageReference Include="Flurl" Version="2.8.2" />
     <PackageReference Include="K4os.Compression.LZ4" Version="1.1.11" />
-    <PackageReference Include="MetaLinq" Version="1.0.11" />
+    <PackageReference Include="MetaLinqStandard" Version="1.0.11" />
     <PackageReference Include="NetMQ" Version="4.0.0.207" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="NodaTime" Version="2.4.7" />
     <PackageReference Include="protobuf-net" Version="2.4.4" />
+    <PackageReference Include="QLNet" Version="1.11.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QDMS\QDMS.csproj" />
+    <ProjectReference Include="..\QDMS\QDMS.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <IncludeAssets>QDMS.dll</IncludeAssets>
+    </ProjectReference>
   </ItemGroup>
+
+  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 
 </Project>

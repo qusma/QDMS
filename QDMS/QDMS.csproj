@@ -105,7 +105,6 @@
     <Compile Include="Enums\RelativeMonth.cs" />
     <Compile Include="Enums\WeekDayCount.cs" />
     <Compile Include="EventArguments\FoundFrontContractEventArgs.cs" />
-    <Compile Include="ExtensionMethods\DateTimeExtensions.cs" />
     <Compile Include="ExtensionMethods\DayOfWeekExtensions.cs" />
     <Compile Include="ExtensionMethods\DecimalExtensions.cs" />
     <Compile Include="ExtensionMethods\GenericExtensions.cs" />
