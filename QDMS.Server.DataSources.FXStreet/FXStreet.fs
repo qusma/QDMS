@@ -8,48 +8,64 @@ module fx =
     open NLog
     open EntityData.Utils
 
+    type FxStreetCalendar = JsonProvider<"./calendar.json">
+
     type FXStreet(countryCodeHelper:ICountryCodeHelper)  = 
         let countryCodeHelper = countryCodeHelper
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
         let logger = NLog.LogManager.GetCurrentClassLogger()
 
         let buildUrl(fromDate, toDate) = 
-            String.Format("https://calendar.fxstreet.com/eventdate/?f=csv&v=2&timezone=UTC&rows=&view=range&start={0:yyyyMMdd}&end={1:yyyyMMdd}", fromDate, toDate)
+            String.Format("https://calendar-api.fxstreet.com/en/api/v1/eventDates/{0:yyyy-MM-dd}/{1:yyyy-MM-dd}", fromDate, toDate)
 
         let parseNullable (str) = 
             match Double.TryParse(str) with
             | (true, num) -> Nullable<float>(num)
             | _ -> Nullable<float>()
 
-        member private this.parseRow(row: CsvRow) = 
+        let volatilityToImportance (vol) =
+            match vol with
+            | "HIGH" -> Importance.High
+            | "MEDIUM" -> Importance.Mid
+            | "LOW" -> Importance.Low
+            | _ -> Importance.None
+
+        let optionToNullable (decimal : Option<decimal>) =
+            if decimal.IsSome then Nullable<float>(Convert.ToDouble(decimal.Value)) else Nullable<float>()
+
+        member private this.parseRow (row : FxStreetCalendar.Root) = 
             try
-                let countryCode = countryCodeHelper.GetCountryCode(row.["Country"])
-                let currencyCode = countryCodeHelper.GetCurrencyCode(countryCode)
                 Some(new EconomicRelease(
-                                row.["Name"], 
-                                countryCode, 
-                                currencyCode,
-                                DateTime.ParseExact(row.["DateTime"], "MM/dd/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal), 
-                                System.Enum.Parse(typeof<Importance>, row.["Volatility"]) :?> Importance, 
-                                parseNullable(row.["Consensus"]),
-                                parseNullable(row.["Previous"]),
-                                parseNullable(row.["Actual"])))
+                                row.Name, 
+                                (if row.CountryCode.String.IsSome then row.CountryCode.String.Value else ""), 
+                                row.CurrencyCode,
+                                row.DateUtc.UtcDateTime, 
+                                volatilityToImportance(row.Volatility), 
+                                optionToNullable row.Consensus,
+                                optionToNullable row.Previous,
+                                optionToNullable row.Actual))
             with
                 | ex -> 
-                    error.Trigger(this, new ErrorArgs(-1, "FXStreet could not parse row: " + String.Join(", ", row.Columns) + ". " + ex.Message))
+                    error.Trigger(this, new ErrorArgs(-1, "FXStreet could not parse row: " + row.JsonValue.ToString()  + " " + ex.Message))
                     None
 
-        member this.parseData(content: string) = 
-            new System.Collections.Generic.List<EconomicRelease>(CsvFile.Parse(content).Rows |> Seq.choose this.parseRow)
+        member this.parseData(json: string) = 
+            let parsed = FxStreetCalendar.Parse(json)
+            let releases = parsed |> Seq.map(this.parseRow) 
+                                    |> Seq.filter(fun x -> x.IsSome)
+                                    |> Seq.map(fun x -> x.Value)
+            let econReleases = new System.Collections.Generic.List<EconomicRelease>()
+            econReleases.AddRange(releases)
+            econReleases
 
         member this.getData(fromDate, toDate) =             
             async {
                 try
-                    let! html = Http.AsyncRequestString(
+                    let! json = Http.AsyncRequestString(
                                     buildUrl(fromDate, toDate),
-                                    headers = ["Referer", "https://calendar.fxstreet.com"]) //it will give 401 if we don't fake the referer
+                                    headers = ["Referer", "https://www.fxstreet.com/economic-calendar"]) //it will give 401 if we don't fake the referer
                                     //TODO check if there are limits and we need to split up the request
-                    return this.parseData(html)
+                    return this.parseData(json)
                 with
                     | ex -> 
                         error.Trigger(this, new ErrorArgs(-1, "FXStreet could not download data: " + ex.Message))
