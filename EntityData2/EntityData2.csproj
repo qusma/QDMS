@@ -1,0 +1,88 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.1" />
+    <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.19" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QDMS\QDMS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Migrations\201401191518010_Initial.Designer.cs">
+      <DependentUpon>201401191518010_Initial.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201401201826336_DataInitial.Designer.cs">
+      <DependentUpon>201401201826336_DataInitial.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201401291813551_AddDataUpdateJobs.Designer.cs">
+      <DependentUpon>201401291813551_AddDataUpdateJobs.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201404201506394_AddBarDTOpen.Designer.cs">
+      <DependentUpon>201404201506394_AddBarDTOpen.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201609021302442_TradingClass.Designer.cs">
+      <DependentUpon>201609021302442_TradingClass.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201609140220190_IndexFix.Designer.cs">
+      <DependentUpon>201609140220190_IndexFix.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201609141425109_IndexFix2.Designer.cs">
+      <DependentUpon>201609141425109_IndexFix2.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201610231531254_EconomicReleases.Designer.cs">
+      <DependentUpon>201610231531254_EconomicReleases.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201701291354200_Dividends.Designer.cs">
+      <DependentUpon>201701291354200_Dividends.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201706162144440_IndexFix3.Designer.cs">
+      <DependentUpon>201706162144440_IndexFix3.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\201706220016038_Earnings.Designer.cs">
+      <DependentUpon>201706220016038_Earnings.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Migrations\201401191518010_Initial.resx">
+      <DependentUpon>201401191518010_Initial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201401201826336_DataInitial.resx">
+      <DependentUpon>201401201826336_DataInitial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201401291813551_AddDataUpdateJobs.resx">
+      <DependentUpon>201401291813551_AddDataUpdateJobs.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201404201506394_AddBarDTOpen.resx">
+      <DependentUpon>201404201506394_AddBarDTOpen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201609021302442_TradingClass.resx">
+      <DependentUpon>201609021302442_TradingClass.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201609140220190_IndexFix.resx">
+      <DependentUpon>201609140220190_IndexFix.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201609141425109_IndexFix2.resx">
+      <DependentUpon>201609141425109_IndexFix2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201610231531254_EconomicReleases.resx">
+      <DependentUpon>201610231531254_EconomicReleases.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201701291354200_Dividends.resx">
+      <DependentUpon>201701291354200_Dividends.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201706162144440_IndexFix3.resx">
+      <DependentUpon>201706162144440_IndexFix3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migrations\201706220016038_Earnings.resx">
+      <DependentUpon>201706220016038_Earnings.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
