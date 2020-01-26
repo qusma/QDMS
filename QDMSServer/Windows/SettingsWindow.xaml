@@ -78,13 +78,14 @@
             </TabItem>
             <TabItem Header="IB">
                 <Grid>
-                    <GroupBox Header="IB Settings" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" Height="187">
+                    <GroupBox Header="IB Settings" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" >
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="200"/>
                                 <ColumnDefinition Width="293*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="36"/>
                                 <RowDefinition Height="36"/>
                                 <RowDefinition Height="36"/>
                                 <RowDefinition Height="36"/>
@@ -103,6 +104,8 @@
                             <Label Grid.Column="0" Grid.Row="3" Content="Realtime Client ID:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" Width="120"/>
                             <TextBox Grid.Row="3" Name="IBRTDClientIDTextBox" HorizontalAlignment="Left" Height="26" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="120" Margin="10,10,0,0" Grid.Column="1"/>
 
+                            <Label Grid.Column="0" Grid.Row="4" Content="User new realtime data system:" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="23" />
+                            <CheckBox Grid.Row="4" Grid.Column="1" Name="IBUseNewRealtimeDataSystem"  Margin="10,5,0,0" />
                         </Grid>
                     </GroupBox>
                 </Grid>

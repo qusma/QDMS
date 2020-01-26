@@ -49,6 +49,7 @@ namespace QDMSServer
             IBPortTextBox.Text = Properties.Settings.Default.ibClientPort.ToString();
             IBHistClientIDTextBox.Text = Properties.Settings.Default.histClientIBID.ToString();
             IBRTDClientIDTextBox.Text = Properties.Settings.Default.rtdClientIBID.ToString();
+            IBUseNewRealtimeDataSystem.IsChecked = Properties.Settings.Default.ibUseNewRealTimeDataSystem;
 
             //Quandl
             QuandlAPITokenTextBox.Text = Properties.Settings.Default.quandlAuthCode;
@@ -166,6 +167,8 @@ namespace QDMSServer
             {
                 Properties.Settings.Default.rtdClientIBID = ibRTDClientID;
             }
+
+            Properties.Settings.Default.ibUseNewRealTimeDataSystem = IBUseNewRealtimeDataSystem.IsChecked.Value;
 
             //Quandl
             Properties.Settings.Default.quandlAuthCode = QuandlAPITokenTextBox.Text;
