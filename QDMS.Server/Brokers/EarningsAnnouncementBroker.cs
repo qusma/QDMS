@@ -129,7 +129,7 @@ namespace QDMS.Server.Brokers
                 var queryableData = context.EarningsAnnouncements
                     .Where(x =>
                         x.Date >= request.FromDate &&
-                        x.Date <= request.ToDate);//TODO wew want end of day as cutoff
+                        x.Date <= request.ToDate);//TODO we want end of day as cutoff
 
                 if (request.Symbol != null && request.Symbol.Count > 0)
                 {
@@ -138,7 +138,7 @@ namespace QDMS.Server.Brokers
 
                 try
                 {
-                    var result = await queryableData.ToListAsync().ConfigureAwait(false);
+                    var result = await queryableData.OrderBy(x => x.Date).ToListAsync().ConfigureAwait(false);
                     _logger.Info($"EAB returning {result.Count} items from the local db");
                     return result;
                 }

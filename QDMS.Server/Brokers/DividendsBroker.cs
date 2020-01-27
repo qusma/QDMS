@@ -140,7 +140,7 @@ namespace QDMS.Server.Brokers
 
                 try
                 {
-                    var result = await queryableData.ToListAsync().ConfigureAwait(false);
+                    var result = await queryableData.OrderBy(x => x.PaymentDate).ToListAsync().ConfigureAwait(false);
                     _logger.Info($"DivB returning {result.Count} items from the local db");
                     return result;
                 }

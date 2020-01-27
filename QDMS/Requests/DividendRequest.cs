@@ -4,8 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QDMS
 {
@@ -72,7 +74,15 @@ namespace QDMS
         /// <summary>
         /// 
         /// </summary>
+        [JsonIgnore]
         public List<string> Symbol { get; set; }
+
+        [Obsolete("For serialization usage only")]
+        public string Symbols
+        {
+            get => Symbol == null ? "" : string.Join(",", Symbol);
+            set => Symbol = value.Split(',').ToList();
+        }
 
         /// <summary>
         /// 
