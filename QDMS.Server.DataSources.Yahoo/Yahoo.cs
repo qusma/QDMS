@@ -308,6 +308,13 @@ namespace QDMSServer.DataSources
                     bar.AdjLow = bar.Low;
                     bar.AdjClose = bar.Close;
 
+                    //data check, sometimes a bunch of values will be zero - we don't want any of that
+                    if (bar.Open == 0 || bar.High == 0 || bar.Low == 0 || bar.Close == 0)
+                    {
+                        _logger.Error($"Request for {request.Instrument.Symbol} returned faulty data - zeros at {bar.DT}");
+                        return data;
+                    }
+
                     data.Add(bar);
                 }
                 catch
