@@ -190,6 +190,8 @@ namespace QDMSServer
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
         {
             if (e.Request.Instrument.ID == null) return;
+            if (!_histReqIDMap.ContainsKey(e.Request.RequestID)) return; //we're only interested in reqs originating in the CFB
+
             int id = e.Request.Instrument.ID.Value;
             var kvpID = new KeyValuePair<int, BarSize>(id, e.Request.Frequency);
 
