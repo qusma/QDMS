@@ -415,6 +415,26 @@ namespace QDMSServer.DataSources
             {
                 HandleNoSecurityDefinitionError(e);
             }
+            else if ((int)e.ErrorCode == 10225) //bust event stops real-time bars
+            {
+                RealTimeDataRequest req;
+                if (_realTimeDataRequests.TryGetValue(e.TickerId, out req))
+                {
+                    _logger.Error(string.Format(" RT Req: {0} @ {1}. Restarting stream.",
+                        req.Instrument.Symbol,
+                        req.Frequency));
+
+                    _client.CancelRealTimeBars(e.TickerId);
+
+                    RestartRealtimeStream(req);
+                }
+                else
+                {
+                    _logger.Error(e.ErrorMsg + " - Unable to find corresponding request");
+                }
+                
+                
+            }
 
             //different messages depending on the type of request
             var errorArgs = TWSUtils.ConvertErrorArguments(e);
@@ -447,6 +467,11 @@ namespace QDMSServer.DataSources
             }
 
             RaiseEvent(Error, this, errorArgs);
+        }
+
+        private void RestartRealtimeStream(RealTimeDataRequest req)
+        {
+            RequestRealTimeData(req);
         }
 
         private void HandleNoSecurityDefinitionError(ErrorEventArgs e)
