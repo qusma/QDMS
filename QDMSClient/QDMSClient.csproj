@@ -5,7 +5,7 @@
     <AssemblyName>QDMSClient</AssemblyName>
     <RootNamespace>QDMSClient</RootNamespace>
     <PackageId>QDMSClient</PackageId>
-    <Version>0.10.1</Version>
+    <Version>0.10.2</Version>
     <Authors>QUSMA</Authors>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     
