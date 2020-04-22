@@ -98,12 +98,12 @@ namespace QDMS
         }
 
         /// <summary>
-        /// Date/Time of the bar open.
+        /// Date/Time of the bar open. Should be in UTC.
         /// </summary>
         public DateTime? DTOpen { get; set; }
 
         /// <summary>
-        /// Date/Time of the bar close.
+        /// Date/Time of the bar close. Should be in UTC.
         /// </summary>
         public DateTime DT { get; set; }
 

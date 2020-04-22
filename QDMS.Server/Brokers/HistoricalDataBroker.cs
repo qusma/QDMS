@@ -373,15 +373,18 @@ namespace QDMSServer
                 request.SaveDataToStorage ? 0 : 1,
                 request.Instrument.Datasource.Name);
 
-            //make sure data source is present and available
-            try
+            if (request.DataLocation != DataLocation.LocalOnly)
             {
-                CheckDataSource(request); //todo if requesting local data, ds does not need to be connected
-            }
-            catch (Exception ex)
-            {
-                Log(LogLevel.Error, string.Format("Could not fulfill request ID {0}, error: {1}", request.AssignedID, ex.Message));
-                throw;
+                //make sure data source is present and available, only needed when asking for non-local data
+                try
+                {
+                    CheckDataSource(request);
+                }
+                catch (Exception ex)
+                {
+                    Log(LogLevel.Error, string.Format("Could not fulfill request ID {0}, error: {1}", request.AssignedID, ex.Message));
+                    throw;
+                }
             }
 
             _originalRequests.TryAdd(request.AssignedID, request);

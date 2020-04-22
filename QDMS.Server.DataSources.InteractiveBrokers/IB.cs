@@ -313,7 +313,6 @@ namespace QDMSServer.DataSources
             //Instead we provide our own by using that day's session end...
             if (request.Frequency < BarSize.OneDay)
             {
-                AdjustIntradayBarTimes(bars, request);
                 GenerateIntradayBarClosingTimes(bars, request.Frequency);
             }
             else
@@ -323,19 +322,7 @@ namespace QDMSServer.DataSources
         }
 
         /// <summary>
-        /// Simply converts the timezone, from the local to that of the exchange.
-        /// </summary>
-        private void AdjustIntradayBarTimes(IEnumerable<OHLCBar> bars, HistoricalDataRequest request)
-        {
-            var exchangeTZ = TimeZoneInfo.FindSystemTimeZoneById(request.Instrument.Exchange.Timezone);
-            foreach (OHLCBar bar in bars)
-            {
-                bar.DTOpen = TimeZoneInfo.ConvertTime(bar.DTOpen.Value, TimeZoneInfo.Local, exchangeTZ);
-            }
-        }
-
-        /// <summary>
-        /// Simply converts the timezone, from the local to that of the exchange.
+        /// Sets closing times
         /// </summary>
         private void AdjustDailyBarTimes(IEnumerable<OHLCBar> bars)
         {
@@ -344,10 +331,10 @@ namespace QDMSServer.DataSources
             // So to get the correct day we have to shift it back to UTC first.
             foreach (OHLCBar bar in bars)
             {
-                bar.DTOpen = TimeZoneInfo.ConvertTimeToUtc(bar.DTOpen.Value, TimeZoneInfo.Local);
                 bar.DT = bar.DTOpen.Value;
             }
         }
+
 
         /// <summary>
         /// Sets the appropriate closing time for each bar, since IB only gives us the opening time.
