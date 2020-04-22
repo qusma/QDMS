@@ -269,7 +269,7 @@ namespace QDMSServer.DataSources
 
             //parse the downloaded price data
             rows = contents.Split("\n".ToCharArray());
-            for (int j = 1; j < rows.Count() - 1; j++) //start at 1 because the first line's a header
+            for (int j = 1; j < rows.Count(); j++) //start at 1 because the first line's a header
             {
                 string[] items = rows[j].Split(",".ToCharArray());
                 var bar = new OHLCBar();
