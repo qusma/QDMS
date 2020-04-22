@@ -103,7 +103,7 @@ namespace QDMSServer
         ///Key: a KVP where key: the instrument ID, and value: the data frequency
         ///Value: data
         /// </summary>
-        private readonly Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>> _data;
+        private readonly Dictionary<(int, BarSize), List<OHLCBar>> _data;
 
         /// <summary>
         ///Some times there will be multiple requests for data being filled concurrently.
@@ -114,7 +114,7 @@ namespace QDMSServer
         ///Key: a KVP where key: the instrument ID, and value: the data frequency
         ///Value: data
         /// </summary>
-        private readonly Dictionary<KeyValuePair<int, BarSize>, int> _dataUsesPending;
+        private readonly Dictionary<(int, BarSize), int> _dataUsesPending;
 
         private readonly Timer _reconnectTimer;
 
@@ -129,7 +129,7 @@ namespace QDMSServer
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
 
-            _data = new Dictionary<KeyValuePair<int, BarSize>, List<OHLCBar>>();
+            _data = new Dictionary<(int, BarSize), List<OHLCBar>>();
             _contracts = new Dictionary<int, List<Instrument>>();
             _requestCounts = new Dictionary<int, int>();
             _requests = new Dictionary<int, HistoricalDataRequest>();
@@ -137,7 +137,7 @@ namespace QDMSServer
             _frontContractRequests = new BlockingCollection<FrontContractRequest>();
             _requestTypes = new Dictionary<int, bool>();
             _frontContractRequestMap = new Dictionary<int, FrontContractRequest>();
-            _dataUsesPending = new Dictionary<KeyValuePair<int, BarSize>, int>();
+            _dataUsesPending = new Dictionary<(int, BarSize), int>();
 
             _reconnectTimer = new Timer(1000);
             _reconnectTimer.Elapsed += _reconnectTimer_Elapsed;
@@ -165,7 +165,7 @@ namespace QDMSServer
 
         private void _client_Error(object sender, ErrorArgs e)
         {
-            Log(LogLevel.Error, "Continuous futures broker client error: " + e.ErrorMessage);
+            //Log(LogLevel.Error, "Continuous futures broker client error: " + e.ErrorMessage);
         }
 
         public void Dispose()
@@ -193,7 +193,7 @@ namespace QDMSServer
             if (!_histReqIDMap.ContainsKey(e.Request.RequestID)) return; //we're only interested in reqs originating in the CFB
 
             int id = e.Request.Instrument.ID.Value;
-            var kvpID = new KeyValuePair<int, BarSize>(id, e.Request.Frequency);
+            var kvpID = (id, e.Request.Frequency);
 
             lock (_data)
             {
@@ -410,7 +410,7 @@ namespace QDMSServer
             {
                 lock (_dataUsesLock)
                 {
-                    var kvp = new KeyValuePair<int, BarSize>(req.Instrument.ID.Value, req.Frequency);
+                    var kvp = (req.Instrument.ID.Value, req.Frequency);
                     if (_dataUsesPending.ContainsKey(kvp))
                         _dataUsesPending[kvp]++;
                     else
@@ -433,7 +433,7 @@ namespace QDMSServer
             //start by cleaning up the data, it is possible that some of the futures may not have had ANY data returned!
             lock (_dataLock)
             {
-                futures = futures.Where(x => _data[new KeyValuePair<int, BarSize>(x.ID.Value, request.Frequency)].Count > 0).ToList();
+                futures = futures.Where(x => _data[(x.ID.Value, request.Frequency)].Count > 0).ToList();
             }
 
             if (futures.Count == 0)
@@ -464,11 +464,11 @@ namespace QDMSServer
             TimeSeries frontData, backData, selectedData;
             lock (_dataLock)
             {
-                frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
-                backData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]);
-                selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+                frontData = new TimeSeries(_data[(frontFuture.ID.Value, request.Frequency)]);
+                backData = new TimeSeries(_data[(backFuture.ID.Value, request.Frequency)]);
+                selectedData = new TimeSeries(_data[(selectedFuture.ID.Value, request.Frequency)]);
 
-                lastDateAvailable = _data[new KeyValuePair<int, BarSize>(futures.Last().ID.Value, request.Frequency)].Last().DT;
+                lastDateAvailable = _data[(futures.Last().ID.Value, request.Frequency)].Last().DT;
             }
 
             DateTime finalDate = request.EndingDate < lastDateAvailable ? request.EndingDate : lastDateAvailable;
@@ -647,9 +647,9 @@ namespace QDMSServer
 
                     lock (_dataLock)
                     {
-                        frontData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(frontFuture.ID.Value, request.Frequency)]);
-                        backData = backFuture != null ? new TimeSeries(_data[new KeyValuePair<int, BarSize>(backFuture.ID.Value, request.Frequency)]) : null;
-                        selectedData = new TimeSeries(_data[new KeyValuePair<int, BarSize>(selectedFuture.ID.Value, request.Frequency)]);
+                        frontData = new TimeSeries(_data[(frontFuture.ID.Value, request.Frequency)]);
+                        backData = backFuture != null ? new TimeSeries(_data[(backFuture.ID.Value, request.Frequency)]) : null;
+                        selectedData = new TimeSeries(_data[(selectedFuture.ID.Value, request.Frequency)]);
                     }
 
                     frontData.AdvanceTo(currentDate);
@@ -681,7 +681,7 @@ namespace QDMSServer
             {
                 foreach (Instrument i in futures)
                 {
-                    var kvp = new KeyValuePair<int, BarSize>(i.ID.Value, request.Frequency);
+                    var kvp = (i.ID.Value, request.Frequency);
                     if (_dataUsesPending[kvp] == 1) //this data isn't needed anywhere else, we can delete it
                     {
                         _dataUsesPending.Remove(kvp);
@@ -865,7 +865,7 @@ namespace QDMSServer
             {
                 lock (_dataUsesLock)
                 {
-                    var kvp = new KeyValuePair<int, BarSize>(req.Instrument.ID.Value, req.Frequency);
+                    var kvp = (req.Instrument.ID.Value, req.Frequency);
                     if (_dataUsesPending.ContainsKey(kvp))
                         _dataUsesPending[kvp]++;
                     else
