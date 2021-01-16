@@ -362,15 +362,13 @@ namespace QDMSServer
                 return;
             }
 
+            TimeZoneInfo tzInfo = TimeZoneInfo.Utc;
             //make sure the timezone is set, and get it
-            if (string.IsNullOrEmpty(_instrument.Exchange.Timezone))
+            if (!string.IsNullOrEmpty(_instrument.Exchange?.Timezone))
             {
-                MessageBox.Show("Instrument's exchange has no set timezone, can't import.");
-                return;
+                tzInfo = TimeZoneInfo.FindSystemTimeZoneById(_instrument.Exchange.Timezone);
             }
             
-            var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(_instrument.Exchange.Timezone);
-
 
             //get the multipliers
             decimal priceMultiplier;
