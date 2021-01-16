@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS2", "QDMS2\QDMS2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityData2", "EntityData2\EntityData2.csproj", "{E7085CC8-81AE-463A-BF24-6F09B902331E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Tiingo", "QDMS.Server.DataSources.Tiingo\QDMS.Server.DataSources.Tiingo.csproj", "{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -361,6 +363,18 @@ Global
 		{E7085CC8-81AE-463A-BF24-6F09B902331E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E7085CC8-81AE-463A-BF24-6F09B902331E}.Release|x86.ActiveCfg = Release|Any CPU
 		{E7085CC8-81AE-463A-BF24-6F09B902331E}.Release|x86.Build.0 = Release|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Debug|x86.Build.0 = Debug|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Release|x86.ActiveCfg = Release|Any CPU
+		{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
