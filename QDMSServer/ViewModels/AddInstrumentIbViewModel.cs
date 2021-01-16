@@ -300,7 +300,7 @@ namespace QDMSServer.ViewModels
         }
 
         /// <summary>
-        /// 
+        /// Add instrument
         /// </summary>
         /// <param name="instrument"></param>
         /// <returns>null if addition failed</returns>

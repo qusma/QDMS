@@ -177,7 +177,7 @@ namespace QDMSServer.DataSources
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
             var data = GetData(request.Instrument, request.StartingDate, request.EndingDate, request.Frequency);
-
+            //TODO: multithread this
             RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(request, data));
         }
 

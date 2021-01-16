@@ -16,7 +16,7 @@ namespace QDMS
     public static class DateTimeExtensions
     {
         /// <summary>
-        /// 
+        /// LocalDate to DateTime
         /// </summary>
         /// <param name="dt"></param>
         /// <returns></returns>
@@ -26,7 +26,7 @@ namespace QDMS
         }
 
         /// <summary>
-        /// 
+        /// LocalDateTime to DateTime
         /// </summary>
         /// <param name="dt"></param>
         /// <returns></returns>
@@ -36,7 +36,7 @@ namespace QDMS
         }
 
         /// <summary>
-        /// 
+        /// Add business days to datetime
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="days"></param>

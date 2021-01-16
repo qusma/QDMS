@@ -716,9 +716,8 @@ namespace QDMSServer.DataSources
                     //the new system uses the historical data update endpoint instead of realtime data
                     _client.RequestHistoricalData(id, contract, "", 
                         "60 S", QDMSIBClient.BarSize.FiveSeconds, HistoricalDataType.Trades, request.RTHOnly, true);
-                    //todo ignore the data
-                    //todo write test
-                    //todo does this request cause the historicaldataend event to fire?
+
+                    //todo: write test
                 }
                 else
                 {

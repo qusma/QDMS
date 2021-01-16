@@ -169,7 +169,7 @@ namespace QDMSServer
                 foreach (Instrument i in selectedInstruments)
                 {
                     if (!i.ID.HasValue) continue;
-                    //TODO add GetStorageInfo to client, then remove dependency on DataStorageFactory here
+                    //TODO: add GetStorageInfo to client, then remove dependency on DataStorageFactory here
                     List<StoredDataInfo> storageInfo = localStorage.GetStorageInfo(i.ID.Value);
                     if (storageInfo.Any(x => x.Frequency == frequency))
                     {
@@ -365,7 +365,7 @@ namespace QDMSServer
 
             using (IDataStorage storage = DataStorageFactory.Get())
             {
-                //todo remove dependency on local storage here, use client instead
+                //todo: remove dependency on local storage here, use client instead
                 foreach (Instrument i in selectedInstruments)
                 {
                     try
@@ -561,7 +561,7 @@ namespace QDMSServer
         {
             var setSessionMenu = (MenuItem)Resources["InstrumentSetSessionMenu"];
             setSessionMenu.Items.Clear();
-            //todo remake to use client
+            //todo: remake to use client
             using (var context = new MyDBContext())
             {
                 foreach (SessionTemplate t in context.SessionTemplates.ToList())

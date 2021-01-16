@@ -129,7 +129,7 @@ namespace QDMS.Server.Brokers
                 var queryableData = context.EarningsAnnouncements
                     .Where(x =>
                         x.Date >= request.FromDate &&
-                        x.Date <= request.ToDate);//TODO we want end of day as cutoff
+                        x.Date <= request.ToDate);
 
                 if (request.Symbol != null && request.Symbol.Count > 0)
                 {

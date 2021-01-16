@@ -158,7 +158,6 @@ namespace QDMSServer
                     Serializer.Serialize(ms, e);
                     _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.InstrumentID}~{(int)e.Frequency}")); // Start by sending the id+freq before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeBars);
-                    //todo here and on the receiving end, need to send frequency. First add barsize to rtdeventargs.
                     _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
 
                 }
@@ -295,12 +294,9 @@ namespace QDMSServer
                 // 1: MessageType.RTDCanceled
                 // 2: the instrument symbol
                 // 3: the frequency
-                //todo do we need to reply here?
                 _requestSocket.SendMoreFrame(MessageType.RTDCanceled);
                 _requestSocket.SendMoreFrame(instrument.Symbol);
                 _requestSocket.SendFrame(freqBuff);
-
-                //todo fix this on the client
             }
         }
 

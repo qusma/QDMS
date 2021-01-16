@@ -21,7 +21,6 @@ using NetMQ.Sockets;
 using QDMS;
 using QDMS.Annotations;
 
-// TODO: Fix comments at the end of lines
 namespace QDMSClient
 {
     // ReSharper disable once InconsistentNaming
@@ -91,7 +90,7 @@ namespace QDMSClient
         private bool PollerRunning => (_poller != null) && _poller.IsRunning;
 
         /// <summary>
-        /// 
+        /// Connected to server
         /// </summary>
         public bool Connected
         {
@@ -146,7 +145,7 @@ namespace QDMSClient
         public event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
 
         /// <summary>
-        /// 
+        /// Event used to surface errors
         /// </summary>
         public event EventHandler<ErrorArgs> Error;
 
@@ -528,7 +527,7 @@ namespace QDMSClient
 
             lock (_realTimeDataSocketLock)
             {
-                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{(int)frequency}")); //todo repeat other client serevr
+                _realTimeDataSocket?.Unsubscribe(Encoding.UTF8.GetBytes($"{instrument.ID.Value}~{(int)frequency}"));
             }
 
             lock (_realTimeDataStreamsLock)
@@ -877,13 +876,13 @@ namespace QDMSClient
 
         //These can be removed in a subsequent version
         /// <summary>
-        /// 
+        /// Obsolete
         /// </summary>
         /// <returns></returns>
         [Obsolete("Use GetInstruments instead")]
         public List<Instrument> GetAllInstruments() => GetInstruments().Result.Result;
         /// <summary>
-        /// 
+        /// Obsolete
         /// </summary>
         /// <param name="pred"></param>
         /// <returns></returns>
@@ -891,7 +890,7 @@ namespace QDMSClient
         public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred) =>
             GetInstruments(pred).Result.Result;
         /// <summary>
-        /// 
+        /// Obsolete
         /// </summary>
         /// <param name="instrument"></param>
         /// <returns></returns>
@@ -900,12 +899,12 @@ namespace QDMSClient
             GetInstruments(instrument).Result.Result;
 
         /// <summary>
-        /// 
+        /// PropertyChanged
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// 
+        /// OnPropertyChanged
         /// </summary>
         /// <param name="propertyName"></param>
         [NotifyPropertyChangedInvocator]

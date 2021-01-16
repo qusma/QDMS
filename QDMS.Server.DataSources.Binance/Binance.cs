@@ -65,7 +65,7 @@ namespace QDMS.Server.DataSources.Binance
                 Thread.Sleep(15);
             }
         }
-        //todo test requesting wrong freq, both hist and rt
+
         private async Task<List<OHLCBar>> ProcessHistoricalRequest(HistoricalDataRequest req)
         {
             //there's a limit to the number of bars that can be returned per-request, so here we split it up
