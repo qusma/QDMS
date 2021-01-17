@@ -36,10 +36,10 @@ module CBOEModule =
                 | _ -> System.Nullable()
             | None -> System.Nullable()
 
-        let parseEarningsCallTime (str) =
+        let parseEarningsCallTime (str : Option<string>) =
             match str with
-            | "BMO" -> EarningsCallTime.BeforeMarketOpen
-            | "AMC" -> EarningsCallTime.AfterMarketClose
+            | Some "BMO" -> EarningsCallTime.BeforeMarketOpen
+            | Some "AMC" -> EarningsCallTime.AfterMarketClose
             | _ -> EarningsCallTime.NotAvailable
 
         member this.getAnnouncementsForDate (date : DateTime) = 
@@ -51,6 +51,7 @@ module CBOEModule =
                 httpResponse.EnsureSuccessStatusCode() |> ignore
 
                 let! html = httpResponse.Content.ReadAsStringAsync() |> Async.AwaitTask
+
                 try
                     return this.parse(html, date.Date)
                 with e -> 
@@ -63,6 +64,8 @@ module CBOEModule =
 
 
         member this.parse(html, date) = 
+            if html.Contains("No Events Found For Earnings") then Seq.empty else
+
             let parsedHtml = htmlProv.Parse(html)
             parsedHtml.Tables.Events_results.Rows 
                 |> Seq.map(fun row -> new EarningsAnnouncement(Symbol = row.Symbol,
