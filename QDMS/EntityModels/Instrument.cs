@@ -22,7 +22,7 @@ namespace QDMS
     public class Instrument : ICloneable, IEquatable<Instrument>
     {
         /// <summary>
-        /// 
+        /// Id
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -30,7 +30,7 @@ namespace QDMS
         public int? ID { get; set; }
 
         /// <summary>
-        /// 
+        /// Instrument symbol
         /// </summary>
         [ProtoMember(1)]
         [MaxLength(100)]
@@ -44,26 +44,26 @@ namespace QDMS
         public string UnderlyingSymbol { get; set; }
 
         /// <summary>
-        /// 
+        /// Descriptive name of the security
         /// </summary>
         [ProtoMember(89)]
         [MaxLength(255)]
         public string Name { get; set; }
 
         /// <summary>
-        /// 
+        /// Primary exchange id
         /// </summary>
         [ProtoMember(3)]
         public int? PrimaryExchangeID { get; set; }
 
         /// <summary>
-        /// 
+        /// Exchange id
         /// </summary>
         [ProtoMember(4)]
         public int? ExchangeID { get; set; }
 
         /// <summary>
-        /// 
+        /// Instrument type
         /// </summary>
         [ProtoMember(5)]
         public InstrumentType Type { get; set; }
@@ -75,7 +75,7 @@ namespace QDMS
         public int? Multiplier { get; set; }
 
         /// <summary>
-        /// 
+        /// Expiration date for instruments that expire
         /// </summary>
         public DateTime? Expiration
         {
@@ -120,7 +120,7 @@ namespace QDMS
         private int _expirationDay;
 
         /// <summary>
-        /// 
+        /// Type of option
         /// </summary>
         [ProtoMember(10)]
         public OptionType? OptionType { get; set; }
@@ -133,7 +133,7 @@ namespace QDMS
         public decimal? Strike { get; set; }
 
         /// <summary>
-        /// 
+        /// Currency
         /// </summary>
         [ProtoMember(12)]
         [MaxLength(25)]
@@ -167,49 +167,49 @@ namespace QDMS
         public string Subcategory { get; set; }
 
         /// <summary>
-        /// 
+        /// Whether the instrument is a computed "continuous" future combining multiple futures series
         /// </summary>
         [ProtoMember(17)]
         public bool IsContinuousFuture { get; set; }
 
         /// <summary>
-        /// 
+        /// Allowed exchanges
         /// </summary>
         [ProtoMember(18)]
         public string ValidExchanges { get; set; }
 
         /// <summary>
-        /// 
+        /// Tags
         /// </summary>
         [ProtoMember(19)]
         public virtual ICollection<Tag> Tags { get; set; }
 
         /// <summary>
-        /// 
+        /// Datasource id
         /// </summary>
         [ProtoMember(90)]
         public int? DatasourceID { get; set; }
 
         /// <summary>
-        /// 
+        /// Exchange
         /// </summary>
         [ProtoMember(21)]
         public virtual Exchange Exchange { get; set; }
 
         /// <summary>
-        /// 
+        /// Primary exchange
         /// </summary>
         [ProtoMember(22)]
         public virtual Exchange PrimaryExchange { get; set; }
 
         /// <summary>
-        /// 
+        /// Datasource
         /// </summary>
         [ProtoMember(23)]
         public virtual Datasource Datasource { get; set; }
 
         /// <summary>
-        /// 
+        /// Id for continuous futures
         /// </summary>
         [ProtoMember(24)]
         public int? ContinuousFutureID { get; set; }
@@ -220,26 +220,26 @@ namespace QDMS
         public SessionsSource SessionsSource { get; set; }
 
         /// <summary>
-        /// 
+        /// Instrument sessions, when the instrument is available for trading
         /// </summary>
         [ProtoMember(26)]
         public virtual ICollection<InstrumentSession> Sessions { get; set; }
 
         /// <summary>
-        /// 
+        /// Session template id
         /// </summary>
         [ProtoMember(27)]
         public int? SessionTemplateID { get; set; }
 
         /// <summary>
-        /// 
+        /// Symbol of the datasource
         /// </summary>
         [ProtoMember(28)]
         [MaxLength(255)]
         public string DatasourceSymbol { get; set; }
 
         /// <summary>
-        /// 
+        /// Continuous futures settings
         /// </summary>
         [ProtoMember(29)]
         public virtual ContinuousFuture ContinuousFuture { get; set; }
@@ -252,7 +252,7 @@ namespace QDMS
         public string TradingClass { get; set; }
 
         /// <summary>
-        /// 
+        /// Tags
         /// </summary>
         [NotMapped]
         public string TagsAsString

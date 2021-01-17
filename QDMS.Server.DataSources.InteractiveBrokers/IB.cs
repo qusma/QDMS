@@ -305,7 +305,7 @@ namespace QDMSServer.DataSources
         }
 
         /// <summary>
-        /// 
+        /// Fixes bar closing times
         /// </summary>
         private void AdjustBarTimes(List<OHLCBar> bars, HistoricalDataRequest request)
         {

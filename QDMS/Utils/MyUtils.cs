@@ -184,7 +184,7 @@ namespace QDMS
         }
 
         /// <summary>
-        /// 
+        /// Seconds after epoch
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
@@ -194,7 +194,7 @@ namespace QDMS
         }
 
         /// <summary>
-        /// 
+        /// Milliseconds after epoch
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>

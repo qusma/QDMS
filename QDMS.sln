@@ -61,7 +61,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS2", "QDMS2\QDMS2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityData2", "EntityData2\EntityData2.csproj", "{E7085CC8-81AE-463A-BF24-6F09B902331E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QDMS.Server.DataSources.Tiingo", "QDMS.Server.DataSources.Tiingo\QDMS.Server.DataSources.Tiingo.csproj", "{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QDMS.Server.DataSources.Tiingo", "QDMS.Server.DataSources.Tiingo\QDMS.Server.DataSources.Tiingo.csproj", "{F10A6DF9-BBBA-46C3-8627-43DA2AC41FC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

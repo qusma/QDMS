@@ -77,19 +77,19 @@ namespace QDMS
         public const string RealTimeTick = "T";
 
         /// <summary>
-        /// 
+        /// Ping
         /// </summary>
         public const string Ping = "PING";
         /// <summary>
-        /// 
+        /// Ping reply
         /// </summary>
         public const string Pong = "PONG";
         /// <summary>
-        /// 
+        /// Error
         /// </summary>
         public const string Error = "ERROR";
         /// <summary>
-        /// 
+        /// Success
         /// </summary>
         public const string Success = "SUCCESS";
     }

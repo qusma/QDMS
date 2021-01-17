@@ -15,7 +15,7 @@ namespace QDMS
     public interface IDataStorage : IHistoricalDataSource, IDisposable
     {
         /// <summary>
-        /// 
+        /// Add data
         /// </summary>
         /// <param name="data"></param>
         /// <param name="instrument"></param>
@@ -33,9 +33,10 @@ namespace QDMS
         /// <param name="frequency"></param>
         /// <param name="overwrite"></param>
         void AddDataAsync(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool overwrite = false);
-        
+
         /// <summary>
-        /// 
+        /// This method allows adding data, but allowing the actual saving of the data to be delayed.
+        /// Useful when you want to allow the data source the ability to make batch inserts/save to file/whatever on its own discretion.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="instrument"></param>
@@ -45,7 +46,7 @@ namespace QDMS
 
 
         /// <summary>
-        /// 
+        /// Update existing data
         /// </summary>
         /// <param name="data"></param>
         /// <param name="instrument"></param>
@@ -54,7 +55,7 @@ namespace QDMS
         void UpdateData(List<OHLCBar> data, Instrument instrument, BarSize frequency, bool adjust = false);
 
         /// <summary>
-        /// 
+        /// Request data
         /// </summary>
         /// <param name="instrument"></param>
         /// <param name="startDate"></param>
@@ -64,13 +65,13 @@ namespace QDMS
         List<OHLCBar> GetData(Instrument instrument, DateTime startDate, DateTime endDate, BarSize barSize = BarSize.OneDay);
 
         /// <summary>
-        /// 
+        /// Remove all data on an instrument
         /// </summary>
         /// <param name="instrument"></param>
         void DeleteAllInstrumentData(Instrument instrument);
 
         /// <summary>
-        /// 
+        /// Remove all data on an instrument for a particular frequency
         /// </summary>
         /// <param name="instrument"></param>
         /// <param name="frequency"></param>

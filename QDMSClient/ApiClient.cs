@@ -29,7 +29,7 @@ namespace QDMSClient
         private readonly string _baseAddr;
 
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
         /// <param name="host"></param>
         /// <param name="httpPort"></param>

@@ -16,7 +16,7 @@ namespace QDMSClient
     public class ApiResponse
     {
         /// <summary>
-        /// 
+        /// Was the request successful?
         /// </summary>
         public bool WasSuccessful { get; protected set; }
 
@@ -31,7 +31,7 @@ namespace QDMSClient
         public HttpStatusCode StatusCode { get; protected set; }
 
         /// <summary>
-        /// 
+        /// Constructor with one or no error
         /// </summary>
         /// <param name="response"></param>
         /// <param name="error"></param>
@@ -44,7 +44,7 @@ namespace QDMSClient
         }
 
         /// <summary>
-        /// 
+        /// Constructor w/ multiple errors
         /// </summary>
         /// <param name="response"></param>
         /// <param name="errors"></param>
@@ -66,7 +66,7 @@ namespace QDMSClient
         }
 
         /// <summary>
-        /// 
+        /// For serialization
         /// </summary>
         public ApiResponse()
         {
@@ -80,7 +80,7 @@ namespace QDMSClient
     public class ApiResponse<T> : ApiResponse
     {
         /// <summary>
-        /// 
+        /// Request result
         /// </summary>
         public T Result { get; }
 

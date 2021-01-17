@@ -155,7 +155,7 @@ namespace QDMS.Server
         }
 
         /// <summary>
-        /// 
+        /// Checks datasource, exchange, and primary exchange to make sure they exist
         /// </summary>
         /// <param name="instrument"></param>
         /// <exception cref="ArgumentException"></exception>
