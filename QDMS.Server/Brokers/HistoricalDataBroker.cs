@@ -583,16 +583,5 @@ namespace QDMSServer
                 _dataStorage.AddData(request.Data, request.Instrument, request.Frequency, request.Overwrite);
             }
         }
-
-        public List<StoredDataInfo> GetAvailableDataInfo(Instrument instrument)
-        {
-            if (instrument.ID == null)
-            {
-                Log(LogLevel.Info, "Request for available data on instrument without ID.");
-                return new List<StoredDataInfo>();
-            }
-
-            return _dataStorage.GetStorageInfo(instrument.ID.Value);
-        }
     }
 }

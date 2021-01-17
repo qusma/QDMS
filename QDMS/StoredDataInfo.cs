@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 using ProtoBuf;
 
 namespace QDMS
@@ -43,6 +44,7 @@ namespace QDMS
         /// </summary>
         [ProtoMember(3)]
         [NotMapped]
+        [JsonIgnore]
         public long EarliestDateAsLong
         {
             get
@@ -60,6 +62,7 @@ namespace QDMS
         /// </summary>
         [ProtoMember(4)]
         [NotMapped]
+        [JsonIgnore]
         public long LatestDateAsLong
         {
             get

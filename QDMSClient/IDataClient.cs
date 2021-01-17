@@ -30,11 +30,6 @@ namespace QDMS
         event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
 
         /// <summary>
-        /// Raised when receiving info on what data is stored in the local database
-        /// </summary>
-        event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
-
-        /// <summary>
         /// Raised when real time bar data arrives
         /// </summary>
         event EventHandler<RealTimeDataEventArgs> RealTimeDataReceived;
@@ -169,7 +164,7 @@ namespace QDMS
         /// Requests information on what historical data is available in local storage for this instrument.
         /// </summary>
         /// <param name="instrument"></param>
-        void GetLocallyAvailableDataInfo(Instrument instrument);
+        Task<ApiResponse<List<StoredDataInfo>>> GetLocallyAvailableDataInfo(Instrument instrument);
 
         /// <summary>
         /// Get all session templates

@@ -133,34 +133,6 @@ namespace QDMSTest
         }
 
         [Test]
-        public void AcceptAvailableDataRequestsAreForwardedToTheHistoricalDataBroker()
-        {
-            var instrument = new Instrument
-            {
-                ID = 1,
-                Symbol = "SPY",
-                Datasource = new Datasource { ID = 1, Name = "MockSource" }
-            };
-
-            _historicalDataBrokerMock
-                .Setup(x => x.GetAvailableDataInfo(It.Is<Instrument>(i => i.ID.HasValue && i.ID.Value == 1 && i.Symbol.Equals("SPY", StringComparison.InvariantCultureIgnoreCase))))
-                .Returns(new List<StoredDataInfo>());
-
-            _client.GetLocallyAvailableDataInfo(instrument);
-            // TODO: Think about delay amount
-            Thread.Sleep(1000);
-
-            _historicalDataBrokerMock.Verify(
-                x => x.GetAvailableDataInfo(
-                    It.Is<Instrument>(
-                        y =>
-                            y.ID == 1 &&
-                            y.Symbol == "SPY")
-                    ),
-                Times.Once);
-        }
-
-        [Test]
         public void SendsErrorMessageWhenExceptionIsRaisedByBrokerOnHistoricalDataRequest()
         {
             var errorRaised = false;

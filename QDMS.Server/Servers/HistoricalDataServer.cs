@@ -143,10 +143,6 @@ namespace QDMSServer
             {
                 AcceptDataAdditionRequest(requesterIdentity);
             }
-            else if (text.Equals(MessageType.AvailableDataRequest, StringComparison.InvariantCultureIgnoreCase)) // Client wants to know what kind of data we have stored locally
-            {
-                AcceptAvailableDataRequest(requesterIdentity);
-            }
             else
             {
                 _logger.Info($"Unrecognized request to historical data broker: {text}");
@@ -192,47 +188,7 @@ namespace QDMSServer
             }
         }
 
-        /// <summary>
-        ///     Handles requests for information on data that is available in local storage
-        /// </summary>
-        private void AcceptAvailableDataRequest(string requesterIdentity)
-        {
-            lock (_socketLock)
-            {
-                if (_socket != null)
-                {
-                    using (var ms = new MemoryStream())
-                    {
-                        // Get the instrument
-                        bool hasMore;
-                        var buffer = _socket.ReceiveFrameBytes(out hasMore);
-                        var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
 
-                        _logger.Info($"Received local data storage info request for {instrument.Symbol}.");
-                        // And send the reply
-                        var storageInfo = _broker.GetAvailableDataInfo(instrument);
-
-                        _socket.SendMoreFrame(requesterIdentity);
-                        _socket.SendMoreFrame(MessageType.AvailableDataReply);
-                        _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(instrument, ms));
-                        _socket.SendMoreFrame(BitConverter.GetBytes(storageInfo.Count));
-
-                        for (int i = 0; i < storageInfo.Count; i++)
-                        {
-                            var sdi = storageInfo[i];
-                            if (i < storageInfo.Count - 1)
-                            {
-                                _socket.SendMoreFrame(MyUtils.ProtoBufSerialize(sdi, ms));
-                            }
-                            else
-                            {
-                                _socket.SendFrame(MyUtils.ProtoBufSerialize(sdi, ms));
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         /// <summary>
         ///     Handles incoming data "push" requests: the client sends data for us to add to local storage.

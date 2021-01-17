@@ -150,7 +150,6 @@
     <Compile Include="EventArguments\DataSourceDisconnectEventArgs.cs" />
     <Compile Include="EventArguments\ErrorArgs.cs" />
     <Compile Include="EventArguments\HistoricalDataEventArgs.cs" />
-    <Compile Include="EventArguments\LocallyAvailableDataInfoReceivedEventArgs.cs" />
     <Compile Include="EventArguments\RealTimeDataEventArgs.cs" />
     <Compile Include="Requests\FrontContractRequest.cs" />
     <Compile Include="Requests\HistoricalDataRequest.cs" />

@@ -59,6 +59,29 @@ namespace QDMSTest.HttpServer
         }
 
         [Test]
+        public async Task StoredDataInfoReqWorks()
+        {
+            _dataStorageMock.Setup(x => x.GetStorageInfo(It.Is<int>(id => id == 1)))
+                .Returns<int>(x => 
+                    new List<StoredDataInfo>() { new StoredDataInfo() { InstrumentID = x, Frequency = BarSize.OneDay, EarliestDate = new DateTime(2000,1,1), LatestDate = DateTime.Now } });
+
+            //Set up the repo
+            InstrumentRepoMock
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .Returns(async () => await Task.FromResult(_data.AsQueryable().Where(x => x.ID == 1).ToList()));
+
+            //make the request
+            var response = await Browser.Get("/instruments/1/storageinfo", with =>
+            {
+                with.HttpRequest();
+                with.Query("Symbol", "QQQ"); //must use with.Query() for parameters
+            });
+
+            //make sure everything is nominal
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Test]
         public async Task PredicateSearchWorks()
         {
             //Set up the repo

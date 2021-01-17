@@ -19,7 +19,6 @@ namespace QDMSServer
 
         void RequestHistoricalData(HistoricalDataRequest request);
         void AddData(DataAdditionRequest request);
-        List<StoredDataInfo> GetAvailableDataInfo(Instrument instrument);
 
         event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
         event EventHandler<ErrorArgs> Error;

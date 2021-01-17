@@ -140,11 +140,6 @@ namespace QDMSClient
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataReceived;
 
         /// <summary>
-        /// Fires when stored data info are received
-        /// </summary>
-        public event EventHandler<LocallyAvailableDataInfoReceivedEventArgs> LocallyAvailableDataInfoReceived;
-
-        /// <summary>
         /// Event used to surface errors
         /// </summary>
         public event EventHandler<ErrorArgs> Error;
@@ -189,38 +184,6 @@ namespace QDMSClient
             }
         }
 
-        /// <summary>
-        ///     Requests information on what historical data is available in local storage for this instrument.
-        /// </summary>
-        public void GetLocallyAvailableDataInfo(Instrument instrument)
-        {
-            if (instrument == null)
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Instrument cannot be null."));
-
-                return;
-            }
-
-            if (!Connected)
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not request local historical data - not connected."));
-
-                return;
-            }
-
-            lock (_historicalDataSocketLock)
-            {
-                if (_historicalDataSocket != null)
-                {
-                    _historicalDataSocket.SendMoreFrame(MessageType.AvailableDataRequest);
-
-                    using (var ms = new MemoryStream())
-                    {
-                        _historicalDataSocket.SendFrame(MyUtils.ProtoBufSerialize(instrument, ms));
-                    }
-                }
-            }
-        }
 
         /// <summary>
         ///     Request historical data. Data will be delivered through the HistoricalDataReceived event.
@@ -681,10 +644,6 @@ namespace QDMSClient
                 {
                     HandleHistoricalDataRequestReply();
                 }
-                else if (type.Equals(MessageType.AvailableDataReply, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    HandleAvailabledataReply();
-                }
                 else if (type.Equals(MessageType.Error, StringComparison.InvariantCultureIgnoreCase))
                 {
                     HandleErrorReply();
@@ -771,42 +730,6 @@ namespace QDMSClient
             RaiseEvent(Error, this, new ErrorArgs(-1, message, requestId));
         }
 
-        /// <summary>
-        ///     Called when we get a reply on a request for available data in local storage.
-        /// </summary>
-        private void HandleAvailabledataReply()
-        {
-            // First the instrument
-            using (var ms = new MemoryStream())
-            {
-                var buffer = _historicalDataSocket.ReceiveFrameBytes();
-                var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
-                // Second the number of items
-                buffer = _historicalDataSocket.ReceiveFrameBytes();
-                var count = BitConverter.ToInt32(buffer, 0);
-                // Then actually get the items, if any
-                if (count == 0)
-                {
-                    RaiseEvent(LocallyAvailableDataInfoReceived, this, new LocallyAvailableDataInfoReceivedEventArgs(instrument, new List<StoredDataInfo>()));
-                }
-                else
-                {
-                    var storageInfo = new List<StoredDataInfo>();
-
-                    for (var i = 0; i < count; i++)
-                    {
-                        bool hasMore;
-                        buffer = _historicalDataSocket.ReceiveFrameBytes(out hasMore);
-                        var info = MyUtils.ProtoBufDeserialize<StoredDataInfo>(buffer, ms);
-                        storageInfo.Add(info);
-
-                        if (!hasMore) break;
-                    }
-
-                    RaiseEvent(LocallyAvailableDataInfoReceived, this, new LocallyAvailableDataInfoReceivedEventArgs(instrument, storageInfo));
-                }
-            }
-        }
 
         /// <summary>
         ///     Called on a reply to a data push

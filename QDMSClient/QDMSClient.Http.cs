@@ -139,6 +139,13 @@ namespace QDMSClient
         public async Task<ApiResponse<Instrument>> DeleteInstrument(Instrument instrument) =>
             await _apiClient.DeleteAsync<Instrument>($"/instruments/{instrument?.ID}").ConfigureAwait(false);
 
+        /// <summary>
+        ///     Requests information on what historical data is available in local storage for this instrument.
+        /// </summary>
+        public async Task<ApiResponse<List<StoredDataInfo>>> GetLocallyAvailableDataInfo(Instrument instrument) =>
+            await _apiClient.GetAsync<List<StoredDataInfo>>($"/instruments/{instrument?.ID}/storageinfo").ConfigureAwait(false);
+
+
         #endregion instruments
 
         #region tags

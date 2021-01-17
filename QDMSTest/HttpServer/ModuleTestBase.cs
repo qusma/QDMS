@@ -38,7 +38,7 @@ namespace QDMSTest.HttpServer
         protected Mock<DbSet<T>> DbSetMock;
         protected Mock<IMyDbContext> ContextMock = new Mock<IMyDbContext>();
         protected Mock<IInstrumentSource> InstrumentRepoMock = new Mock<IInstrumentSource>();
-        private Mock<IDataStorage> _dataStorageMock = new Mock<IDataStorage>();
+        protected Mock<IDataStorage> _dataStorageMock = new Mock<IDataStorage>();
 
         public void SetUp(List<T> data)
         {

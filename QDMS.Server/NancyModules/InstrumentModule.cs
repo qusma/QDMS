@@ -35,6 +35,21 @@ namespace QDMS.Server.NancyModules
                 return instrument;
             });
 
+            Get("/{Id:int}/storageinfo", async (parameters, token) =>
+            {
+                //storage info by instrument id
+                var id = (int)parameters.Id;
+                var instrument = (await instrumentRepo.FindInstruments(x => x.ID == id).ConfigureAwait(false)).FirstOrDefault();
+
+                if (instrument == null) return HttpStatusCode.NotFound;
+
+                var storageInfo = dataStorage.GetStorageInfo(id);
+
+                if (storageInfo == null) return HttpStatusCode.NotFound;
+
+                return storageInfo;
+            });
+
             Get("/search", async (_, token) =>
             {
                 //Search using an instrument object

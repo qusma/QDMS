@@ -169,7 +169,7 @@ namespace QDMSServer
                 foreach (Instrument i in selectedInstruments)
                 {
                     if (!i.ID.HasValue) continue;
-                    //TODO: add GetStorageInfo to client, then remove dependency on DataStorageFactory here
+                    //TODO: add GetStorageInfo to client through REST, deprecate zmq, then remove dependency on DataStorageFactory here
                     List<StoredDataInfo> storageInfo = localStorage.GetStorageInfo(i.ID.Value);
                     if (storageInfo.Any(x => x.Frequency == frequency))
                     {

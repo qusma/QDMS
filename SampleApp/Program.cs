@@ -30,7 +30,6 @@ namespace SampleApp
             //hook up the events needed to receive data & error messages
             client.HistoricalDataReceived += client_HistoricalDataReceived;
             client.RealTimeDataReceived += client_RealTimeDataReceived;
-            client.LocallyAvailableDataInfoReceived += client_LocallyAvailableDataInfoReceived;
             client.Error += client_Error;
 
             //connect to the server
@@ -92,7 +91,15 @@ namespace SampleApp
                 Thread.Sleep(3000);
 
                 //now that we downloaded the data, let's make a request to see what is stored locally
-                client.GetLocallyAvailableDataInfo(spy);
+                var storageInfo = client.GetLocallyAvailableDataInfo(spy).Result;
+                if (storageInfo.WasSuccessful)
+                {
+                    foreach (var s in storageInfo.Result)
+                    {
+                        Console.WriteLine("Freq: {0} - From {1} to {2}", s.Frequency, s.EarliestDate, s.LatestDate);
+                    }
+                    
+                }
 
                 Thread.Sleep(3000);
 
@@ -111,14 +118,6 @@ namespace SampleApp
             Console.ReadLine();
             client.Disconnect();
             client.Dispose();
-        }
-
-        static void client_LocallyAvailableDataInfoReceived(object sender, LocallyAvailableDataInfoReceivedEventArgs e)
-        {
-            foreach (StoredDataInfo s in e.StorageInfo)
-            {
-                Console.WriteLine("Freq: {0} - From {1} to {2}", s.Frequency, s.EarliestDate, s.LatestDate);
-            }
         }
 
         static void client_Error(object sender, ErrorArgs e)
