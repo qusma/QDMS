@@ -207,8 +207,7 @@ namespace QDMSServer
             //dividend sources
             var dividendSources = new[]
             {
-                typeof(NasdaqDs.Nasdaq),
-                typeof(DivDotCom.DividendDotCom)
+                typeof(NasdaqDs.Nasdaq)
             };
 
             container.Collection.Register<IDividendDataSource>(dividendSources

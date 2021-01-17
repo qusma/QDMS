@@ -13,6 +13,7 @@ module DivDotCom =
     //sometimes not entirely correct dividend values...
     type jsonProv = FSharp.Data.JsonProvider<"./response.json">
 
+    //can't scrape it any more, too much info hidden...might change in the future
     type DividendDotCom() = 
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
         let logger = NLog.LogManager.GetCurrentClassLogger()
