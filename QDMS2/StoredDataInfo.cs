@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 using ProtoBuf;
 
 namespace QDMS
@@ -17,32 +18,33 @@ namespace QDMS
     public class StoredDataInfo
     {
         /// <summary>
-        /// 
+        /// Instrument id
         /// </summary>
         [ProtoMember(1)]
         public int InstrumentID { get; set; }
 
         /// <summary>
-        /// 
+        /// The data frequency
         /// </summary>
         [ProtoMember(2)]
         public BarSize Frequency { get; set; }
 
         /// <summary>
-        /// 
+        /// Starting date for data
         /// </summary>
         public DateTime EarliestDate { get; set; }
 
         /// <summary>
-        /// 
+        /// Ending date for data
         /// </summary>
         public DateTime LatestDate { get; set; }
 
         /// <summary>
-        /// 
+        /// Date as long
         /// </summary>
         [ProtoMember(3)]
         [NotMapped]
+        [JsonIgnore]
         public long EarliestDateAsLong
         {
             get
@@ -56,10 +58,11 @@ namespace QDMS
         }
 
         /// <summary>
-        /// 
+        /// Date as long
         /// </summary>
         [ProtoMember(4)]
         [NotMapped]
+        [JsonIgnore]
         public long LatestDateAsLong
         {
             get

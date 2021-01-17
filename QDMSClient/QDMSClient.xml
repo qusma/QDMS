@@ -11,7 +11,7 @@
         </member>
         <member name="M:QDMSClient.ApiClient.#ctor(System.String,System.Int32,System.String,System.Boolean)">
             <summary>
-            
+            Constructor
             </summary>
             <param name="host"></param>
             <param name="httpPort"></param>
@@ -95,7 +95,7 @@
         </member>
         <member name="P:QDMSClient.ApiResponse.WasSuccessful">
             <summary>
-            
+            Was the request successful?
             </summary>
         </member>
         <member name="P:QDMSClient.ApiResponse.Errors">
@@ -110,14 +110,14 @@
         </member>
         <member name="M:QDMSClient.ApiResponse.#ctor(System.Net.Http.HttpResponseMessage,System.String)">
             <summary>
-            
+            Constructor with one or no error
             </summary>
             <param name="response"></param>
             <param name="error"></param>
         </member>
         <member name="M:QDMSClient.ApiResponse.#ctor(System.Net.Http.HttpResponseMessage,System.Collections.Generic.List{System.String})">
             <summary>
-            
+            Constructor w/ multiple errors
             </summary>
             <param name="response"></param>
             <param name="errors"></param>
@@ -130,7 +130,7 @@
         </member>
         <member name="M:QDMSClient.ApiResponse.#ctor">
             <summary>
-            
+            For serialization
             </summary>
         </member>
         <member name="T:QDMSClient.ApiResponse`1">
@@ -141,7 +141,7 @@
         </member>
         <member name="P:QDMSClient.ApiResponse`1.Result">
             <summary>
-            
+            Request result
             </summary>
         </member>
         <member name="M:QDMSClient.ApiResponse`1.#ctor(QDMSClient.ApiResponse)">
@@ -229,7 +229,7 @@
         </member>
         <member name="P:QDMSClient.QDMSClient.Connected">
             <summary>
-            
+            Connected to server
             </summary>
         </member>
         <member name="P:QDMSClient.QDMSClient.PendingHistoricalRequests">
@@ -260,24 +260,14 @@
             Fires when historical bars are received
             </summary>
         </member>
-        <member name="E:QDMSClient.QDMSClient.LocallyAvailableDataInfoReceived">
-            <summary>
-            Fires when stored data info are received
-            </summary>
-        </member>
         <member name="E:QDMSClient.QDMSClient.Error">
             <summary>
-            
+            Event used to surface errors
             </summary>
         </member>
         <member name="M:QDMSClient.QDMSClient.PushData(QDMS.DataAdditionRequest)">
             <summary>
                 Pushes data to local storage.
-            </summary>
-        </member>
-        <member name="M:QDMSClient.QDMSClient.GetLocallyAvailableDataInfo(QDMS.Instrument)">
-            <summary>
-                Requests information on what historical data is available in local storage for this instrument.
             </summary>
         </member>
         <member name="M:QDMSClient.QDMSClient.RequestHistoricalData(QDMS.HistoricalDataRequest)">
@@ -346,11 +336,6 @@
                 Called when we get some sort of error reply
             </summary>
         </member>
-        <member name="M:QDMSClient.QDMSClient.HandleAvailabledataReply">
-            <summary>
-                Called when we get a reply on a request for available data in local storage.
-            </summary>
-        </member>
         <member name="M:QDMSClient.QDMSClient.HandleDataPushReply">
             <summary>
                 Called on a reply to a data push
@@ -372,32 +357,32 @@
         </member>
         <member name="M:QDMSClient.QDMSClient.GetAllInstruments">
             <summary>
-            
+            Obsolete
             </summary>
             <returns></returns>
         </member>
         <member name="M:QDMSClient.QDMSClient.FindInstruments(System.Linq.Expressions.Expression{System.Func{QDMS.Instrument,System.Boolean}})">
             <summary>
-            
+            Obsolete
             </summary>
             <param name="pred"></param>
             <returns></returns>
         </member>
         <member name="M:QDMSClient.QDMSClient.FindInstruments(QDMS.Instrument)">
             <summary>
-            
+            Obsolete
             </summary>
             <param name="instrument"></param>
             <returns></returns>
         </member>
         <member name="E:QDMSClient.QDMSClient.PropertyChanged">
             <summary>
-            
+            PropertyChanged
             </summary>
         </member>
         <member name="M:QDMSClient.QDMSClient.OnPropertyChanged(System.String)">
             <summary>
-            
+            OnPropertyChanged
             </summary>
             <param name="propertyName"></param>
         </member>
@@ -490,6 +475,11 @@
         <member name="M:QDMSClient.QDMSClient.DeleteInstrument(QDMS.Instrument)">
             <summary>
             Delete an instrument
+            </summary>
+        </member>
+        <member name="M:QDMSClient.QDMSClient.GetLocallyAvailableDataInfo(QDMS.Instrument)">
+            <summary>
+                Requests information on what historical data is available in local storage for this instrument.
             </summary>
         </member>
         <member name="M:QDMSClient.QDMSClient.GetTags">
@@ -615,11 +605,6 @@
         <member name="E:QDMS.IDataClient.HistoricalDataReceived">
             <summary>
             Raised when historical data arrives
-            </summary>
-        </member>
-        <member name="E:QDMS.IDataClient.LocallyAvailableDataInfoReceived">
-            <summary>
-            Raised when receiving info on what data is stored in the local database
             </summary>
         </member>
         <member name="E:QDMS.IDataClient.RealTimeDataReceived">

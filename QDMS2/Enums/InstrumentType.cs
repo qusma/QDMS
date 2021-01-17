@@ -94,7 +94,12 @@ namespace QDMS
         /// Fund
         /// </summary>
         [Description("FUND")]
-        Fund = 15
+        Fund = 15,
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        [Description("UNK")]
+        Unknown = 16
     }
 
 }

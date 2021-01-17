@@ -19,7 +19,7 @@ namespace QDMS
     public class ExchangeSession : ISession, IEntity
     {
         /// <summary>
-        /// 
+        /// Id
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -35,13 +35,13 @@ namespace QDMS
         public TimeSpan ClosingTime { get; set; }
 
         /// <summary>
-        /// 
+        /// Exchange Id
         /// </summary>
         [ProtoMember(2)]
         public int ExchangeID { get; set; }
 
         /// <summary>
-        /// 
+        /// Exchange
         /// </summary>
         [JsonIgnore]
         public virtual Exchange Exchange { get; set; }

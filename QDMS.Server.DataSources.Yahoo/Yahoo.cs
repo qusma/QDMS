@@ -271,6 +271,8 @@ namespace QDMSServer.DataSources
             rows = contents.Split("\n".ToCharArray());
             for (int j = 1; j < rows.Count(); j++) //start at 1 because the first line's a header
             {
+                if (string.IsNullOrEmpty(rows[j])) continue;
+
                 string[] items = rows[j].Split(",".ToCharArray());
                 var bar = new OHLCBar();
 

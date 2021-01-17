@@ -19,7 +19,6 @@ using K4os.Compression.LZ4;
 using NetMQ;
 using NetMQ.Sockets;
 using QDMS;
-using QDMS.Annotations;
 
 namespace QDMSClient
 {
@@ -830,7 +829,6 @@ namespace QDMSClient
         /// OnPropertyChanged
         /// </summary>
         /// <param name="propertyName"></param>
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

@@ -5,7 +5,7 @@
     <AssemblyName>QDMSClient</AssemblyName>
     <RootNamespace>QDMSClient</RootNamespace>
     <PackageId>QDMSClient</PackageId>
-    <Version>0.10.2</Version>
+    <Version>0.10.3</Version>
     <Authors>QUSMA</Authors>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     
@@ -26,16 +26,13 @@
     <PackageReference Include="MetaLinqStandard" Version="1.0.11" />
     <PackageReference Include="NetMQ" Version="4.0.0.207" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NodaTime" Version="2.4.7" />
+    <PackageReference Include="NodaTime" Version="3.0.3" />
     <PackageReference Include="protobuf-net" Version="2.4.4" />
     <PackageReference Include="QLNet" Version="1.11.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QDMS\QDMS.csproj">
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <IncludeAssets>QDMS.dll</IncludeAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\QDMS2\QDMS2.csproj" />
   </ItemGroup>
 
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">

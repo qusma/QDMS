@@ -58,5 +58,10 @@ namespace QDMS
         /// If EarningsCallTime is set to SpecificTime, this property will contain the precise time
         /// </summary>
         public DateTime? EarningsTime { get; set; }
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{Symbol} {EarningsPerShare} On: {Date}";
+        }
     }
 }

@@ -32,16 +32,6 @@ namespace QDMS
         public const string HistReply = "HISTREQREP";
 
         /// <summary>
-        /// Request for locally available data
-        /// </summary>
-        public const string AvailableDataRequest = "AVAILABLEDATAREQ";
-
-        /// <summary>
-        /// Locally available data reply
-        /// </summary>
-        public const string AvailableDataReply = "AVAILABLEDATAREP";
-
-        /// <summary>
         /// Real time data request
         /// </summary>
         public const string RTDRequest = "RTDREQ";
@@ -87,19 +77,19 @@ namespace QDMS
         public const string RealTimeTick = "T";
 
         /// <summary>
-        /// 
+        /// Ping
         /// </summary>
         public const string Ping = "PING";
         /// <summary>
-        /// 
+        /// Ping reply
         /// </summary>
         public const string Pong = "PONG";
         /// <summary>
-        /// 
+        /// Error
         /// </summary>
         public const string Error = "ERROR";
         /// <summary>
-        /// 
+        /// Success
         /// </summary>
         public const string Success = "SUCCESS";
     }

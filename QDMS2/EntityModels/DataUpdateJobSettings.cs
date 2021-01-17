@@ -10,7 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
-using QDMS.Annotations;
+
 //This one should be in QDMS.Server.Jobs.JobDetails but for now we leave it here because we still need the old jobs to remain in the db
 namespace QDMS
 {
@@ -21,7 +21,7 @@ namespace QDMS
         DataUpdateJobSettings : INotifyPropertyChanged, IJobSettings
     {
         /// <summary>
-        /// 
+        /// Id
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -86,15 +86,14 @@ namespace QDMS
         public BarSize Frequency { get; set; }
 
         /// <summary>
-        /// 
+        /// Property changed event
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// 
+        /// Invoke proprtychanged
         /// </summary>
         /// <param name="propertyName"></param>
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;
