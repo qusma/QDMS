@@ -44,10 +44,6 @@ namespace QDMS
         int httpPort { get; set; }
         bool useSsl { get; set; }
         string teaFilesDirectory { get; set; }
-        SettingsContext Context { get; }
-        SettingsPropertyCollection Properties { get; }
-        SettingsPropertyValueCollection PropertyValues { get; }
-        SettingsProviderCollection Providers { get; }
         string SettingsKey { get; set; }
         bool IsSynchronized { get; }
         object GetPreviousVersion(string propertyName);
@@ -57,9 +53,5 @@ namespace QDMS
         void Upgrade();
         object this[string propertyName] { get; set; }
         event PropertyChangedEventHandler PropertyChanged;
-        event SettingChangingEventHandler SettingChanging;
-        event SettingsLoadedEventHandler SettingsLoaded;
-        event SettingsSavingEventHandler SettingsSaving;
-        void Initialize(SettingsContext context, SettingsPropertyCollection properties, SettingsProviderCollection providers);
     }
 }

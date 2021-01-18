@@ -21,7 +21,6 @@ using QDMSIBClient;
 using IBApi;
 using NLog;
 using QDMS;
-using QDMS.Annotations;
 using BarSize = QDMS.BarSize;
 using LogLevel = NLog.LogLevel;
 
@@ -849,7 +848,6 @@ namespace QDMSServer.DataSources
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;

@@ -8,7 +8,6 @@ using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
-using QDMS.Annotations;
 using System.Globalization;
 using QDMS.Utils;
 
@@ -586,7 +585,6 @@ namespace QDMSServer.DataSources
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;

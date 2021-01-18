@@ -15,7 +15,6 @@ using System.Windows;
 using MySql.Data.MySqlClient;
 using NLog;
 using QDMS;
-using QDMS.Annotations;
 using QDMS.Utils;
 
 #pragma warning disable 67
@@ -591,7 +590,6 @@ namespace QDMSServer.DataSources
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;

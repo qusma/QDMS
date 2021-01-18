@@ -11,7 +11,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
 using QDMS;
-using QDMS.Annotations;
 
 #pragma warning disable 67
 namespace QDMSServer.DataSources
@@ -153,7 +152,7 @@ namespace QDMSServer.DataSources
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
+
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;

@@ -18,7 +18,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using QDMS;
-using QDMS.Annotations;
 using QDMS.Utils;
 
 #pragma warning disable 67
@@ -358,7 +357,7 @@ namespace QDMSServer.DataSources
         public event EventHandler<HistoricalDataEventArgs> HistoricalDataArrived;
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
+
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;

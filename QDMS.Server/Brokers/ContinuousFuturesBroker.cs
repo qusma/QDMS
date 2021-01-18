@@ -23,7 +23,6 @@
 
 using NLog;
 using QDMS;
-using QDMS.Annotations;
 using QLNet;
 using System;
 using System.Collections.Concurrent;
@@ -963,7 +962,6 @@ namespace QDMSServer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChangedEventHandler handler = PropertyChanged;
