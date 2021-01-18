@@ -33,6 +33,7 @@ namespace QDMSTest
         [SetUp]
         public void SetUp()
         {
+            _clientIsConnected = false;
             _ibClientMock = new Mock<IIBClient>();
             _ibClientMock.Setup(x => x.Connect(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>())).Callback(() => _clientIsConnected = true);
             _ibClientMock.Setup(x => x.Connected).Returns(() => _clientIsConnected);
@@ -42,6 +43,12 @@ namespace QDMSTest
 
             _ibDatasource = new IB(settings.Object, client: _ibClientMock.Object);
             _ibDatasource.Connect();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _ibDatasource?.Dispose();
         }
 
         [Test]
@@ -212,7 +219,7 @@ namespace QDMSTest
 
             _ibClientMock.Raise(x => x.Error += null, new ErrorEventArgs(requestID, (ErrorMessage) 162, ""));
 
-            Thread.Sleep(25000);
+            Thread.Sleep(30000);
 
             _ibClientMock.Verify(x => x.RequestHistoricalData(
                     It.IsAny<int>(),
