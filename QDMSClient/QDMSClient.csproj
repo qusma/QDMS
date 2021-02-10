@@ -13,12 +13,13 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/qusma/QDMS</RepositoryUrl>
+    <Description>Client library for the QUSMA Data Management System.</Description>
+    <Summary>Client library for the QUSMA Data Management System.</Summary>
+    <PackageIcon>appbar.box.layered.png</PackageIcon>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\Alex\Documents\Csharp\Projects\QDMS\QDMSClient\QDMSClient.xml</DocumentationFile>
-  </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="AsyncIO" Version="0.1.69" />
     <PackageReference Include="Flurl" Version="2.8.2" />
@@ -32,7 +33,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QDMS\QDMS.csproj" />
+    <ProjectReference Include="..\QDMS\QDMS.csproj" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\QDMSServer\Resources\appbar.box.layered.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
