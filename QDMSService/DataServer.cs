@@ -9,7 +9,6 @@ using QDMSServer;
 using System;
 using System.Linq;
 using QDMS.Server;
-using QDMS.Server.DataSources.Nasdaq;
 using Quartz;
 using Quartz.Impl;
 
