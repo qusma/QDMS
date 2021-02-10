@@ -24,7 +24,7 @@ namespace QDMSTest
         private readonly string _mySqlHost = "127.0.0.1";
 
         private readonly string _sqlServerPassword = "Password12!";
-        private readonly string _sqlServerHost = "(local)\\SQL2016";
+        private readonly string _sqlServerHost = "(local)\\SQL2017";
         private readonly string _sqlServerUsername = "sa";
         private readonly bool _useWindowsAuthentication = false;
 
