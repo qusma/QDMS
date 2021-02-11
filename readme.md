@@ -62,7 +62,7 @@ Screenshots
 
 Architecture
 ------------
-Here's a rough overview of the architecture of QDMS. More details can be found in [architecture.md](https://github.com/qusma/qdms/blob/master/architecture.md)
+Here's a rough overview of the architecture of QDMS. More details can be found in [architecture.md](https://github.com/qusma/qdms/blob/master/architecture.md).
 
 ![Layer Overview](https://qusma.com/images/qdms-architecture-diagram.png)
 
