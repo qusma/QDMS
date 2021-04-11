@@ -133,7 +133,7 @@
       <DependentUpon>UnderlyingSymbolControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utils\DbBackup.cs" />
-    <Compile Include="Utils\DbConnStringUtils.cs" />
+    <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Utils\ExtensionMethods.cs" />
     <Compile Include="Utils\MySQLBackup.cs" />
     <Compile Include="Utils\NLogUtils.cs" />

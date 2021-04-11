@@ -163,5 +163,39 @@ namespace QDMSServer
 
             return connectionString;
         }
+
+        public static bool TestConnection()
+        {
+            if (Settings.Default.databaseType == "MySql")
+            {
+                //try to establish a database connection. If not possible, prompt the user to enter details
+                var connection = DBUtils.CreateMySqlConnection(noDB: true);
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+                connection.Close();
+            }
+            else //SQL Server
+            {
+                //try to establish a database connection. If not possible, prompt the user to enter details
+                var connection = DBUtils.CreateSqlServerConnection(noDB: true, useWindowsAuthentication: Settings.Default.sqlServerUseWindowsAuthentication);
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+                connection.Close();
+            }
+
+            return true;
+        }
     }
 }
