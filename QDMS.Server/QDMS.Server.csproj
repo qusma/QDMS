@@ -50,13 +50,13 @@
     <Compile Include="Brokers\RealTimeDataBroker.cs" />
     <Compile Include="Collections\ConcurrentNotifierBlockingList.cs" />
     <Compile Include="Collections\ObservableDictionary.cs" />
-    <Compile Include="CustomJsonSerializer.cs" />
+    <Compile Include="Serialization\CustomJsonSerializer.cs" />
     <Compile Include="DataSources\RealTimeFromHistoricalDataSource.cs" />
     <Compile Include="DataSources\RealTimeSim.cs" />
-    <Compile Include="EmailSender.cs" />
-    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Utils\EmailSender.cs" />
+    <Compile Include="ExtensionMethods\ExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\DateTimeExtensions.cs" />
-    <Compile Include="InstrumentRepository.cs" />
+    <Compile Include="Repositories\InstrumentRepository.cs" />
     <Compile Include="Interfaces\IEmailService.cs" />
     <Compile Include="Interfaces\IHistoricalDataBroker.cs" />
     <Compile Include="Interfaces\IHistoricalDataServer.cs" />
@@ -70,7 +70,7 @@
     <Compile Include="Jobs\JobFactory.cs" />
     <Compile Include="Jobs\JobTypes.cs" />
     <Compile Include="Jobs\UpdateJobSettings.cs" />
-    <Compile Include="LocalStorageType.cs" />
+    <Compile Include="Enums\LocalStorageType.cs" />
     <Compile Include="NancyModules\DatasourceModule.cs" />
     <Compile Include="NancyModules\DividendsModule.cs" />
     <Compile Include="NancyModules\EarningsAnnouncementModule.cs" />
@@ -91,7 +91,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Repositories\JobsRepository.cs" />
-    <Compile Include="RTHFilter.cs" />
+    <Compile Include="Utils\RTHFilter.cs" />
     <Compile Include="Servers\HistoricalDataServer.cs" />
     <Compile Include="Servers\RealTimeDataServer.cs" />
     <Compile Include="Utils\EfUtils.cs" />

@@ -4,8 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-// This class is used to filter data, removing any bars that happen outside of
-// regular trading hours.
+
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +13,10 @@ using QDMS;
 
 namespace QDMSServer
 {
+    /// <summary>
+    /// This class is used to filter data, removing any bars that happen outside of
+    /// regular trading hours.
+    /// </summary>
     public static class RTHFilter
     {
         /// <summary>
