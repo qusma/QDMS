@@ -1,0 +1,70 @@
+﻿<controls:MetroWindow
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:qdms="clr-namespace:QDMS;assembly=QDMS"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    x:Class="QDMSApp.AddInstrumentFredWindow"
+    Title="Add Instrument: FRED" Height="563.887" Width="1443.762"
+    FocusManager.FocusedElement="{Binding ElementName=SymbolTextBox}"
+    BorderBrush="Black"
+    BorderThickness="1"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    Dialog:DialogParticipation.Register="{Binding}"
+    Loaded="MetroWindow_Loaded">
+
+    <controls:MetroWindow.Resources>
+        <ObjectDataProvider x:Key="InstrumentTypes" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:InstrumentType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </controls:MetroWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="Search: " VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0" KeyboardNavigation.IsTabStop="False" Width="50" Height="26"/>
+
+        <TextBox Text="{Binding Symbol, UpdateSourceTrigger=PropertyChanged}"
+            Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="26" Margin="89,10,0,0"
+                 TextWrapping="Wrap" VerticalAlignment="Top" Width="149">
+            <TextBox.InputBindings>
+                <KeyBinding Key="Return" Command="{Binding Search}" />
+            </TextBox.InputBindings>
+        </TextBox>
+
+        <Button Grid.Row="0" Name="SearchBtn" Content="Search" HorizontalAlignment="Left" Margin="283,10,0,0" 
+                VerticalAlignment="Top"  Width="75" Height="26" Command="{Binding Search}" />
+
+
+
+        <DataGrid Name="InstrumentGrid" ItemsSource="{Binding Series}" SelectionMode="Extended" AutoGenerateColumns="False" IsReadOnly="False" 
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Grid.Row="1" CanUserAddRows="False" RowStyle="{DynamicResource DataGridRowStyle}">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Path=ID}" Width="100"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Title" Binding="{Binding Path=Title}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="From" Binding="{Binding Path=From}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="To" Binding="{Binding Path=To}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Frequency" Binding="{Binding Path=Frequency}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Units" Binding="{Binding Path=Units}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="SeasonalAdjustment" Binding="{Binding Path=SeasonalAdjustment}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Notes" Binding="{Binding Path=Notes}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+
+
+        <Button Name="CloseBtn" Click="CloseBtn_Click" Content="Close" HorizontalAlignment="Right" Margin="0,7,10,7" Grid.Row="2" 
+                VerticalAlignment="Center"  Width="75" Height="26"/>
+        <Button Name="AddBtn" 
+                Command="{Binding Add}" 
+                CommandParameter="{Binding ElementName=InstrumentGrid,Path=SelectedItems}"
+                Content="Add" HorizontalAlignment="Right" Margin="0,7,94,7" Grid.Row="2" VerticalAlignment="Center"  Width="75" Height="26"/>
+        <Label Name="StatusLabel" Content="{Binding Status}" Width="500" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top" Height="23"/>
+    </Grid>
+</controls:MetroWindow>

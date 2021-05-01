@@ -14,7 +14,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Threading;
 
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     public class BarChart : IHistoricalDataSource
     {

@@ -49,7 +49,7 @@ using System.Windows;
 using NLog;
 using QDMS;
 
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     public class Quandl : IHistoricalDataSource
     {

@@ -13,7 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using QDMS;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public static class QuandlUtils
     {

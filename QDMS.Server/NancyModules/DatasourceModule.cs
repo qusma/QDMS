@@ -8,7 +8,7 @@ using EntityData;
 using Nancy;
 using Nancy.Security;
 using QDMS.Server.Brokers;
-using QDMSServer;
+using QDMSApp;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;

@@ -10,7 +10,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
-using QDMSServer;
+using QDMSApp;
 using Quartz;
 
 namespace QDMS.Server.Jobs

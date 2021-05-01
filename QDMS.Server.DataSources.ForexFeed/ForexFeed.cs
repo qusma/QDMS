@@ -17,7 +17,7 @@ using System.Collections;
 using System.Globalization;
 using QDMS.Server.DataSources.ForexFeed;
 
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     /// <summary>
     /// 

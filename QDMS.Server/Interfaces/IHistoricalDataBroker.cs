@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using QDMS;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public interface IHistoricalDataBroker : IDisposable
     {

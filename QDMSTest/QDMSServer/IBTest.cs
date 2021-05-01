@@ -12,8 +12,8 @@ using IBApi;
 using Moq;
 using NUnit.Framework;
 using QDMS;
-using QDMSServer;
-using QDMSServer.DataSources;
+using QDMSApp;
+using QDMSApp.DataSources;
 using BarSize = QDMSIBClient.BarSize;
 using HistoricalDataEventArgs = QDMSIBClient.HistoricalDataEventArgs;
 

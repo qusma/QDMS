@@ -5,7 +5,7 @@ using QDMS;
 using QDMS.Server.Brokers;
 using QDMS.Server.DataSources;
 using QDMS.Server.Nancy;
-using QDMSServer;
+using QDMSApp;
 using System;
 using System.Linq;
 using QDMS.Server;

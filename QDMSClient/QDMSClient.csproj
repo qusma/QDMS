@@ -41,7 +41,7 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="..\QDMSServer\Resources\appbar.box.layered.png">
+    <None Include="..\QDMSApp\Resources\appbar.box.layered.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

@@ -1,0 +1,527 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1AD82972-FD44-4ED2-B909-A0738F6C03FE}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>QDMSApp</RootNamespace>
+    <AssemblyName>QDMSApp</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Web</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Background</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <InstallUrl>https://qusma.com/QDMS/</InstallUrl>
+    <ProductName>QUSMA Data Management System</ProductName>
+    <PublisherName>QUSMA</PublisherName>
+    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
+    <WebPage>publish.htm</WebPage>
+    <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
+    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationVersion>0.10.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <CreateDesktopShortcut>true</CreateDesktopShortcut>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <ApplicationIcon>appbar.box.layered.ico</ApplicationIcon>
+    <GenerateManifests>true</GenerateManifests>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="API">
+      <HintPath>..\Libraries\OEC\API.dll</HintPath>
+    </Reference>
+    <Reference Include="Bloomberglp.Blpapi">
+      <HintPath>..\Libraries\BLPAPI\Bloomberglp.Blpapi.dll</HintPath>
+    </Reference>
+    <Reference Include="CommLib">
+      <HintPath>..\Libraries\OEC\CommLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MySqlBackup">
+      <HintPath>..\Libraries\MySqlBackup\MySqlBackup.dll</HintPath>
+    </Reference>
+    <Reference Include="ProtoSharp.Core">
+      <HintPath>..\Libraries\OEC\ProtoSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="ViewModels\CheckBoxItem.cs" />
+    <Compile Include="ViewModels\CheckBoxTag.cs" />
+    <Compile Include="Utils\ColumnOptions.cs" />
+    <Compile Include="ExtensionMethods\DataGridExtensions.cs" />
+    <Compile Include="Factories\DataStorageFactory.cs" />
+    <Compile Include="Interfaces\IClosableView.cs" />
+    <Compile Include="Interfaces\IJobViewModel.cs" />
+    <Compile Include="ExtensionMethods\ListBoxExt.cs" />
+    <Compile Include="Logging\MemoryTarget.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <DependentUpon>Settings.settings</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Utils\UpdateHelper.cs" />
+    <Compile Include="UserControls\DataUpdateJobControl.xaml.cs">
+      <DependentUpon>DataUpdateJobControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\DividendUpdateJobControl.xaml.cs">
+      <DependentUpon>DividendUpdateJobControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\EarningsUpdateJobControl.xaml.cs">
+      <DependentUpon>EarningsUpdateJobControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\EconomicReleaseJobControl.xaml.cs">
+      <DependentUpon>EconomicReleaseJobControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\UnderlyingSymbolControl.xaml.cs">
+      <DependentUpon>UnderlyingSymbolControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utils\DbBackup.cs" />
+    <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Utils\ExtensionMethods.cs" />
+    <Compile Include="Utils\MySQLBackup.cs" />
+    <Compile Include="Utils\NLogUtils.cs" />
+    <Compile Include="Utils\QuartzUtils.cs" />
+    <Compile Include="Utils\Seed.cs" />
+    <Compile Include="Utils\SqlServerBackup.cs" />
+    <Compile Include="ValidationRules\TimeValidationRule.cs" />
+    <Compile Include="ValueConverters\BoolToVisibilityConverter.cs" />
+    <Compile Include="ValueConverters\DatasourceMultiValueConverter.cs" />
+    <Compile Include="ValueConverters\EnumBooleanConverter.cs" />
+    <Compile Include="ValueConverters\ExchangeMultiValueConverter.cs" />
+    <Compile Include="ValueConverters\InvertBooleanConverter.cs" />
+    <Compile Include="ValueConverters\IsNullConverter.cs" />
+    <Compile Include="ValueConverters\KVPToValueConverter.cs" />
+    <Compile Include="ValueConverters\LogEventInfoToStringConverter.cs" />
+    <Compile Include="ValueConverters\LogItemToColorConverter.cs" />
+    <Compile Include="ValueConverters\StringToIntConverter.cs" />
+    <Compile Include="ValueConverters\StringToNullableConverter.cs" />
+    <Compile Include="ValueConverters\TimeSpanConverter.cs" />
+    <Compile Include="ValueConverters\TZToStringConverter.cs" />
+    <Compile Include="ViewModels\AddInstrumentBinanceViewModel.cs" />
+    <Compile Include="ViewModels\AddInstrumentFredViewModel.cs" />
+    <Compile Include="ViewModels\AddInstrumentIbViewModel.cs" />
+    <Compile Include="ViewModels\AddInstrumentQuandlViewModel.cs" />
+    <Compile Include="ViewModels\DataUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\DividendUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\EarningsUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\EconomicReleaseUpdateJobViewModel.cs" />
+    <Compile Include="ViewModels\EditInstrumentViewModel.cs" />
+    <Compile Include="ViewModels\ExchangesViewModel.cs" />
+    <Compile Include="ViewModels\ExchangeViewModel.cs" />
+    <Compile Include="ViewModels\JobViewModelBase.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\SchedulerViewModel.cs" />
+    <Compile Include="ViewModels\SessionTemplatesViewModel.cs" />
+    <Compile Include="ViewModels\SessionTemplateViewModel.cs" />
+    <Compile Include="ViewModels\SessionViewModel.cs" />
+    <Compile Include="ViewModels\TagsViewModel.cs" />
+    <Compile Include="ViewModels\TagViewModel.cs" />
+    <Compile Include="ViewModels\UnderlyingSymbolsViewModel.cs" />
+    <Compile Include="ViewModels\UnderlyingSymbolViewModel.cs" />
+    <Compile Include="ViewModels\ValidatingViewModelBase.cs" />
+    <Compile Include="Windows\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentBinanceWindow.xaml.cs">
+      <DependentUpon>AddInstrumentBinanceWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentFredlWindow.xaml.cs">
+      <DependentUpon>AddInstrumentFredlWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentInteractiveBrokersWindow.xaml.cs">
+      <DependentUpon>AddInstrumentInteractiveBrokersWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentManuallyWindow.xaml.cs">
+      <DependentUpon>AddInstrumentManuallyWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\AddInstrumentQuandlWindow.xaml.cs">
+      <DependentUpon>AddInstrumentQuandlWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ChangelogWindow.xaml.cs">
+      <DependentUpon>ChangelogWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\DataEditWindow.xaml.cs">
+      <DependentUpon>DataEditWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\DataImportWindow.xaml.cs">
+      <DependentUpon>DataImportWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\DBConnectionWindow.xaml.cs">
+      <DependentUpon>DBConnectionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ExchangesWindow.xaml.cs">
+      <DependentUpon>ExchangesWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\HistoricalRequestWindow.xaml.cs">
+      <DependentUpon>HistoricalRequestWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\RootSymbolsWindow.xaml.cs">
+      <DependentUpon>RootSymbolsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ScheduledJobsWindow.xaml.cs">
+      <DependentUpon>ScheduledJobsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\SessionTemplatesWindow.xaml.cs">
+      <DependentUpon>SessionTemplatesWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\TagsWindow.xaml.cs">
+      <DependentUpon>TagsWindow.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Windows\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Windows\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="UserControls\DataUpdateJobControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\DividendUpdateJobControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\EarningsUpdateJobControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\EconomicReleaseJobControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\UnderlyingSymbolControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AboutWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AddInstrumentBinanceWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AddInstrumentFredlWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AddInstrumentInteractiveBrokersWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AddInstrumentManuallyWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AddInstrumentQuandlWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\ChangelogWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\DataEditWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\DataImportWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\DBConnectionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\ExchangesWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\HistoricalRequestWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\RootSymbolsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\ScheduledJobsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\SessionTemplatesWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\SettingsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\TagsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Resource Include="Resources\QuartzSqlServerDbInit.txt" />
+    <Resource Include="Resources\QuartzMySqlDbInit.txt" />
+    <Resource Include="Resources\logo.png" />
+    <Resource Include="Resources\Large_243.png" />
+    <Resource Include="Resources\CheckBox_669_24.bmp" />
+    <Resource Include="Resources\appbar.box.layered.png" />
+    <Resource Include="Resources\109_AllAnnotations_Error_16x16_72.png" />
+    <Resource Include="Resources\109_AllAnnotations_Default_16x16_72.png" />
+    <Resource Include="appbar.box.layered.ico" />
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="CHANGELOG" />
+    <None Include="NLog.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Common.Logging.NLog4412">
+      <Version>3.4.1</Version>
+    </PackageReference>
+    <PackageReference Include="DataGridFilter">
+      <Version>1.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="DynamicData">
+      <Version>6.14.3</Version>
+    </PackageReference>
+    <PackageReference Include="EntityFramework">
+      <Version>6.4.4</Version>
+    </PackageReference>
+    <PackageReference Include="Extended.Wpf.Toolkit">
+      <Version>3.7.0</Version>
+    </PackageReference>
+    <PackageReference Include="FluentValidation">
+      <Version>6.4.1</Version>
+    </PackageReference>
+    <PackageReference Include="FSharp.Core">
+      <Version>4.7.0</Version>
+    </PackageReference>
+    <PackageReference Include="Google.Protobuf">
+      <Version>3.11.4</Version>
+    </PackageReference>
+    <PackageReference Include="MahApps.Metro">
+      <Version>1.6.5</Version>
+    </PackageReference>
+    <PackageReference Include="MySql.Data">
+      <Version>8.0.21</Version>
+    </PackageReference>
+    <PackageReference Include="MySql.Data.EntityFramework">
+      <Version>8.0.21</Version>
+    </PackageReference>
+    <PackageReference Include="Nancy">
+      <Version>2.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Nancy.Authentication.Stateless">
+      <Version>2.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Nancy.Hosting.Self">
+      <Version>2.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Nancy.Serialization.JsonNet">
+      <Version>2.0.0-clinteastwood</Version>
+    </PackageReference>
+    <PackageReference Include="Nancy.Validation.FluentValidation">
+      <Version>2.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="NetMQ">
+      <Version>4.0.0.207</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="NLog">
+      <Version>4.6.8</Version>
+    </PackageReference>
+    <PackageReference Include="NLog.Schema">
+      <Version>4.6.8</Version>
+    </PackageReference>
+    <PackageReference Include="NodaTime">
+      <Version>3.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="protobuf-net">
+      <Version>2.4.4</Version>
+    </PackageReference>
+    <PackageReference Include="QDMS-IBClient">
+      <Version>1.3.6</Version>
+    </PackageReference>
+    <PackageReference Include="QLNet">
+      <Version>1.11.3</Version>
+    </PackageReference>
+    <PackageReference Include="Quartz">
+      <Version>2.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="ReactiveUI.WPF">
+      <Version>11.1.12</Version>
+    </PackageReference>
+    <PackageReference Include="SimpleInjector">
+      <Version>4.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe">
+      <Version>5.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EntityData\EntityData.csproj">
+      <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
+      <Name>EntityData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
+      <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
+      <Name>QDMS.Server.DataSources.BarChart</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Binance\QDMS.Server.DataSources.Binance.csproj">
+      <Project>{1975a3b2-fa08-4730-b00a-fdc41f14845b}</Project>
+      <Name>QDMS.Server.DataSources.Binance</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
+      <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
+      <Name>QDMS.Server.DataSources.Bloomberg</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.CBOE\QDMS.Server.DataSources.CBOE.fsproj">
+      <Project>{8f48ba67-7ebd-4620-815c-32ea5bcb4181}</Project>
+      <Name>QDMS.Server.DataSources.CBOE</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Dividend.com\QDMS.Server.DataSources.Dividend.com.fsproj">
+      <Project>{95eef323-701b-44d9-bbce-8308edb23073}</Project>
+      <Name>QDMS.Server.DataSources.Dividend.com</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.ForexFeed\QDMS.Server.DataSources.ForexFeed.csproj">
+      <Project>{55180c6d-a985-4171-bc78-e9b161164785}</Project>
+      <Name>QDMS.Server.DataSources.ForexFeed</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
+      <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
+      <Name>QDMS.Server.DataSources.FRED</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
+      <Project>{3c2b9ce3-9054-46c4-902b-ae500a61b613}</Project>
+      <Name>QDMS.Server.DataSources.FXStreet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj">
+      <Project>{723afac2-099b-410f-9d32-fe34611239e3}</Project>
+      <Name>QDMS.Server.DataSources.InteractiveBrokers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Nasdaq\QDMS.Server.DataSources.Nasdaq.fsproj">
+      <Project>{4c4ef2b7-0ddc-42fc-902f-29c4f8161c12}</Project>
+      <Name>QDMS.Server.DataSources.Nasdaq</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
+      <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
+      <Name>QDMS.Server.DataSources.Quandl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj">
+      <Project>{5c2c845c-0d1c-46ef-9b8f-66502dcde8ca}</Project>
+      <Name>QDMS.Server.DataSources.Yahoo</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj">
+      <Project>{0197ea02-a2ad-475f-9a73-7a0bcfc18891}</Project>
+      <Name>QDMS.Server.DataStorage.MySql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server.DataStorage.SqlServer\QDMS.Server.DataStorage.SqlServer.csproj">
+      <Project>{17ade009-cab6-4389-93e1-afe1a2dbb18c}</Project>
+      <Name>QDMS.Server.DataStorage.SqlServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
+      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
+      <Name>QDMS.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMSClient\QDMSClient.csproj">
+      <Project>{1428051f-0912-4d36-a90f-0868c1c1d6b8}</Project>
+      <Name>QDMSClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\QDMS\QDMS.csproj">
+      <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
+      <Name>QDMS</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

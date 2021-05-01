@@ -8,7 +8,7 @@ using EntityData;
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Jobs;
-using QDMSServer;
+using QDMSApp;
 using Quartz;
 using Quartz.Impl.Matchers;
 using System;
@@ -171,7 +171,7 @@ namespace QDMS.Server.Repositories
             IDictionary map = new Dictionary<string, string> { { "settings", JsonConvert.SerializeObject(job) } };
 
             IJobDetail quartzJob = JobBuilder
-                .Create<DataUpdateJob>()
+                .Create<QDMSServer.DataUpdateJob>()
                 .WithIdentity(job.Name, JobTypes.GetJobType(job))
                 .UsingJobData(new JobDataMap(map))
                 .Build();

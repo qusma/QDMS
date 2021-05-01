@@ -12,7 +12,7 @@ using MySql.Data.MySqlClient;
 using NUnit.Framework;
 using EntityData;
 using MySql.Data.EntityFramework;
-using QDMSServer;
+using QDMSApp;
 
 namespace QDMSTest
 {

@@ -13,7 +13,7 @@ using QDMS.Server.Jobs;
 using Quartz;
 using Quartz.Spi;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public class JobFactory : IJobFactory
     {
@@ -112,7 +112,7 @@ namespace QDMSServer
         private IJob GetDataUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
             //only provide the email sender if data exists to properly initialize it with
-            return new DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, new InstrumentRepository(new MyDBContext()));
+            return new QDMSServer.DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, new InstrumentRepository(new MyDBContext()));
         }
 
         private IJob GetDividendUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)

@@ -15,7 +15,7 @@ using System.Collections.Specialized;
 using System.Threading;
 using System.Windows.Threading;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public class ConcurrentNotifierBlockingList<T> : IEnumerable, INotifyCollectionChanged
     {

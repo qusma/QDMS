@@ -14,7 +14,7 @@ using Bloomberglp.Blpapi;
 using QDMS;
 
 #pragma warning disable 67
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     public class Bloomberg : IHistoricalDataSource, IRealTimeDataSource
     {

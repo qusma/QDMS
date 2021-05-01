@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using QDMS;
-using QDMSServer;
+using QDMSApp;
 using Quartz;
 using System;
 using System.Collections.Generic;

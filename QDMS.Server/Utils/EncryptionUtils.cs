@@ -8,7 +8,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public static class EncryptionUtils
     {

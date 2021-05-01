@@ -12,7 +12,7 @@ using Moq;
 using NetMQ;
 using NUnit.Framework;
 using QDMS;
-using QDMSServer;
+using QDMSApp;
 
 namespace QDMSTest
 {

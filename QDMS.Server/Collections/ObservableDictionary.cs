@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 #pragma warning disable 693
 
 //namespace DrWPF.Windows.Data
-namespace QDMSServer
+namespace QDMSApp
 {
     [Serializable]
     public class ObservableDictionary<TKey, TValue> :

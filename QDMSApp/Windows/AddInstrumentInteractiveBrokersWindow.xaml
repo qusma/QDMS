@@ -1,0 +1,107 @@
+﻿<controls:MetroWindow
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    x:Class="QDMSApp.AddInstrumentInteractiveBrokersWindow"
+    Title="Add Instrument: Interactive Brokers" Height="563.887" Width="1443.762"
+    FocusManager.FocusedElement="{Binding ElementName=SymbolTextBox}"
+    Closing="DXWindow_Closing"
+    BorderBrush="Black"
+    BorderThickness="1"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    Dialog:DialogParticipation.Register="{Binding}">
+
+    <controls:MetroWindow.Resources />
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="125"/>
+            <RowDefinition Height="162*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Content="Exchange: " HorizontalAlignment="Left" Height="25" Margin="10,81,0,19" KeyboardNavigation.IsTabStop="False" />
+        <Label Grid.Row="0" Content="Symbol: " HorizontalAlignment="Left" Height="25" Margin="10,19,0,81" KeyboardNavigation.IsTabStop="False"/>
+        <Label Grid.Row="0" Content="Instrument Type: " HorizontalAlignment="Left" Height="25" Margin="10,50,0,50" KeyboardNavigation.IsTabStop="False" />
+
+        <CheckBox Grid.Row="0" Name="IncludeExpiredCheckBox" Content="Include Expired Contracts" 
+                  IsChecked="{Binding IncludeExpired}"
+                  HorizontalAlignment="Left" Margin="529,18,0,0" VerticalAlignment="Top"/>
+        
+        <TextBox Name="SymbolTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="20" Margin="109,18,0,0" KeyDown="SymbolTextBox_KeyDown"
+                 TextWrapping="Wrap" Text="{Binding Symbol, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="149" />
+
+        <ComboBox Grid.Row="0" x:Name="InstrumentTypeBox" SelectedIndex="0" ItemsSource="{Binding InstrumentTypes}" 
+                  SelectedItem="{Binding SelectedType}"
+                  IsTextSearchEnabled="True"
+                  HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Margin="109,49,0,0"  Height="20" />
+
+        <ComboBox Grid.Row="0" ItemsSource="{Binding Exchanges}" Name="ExchangeBox" SelectedIndex="0"
+                        SelectedItem="{Binding SelectedExchange}"
+                          HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Margin="109,80,0,0"  IsTextSearchEnabled="True"
+                          Height="20" />
+
+        <Button Grid.Row="0" Name="SearchBtn" Content="Search" HorizontalAlignment="Left" Margin="529,81,0,19" 
+                VerticalAlignment="Center"  Width="75" Height="22" Command="{Binding Search}" />
+
+
+
+        <DataGrid Name="InstrumentGrid" ItemsSource="{Binding Instruments}" SelectionMode="Extended" AutoGenerateColumns="False" IsReadOnly="True" 
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Grid.Row="1" CanUserAddRows="False" RowStyle="{DynamicResource DataGridRowStyle}">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Symbol}" Width="75"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Path=Name}"/>
+                <DataGridTextColumn Binding="{Binding Path=UnderlyingSymbol}" Header="Underlying" Width="70"/>
+                <DataGridTextColumn Binding="{Binding Path=Type}" Header="Type" Width="60"/>
+                <DataGridTextColumn Header="Expiration" Binding="{Binding Path=Expiration, StringFormat=\{0:dd/MM/yyyy\}}" Width="100"/>
+                <DataGridTextColumn Header="Min Tick" Binding="{Binding Path=MinTick}" Width="60"/>
+                <DataGridTextColumn Header="Mult" Binding="{Binding Path=Multiplier}" Width="60"/>
+                <DataGridTextColumn Binding="{Binding Path=OptionType}" Header="Opt Type" Width="50"/>
+                <DataGridTextColumn Header="Strike" Binding="{Binding Path=Strike}" Width="60"/>
+                <DataGridTextColumn Header="Currency" Binding="{Binding Path=Currency}" Width="60"/>
+
+                <DataGridTextColumn Header="Industry" Binding="{Binding Path=Industry}" Width="80"/>
+                <DataGridTextColumn Header="Category" Binding="{Binding Path=Category}" Width="85"/>
+                <DataGridTextColumn Header ="Sub Cat." Binding="{Binding Path=Subcategory}" Width="80"/>
+                <DataGridTextColumn Binding="{Binding Path=Exchange.Name}" Header="Exchange" Width="60"/>
+                <DataGridTextColumn Binding="{Binding Path=PrimaryExchange.Name}" Header="Prim. Exch." Width="60"/>
+                <DataGridTextColumn Binding="{Binding Path=ValidExchanges}" Header="Valid Exch." Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+
+
+        <Button Name="CloseBtn" Click="CloseBtn_Click" Content="Close" HorizontalAlignment="Right" Margin="198,7,10,7" Grid.Row="2" 
+                VerticalAlignment="Center"  Width="75" Height="22"/>
+        <Button Name="AddBtn" 
+                Command="{Binding AddSelectedInstruments}" 
+                CommandParameter="{Binding ElementName=InstrumentGrid, Path=SelectedItems}"
+                Content="Add" HorizontalAlignment="Right" Margin="0,7,94,7" Grid.Row="2" 
+                VerticalAlignment="Center"  Width="75" Height="22"/>
+        <Label Name="StatusLabel" Content="{Binding Status}" Width="500" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top"/>
+        <DatePicker Grid.Row="0" Name="Expirationpicker" 
+                    SelectedDate="{Binding ExpirationDate}"
+                    HorizontalAlignment="Left" Margin="337,18,0,0" VerticalAlignment="Top" Width="150"/>
+        <!--- Mask="MM/yyyy" MaskType="DateTime" MaskUseAsDisplayFormat="True"-->
+        <Label Grid.Row="0" Content="Expiration: " HorizontalAlignment="Left" Height="25" Margin="271,20,0,80" KeyboardNavigation.IsTabStop="False" />
+        <Label Grid.Row="0" Content="Strike: "
+               HorizontalAlignment="Left" Height="25" Margin="271,51,0,49" KeyboardNavigation.IsTabStop="False"/>
+        <TextBox x:Name="StrikeTextBox" Grid.Row="0" HorizontalAlignment="Left" Height="20" Margin="337,50,0,0" KeyDown="SymbolTextBox_KeyDown"
+        	TextWrapping="Wrap" Text="{Binding Strike, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" VerticalAlignment="Top" Width="149" />
+        
+        <Label Grid.Row="0" Content="Currency: " HorizontalAlignment="Left" Height="25"
+               Margin="271,62,0,0" KeyboardNavigation.IsTabStop="False"/>
+        <TextBox x:Name="CurrencyTextBox" Text="{Binding Currency, UpdateSourceTrigger=PropertyChanged}" 
+                 Grid.Row="0" HorizontalAlignment="Left" Height="20" Margin="337,80,0,0" KeyDown="SymbolTextBox_KeyDown"
+        	TextWrapping="Wrap" VerticalAlignment="Top" Width="149" />
+        <Label Grid.Row="0" Content="Batch-add multiple symbols (separated by commas): " HorizontalAlignment="Left" Height="25" Margin="730,0,0,80" KeyboardNavigation.IsTabStop="False"/>
+        <TextBox x:Name="BatchAddSymbols" Grid.Row="0" 
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True"
+                 Text="{Binding MultiSymbolText}"
+                 HorizontalAlignment="Left" Width="200" Margin="730,32,0,20" />
+        <Button Grid.Row="0" Content="Batch-add Multiple" Command="{Binding BatchAddMultipleSymbols}" HorizontalAlignment="Left" Height="22" Margin="949,80,0,20" />
+
+    </Grid>
+</controls:MetroWindow>

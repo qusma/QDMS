@@ -13,7 +13,7 @@ using System.Linq;
 using EntityData;
 using EntityData.Utils;
 using Moq;
-using QDMSServer;
+using QDMSApp;
 
 namespace QDMSTest
 {

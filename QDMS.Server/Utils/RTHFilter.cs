@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using QDMS;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     /// <summary>
     /// This class is used to filter data, removing any bars that happen outside of
@@ -37,6 +37,7 @@ namespace QDMSServer
             var firstBar = data[0];
             InstrumentSession currentSession = FirstSessionAfter(firstBar.DT, sessions);
             int sessionIndex = sessions.IndexOf(currentSession);
+
 
             bool inSession = firstBar.DT.InSession(currentSession);
 

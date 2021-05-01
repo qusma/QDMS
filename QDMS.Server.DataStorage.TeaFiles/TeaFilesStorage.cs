@@ -15,7 +15,7 @@ using System.Threading;
 using QDMS;
 using TeaTime;
 
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     public class TeaFilesStorage : ITickDataStorage
     {

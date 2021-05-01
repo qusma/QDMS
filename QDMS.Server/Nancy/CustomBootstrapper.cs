@@ -15,7 +15,7 @@ using Nancy.TinyIoc;
 using NLog;
 using QDMS.Server.Brokers;
 using QDMS.Server.Repositories;
-using QDMSServer;
+using QDMSApp;
 using Quartz;
 using System.Data.SqlClient;
 using System.Linq;

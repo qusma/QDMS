@@ -11,7 +11,7 @@ using IBApi;
 using QDMS;
 using QDMS.Utils;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public static class TWSUtils
     {

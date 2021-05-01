@@ -7,7 +7,7 @@
 using System;
 using System.Net.Mail;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public class EmailSender : IEmailService, IDisposable
     {

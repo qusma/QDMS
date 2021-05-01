@@ -19,10 +19,10 @@ using System.Timers;
 using System.Windows;
 using NLog;
 using QDMS;
-using QDMSServer.DataSources;
+using QDMSApp.DataSources;
 using Timer = System.Timers.Timer;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public class HistoricalDataBroker : IHistoricalDataBroker
     {

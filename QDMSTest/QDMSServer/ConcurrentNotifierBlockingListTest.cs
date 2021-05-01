@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Windows.Threading;
 using NUnit.Framework;
-using QDMSServer;
+using QDMSApp;
 
 namespace QDMSTest
 {

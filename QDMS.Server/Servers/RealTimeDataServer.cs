@@ -22,7 +22,7 @@ using ProtoBuf;
 using QDMS;
 
 // ReSharper disable once CheckNamespace
-namespace QDMSServer
+namespace QDMSApp
 {
     public class RealTimeDataServer : IDisposable, IRealTimeDataServer
     {

@@ -8,7 +8,7 @@ using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
 using QDMS.Server.Nancy;
-using QDMSServer;
+using QDMSApp;
 using System;
 using System.Linq;
 using System.Linq.Expressions;

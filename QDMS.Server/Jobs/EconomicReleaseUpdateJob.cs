@@ -7,7 +7,7 @@
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
-using QDMSServer;
+using QDMSApp;
 using Quartz;
 using System;
 using System.Collections.Generic;

@@ -11,7 +11,7 @@ using Nancy.Responses.Negotiation;
 using Nancy.Testing;
 using QDMS;
 using QDMS.Server;
-using QDMSServer;
+using QDMSApp;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;

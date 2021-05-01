@@ -39,7 +39,7 @@ using Timer = System.Timers.Timer;
 
 #pragma warning disable 67
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public class ContinuousFuturesBroker : IContinuousFuturesBroker
     {

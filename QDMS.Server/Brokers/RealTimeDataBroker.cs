@@ -16,13 +16,13 @@ using System.Linq;
 using System.Timers;
 using NLog;
 using QDMS;
-using QDMSServer.DataSources;
+using QDMSApp.DataSources;
 using Timer = System.Timers.Timer;
 #if !DEBUG
 using System.Net;
 #endif
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public class RealTimeDataBroker : IRealTimeDataBroker
     {

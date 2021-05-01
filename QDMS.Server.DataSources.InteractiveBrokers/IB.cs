@@ -24,7 +24,7 @@ using QDMS;
 using BarSize = QDMS.BarSize;
 using LogLevel = NLog.LogLevel;
 
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     public class IB : IHistoricalDataSource, IRealTimeDataSource
     {

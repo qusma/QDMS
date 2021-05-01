@@ -10,7 +10,7 @@ using System.Threading;
 using Moq;
 using NUnit.Framework;
 using QDMS;
-using QDMSServer;
+using QDMSApp;
 
 namespace QDMSTest
 {

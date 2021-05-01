@@ -7,7 +7,7 @@
 using System;
 using QDMS;
 
-namespace QDMSServer
+namespace QDMSApp
 {
     public interface IRealTimeDataBroker : IDisposable
     {

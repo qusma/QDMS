@@ -19,7 +19,7 @@ using QDMS.Utils;
 
 #pragma warning disable 67
 
-namespace QDMSServer.DataSources
+namespace QDMSApp.DataSources
 {
     public class MySQLStorage : IDataStorage
     {

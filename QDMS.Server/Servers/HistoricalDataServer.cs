@@ -24,7 +24,7 @@ using ProtoBuf;
 using QDMS;
 
 // ReSharper disable once CheckNamespace
-namespace QDMSServer
+namespace QDMSApp
 {
     public class HistoricalDataServer : IDisposable, IHistoricalDataServer
     {

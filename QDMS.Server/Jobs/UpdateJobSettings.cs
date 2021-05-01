@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace QDMSServer
+namespace QDMSApp
 {
     /// <summary>
     /// These settings apply to all types of jobs
