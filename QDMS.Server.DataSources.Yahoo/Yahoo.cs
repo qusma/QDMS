@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using NLog;
 using QDMS;
@@ -27,30 +28,27 @@ namespace QDMSApp.DataSources
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private readonly Thread _downloaderThread;
-        private readonly ConcurrentQueue<HistoricalDataRequest> _queuedRequests;
-        private bool _runDownloader;
+        private Thread _downloaderThread;
+        private Channel<HistoricalDataRequest> _requests;
         private HttpClient _client;
         private HttpClientHandler _handler;
         private string _crumb;
-        private readonly object _lockObj = new object();
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         public Yahoo()
         {
-            _queuedRequests = new ConcurrentQueue<HistoricalDataRequest>();
-            _downloaderThread = new Thread(DownloaderLoop);
+
         }
 
         private async void DownloaderLoop()
         {
             HistoricalDataRequest req;
-            while(_runDownloader)
+            while(await _requests.Reader.WaitToReadAsync())
             {
-                while(_queuedRequests.TryDequeue(out req))
+                while(_requests.Reader.TryRead(out req))
                 {
                     RaiseEvent(HistoricalDataArrived, this, new HistoricalDataEventArgs(req, await GetData(req)));
                 }
-                Thread.Sleep(15);
             }
         }
 
@@ -60,56 +58,62 @@ namespace QDMSApp.DataSources
         public async void Connect()
         {
             //make sure only one connection attempt at a time
-            if (!Monitor.TryEnter(_lockObj)) return;
-            //make sure any async methods have ConfigureAwait(true) here, otherwise the lock fails
+            await _semaphore.WaitAsync();
 
-            if (Connected)
-            {
-                Monitor.Exit(_lockObj);
-                return;
-            }
-
-            var cookieContainer = new CookieContainer();
-            _handler = new HttpClientHandler { CookieContainer = cookieContainer };
-            _client = new HttpClient(_handler);
-
-            //Get cookie and crumb...they can be used across all requests
-
-            string url = "https://uk.finance.yahoo.com/quote/AAPL/history";
-            HttpResponseMessage response;
             try
             {
-                response = await _client.GetAsync(url).ConfigureAwait(true);
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.Error(ex, "Yahoo crumb/cookie request failed");
-                return;
-            }
+                if (Connected)
+                {
+                    return;
+                }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.Error("Could not get crumb/cookie");
-                Monitor.Exit(_lockObj);
-                return;
-            }
-            string cookie = response.Headers.FirstOrDefault(x => x.Key == "Set-Cookie").Value.First().Split(';')[0];
-            cookieContainer.Add(new Uri("https://yahoo.com"), new Cookie("Cookie", cookie));
+                var cookieContainer = new CookieContainer();
+                _handler = new HttpClientHandler { CookieContainer = cookieContainer };
+                _client = new HttpClient(_handler);
 
-            //get the crumb
-            string html = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
-            var match = Regex.Match(html, "\"CrumbStore\":{\"crumb\":\"(?<crumb>[^\"]+)\"}");
-            if (!match.Success)
-            {
-                _logger.Error("Failed to extract crumb");
-                Monitor.Exit(_lockObj);
-                return;
-            }
-            _crumb = Regex.Unescape(match.Groups[1].Value);
+                //Get cookie and crumb...they can be used across all requests
 
-            _runDownloader = true;
-            _downloaderThread.Start();
-            Monitor.Exit(_lockObj);
+                string url = "https://uk.finance.yahoo.com/quote/AAPL/history";
+                HttpResponseMessage response;
+                try
+                {
+                    response = await _client.GetAsync(url).ConfigureAwait(true);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.Error(ex, "Yahoo crumb/cookie request failed");
+                    return;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.Error("Could not get crumb/cookie");
+                    return;
+                }
+                string cookie = response.Headers.FirstOrDefault(x => x.Key == "Set-Cookie").Value.First().Split(';')[0];
+                cookieContainer.Add(new Uri("https://yahoo.com"), new Cookie("Cookie", cookie));
+
+                //get the crumb
+                string html = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
+                var match = Regex.Match(html, "\"CrumbStore\":{\"crumb\":\"(?<crumb>[^\"]+)\"}");
+                if (!match.Success)
+                {
+                    _logger.Error("Failed to extract crumb");
+                    return;
+                }
+                _crumb = Regex.Unescape(match.Groups[1].Value);
+
+                _requests = Channel.CreateUnbounded<HistoricalDataRequest>();
+
+                _downloaderThread = new Thread(DownloaderLoop);
+                _downloaderThread.Start();
+
+                Connected = true;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         /// <summary>
@@ -117,16 +121,19 @@ namespace QDMSApp.DataSources
         /// </summary>
         public void Disconnect()
         {
-            _runDownloader = false;
+            if (!Connected) return;
+
+            _requests.Writer.Complete();
             _downloaderThread.Join();
             _client?.Dispose();
             _client = null;
+            Connected = false;
         }
 
         /// <summary>
         /// Whether the connection to the data source is up or not.
         /// </summary>
-        public bool Connected => _runDownloader;
+        public bool Connected { get; private set; }
 
         /// <summary>
         /// The name of the data source.
@@ -135,7 +142,7 @@ namespace QDMSApp.DataSources
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
-            _queuedRequests.Enqueue(request);
+            _requests.Writer.TryWrite(request);
         }
 
         //Downloads data from yahoo. First dividends and splits, then actual price data
@@ -160,9 +167,7 @@ namespace QDMSApp.DataSources
                 ToTimestamp(endDate),
                 _crumb);
 
-            var 
-
-            response = await _client.GetAsync(splitURL).ConfigureAwait(false);
+            var response = await _client.GetAsync(splitURL).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
