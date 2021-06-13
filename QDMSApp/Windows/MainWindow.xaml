@@ -10,7 +10,7 @@
         Title="QDMS Server" Height="764" Width="1680"
     BorderBrush="Black"
     BorderThickness="1"
-    Icon="Resources\appbar.box.layered.png"
+    Icon="..\Resources\appbar.box.layered.png"
     xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
     Dialog:DialogParticipation.Register="{Binding}"
                Closing="DXWindow_Closing" >
@@ -249,10 +249,10 @@
                                 <DataGridTemplateColumn Header="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image x:Name="ConnectedImage" Source="Resources\109_AllAnnotations_Default_16x16_72.png" />
+                                            <Image x:Name="ConnectedImage" Source="..\Resources\109_AllAnnotations_Default_16x16_72.png" />
                                             <DataTemplate.Triggers>
                                                 <DataTrigger Binding="{Binding Path=Value.Connected}" Value="False">
-                                                    <Setter Property="Source" Value="Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
+                                                    <Setter Property="Source" Value="..\Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
                                                 </DataTrigger>
                                             </DataTemplate.Triggers>
                                         </DataTemplate>
@@ -268,10 +268,10 @@
                                 <DataGridTemplateColumn Header="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image x:Name="ConnectedImage" Source="Resources\109_AllAnnotations_Default_16x16_72.png" />
+                                            <Image x:Name="ConnectedImage" Source="..\Resources\109_AllAnnotations_Default_16x16_72.png" />
                                             <DataTemplate.Triggers>
                                                 <DataTrigger Binding="{Binding Path=Value.Connected}" Value="False">
-                                                    <Setter Property="Source" Value="Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
+                                                    <Setter Property="Source" Value="..\Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
                                                 </DataTrigger>
                                             </DataTemplate.Triggers>
                                         </DataTemplate>
@@ -288,10 +288,10 @@
                             <DataGridTemplateColumn Header="Status">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Image x:Name="ConnectedImage" Source="Resources\109_AllAnnotations_Default_16x16_72.png" />
+                                        <Image x:Name="ConnectedImage" Source="..\Resources\109_AllAnnotations_Default_16x16_72.png" />
                                         <DataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding Path=Value.Connected}" Value="False">
-                                                <Setter Property="Source" Value="Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
+                                                <Setter Property="Source" Value="..\Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
                                             </DataTrigger>
                                         </DataTemplate.Triggers>
                                     </DataTemplate>
@@ -307,10 +307,10 @@
                                 <DataGridTemplateColumn Header="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image x:Name="ConnectedImage" Source="Resources\109_AllAnnotations_Default_16x16_72.png" />
+                                            <Image x:Name="ConnectedImage" Source="..\Resources\109_AllAnnotations_Default_16x16_72.png" />
                                             <DataTemplate.Triggers>
                                                 <DataTrigger Binding="{Binding Path=Value.Connected}" Value="False">
-                                                    <Setter Property="Source" Value="Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
+                                                    <Setter Property="Source" Value="..\Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
                                                 </DataTrigger>
                                             </DataTemplate.Triggers>
                                         </DataTemplate>
@@ -326,10 +326,10 @@
                                 <DataGridTemplateColumn Header="Status">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image x:Name="ConnectedImage" Source="Resources\109_AllAnnotations_Default_16x16_72.png" />
+                                            <Image x:Name="ConnectedImage" Source="..\Resources\109_AllAnnotations_Default_16x16_72.png" />
                                             <DataTemplate.Triggers>
                                                 <DataTrigger Binding="{Binding Path=Value.Connected}" Value="False">
-                                                    <Setter Property="Source" Value="Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
+                                                    <Setter Property="Source" Value="..\Resources\109_AllAnnotations_Error_16x16_72.png" TargetName="ConnectedImage"/>
                                                 </DataTrigger>
                                             </DataTemplate.Triggers>
                                         </DataTemplate>
