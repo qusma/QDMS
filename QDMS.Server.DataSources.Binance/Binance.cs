@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,12 +28,11 @@ namespace QDMS.Server.DataSources.Binance
         /// Key = request id
         /// </summary>
         private Dictionary<int, WebSocket> _sockets = new Dictionary<int, WebSocket>();
-        private readonly Thread _downloaderThread;
-        private readonly ConcurrentQueue<HistoricalDataRequest> _queuedRequests = new ConcurrentQueue<HistoricalDataRequest>();
-        private bool _runDownloader;
+        private Thread _downloaderThread;
         private HttpClient _httpClient;
         private int _requestCounter;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private Channel<HistoricalDataRequest> _requests;
 
         /// <summary>
         /// Key: assignedId, value: internal id
@@ -41,14 +41,14 @@ namespace QDMS.Server.DataSources.Binance
 
         public Binance()
         {
-            _downloaderThread = new Thread(DownloaderLoop);
         }
 
         private async void DownloaderLoop()
         {
-            while (_runDownloader)
+            HistoricalDataRequest req;
+            while (await _requests.Reader.WaitToReadAsync())
             {
-                while (_queuedRequests.TryDequeue(out HistoricalDataRequest req))
+                while (_requests.Reader.TryRead(out req))
                 {
                     try
                     {
@@ -62,7 +62,6 @@ namespace QDMS.Server.DataSources.Binance
                             new ErrorArgs(0, "Error downloading historical data from binance: " + ex.Message));
                     }
                 }
-                Thread.Sleep(15);
             }
         }
 
@@ -220,21 +219,26 @@ namespace QDMS.Server.DataSources.Binance
         public void Connect()
         {
             _httpClient = new HttpClient();
-            _runDownloader = true;
+            _requests = Channel.CreateUnbounded<HistoricalDataRequest>();
+
+            _downloaderThread = new Thread(DownloaderLoop);
             _downloaderThread.Start();
+            Connected = true;
         }
 
         public void Disconnect()
         {
+            if (!Connected) return;
+
             foreach (var socket in _sockets)
             {
                 socket.Value.Close();
             }
 
-            _runDownloader = false;
             _downloaderThread.Join();
             _httpClient?.Dispose();
             _httpClient = null;
+            Connected = false;
         }
 
         public void RequestRealTimeData(RealTimeDataRequest request)
@@ -314,11 +318,11 @@ namespace QDMS.Server.DataSources.Binance
 
         public string Name => "Binance";
 
-        public bool Connected => _runDownloader;
+        public bool Connected { get; private set; }
 
         public void RequestHistoricalData(HistoricalDataRequest request)
         {
-            _queuedRequests.Enqueue(request);
+            _requests.Writer.TryWrite(request);
         }
 
         ///<summary>
