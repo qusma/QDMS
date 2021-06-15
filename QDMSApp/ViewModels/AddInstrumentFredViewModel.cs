@@ -4,6 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
+using NLog;
+using QDMS;
+using ReactiveUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,10 +15,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using MahApps.Metro.Controls.Dialogs;
-using NLog;
-using QDMS;
-using ReactiveUI;
 
 namespace QDMSApp.ViewModels
 {
@@ -80,7 +80,7 @@ namespace QDMSApp.ViewModels
 
                     Status = foundSeries.Count() + " contracts found";
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     await _dialogCoordinator.ShowMessageAsync(this, "Error", ex.Message).ConfigureAwait(true);
                 }

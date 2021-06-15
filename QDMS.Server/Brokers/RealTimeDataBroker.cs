@@ -9,14 +9,14 @@
 // Requests for new real time data streams are handled in RequestRealTimeData(),
 // then forwarded the appropriate external data source (if the stream doesn't already exist)
 
+using NLog;
+using QDMS;
+using QDMSApp.DataSources;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
-using NLog;
-using QDMS;
-using QDMSApp.DataSources;
 using Timer = System.Timers.Timer;
 #if !DEBUG
 using System.Net;
@@ -87,7 +87,7 @@ namespace QDMSApp
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private Timer _connectionTimer; //tries to reconnect every once in a while
-        
+
         private readonly object _subscriberCountLock = new object();
         private readonly object _aliasLock = new object();
         private readonly object _cfRequestLock = new object();
@@ -106,7 +106,7 @@ namespace QDMSApp
                 _connectionTimer.Dispose();
                 _connectionTimer = null;
             }
-            foreach(var dataSource in DataSources.Where(ds => ds.Value is IDisposable))
+            foreach (var dataSource in DataSources.Where(ds => ds.Value is IDisposable))
             {
                 ((IDisposable)dataSource.Value).Dispose();
             }
@@ -220,7 +220,7 @@ namespace QDMSApp
             bool streamExists;
             lock (_activeStreamsLock)
             {
-                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID && 
+                streamExists = ActiveStreams.Collection.Any(x => x.Instrument.ID == request.Instrument.ID &&
                                                                  x.Frequency == request.Frequency);
             }
 
@@ -309,7 +309,7 @@ namespace QDMSApp
 
             //save to local storage
             //perhaps just add it to a queue and then process in a different thread
-            lock(_requestsLock)
+            lock (_requestsLock)
             {
                 if (_requests[e.RequestID].SaveToLocalStorage)
                 {
@@ -417,21 +417,21 @@ namespace QDMSApp
 
         private void CancelContinuousFutureRTD(int instrumentID, BarSize frequency, Instrument instrument)
         {
-                var contractID = _continuousFuturesIDMap[instrumentID];
-                var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
+            var contractID = _continuousFuturesIDMap[instrumentID];
+            var contract = ActiveStreams.Collection.First(x => x.Instrument.ID == contractID).Instrument;
 
-                //we must also clear the alias list
-                lock (_aliasLock)
+            //we must also clear the alias list
+            lock (_aliasLock)
+            {
+                _aliases[contractID].Remove(instrumentID);
+                if (_aliases[contractID].Count == 0)
                 {
-                    _aliases[contractID].Remove(instrumentID);
-                    if (_aliases[contractID].Count == 0)
-                    {
-                        _aliases.Remove(contractID);
-                    }
+                    _aliases.Remove(contractID);
                 }
+            }
 
-                //finally cancel the contract's stream
-                CancelRTDStream(contractID, frequency);
+            //finally cancel the contract's stream
+            CancelRTDStream(contractID, frequency);
         }
 
 
@@ -646,7 +646,7 @@ namespace QDMSApp
                     }
 #endif
 
-                    }
+                }
             }
         }
 

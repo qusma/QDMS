@@ -60,7 +60,7 @@ namespace QDMS
         /// Fires on any error.
         /// </summary>
         event EventHandler<ErrorArgs> Error;
-        
+
         /// <summary>
         /// Fires on disconnection from the data source.
         /// </summary>

@@ -34,7 +34,7 @@ namespace QDMS
         public static double QDMSStandardDeviation(this IEnumerable<decimal> values)
         {
             decimal avg = values.Average();
-            return Math.Sqrt(values.Average(v => Math.Pow((double) (v - avg), 2)));
+            return Math.Sqrt(values.Average(v => Math.Pow((double)(v - avg), 2)));
         }
     }
 }

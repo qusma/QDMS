@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Configuration;
 #pragma warning disable 1591
 
 namespace QDMS

@@ -4,17 +4,17 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Linq;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
 using QDMS.Server.Brokers;
+using System.Linq;
 
 namespace QDMS.Server.NancyModules
 {
     public class DividendsModule : NancyModule
     {
-        public DividendsModule(IDividendsBroker broker) 
+        public DividendsModule(IDividendsBroker broker)
             : base("/dividends")
         {
             this.RequiresAuthentication();

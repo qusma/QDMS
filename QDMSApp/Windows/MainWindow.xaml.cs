@@ -4,11 +4,17 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using NLog;
+using QDMS;
+using QDMSApp.ViewModels;
+using QDMSClient;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.SqlClient;
 using System.Deployment.Application;
 using System.IO;
 using System.Linq;
@@ -17,16 +23,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using EntityData;
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using MySql.Data.MySqlClient;
-using NLog;
-using NLog.Targets;
-using QDMS;
-using QDMSClient;
-using QDMSApp.Properties;
-using QDMSApp.ViewModels;
 
 namespace QDMSApp
 {
@@ -133,7 +129,7 @@ namespace QDMSApp
             }
             tagMenu.Items.Add(Resources["NewTagMenuItem"]);
         }
-        
+
         private void _client_HistoricalDataReceived(object sender, HistoricalDataEventArgs e)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -478,7 +474,7 @@ namespace QDMSApp
             string newTagName = newTagTextBox.Text;
 
             //add the tag
-            ApiResponse<Tag> addTagResult = await _client.AddTag(new Tag {Name = newTagName}).ConfigureAwait(true);
+            ApiResponse<Tag> addTagResult = await _client.AddTag(new Tag { Name = newTagName }).ConfigureAwait(true);
             if (!addTagResult.WasSuccessful)
             {
                 await this.ShowMessageAsync("Error", "Could not add tag").ConfigureAwait(true);

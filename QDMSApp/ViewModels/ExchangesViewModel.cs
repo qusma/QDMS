@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using DynamicData;
+using DynamicData.Binding;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using ReactiveUI;
@@ -12,7 +13,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using DynamicData.Binding;
 
 namespace QDMSApp.ViewModels
 {

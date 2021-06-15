@@ -59,7 +59,7 @@ namespace QDMS
         /// 
         /// </summary>
         [Obsolete("FOR SERIALIZATION USE ONLY")]
-        public EarningsAnnouncementRequest() 
+        public EarningsAnnouncementRequest()
         { }
 
         /// <summary>

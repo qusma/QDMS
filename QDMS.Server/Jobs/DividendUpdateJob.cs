@@ -4,14 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
 using QDMSApp;
 using Quartz;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace QDMS.Server.Jobs
 {
@@ -93,7 +93,7 @@ namespace QDMS.Server.Jobs
                     .Distinct()
                     .ToList();
 
-                
+
                 return new DividendRequest(
                     startDate,
                     endDate,

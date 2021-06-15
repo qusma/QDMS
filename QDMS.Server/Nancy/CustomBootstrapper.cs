@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using EntityData;
+using MySql.Data.MySqlClient;
 using Nancy;
 using Nancy.Authentication.Stateless;
 using Nancy.Bootstrapper;
@@ -12,6 +13,7 @@ using Nancy.ModelBinding;
 using Nancy.Responses;
 using Nancy.Serialization.JsonNet;
 using Nancy.TinyIoc;
+using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
 using QDMS.Server.Repositories;
@@ -20,8 +22,6 @@ using Quartz;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Principal;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
 
 namespace QDMS.Server.Nancy
 {
@@ -103,7 +103,7 @@ namespace QDMS.Server.Nancy
                 {
                     var response = new JsonResponse(
                         new ErrorResponse(HttpStatusCode.Conflict, sqlException.Message, ""),
-                        new JsonNetSerializer(), 
+                        new JsonNetSerializer(),
                         ctx.Environment);
                     response.StatusCode = HttpStatusCode.Conflict;
                     return response;
@@ -123,7 +123,7 @@ namespace QDMS.Server.Nancy
                 //generic handler
                 var genericResponse = new JsonResponse(
                     new ErrorResponse(HttpStatusCode.InternalServerError, ex.Message, ""),
-                    new JsonNetSerializer(), 
+                    new JsonNetSerializer(),
                     ctx.Environment);
                 genericResponse.StatusCode = HttpStatusCode.InternalServerError;
                 return genericResponse;

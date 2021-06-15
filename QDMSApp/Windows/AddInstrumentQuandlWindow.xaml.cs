@@ -4,21 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using EntityData;
 using MahApps.Metro.Controls;
-using NLog;
+using MahApps.Metro.Controls.Dialogs;
 using QDMS;
-using QDMS.Server;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data.Entity;
-using System.Linq;
+using QDMSApp.ViewModels;
 using System.Reactive.Linq;
 using System.Windows;
-using System.Windows.Input;
-using MahApps.Metro.Controls.Dialogs;
-using QDMSApp.ViewModels;
 
 namespace QDMSApp
 {

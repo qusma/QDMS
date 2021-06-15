@@ -40,9 +40,9 @@ namespace QDMSApp
         public UpdateJobSettings() { }
 
         public UpdateJobSettings(
-            bool noDataReceived = true, 
-            bool errors = true, 
-            bool outliers = true, 
+            bool noDataReceived = true,
+            bool errors = true,
+            bool outliers = true,
             bool requestTimeouts = true,
             int timeout = 5,
             string toEmail = "",

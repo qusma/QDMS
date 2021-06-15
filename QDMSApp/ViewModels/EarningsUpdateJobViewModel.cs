@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMS.Server.Validation;
 using ReactiveUI;
 using System;
-using MahApps.Metro.Controls.Dialogs;
 
 namespace QDMSApp.ViewModels
 {

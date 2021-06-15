@@ -4,14 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Net;
-using System.Reactive;
-using System.Reactive.Linq;
 using DynamicData;
 using EntityData;
 using MahApps.Metro.Controls.Dialogs;
@@ -21,11 +13,19 @@ using NLog;
 using QDMS;
 using QDMS.Server.Brokers;
 using QDMS.Server.Repositories;
-using QDMSClient;
 using QDMSApp.Properties;
+using QDMSClient;
 using Quartz;
 using Quartz.Impl.Matchers;
 using ReactiveUI;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Net;
+using System.Reactive;
+using System.Reactive.Linq;
 
 namespace QDMSApp.ViewModels
 {

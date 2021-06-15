@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMS.Server.Validation;
 using ReactiveUI;
@@ -12,8 +13,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using MahApps.Metro.Controls.Dialogs;
-using ReactiveUI.Legacy;
 
 namespace QDMSApp.ViewModels
 {
@@ -37,7 +36,7 @@ namespace QDMSApp.ViewModels
             {
                 Sessions.Remove(viewModel);
                 Model.Sessions.Remove((TemplateSession)viewModel.Model);
-            }, 
+            },
             canRemove);
 
             AddSession = ReactiveCommand.Create(() =>

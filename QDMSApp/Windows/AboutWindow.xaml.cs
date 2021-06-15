@@ -4,11 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls;
 using System.Diagnostics;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Navigation;
-using MahApps.Metro.Controls;
 
 namespace QDMSApp
 {
@@ -21,7 +20,7 @@ namespace QDMSApp
         {
             InitializeComponent();
 
-            VersionLabel.Content = string.Format("Version: {0}", 
+            VersionLabel.Content = string.Format("Version: {0}",
                 GetVersion());
         }
 

@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
-using Newtonsoft.Json;
 
 //This one should be in QDMS.Server.Jobs.JobDetails but for now we leave it here because we still need the old jobs to remain in the db
 namespace QDMS
@@ -17,7 +16,7 @@ namespace QDMS
     /// <summary>
     /// Holds instructions on how a data update job is to be performed.
     /// </summary>
-    public class 
+    public class
         DataUpdateJobSettings : INotifyPropertyChanged, IJobSettings
     {
         /// <summary>

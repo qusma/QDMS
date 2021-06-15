@@ -13,15 +13,15 @@
 // 2. To check what data is available in the local database
 // 3. To add data to the local database
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using K4os.Compression.LZ4;
 using NetMQ;
 using NetMQ.Sockets;
 using NLog;
 using ProtoBuf;
 using QDMS;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 // ReSharper disable once CheckNamespace
 namespace QDMSApp

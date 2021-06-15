@@ -4,18 +4,18 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Linq;
 using EntityData;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
 using QDMS.Server.Nancy;
+using System.Linq;
 
 namespace QDMS.Server.NancyModules
 {
     public class UnderlyingSymbolModule : NancyModule
     {
-        public UnderlyingSymbolModule(IMyDbContext context) : base ("/underlyingsymbols")
+        public UnderlyingSymbolModule(IMyDbContext context) : base("/underlyingsymbols")
         {
             this.RequiresAuthentication();
             var dbSet = context.Set<UnderlyingSymbol>();

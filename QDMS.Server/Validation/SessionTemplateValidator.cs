@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
 using FluentValidation;
 using FluentValidation.Internal;
 using FluentValidation.Results;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace QDMS.Server.Validation
 {

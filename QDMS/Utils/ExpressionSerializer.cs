@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MetaLinq;
 using System;
 using System.IO;
 using System.Linq.Expressions;
 using System.Xml.Serialization;
-using MetaLinq;
 
 namespace QDMS
 {

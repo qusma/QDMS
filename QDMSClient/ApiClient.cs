@@ -25,7 +25,7 @@ namespace QDMSClient
         private HttpClient _httpClient = new HttpClient();
 
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
-            {PreserveReferencesHandling = PreserveReferencesHandling.Objects};
+        { PreserveReferencesHandling = PreserveReferencesHandling.Objects };
         private readonly string _baseAddr;
 
         /// <summary>

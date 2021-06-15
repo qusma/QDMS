@@ -41,7 +41,7 @@ namespace QDMS
             //Create starting and ending DTs for the sessions
             var arbitraryStartPoint = new DateTime(2014, 1, 1, 0, 0, 0, 0, new GregorianCalendar(), DateTimeKind.Utc);
             DateTime session1Start, session1End, session2StartBack, session2StartForward, session2EndBack, session2EndForward;
-            
+
             SessionToDTs(session1, arbitraryStartPoint, out session1Start, out session1End);
 
             //to make sure all overlap scenarios are covered, the 2nd session is done both backwards and forwards

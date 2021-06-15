@@ -10,16 +10,14 @@
 // then forwarded to local storage, the appropriate external data source, or both.
 // When data returns, it's sent through the HistoricalDataArrived event.
 
+using NLog;
+using QDMS;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Timers;
-using System.Windows;
-using NLog;
-using QDMS;
-using QDMSApp.DataSources;
 using Timer = System.Timers.Timer;
 
 namespace QDMSApp
@@ -73,7 +71,7 @@ namespace QDMSApp
             _requestHandlerThread?.Join();
 
 
-            foreach(var ds in DataSources.Values)
+            foreach (var ds in DataSources.Values)
             {
                 ds.Disconnect();
             }
@@ -152,10 +150,10 @@ namespace QDMSApp
         /// </summary>
         private void Poll()
         {
-            while(!_eventWait.WaitOne(5))
+            while (!_eventWait.WaitOne(5))
             {
                 HistoricalDataRequest request;
-                while(_requestQueue.TryDequeue(out request))
+                while (_requestQueue.TryDequeue(out request))
                 {
                     HandleRequest(request);
                 }
@@ -256,7 +254,7 @@ namespace QDMSApp
                 //grab the rest of the data from historical storage if needed
                 //unless the request specifies fresh data only
                 var storageData = new List<OHLCBar>();
-                if (e.Data.Count > 0 && 
+                if (e.Data.Count > 0 &&
                     e.Data[0].Date.ToDateTime() > originalRequest.StartingDate &&
                     e.Request.DataLocation != DataLocation.ExternalOnly)
                 {
@@ -572,7 +570,7 @@ namespace QDMSApp
         /// </summary>
         public void AddData(DataAdditionRequest request)
         {
-            if(request.Data.Count == 0)
+            if (request.Data.Count == 0)
             {
                 Log(LogLevel.Info, string.Format("HDB: AddData called with zero bars, request: {0}", request));
                 return;

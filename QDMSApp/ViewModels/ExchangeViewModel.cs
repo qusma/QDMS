@@ -4,16 +4,16 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
+using QDMS;
+using QDMS.Server.Validation;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using MahApps.Metro.Controls.Dialogs;
-using QDMS;
-using QDMS.Server.Validation;
-using ReactiveUI;
 
 namespace QDMSApp.ViewModels
 {
@@ -25,7 +25,7 @@ namespace QDMSApp.ViewModels
 
         public ReactiveCommand<SessionViewModel, Unit> RemoveSession { get; set; }
 
-        public ExchangeViewModel(Exchange model, IDataClient client, object parentVm, IDialogCoordinator dialogCoordinator) 
+        public ExchangeViewModel(Exchange model, IDataClient client, object parentVm, IDialogCoordinator dialogCoordinator)
             : base(model, new ExchangeValidator())
         {
             var canExecuteSave = this.WhenAnyValue(x => x.HasErrors, x => !x);

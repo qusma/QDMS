@@ -4,6 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using K4os.Compression.LZ4;
+using NetMQ;
+using NetMQ.Sockets;
+using QDMS;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,10 +19,6 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using K4os.Compression.LZ4;
-using NetMQ;
-using NetMQ.Sockets;
-using QDMS;
 
 namespace QDMSClient
 {
@@ -523,7 +523,7 @@ namespace QDMSClient
 
             _apiClient = new ApiClient(host, httpPort, apiKey, useSsl);
         }
-        
+
 
         #region Event handlers
         /// <summary>

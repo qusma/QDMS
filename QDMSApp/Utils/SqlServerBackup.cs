@@ -23,8 +23,8 @@ namespace QDMSApp
                                         TO DISK = '{1}'
                                            WITH FORMAT,
                                               NAME = 'QDMS Server backup of {0}';
-                                        GO", 
-                                        database, 
+                                        GO",
+                                        database,
                                         file);
                 cmd.ExecuteNonQuery();
             }
@@ -42,8 +42,8 @@ namespace QDMSApp
                                         RESTORE DATABASE {0}
                                             FROM DISK = '{1}'
                                         WITH REPLACE
-                                        GO", 
-                                        database, 
+                                        GO",
+                                        database,
                                         file);
                 cmd.ExecuteNonQuery();
             }

@@ -18,8 +18,8 @@ namespace QDMSApp
         {
             var allSettings = grid.Columns.Select(c => new ColumnOptions
             {
-                DisplayIndex = c.DisplayIndex, 
-                Width = c.ActualWidth, 
+                DisplayIndex = c.DisplayIndex,
+                Width = c.ActualWidth,
                 SortDirection = c.SortDirection
             }).ToList();
 
@@ -34,7 +34,7 @@ namespace QDMSApp
             var serializer = new XmlSerializer(typeof(List<ColumnOptions>));
             using (var sw = new StringReader(settings))
             {
-                allSettings = (List<ColumnOptions>) serializer.Deserialize(sw);
+                allSettings = (List<ColumnOptions>)serializer.Deserialize(sw);
             }
 
             for (int i = 0; i < allSettings.Count; i++)

@@ -4,10 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using NLog;
 using System;
 using System.Globalization;
 using System.Windows.Data;
-using NLog;
 
 namespace QDMSApp
 {

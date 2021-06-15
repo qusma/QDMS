@@ -8,9 +8,9 @@
 // the "reference day", and then use an offset from that day to find
 // the actual expiration date.
 
-using System;
 using Newtonsoft.Json;
 using ProtoBuf;
+using System;
 
 namespace QDMS
 {
@@ -96,12 +96,14 @@ namespace QDMS
         [ProtoIgnore]
         public ReferenceDayType ReferenceDayType
         {
-            get {
+            get
+            {
                 if (_referenceDayIsLastBusinessDayOfMonth) return ReferenceDayType.LastDayOfMonth;
                 if (_referenceUsesDays) return ReferenceDayType.CalendarDays;
                 return ReferenceDayType.WeekDays;
             }
-            set {
+            set
+            {
                 _referenceDayIsLastBusinessDayOfMonth = value == ReferenceDayType.LastDayOfMonth;
                 _referenceUsesDays = value == ReferenceDayType.CalendarDays;
             }

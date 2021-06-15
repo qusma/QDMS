@@ -4,13 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using QDMS;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using QDMS;
 
 #pragma warning disable 67
 namespace QDMSApp.DataSources
@@ -34,7 +34,7 @@ namespace QDMSApp.DataSources
                 _timer = null;
             }
         }
-        
+
         public RealTimeSim()
         {
             Name = "SIM";
@@ -82,7 +82,7 @@ namespace QDMSApp.DataSources
             _loopsPassed.TryAdd(request.Instrument.ID.Value, number);
             _loopLimit.TryAdd(request.Instrument.ID.Value, number);
             _idMap.TryAdd(request.Instrument.ID.Value, request.AssignedID);
-            
+
             _requestIDs++;
         }
 
@@ -110,15 +110,15 @@ namespace QDMSApp.DataSources
                 int id;
                 bool success = _idMap.TryGetValue(instrumentID, out id);
 
-                if(success)
+                if (success)
                     RaiseEvent(DataReceived, this, new RealTimeDataEventArgs(
                         instrumentID,
                         _requests[id].Frequency,
-                        MyUtils.ConvertToTimestamp(DateTime.Now), 
-                        (decimal) open,
-                        (decimal) high,
-                        (decimal) low,
-                        (decimal) close,
+                        MyUtils.ConvertToTimestamp(DateTime.Now),
+                        (decimal)open,
+                        (decimal)high,
+                        (decimal)low,
+                        (decimal)close,
                         1000,
                         0,
                         0,

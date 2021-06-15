@@ -4,8 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using QDMS;
+using System;
 
 namespace QDMSApp
 {
@@ -23,6 +23,6 @@ namespace QDMSApp
         bool CancelRTDStream(int instrumentID, BarSize frequency);
 
         ConcurrentNotifierBlockingList<RealTimeStreamInfo> ActiveStreams { get; }
-        
+
     }
 }

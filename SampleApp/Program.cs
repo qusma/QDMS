@@ -4,12 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using QDMS;
+using QDMSClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using QDMS;
-using QDMSClient;
 
 namespace SampleApp
 {
@@ -34,7 +34,7 @@ namespace SampleApp
 
             //connect to the server
             client.Connect();
-            
+
             //make sure the connection was succesful before we continue
             if (!client.Connected)
             {
@@ -98,7 +98,6 @@ namespace SampleApp
                     {
                         Console.WriteLine("Freq: {0} - From {1} to {2}", s.Frequency, s.EarliestDate, s.LatestDate);
                     }
-                    
                 }
 
                 Thread.Sleep(3000);

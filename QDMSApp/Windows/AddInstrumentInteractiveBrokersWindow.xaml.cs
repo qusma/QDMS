@@ -7,11 +7,11 @@
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using NLog;
+using QDMS;
 using QDMSApp.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Input;
-using QDMS;
 
 namespace QDMSApp
 {

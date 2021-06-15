@@ -32,9 +32,9 @@ namespace QDMSApp
         public bool TryAdd(T value, int timeout = -1)
         {
             bool res = false;
-            if(timeout == -1)
+            if (timeout == -1)
             {
-                lock(_lockObj)
+                lock (_lockObj)
                 {
                     Collection.Add(value);
                     res = true;
@@ -42,7 +42,7 @@ namespace QDMSApp
             }
             else
             {
-                if(Monitor.TryEnter(_lockObj, timeout))
+                if (Monitor.TryEnter(_lockObj, timeout))
                 {
                     try
                     {
@@ -55,7 +55,7 @@ namespace QDMSApp
                     }
                 }
             }
-            
+
             if (res)
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value));
             return res;
@@ -97,12 +97,12 @@ namespace QDMSApp
                 }
             }
 
-            if(res)
+            if (res)
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, value, index));
             return res;
         }
 
-        public T this [int index]
+        public T this[int index]
         {
             get
             {
@@ -154,5 +154,5 @@ namespace QDMSApp
             }
         }
     }
-    
+
 }

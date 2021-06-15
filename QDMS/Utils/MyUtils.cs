@@ -4,12 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using ProtoBuf;
+using QLNet;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ProtoBuf;
-using QLNet;
 
 namespace QDMS
 {
@@ -329,7 +329,7 @@ namespace QDMS
 
             if (span <= TimeSpan.FromHours(1))
                 return BarSize.OneHour;
-            
+
             if (span <= TimeSpan.FromDays(1))
                 return BarSize.OneDay;
 
@@ -416,7 +416,7 @@ namespace QDMS
         /// Ensure that no sessions in the collection overlap.
         /// </summary>
         /// <returns>True if validation succeeded, false if there were errors</returns>
-        public static bool ValidateSessions<T>(List<T> sessions, out List<string> errors) where T: ISession
+        public static bool ValidateSessions<T>(List<T> sessions, out List<string> errors) where T : ISession
         {
             errors = new List<string>();
             if (sessions == null) return true;

@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using DynamicData;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMS.Server.Validation;
@@ -16,7 +17,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
 
 namespace QDMSApp.ViewModels
 {
@@ -139,12 +139,12 @@ namespace QDMSApp.ViewModels
             var checkbox = sender as CheckBoxTag;
             if (checkbox == null) return;
 
-            if(checkbox.IsChecked && !Model.Tags.Contains(checkbox.Item))
+            if (checkbox.IsChecked && !Model.Tags.Contains(checkbox.Item))
             {
                 Model.Tags.Add(checkbox.Item);
             }
-            
-            if(!checkbox.IsChecked)
+
+            if (!checkbox.IsChecked)
             {
                 Model.Tags.Remove(checkbox.Item);
             }

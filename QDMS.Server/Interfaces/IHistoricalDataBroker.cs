@@ -4,9 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using QDMS;
+using System;
 
 namespace QDMSApp
 {

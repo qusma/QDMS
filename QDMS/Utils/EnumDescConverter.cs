@@ -77,11 +77,11 @@ namespace QDMS.Utils
                         Enum val = (Enum)fi.GetValue(fi.Name);
                         string strVal = attributes.Length > 0 ? attributes[0].Description : val.ToString();
 
-                        if(!et.EnumToString.ContainsKey(val))
+                        if (!et.EnumToString.ContainsKey(val))
                             et.EnumToString.Add(val, strVal);
                         if (attributes.Length > 0)
                             et.DescriptionToEnum.Add(attributes[0].Description, val);
-                        if(!et.NameToEnum.ContainsKey(val.ToString()))
+                        if (!et.NameToEnum.ContainsKey(val.ToString()))
                             et.NameToEnum.Add(val.ToString(), val);
                     }
                 }

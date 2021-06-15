@@ -22,7 +22,7 @@ namespace QDMS
         /// 
         /// </summary>
         public Instrument Instrument { get; }
-        
+
         /// <summary>
         /// 
         /// </summary>

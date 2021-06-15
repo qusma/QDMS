@@ -4,10 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using NLog;
 using System;
 using System.Globalization;
 using System.Windows.Data;
-using NLog;
 
 namespace QDMSApp
 {
@@ -27,7 +27,7 @@ namespace QDMSApp
             {
                 return TimeZoneInfo.FindSystemTimeZoneById((string)value);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var logger = LogManager.GetCurrentClassLogger();
                 logger.Warn("TZ parse error: " + ex.Message);

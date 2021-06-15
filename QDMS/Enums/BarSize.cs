@@ -13,7 +13,7 @@ namespace QDMS
     /// Historical Bar Size Requests
     /// </summary>
     [Serializable]
-   // [DataContract]
+    // [DataContract]
     //[ProtoContract]
     public enum BarSize : int
     {

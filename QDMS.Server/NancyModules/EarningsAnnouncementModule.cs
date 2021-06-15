@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Linq;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
 using QDMS.Server.Brokers;
+using System.Linq;
 
 namespace QDMS.Server.NancyModules
 {
@@ -28,7 +28,7 @@ namespace QDMS.Server.NancyModules
                 return await broker.Request(request).ConfigureAwait(false);
             });
 
-            Get("/datasources",_ => broker.DataSources.Keys.ToList());
+            Get("/datasources", _ => broker.DataSources.Keys.ToList());
         }
     }
 }

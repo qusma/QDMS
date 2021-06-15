@@ -4,6 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
+using IBApi;
+using MahApps.Metro.Controls.Dialogs;
+using NLog;
+using QDMS;
+using QDMSIBClient;
+using ReactiveUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,13 +21,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using EntityData;
-using QDMSIBClient;
-using IBApi;
-using MahApps.Metro.Controls.Dialogs;
-using NLog;
-using QDMS;
-using ReactiveUI;
 
 namespace QDMSApp.ViewModels
 {
@@ -194,7 +194,7 @@ namespace QDMSApp.ViewModels
 
         private void CreateCommands()
         {
-            AddSelectedInstruments = ReactiveCommand.CreateFromTask<IList>(async instruments => 
+            AddSelectedInstruments = ReactiveCommand.CreateFromTask<IList>(async instruments =>
                 await ExecuteAddSelectedInstruments(instruments).ConfigureAwait(true));
 
             Search = ReactiveCommand.Create(ExecuteSearch, this.WhenAny(x => x.SearchUnderway, x => !x.Value).ObserveOnDispatcher());
@@ -280,7 +280,7 @@ namespace QDMSApp.ViewModels
             if (ExpirationDate.HasValue)
                 contract.LastTradeDateOrContractMonth = ExpirationDate.Value.ToString("yyyyMM");
 
-            if(Strike.HasValue)
+            if (Strike.HasValue)
             {
                 contract.Strike = Strike.Value;
             }

@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using EntityData;
 using QDMS;
 using QDMS.Server;
@@ -12,6 +11,7 @@ using QDMS.Server.Brokers;
 using QDMS.Server.Jobs;
 using Quartz;
 using Quartz.Spi;
+using System;
 
 namespace QDMSApp
 {
@@ -148,7 +148,7 @@ namespace QDMSApp
         /// </summary>
         public void ReturnJob(IJob job)
         {
-            
+
         }
     }
 }

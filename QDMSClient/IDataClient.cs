@@ -231,7 +231,7 @@ namespace QDMS
         /// <summary>
         /// Add a new job
         /// </summary>
-        Task <ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings;
+        Task<ApiResponse<T>> AddJob<T>(T job) where T : class, IJobSettings;
 
         /// <summary>
         /// Delete a job

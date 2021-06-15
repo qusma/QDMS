@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Linq;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
@@ -79,7 +78,7 @@ namespace QDMS.Server.NancyModules
             return jobSettings;
         }
 
-        private dynamic DeleteJob<T>(IJobsRepository repo) where T: IJobSettings
+        private dynamic DeleteJob<T>(IJobsRepository repo) where T : IJobSettings
         {
             T jobSettings = this.Bind<T>();
             if (jobSettings == null)

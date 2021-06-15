@@ -4,8 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using ProtoBuf;
+using System;
 
 namespace QDMS
 {

@@ -4,6 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using DynamicData;
+using MahApps.Metro.Controls.Dialogs;
+using QDMS;
+using QDMSClient;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,11 +18,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using DynamicData;
-using MahApps.Metro.Controls.Dialogs;
-using QDMS;
-using QDMSClient;
-using ReactiveUI;
 
 namespace QDMSApp.ViewModels
 {

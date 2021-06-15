@@ -4,12 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls;
+using MySql.Data.MySqlClient;
 using System;
 using System.Data.SqlClient;
 using System.Windows;
 using System.Windows.Controls;
-using MahApps.Metro.Controls;
-using MySql.Data.MySqlClient;
 
 namespace QDMSApp
 {
@@ -37,7 +37,7 @@ namespace QDMSApp
             SqlServerAuthenticationRadioBtn.IsChecked = !Properties.Settings.Default.sqlServerUseWindowsAuthentication;
 
             SqlServerHostTextBox.Text = Properties.Settings.Default.sqlServerHost;
-            SqlServerUsernameTextBox.Text = 
+            SqlServerUsernameTextBox.Text =
                 string.IsNullOrEmpty(Properties.Settings.Default.sqlServerUsername)
                     ? Properties.Settings.Default.sqlServerUsername
                     : "localhost\\SQLEXPRESS";
@@ -60,7 +60,7 @@ namespace QDMSApp
                 MessageBox.Show("Connection failed with error: " + ex.Message);
                 return;
             }
-            
+
             MessageBox.Show("Connection succeeded.");
             connection.Close();
         }

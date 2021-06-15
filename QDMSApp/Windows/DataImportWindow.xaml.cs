@@ -4,6 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
+using MahApps.Metro.Controls;
+using Microsoft.Win32;
+using QDMS;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,11 +23,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using EntityData;
-using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using QDMS;
-using QDMSApp.DataSources;
 
 namespace QDMSApp
 {
@@ -199,7 +198,7 @@ namespace QDMSApp
         private void DateFormatTextBox_KeyUp(object sender, KeyEventArgs e)
         {
             DoFormatColoring();
-            
+
         }
 
         private void SetColumnType_ItemClick(object sender, RoutedEventArgs routedEventArgs)
@@ -213,7 +212,7 @@ namespace QDMSApp
             header.Content = newName;
 
             //the column is still bound to the old name, so we have to re-bind it
-            var gridColumn = (DataGridTextColumn)TheDataGrid.Columns.FirstOrDefault(x => (string) x.Header == oldName);
+            var gridColumn = (DataGridTextColumn)TheDataGrid.Columns.FirstOrDefault(x => (string)x.Header == oldName);
             if (gridColumn != null)
             {
                 gridColumn.Binding = new Binding(newName);
@@ -237,28 +236,28 @@ namespace QDMSApp
                         DateTime tmpDate;
                         success = DateTime.TryParseExact(
                             items[i], DateFormatTextBox.Text, CultureInfo.InvariantCulture, DateTimeStyles.None, out tmpDate);
-                         if (!success)
-                         {
-                             throw new Exception("Incorrect date format.");
-                         }
-                         else
-                         {
-                             bar.DT = new DateTime(tmpDate.Ticks);
-                         }
+                        if (!success)
+                        {
+                            throw new Exception("Incorrect date format.");
+                        }
+                        else
+                        {
+                            bar.DT = new DateTime(tmpDate.Ticks);
+                        }
                         break;
 
                     case "DateTime":
                         DateTime tmpDT;
                         success = DateTime.TryParseExact(
                             items[i], DateTimeFormatTextBox.Text, CultureInfo.InvariantCulture, DateTimeStyles.None, out tmpDT);
-                         if (!success)
-                         {
-                             throw new Exception("Incorrect datetime format.");
-                         }
-                         else
-                         {
-                             bar.DT = new DateTime(tmpDT.Ticks);
-                         }
+                        if (!success)
+                        {
+                            throw new Exception("Incorrect datetime format.");
+                        }
+                        else
+                        {
+                            bar.DT = new DateTime(tmpDT.Ticks);
+                        }
                         break;
 
                     case "DateTimeOpen":
@@ -279,14 +278,14 @@ namespace QDMSApp
                         DateTime tmpTS;
                         success = DateTime.TryParseExact(
                             items[i], TimeFormatTextBox.Text, CultureInfo.InvariantCulture, DateTimeStyles.None, out tmpTS);
-                         if (!success)
-                         {
-                             throw new Exception("Incorrect time format.");
-                         }
-                         else
-                         {
-                             closingTime = TimeSpan.FromSeconds(tmpTS.TimeOfDay.TotalSeconds);
-                         }
+                        if (!success)
+                        {
+                            throw new Exception("Incorrect time format.");
+                        }
+                        else
+                        {
+                            closingTime = TimeSpan.FromSeconds(tmpTS.TimeOfDay.TotalSeconds);
+                        }
                         break;
 
                     case "Open":
@@ -355,7 +354,7 @@ namespace QDMSApp
 
             if (!Data.Columns.Contains("Open") ||
                 !Data.Columns.Contains("High") ||
-                !Data.Columns.Contains("Low")  ||
+                !Data.Columns.Contains("Low") ||
                 !Data.Columns.Contains("Close"))
             {
                 MessageBox.Show("Must have all OHLC columns.");
@@ -368,7 +367,7 @@ namespace QDMSApp
             {
                 tzInfo = TimeZoneInfo.FindSystemTimeZoneById(_instrument.Exchange.Timezone);
             }
-            
+
 
             //get the multipliers
             decimal priceMultiplier;
@@ -381,7 +380,7 @@ namespace QDMSApp
             //lines to skip
             int toSkip;
             parseWorked = int.TryParse(StartingLine.Text, out toSkip);
-            if(!parseWorked) toSkip = 1;
+            if (!parseWorked) toSkip = 1;
 
             //get the frequency
             var frequency = (BarSize)FrequencyComboBox.SelectedItem;
@@ -395,7 +394,7 @@ namespace QDMSApp
             string[] columns = new string[Data.Columns.Count];
             for (int i = 0; i < Data.Columns.Count; i++)
             {
-            	columns[i] = Data.Columns[i].ColumnName;
+                columns[i] = Data.Columns[i].ColumnName;
             }
 
             //determining time: if the freq is >= one day, then the time is simply the session end for this day
@@ -523,9 +522,9 @@ namespace QDMSApp
                 }
             }
 
-            
+
             //sort by date
-            if(frequency >= BarSize.OneDay)
+            if (frequency >= BarSize.OneDay)
                 bars.Sort((x, y) => x.DT.CompareTo(y.DT));
 
             //try to import
@@ -534,9 +533,9 @@ namespace QDMSApp
             {
                 try
                 {
-                    storage.AddData(bars, 
-                        _instrument, 
-                        frequency, 
+                    storage.AddData(bars,
+                        _instrument,
+                        frequency,
                         OverwriteCheckbox.IsChecked.HasValue && OverwriteCheckbox.IsChecked.Value,
                         frequency >= BarSize.OneDay);
                 }

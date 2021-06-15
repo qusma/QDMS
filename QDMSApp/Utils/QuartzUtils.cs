@@ -4,13 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MySql.Data.MySqlClient;
+using QDMSApp.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
-using MySql.Data.MySqlClient;
-using QDMSApp.Properties;
 
 namespace QDMSApp
 {

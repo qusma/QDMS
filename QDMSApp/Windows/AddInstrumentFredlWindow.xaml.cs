@@ -4,12 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Reactive.Linq;
-using System.Windows;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMSApp.ViewModels;
+using System.Reactive.Linq;
+using System.Windows;
 
 namespace QDMSApp
 {

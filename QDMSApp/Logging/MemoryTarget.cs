@@ -6,10 +6,10 @@
 
 // A target for NLog, used to display the log in the UI.
 
-using System;
-using System.Reactive.Subjects;
 using NLog;
 using NLog.Targets;
+using System;
+using System.Reactive.Subjects;
 
 namespace QDMSApp
 {
@@ -27,6 +27,6 @@ namespace QDMSApp
         protected override void Write(LogEventInfo logEvent)
         {
             _messages.OnNext(logEvent);
-        }        
+        }
     }
 }

@@ -4,15 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Reactive.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMSApp.ViewModels;
 using ReactiveUI;
+using System.Reactive.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace QDMSApp
 {

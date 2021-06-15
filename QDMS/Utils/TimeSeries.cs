@@ -104,7 +104,7 @@ namespace QDMS
 
                 return true;
             }
-            
+
             return false;
         }
 

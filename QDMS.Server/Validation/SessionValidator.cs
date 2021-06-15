@@ -12,7 +12,7 @@ namespace QDMS.Server.Validation
     {
         public SessionValidator()
         {
-            RuleFor(x => x.ClosingTime).Must((session,closingTime) =>
+            RuleFor(x => x.ClosingTime).Must((session, closingTime) =>
             {
                 if (session.OpeningDay == session.ClosingDay)
                 {

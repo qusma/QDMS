@@ -4,14 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
 using System.Linq;
 using System.Text;
-using ProtoBuf;
 
 namespace QDMS
 {
@@ -129,7 +128,7 @@ namespace QDMS
         /// For options
         /// </summary>
         [ProtoMember(11)]
-        
+
         public decimal? Strike { get; set; }
 
         /// <summary>
@@ -271,7 +270,7 @@ namespace QDMS
         {
             return TimeZoneInfo.FindSystemTimeZoneById(
                 string.IsNullOrEmpty(Exchange?.Timezone)
-                    ? "UTC" 
+                    ? "UTC"
                     : Exchange.Timezone);
         }
 
@@ -324,7 +323,7 @@ namespace QDMS
                 sb.Append(" DS: " + Datasource.Name);
 
 
-            if(!string.IsNullOrEmpty(Currency))
+            if (!string.IsNullOrEmpty(Currency))
                 sb.Append(string.Format("({0})", Currency));
 
             return sb.ToString().Trim();

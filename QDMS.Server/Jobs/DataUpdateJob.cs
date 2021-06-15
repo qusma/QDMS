@@ -7,6 +7,7 @@
 using Newtonsoft.Json;
 using NLog;
 using QDMS;
+using QDMSApp;
 using Quartz;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Calendar = QLNet.Calendar;
-using QDMSApp;
 
 namespace QDMSServer
 {

@@ -4,6 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
+using NLog;
+using QDMS;
+using QDMS.Server.DataSources.Binance;
+using ReactiveUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,12 +16,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using MahApps.Metro.Controls.Dialogs;
-using NLog;
-using QDMS;
-using QDMS.Server.DataSources.Binance;
-using ReactiveUI;
-using ReactiveUI.Legacy;
 
 namespace QDMSApp.ViewModels
 {

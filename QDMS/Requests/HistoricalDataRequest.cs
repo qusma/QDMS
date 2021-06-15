@@ -4,8 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using ProtoBuf;
+using System;
 
 namespace QDMS
 {
@@ -56,7 +56,7 @@ namespace QDMS
                 _longEndingDate = value.Ticks;
             }
         }
-        
+
         [ProtoMember(3)]
         private long _longStartingDate;
 

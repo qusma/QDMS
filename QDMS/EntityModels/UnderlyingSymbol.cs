@@ -6,13 +6,13 @@
 
 //In the future this class can hold stuff like margin requirements as well.
 
+using Newtonsoft.Json;
+using ProtoBuf;
+using QLNet;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
-using Newtonsoft.Json;
-using ProtoBuf;
-using QLNet;
 
 namespace QDMS
 {

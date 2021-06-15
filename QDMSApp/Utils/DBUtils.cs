@@ -4,17 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MySql.Data.EntityFramework;
+using MySql.Data.MySqlClient;
+using QDMSApp.Properties;
 using System;
 using System.Configuration;
 using System.Data.Entity;
 using System.Data.SqlClient;
-using System.IO;
 using System.Reflection;
-using System.Text;
-using MySql.Data.MySqlClient;
-using QDMSApp.Properties;
-using System.Security.Cryptography;
-using MySql.Data.EntityFramework;
 
 namespace QDMSApp
 {
@@ -127,7 +124,7 @@ namespace QDMSApp
             string connectionString = GetMySqlServerConnectionString(database, server, username, password, noDB);
             return new MySqlConnection(connectionString);
         }
-        
+
         internal static string GetMySqlServerConnectionString(string database = "qdms", string server = null, string username = null, string password = null, bool noDB = false)
         {
             if (password == null)

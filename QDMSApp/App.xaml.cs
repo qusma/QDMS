@@ -1,12 +1,6 @@
-﻿using System;
-using System.Deployment.Application;
-using System.IO;
-using System.Linq;
-using System.Windows;
-using Common.Logging.NLog;
+﻿using Common.Logging.NLog;
 using EntityData;
 using EntityData.Utils;
-using QDMSIBClient;
 using MahApps.Metro.Controls.Dialogs;
 using Nancy.Bootstrapper;
 using NLog;
@@ -21,10 +15,16 @@ using QDMS.Server.Nancy;
 using QDMSApp.DataSources;
 using QDMSApp.Properties;
 using QDMSApp.ViewModels;
+using QDMSIBClient;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 using SimpleInjector;
+using System;
+using System.Deployment.Application;
+using System.IO;
+using System.Linq;
+using System.Windows;
 
 namespace QDMSApp
 {
@@ -134,7 +134,7 @@ namespace QDMSApp
                 Settings.Default.httpPort,
                 Settings.Default.apiKey,
                 useSsl: Settings.Default.useSsl));
-            
+
             container.Register(DataStorageFactory.Get);
             container.Register<ICountryCodeHelper, CountryCodeHelper>(Lifestyle.Singleton);
 
@@ -148,7 +148,7 @@ namespace QDMSApp
             container.Register<IIBClient, Client>();
             var realtimeSources = new Type[]
             {
-                
+
             };
 
             container.Collection.Register<IRealTimeDataSource>(realtimeSources
@@ -206,7 +206,7 @@ namespace QDMSApp
 
             //servers
             container.Register<IRealTimeDataServer, RealTimeDataServer>(Lifestyle.Singleton);
-            container.Register<IHistoricalDataServer, HistoricalDataServer> (Lifestyle.Singleton);
+            container.Register<IHistoricalDataServer, HistoricalDataServer>(Lifestyle.Singleton);
 
             //scheduler
             container.Register<IJobFactory, JobFactory>(Lifestyle.Singleton);

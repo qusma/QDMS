@@ -22,7 +22,7 @@ namespace QDMS
         {
             Dictionary<int, TimeSpan> sessionEndTimes = new Dictionary<int, TimeSpan>();
             if (instrument.Sessions == null) return sessionEndTimes;
-            
+
             var dotwValues = MyUtils.GetEnumValues<DayOfTheWeek>();
 
             foreach (DayOfTheWeek d in dotwValues)
@@ -60,7 +60,7 @@ namespace QDMS
                     //if there's a session starting on a different day,
                     //that's the earliest one no matter the time
                     InstrumentSession prevDaySession = sessions.FirstOrDefault(x => x.ClosingDay == d && x.OpeningDay != d);
-                    if(prevDaySession != null)
+                    if (prevDaySession != null)
                     {
                         sessionStartTimes.Add((int)d, prevDaySession);
                     }

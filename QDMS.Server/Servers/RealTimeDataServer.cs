@@ -12,14 +12,14 @@
 // 1. To start receiving real time data
 // 2. To cancel a real time data stream
 
-using System;
-using System.IO;
-using System.Text;
 using NetMQ;
 using NetMQ.Sockets;
 using NLog;
 using ProtoBuf;
 using QDMS;
+using System;
+using System.IO;
+using System.Text;
 
 // ReSharper disable once CheckNamespace
 namespace QDMSApp

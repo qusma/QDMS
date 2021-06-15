@@ -4,11 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using NodaTime;
 using ProtoBuf;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QDMS
 {

@@ -4,13 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
+using QDMS;
+using ReactiveUI;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using MahApps.Metro.Controls.Dialogs;
-using QDMS;
-using ReactiveUI;
 
 namespace QDMSApp.ViewModels
 {

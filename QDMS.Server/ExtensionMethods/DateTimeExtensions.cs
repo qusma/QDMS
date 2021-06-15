@@ -4,9 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using NodaTime;
 using QLNet;
+using System;
 
 namespace QDMS
 {

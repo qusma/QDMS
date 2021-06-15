@@ -22,7 +22,7 @@ namespace QDMS
         /// 
         /// </summary>
         /// <param name="equalityFunc"></param>
-        public LambdaEqualityComparer(Func<T, T, bool> equalityFunc) 
+        public LambdaEqualityComparer(Func<T, T, bool> equalityFunc)
             : this(equalityFunc, (obj) => 0)
         {
         }

@@ -4,10 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MahApps.Metro.Controls.Dialogs;
 using QDMSClient;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace QDMSApp
 {

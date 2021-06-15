@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls.Dialogs;
 using QDMS;
+using QDMS.Server.Validation;
 using ReactiveUI;
 using System;
-using MahApps.Metro.Controls.Dialogs;
-using QDMS.Server.Validation;
 
 namespace QDMSApp.ViewModels
 {
@@ -20,7 +20,7 @@ namespace QDMSApp.ViewModels
         [Obsolete]
         public EconomicReleaseUpdateJobViewModel() { }
 
-        public EconomicReleaseUpdateJobViewModel(EconomicReleaseUpdateJobSettings job, IDataClient client, IDialogCoordinator dialogCoordinator, object dialogContext) 
+        public EconomicReleaseUpdateJobViewModel(EconomicReleaseUpdateJobSettings job, IDataClient client, IDialogCoordinator dialogCoordinator, object dialogContext)
             : base(job, new EconomicReleaseUpdateJobSettingsValidator(), client, dialogCoordinator, dialogContext)
         {
 

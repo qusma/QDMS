@@ -6,10 +6,10 @@
 
 
 
+using QDMS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using QDMS;
 
 namespace QDMSApp
 {
@@ -218,7 +218,7 @@ namespace QDMSApp
         /// </returns>
         public static bool InSession(this DateTime dt, IEnumerable<InstrumentSession> sessions)
         {
-            foreach(InstrumentSession session in sessions)
+            foreach (InstrumentSession session in sessions)
             {
                 if (InSession(dt, session))
                     return true;

@@ -8,7 +8,6 @@ using EntityData;
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Jobs;
-using QDMSApp;
 using Quartz;
 using Quartz.Impl.Matchers;
 using System;

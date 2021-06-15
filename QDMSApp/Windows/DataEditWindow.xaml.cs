@@ -4,6 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
+using MahApps.Metro.Controls;
+using Microsoft.Win32;
+using QDMS;
+using QDMS.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,13 +16,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using EntityData;
-using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using QDMS;
-using QDMS.Server;
-using QDMS.Utils;
-using QDMSApp.DataSources;
 
 namespace QDMSApp
 {
@@ -80,8 +78,8 @@ namespace QDMSApp
                 }
             }
 
-            
-            
+
+
         }
 
         private void LoadDataBtn_Click(object sender, RoutedEventArgs e)
@@ -92,7 +90,7 @@ namespace QDMSApp
             //todo remove dependency on DataStorageFactory
             using (var localStorage = DataStorageFactory.Get())
             {
-                
+
                 var bars = localStorage.GetData(TheInstrument, StartTime, EndTime, (BarSize)ResolutionComboBox.SelectedItem);
 
                 //find largest significant decimal by sampling the prices at the start and end of the series

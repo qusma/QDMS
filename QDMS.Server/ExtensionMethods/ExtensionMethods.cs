@@ -4,15 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
+using MySql.Data.MySqlClient;
+using Nancy;
+using Nancy.Responses.Negotiation;
+using QDMS.Server.Nancy;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
-using EntityData;
-using Nancy;
-using Nancy.Responses.Negotiation;
-using QDMS.Server.Nancy;
-using MySql.Data.MySqlClient;
 
 namespace QDMS.Server
 {

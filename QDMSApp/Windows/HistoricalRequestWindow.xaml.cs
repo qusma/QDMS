@@ -4,15 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using MahApps.Metro.Controls;
+using Microsoft.Win32;
+using QDMS;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
-using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using QDMS;
 
 namespace QDMSApp
 {
@@ -50,7 +50,7 @@ namespace QDMSApp
             Properties.Settings.Default.httpPort,
             Properties.Settings.Default.apiKey,
             useSsl: Properties.Settings.Default.useSsl);
-            
+
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;
             _client.Connect();
@@ -92,7 +92,7 @@ namespace QDMSApp
                     }
 
                     //set the column format to use that number so we don't get any useless trailing 0s
-                    if(decPlaces.Count > 0)
+                    if (decPlaces.Count > 0)
                         SetPriceColumnFormat(decPlaces.Max());
 
 

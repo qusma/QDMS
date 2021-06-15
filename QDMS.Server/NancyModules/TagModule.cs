@@ -10,7 +10,6 @@ using Nancy.ModelBinding;
 using Nancy.Security;
 using System.Data.Entity;
 using System.Linq;
-using System.Threading;
 
 namespace QDMS.Server.NancyModules
 {

@@ -4,12 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Data.Entity.Migrations;
 using EntityData;
 using QDMS;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Migrations;
+using System.Linq;
 
 namespace QDMSApp
 {
@@ -410,7 +410,7 @@ namespace QDMSApp
             #endregion
 
             #region sessiontemplates
-            var sessiontemplates = new []
+            var sessiontemplates = new[]
             {
                 new SessionTemplate { Name = "U.S. Equities RTH" },
                 new SessionTemplate { Name = "U.S. Equities (w/ Post)" },
@@ -873,7 +873,7 @@ namespace QDMSApp
             #endregion
 
             #region exchanges
-            var exchanges = new[] 
+            var exchanges = new[]
                 {
                     new Exchange { Name = "AB", LongName = "American Stock Exchange", Timezone = "Eastern Standard Time" },
                     new Exchange { Name = "AEB", LongName = "Euronext Netherlands", Timezone = "Central Europe Standard Time" },
@@ -1603,7 +1603,7 @@ namespace QDMSApp
                 spy.Sessions.Add(t.ToInstrumentSession());
             }
 
-            context.Instruments.AddOrUpdate(x => new {x.Symbol, x.DatasourceID, x.Expiration, x.ExchangeID}, spy);
+            context.Instruments.AddOrUpdate(x => new { x.Symbol, x.DatasourceID, x.Expiration, x.ExchangeID }, spy);
             #endregion
 
             context.SaveChanges();

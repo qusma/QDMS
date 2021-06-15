@@ -21,19 +21,18 @@
 // the final contract used.
 // The result is findally returned through the FoundFrontContract event.
 
+using EntityData;
 using NLog;
 using QDMS;
+using QDMS.Server;
 using QLNet;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using EntityData;
-using QDMS.Server;
 using Instrument = QDMS.Instrument;
 using Timer = System.Timers.Timer;
 

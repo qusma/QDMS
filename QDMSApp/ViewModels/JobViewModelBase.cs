@@ -8,12 +8,12 @@ using FluentValidation;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMS.Server.Jobs;
+using QDMSClient;
 using Quartz;
 using ReactiveUI;
 using System;
 using System.Reactive;
 using System.Reactive.Linq;
-using QDMSClient;
 
 namespace QDMSApp.ViewModels
 {
@@ -47,7 +47,7 @@ namespace QDMSApp.ViewModels
                 Name = PreChangeName;
                 await client.DeleteJob(job).ConfigureAwait(true); //failure is OK here, it might not exist on the server if it's newly added
                 Name = tmpName;
-                
+
                 //then add it with the new values
                 var result = await client.AddJob(job).ConfigureAwait(true);
                 if (await result.DisplayErrors(dialogContext, dialogCoordinator).ConfigureAwait(true)) return;
@@ -56,7 +56,7 @@ namespace QDMSApp.ViewModels
             saveCanExecute);
 
             //this is here because we need to know the job type
-            Delete = ReactiveCommand.CreateFromTask(async _ => (ApiResponse) await client.DeleteJob(job).ConfigureAwait(false));
+            Delete = ReactiveCommand.CreateFromTask(async _ => (ApiResponse)await client.DeleteJob(job).ConfigureAwait(false));
         }
 
         public IJobSettings Job { get; }

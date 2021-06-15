@@ -4,15 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Reactive.Linq;
-using System.Windows;
 using MahApps.Metro.Controls.Dialogs;
 using QDMS;
 using QDMSApp.ViewModels;
 using ReactiveUI;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using System.Windows;
 
 namespace QDMSApp
 {
@@ -87,9 +86,9 @@ namespace QDMSApp
             //reactive bindings
             this.WhenActivated(d =>
             {
-                d(this.OneWayBind(this.ViewModel, 
-                    x => x.IsContinuousFuture, 
-                    x => x.ContFutTabItem.Visibility, 
+                d(this.OneWayBind(this.ViewModel,
+                    x => x.IsContinuousFuture,
+                    x => x.ContFutTabItem.Visibility,
                     x => x ? Visibility.Visible : Visibility.Hidden));
             });
         }
