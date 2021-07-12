@@ -101,8 +101,17 @@ namespace QDMS.Server.DataSources.Binance
             _logger.Info("Binance filling historical req from URL: " + url);
 
             var result = await _httpClient.GetAsync(url);
-            result.EnsureSuccessStatusCode();
-
+            if (429 == (int)result.StatusCode)
+            {
+                //pacing violation, grab Retry-After, wait, and re-request
+                var retryHeader = result.Headers.RetryAfter;
+                await Task.Delay((int)retryHeader.Delta.Value.TotalSeconds * 1000 + 1000);
+                return await GetData(req);
+            }
+            else
+            {
+                result.EnsureSuccessStatusCode();
+            }
             string contents = await result.Content.ReadAsStringAsync();
             return ParseHistoricalData(JArray.Parse(contents));
         }
