@@ -226,10 +226,6 @@ namespace QDMSApp.ViewModels
                 _logger.Error(ex, "Nancy failed to start, try alternate SSL settings");
                 throw;
             }
-
-
-            //Take jobs stored in the qmds db and move them to the quartz db - this can be removed in the next version
-            MigrateJobs(_scheduler);
         }
 
         private void StartHttpServer()
@@ -238,23 +234,6 @@ namespace QDMSApp.ViewModels
                 (Settings.Default.useSsl ? "https" : "http") + "://localhost:" + Settings.Default.httpPort);
             _nancyHost = new NancyHost(_nancyBootstrapper, uri);
             _nancyHost.Start();
-        }
-
-        private void MigrateJobs(IScheduler scheduler)
-        {
-            using (var context = new MyDBContext())
-            {
-                //Check if there are jobs in the QDMS db and no jobs in the quartz db - in that case we migrate them
-                var repo = new JobsRepository(context, scheduler);
-                if (context.DataUpdateJobs.Any() && scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()).Count == 0)
-                {
-                    List<DataUpdateJobSettings> jobs = context.DataUpdateJobs.Include("Tag").ToList();
-                    foreach (DataUpdateJobSettings job in jobs)
-                    {
-                        repo.ScheduleJob(job);
-                    }
-                }
-            }
         }
 
         public void Dispose()
