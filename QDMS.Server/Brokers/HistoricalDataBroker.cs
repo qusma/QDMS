@@ -17,6 +17,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -41,9 +43,10 @@ namespace QDMSApp
         /// <summary>
         /// Keeps track of IDs assigned to requests that have already been used, so there are no duplicates.
         /// </summary>
-        private List<int> _usedIDs;
+        private HashSet<int> _usedIDs;
 
         private readonly object _localStorageLock = new object();
+        private readonly object _idGeneratorLock = new object();
 
         //when we get a new data request first we check the local storage
         //if only part of the data is there, we create subrequests to the outside storages, they are held
@@ -53,9 +56,9 @@ namespace QDMSApp
 
         private readonly ConcurrentDictionary<int, List<HistoricalDataRequest>> _subRequests;
 
-        private readonly ConcurrentQueue<HistoricalDataRequest> _requestQueue = new ConcurrentQueue<HistoricalDataRequest>();
+        private Channel<HistoricalDataRequest> _requestQueue = Channel.CreateUnbounded<HistoricalDataRequest>();
         private readonly Thread _requestHandlerThread;
-        private readonly AutoResetEvent _eventWait = new AutoResetEvent(false);
+
         private Random _rand = new Random();
         public ConcurrentNotifierBlockingList<HistoricalDataRequest> PendingRequests { get; } = new ConcurrentNotifierBlockingList<HistoricalDataRequest>();
 
@@ -67,7 +70,7 @@ namespace QDMSApp
                 _connectionTimer = null;
             }
 
-            _eventWait.Set();
+            _requestQueue.Writer.Complete();
             _requestHandlerThread?.Join();
 
 
@@ -137,9 +140,9 @@ namespace QDMSApp
 
             _originalRequests = new ConcurrentDictionary<int, HistoricalDataRequest>();
             _subRequests = new ConcurrentDictionary<int, List<HistoricalDataRequest>>();
-            _usedIDs = new List<int>();
+            _usedIDs = new HashSet<int>();
 
-            _requestHandlerThread = new Thread(Poll) { Name = "HDBPoller" };
+            _requestHandlerThread = new Thread(RequestHandler) { Name = "HDBPoller" };
             _requestHandlerThread.Start();
 
             TryConnect();
@@ -148,12 +151,12 @@ namespace QDMSApp
         /// <summary>
         /// Poll for requests and fill them
         /// </summary>
-        private void Poll()
+        private async void RequestHandler()
         {
-            while (!_eventWait.WaitOne(5))
+            while (await _requestQueue.Reader.WaitToReadAsync())
             {
-                HistoricalDataRequest request;
-                while (_requestQueue.TryDequeue(out request))
+
+                while (_requestQueue.Reader.TryRead(out HistoricalDataRequest request))
                 {
                     HandleRequest(request);
                 }
@@ -387,7 +390,7 @@ namespace QDMSApp
 
             _originalRequests.TryAdd(request.AssignedID, request);
             PendingRequests.TryAdd(request);
-            _requestQueue.Enqueue(request);
+            _requestQueue.Writer.TryWrite(request);
         }
 
         private void HandleRequest(HistoricalDataRequest request)
@@ -555,14 +558,18 @@ namespace QDMSApp
         private int GetUniqueRequestID()
         {
             //requests can arrive very close to each other and thus have the same seed, so we need to make sure it's unique
-            int id;
-            do
+            lock (_idGeneratorLock)
             {
-                id = _rand.Next(1, int.MaxValue);
-            } while (_usedIDs.Contains(id));
+                int id;
+                do
+                {
+                    id = _rand.Next(1, int.MaxValue);
+                } while (_usedIDs.Contains(id));
 
-            _usedIDs.Add(id);
-            return id;
+                _usedIDs.Add(id);
+
+                return id;
+            }
         }
 
         /// <summary>
