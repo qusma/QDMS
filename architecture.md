@@ -1,9 +1,9 @@
-Here's a rough overview of how the systems are connected to each other. Broadly, requests come in over the network through the servers, and are passed to the approriate broker. Data is then acquired from external data sources and/or the local DB, returned to the broker, sent up to the server, and finally back to the client over the network.
+Here's a rough overview of how the systems are connected to each other. 
 
-![Layer Overview](http://i.imgur.com/oRbwoiG.png)
+![Layer Overview](https://qusma.com/images/qdms-architecture-diagram.png)
 
 
-
+Requests come in over the network through the servers, and are passed to the approriate broker. Data is then acquired from external data sources and/or the local DB, returned to the broker, potentially stored to the DB, then sent up to the server, and finally back to the client over the network.
 
 
 ## Servers
@@ -12,7 +12,7 @@ Network communication happens in two ways: over ZeroMQ and over HTTP(S).
 
 ### ZMQ
 
-This method is reserved for queries with high performance requirements, specifically the main data transfer functionalities. The main code is in RealTimeDataServer and HistoricalDataServer, and communication happens using protobuf for serialization and LZ4 for compression. 
+This method is reserved for queries with high performance requirements, specifically the main data transfer functionalities. The main code is in RealTimeDataServer and HistoricalDataServer. The messages are serialized using protobuf and compressed with LZ4.
 
 ### HTTP
 
