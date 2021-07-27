@@ -101,13 +101,13 @@ namespace QDMSApp.DataSources
             }
         }
 
-        public IB(ISettings settings, IIBClient client = null)
+        public IB(ISettings settings, IIBClient client = null, int? clientId = null)
         {
             Name = "Interactive Brokers";
 
             _host = settings.ibClientHost;
             _port = settings.ibClientPort;
-            _clientID = settings.histClientIBID;
+            _clientID = clientId.HasValue ? clientId.Value : settings.histClientIBID;
             _ibUseNewRealTimeDataSystem = settings.ibUseNewRealTimeDataSystem;
 
             _realTimeDataRequests = new Dictionary<int, RealTimeDataRequest>();
@@ -490,7 +490,7 @@ namespace QDMSApp.DataSources
                 }
                 else
                 {
-                    HistoricalDataRequestComplete(origId);
+                    HistoricalDataRequestComplete(origId); //TODO: crash here when the request causing the secdef error is from RT
                 }
             }
             else

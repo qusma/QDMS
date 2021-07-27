@@ -139,13 +139,13 @@ namespace QDMSApp
             container.Register<ICountryCodeHelper, CountryCodeHelper>(Lifestyle.Singleton);
 
             //These sources provide both real time and historical data
-            var ibReg = Lifestyle.Singleton.CreateRegistration<IB>(container);
+            var ibRtReg = Lifestyle.Singleton.CreateRegistration<IB>(() => new IB(Settings.Default, new QDMSIBClient.Client(), Settings.Default.rtdClientIBID), container);
+            var ibHdReg = Lifestyle.Singleton.CreateRegistration<IB>(() => new IB(Settings.Default, new QDMSIBClient.Client(), Settings.Default.histClientIBID), container);
             var binanceReg = Lifestyle.Singleton.CreateRegistration<Binance>(container);
 
-            var bothSources = new[] { ibReg, binanceReg };
+            var bothSources = new[] { binanceReg };
 
             //Realtime sources
-            container.Register<IIBClient, Client>();
             var realtimeSources = new Type[]
             {
 
@@ -153,7 +153,8 @@ namespace QDMSApp
 
             container.Collection.Register<IRealTimeDataSource>(realtimeSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container))
-                .Concat(bothSources));
+                .Concat(bothSources)
+                .Concat(new[] { ibRtReg }));
 
 
             //Historical sources
@@ -167,7 +168,8 @@ namespace QDMSApp
 
             container.Collection.Register<IHistoricalDataSource>(historicalSources
                 .Select(type => Lifestyle.Singleton.CreateRegistration(type, container))
-                .Concat(bothSources));
+                .Concat(bothSources)
+                .Concat(new[] { ibHdReg }));
 
             //economic release sources
             var econReleaseSources = new[]
