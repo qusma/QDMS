@@ -30,6 +30,7 @@ namespace QDMSApp
             if (data == null) throw new NullReferenceException("data");
             if (sessions == null) throw new NullReferenceException("sessions");
             if (sessions.Count == 0) return;
+            if (data.Count == 0) return;
 
             sessions = sessions.OrderBy(x => x.OpeningDay).ThenBy(x => x.OpeningTime).ToList();
 
