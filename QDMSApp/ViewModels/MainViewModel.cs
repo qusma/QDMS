@@ -249,8 +249,7 @@ namespace QDMSApp.ViewModels
             _nancyHost.Dispose();
 
             RealTimeBroker.Dispose();
-
-            HistoricalBroker.Dispose();
+            //HDB is disposed automatically by the Nancy IoC container
         }
     }
 }

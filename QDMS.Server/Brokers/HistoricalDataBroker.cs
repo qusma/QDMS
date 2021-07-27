@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -70,7 +69,8 @@ namespace QDMSApp
                 _connectionTimer = null;
             }
 
-            _requestQueue.Writer.Complete();
+            if (!_requestQueue.Reader.Completion.IsCompleted)
+                _requestQueue.Writer.Complete();
             _requestHandlerThread?.Join();
 
 

@@ -123,7 +123,9 @@ namespace QDMSApp.DataSources
         {
             if (!Connected) return;
 
-            _requests.Writer.Complete();
+            if (!_requests.Reader.Completion.IsCompleted)
+                _requests.Writer.Complete();
+
             _downloaderThread.Join();
             _client?.Dispose();
             _client = null;
