@@ -34,6 +34,9 @@ module NasdaqDs =
         let parseDate str = 
              DateTime.ParseExact(str, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None)
 
+        let strOrDateTimeToNullable(strOrDate : DateDividends.StringOrDateTime) = 
+            if strOrDate.DateTime.IsSome then System.Nullable strOrDate.DateTime.Value else System.Nullable<DateTime>()
+
         member this.nullOrEmpty<'T>(list: System.Collections.Generic.List<'T>) = 
             match list with
             | null -> true
@@ -70,6 +73,7 @@ module NasdaqDs =
                 try 
                     let data = DateDividends.Load(json)
                     return data.Data.Calendar.Rows
+                        |> Seq.filter(fun row -> row.DividendExDate.DateTime.IsSome)
                         |> Seq.map(this.parseRow) 
                 with e -> 
                     logger.Error(e, "Failed to parse dividends on " + date.ToString() + ". No divs available?")
@@ -79,11 +83,11 @@ module NasdaqDs =
             
         member this.parseRow row =
             new Dividend(Symbol = row.Symbol,
-                                                     ExDate = row.DividendExDate,
+                                                     ExDate = row.DividendExDate.DateTime.Value,
                                                      Amount = row.DividendRate,
-                                                     RecordDate = System.Nullable row.RecordDate,
-                                                     DeclarationDate = System.Nullable row.AnnouncementDate,
-                                                     PaymentDate = System.Nullable row.PaymentDate)
+                                                     RecordDate = strOrDateTimeToNullable row.RecordDate,
+                                                     DeclarationDate = strOrDateTimeToNullable row.AnnouncementDate,
+                                                     PaymentDate = strOrDateTimeToNullable row.PaymentDate)
 
 
         member this.getSpecificSymbol(request: DividendRequest, symbol: string) =
