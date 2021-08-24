@@ -169,7 +169,16 @@ namespace QDMSApp.DataSources
                 ToTimestamp(endDate),
                 _crumb);
 
-            var response = await _client.GetAsync(splitURL).ConfigureAwait(false);
+            HttpResponseMessage response;
+            try
+            {
+                response = await _client.GetAsync(splitURL).ConfigureAwait(false);
+            }
+            catch (WebException ex)
+            {
+                _logger.Error(ex, "Yahoo downloader failure, URL: " + splitURL);
+                return new List<OHLCBar>();
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -214,7 +223,15 @@ namespace QDMSApp.DataSources
                 ToTimestamp(endDate),
                 _crumb);
 
-            response = await _client.GetAsync(divURL).ConfigureAwait(false);
+            try
+            {
+                response = await _client.GetAsync(divURL).ConfigureAwait(false);
+            }
+            catch (WebException ex)
+            {
+                _logger.Error(ex, "Yahoo downloader failure, URL: " + divURL);
+                return new List<OHLCBar>();
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -256,7 +273,16 @@ namespace QDMSApp.DataSources
                 ToTimestamp(endDate),
                 _crumb);
 
-            response = await _client.GetAsync(dataURL).ConfigureAwait(false);
+            try
+            {
+                response = await _client.GetAsync(dataURL).ConfigureAwait(false);
+            } 
+            catch (WebException ex)
+            {
+                _logger.Error(ex, "Yahoo downloader failure, URL: " + dataURL);
+                return new List<OHLCBar>();
+            }
+
 
             if (!response.IsSuccessStatusCode)
             {
