@@ -42,7 +42,8 @@ namespace QDMSApp
                 ColumnOptions co = allSettings[i];
                 grid.Columns[i].Width = co.Width;
                 grid.Columns[i].SortDirection = co.SortDirection;
-                grid.Columns[i].DisplayIndex = co.DisplayIndex;
+                if (co.DisplayIndex >= 0)
+                    grid.Columns[i].DisplayIndex = co.DisplayIndex;
             }
         }
     }
