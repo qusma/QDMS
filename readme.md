@@ -7,7 +7,7 @@ The server acts as a broker between clients and external data sources, as well a
 
 * [Server Installer](https://qusma.com/QDMS/setup.exe)
 
-A client library is provided which can access the server either locally or over a network, to request data, metadata, etc. A sample application showing usage of the client can be found [here](https://github.com/qusma/qdms/blob/master/SampleApp/Program.cs). Get the client library on NuGet: [![Nuget](https://img.shields.io/nuget/v/QDMSClient)](https://www.nuget.org/packages/QDMSClient/)
+A client library is provided which can access the server either locally or over a network, to request data/metadata, schedule jobs, etc. A sample application showing usage of the client can be found [here](https://github.com/qusma/qdms/blob/master/SampleApp/Program.cs). Get the client library on NuGet: [![Nuget](https://img.shields.io/nuget/v/QDMSClient)](https://www.nuget.org/packages/QDMSClient/)
 
 For bug reports, feature requests, etc. use either the GitHub issue tracker or [gitter chat](https://gitter.im/qusma/community).
 
@@ -15,6 +15,7 @@ For bug reports, feature requests, etc. use either the GitHub issue tracker or [
 Features
 --------
 * Manage metadata on stocks, options, futures, CFDs, cryptocurrencies, etc.
+* Stream real time OHLC & tick data to your applications.
 * Download historical and real time data from external data sources and store it locally.
 * Download and store earnings announcements, dividends, economic releases.
 * Generate continuous futures data.
