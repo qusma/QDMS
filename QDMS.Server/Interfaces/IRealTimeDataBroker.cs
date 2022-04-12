@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="IRealTimeDataBroker.cs" company="">
-// Copyright 2014 Alexander Soffronow Pagonidis
+//     Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
@@ -17,12 +17,13 @@ namespace QDMSApp
         ObservableDictionary<string, IRealTimeDataSource> DataSources { get; }
 
         event EventHandler<RealTimeDataEventArgs> RealTimeDataArrived;
+
         event EventHandler<TickEventArgs> RealTimeTickArrived;
 
-        bool RequestRealTimeData(RealTimeDataRequest request);
+        void RequestRealTimeData(RealTimeDataRequest request);
+
         bool CancelRTDStream(int instrumentID, BarSize frequency);
 
         ConcurrentNotifierBlockingList<RealTimeStreamInfo> ActiveStreams { get; }
-
     }
 }
