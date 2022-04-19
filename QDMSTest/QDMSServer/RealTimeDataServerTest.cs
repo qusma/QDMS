@@ -163,7 +163,7 @@ namespace QDMSTest
             var inst = new Instrument { ID = 15, Datasource = ds, DatasourceID = 1, Symbol = "SPY", Type = InstrumentType.Stock };
             var req = new RealTimeDataRequest(inst, BarSize.FiveSeconds, false);
 
-            _brokerMock.Setup(x => x.RequestRealTimeData(It.IsAny<RealTimeDataRequest>())).Returns(true);
+            _brokerMock.Setup(x => x.RequestRealTimeData(It.IsAny<RealTimeDataRequest>()));
 
             _client.RequestRealTimeData(req);
 

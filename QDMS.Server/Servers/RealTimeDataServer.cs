@@ -1,16 +1,8 @@
 ﻿// -----------------------------------------------------------------------
 // <copyright file="RealTimeDataServer.cs" company="">
-// Copyright 2014 Alexander Soffronow Pagonidis
+//     Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
-
-// This class handles networking for real time data data.
-// Clients send their requests through ZeroMQ. Here they are parsed
-// and then forwarded to the RealTimeDataBroker.
-// Data sent from the RealTimeDataBroker is sent out to the clients.
-// Two types of possible requests: 
-// 1. To start receiving real time data
-// 2. To cancel a real time data stream
 
 using NetMQ;
 using NetMQ.Sockets;
@@ -24,6 +16,12 @@ using System.Text;
 // ReSharper disable once CheckNamespace
 namespace QDMSApp
 {
+    /// <summary>
+    /// This class handles networking for real time data data. Clients send their requests through ZeroMQ. Here they are parsed and then
+    /// forwarded to the RealTimeDataBroker. Data sent from the RealTimeDataBroker is sent out to the clients. Two types of possible requests:
+    /// 1. To start receiving real time data
+    /// 2. To cancel a real time data stream
+    /// </summary>
     public class RealTimeDataServer : IDisposable, IRealTimeDataServer
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -38,16 +36,18 @@ namespace QDMSApp
         private NetMQPoller _poller;
 
         /// <summary>
-        ///     Whether the server is running or not.
+        /// Whether the server is running or not.
         /// </summary>
         public bool ServerRunning => _poller != null && _poller.IsRunning;
 
         #region IDisposable implementation
+
         public void Dispose()
         {
             StopServer();
         }
-        #endregion
+
+        #endregion IDisposable implementation
 
         public RealTimeDataServer(ISettings settings, IRealTimeDataBroker broker)
         {
@@ -70,7 +70,7 @@ namespace QDMSApp
         }
 
         /// <summary>
-        ///     Starts the server.
+        /// Starts the server.
         /// </summary>
         public void StartServer()
         {
@@ -95,7 +95,7 @@ namespace QDMSApp
         }
 
         /// <summary>
-        ///     Stops the server.
+        /// Stops the server.
         /// </summary>
         public void StopServer()
         {
@@ -107,22 +107,15 @@ namespace QDMSApp
             _poller?.Stop();
             _poller?.Dispose();
 
-            lock (_publisherSocketLock)
-            {
-                if (_publisherSocket != null)
-                {
-                    try
-                    {
-                        _publisherSocket.Disconnect(_publisherConnectionString);
-                    }
-                    finally
-                    {
-                        _publisherSocket.Close();
-                        _publisherSocket = null;
-                    }
-                }
-            }
+            ClosePublisherSocket();
 
+            closeReqSocket();
+
+            _poller = null;
+        }
+
+        private void closeReqSocket()
+        {
             lock (_requestSocketLock)
             {
                 if (_requestSocket != null)
@@ -139,13 +132,31 @@ namespace QDMSApp
                     }
                 }
             }
+        }
 
-            _poller = null;
+        private void ClosePublisherSocket()
+        {
+            lock (_publisherSocketLock)
+            {
+                if (_publisherSocket != null)
+                {
+                    try
+                    {
+                        _publisherSocket.Disconnect(_publisherConnectionString);
+                    }
+                    finally
+                    {
+                        _publisherSocket.Close();
+                        _publisherSocket = null;
+                    }
+                }
+            }
         }
 
         #region Event handlers
+
         /// <summary>
-        ///     When data arrives from an external data source to the broker, this event is fired.
+        /// When data arrives from an external data source to the broker, this event is fired.
         /// </summary>
         private void BrokerRealTimeDataArrived(object sender, RealTimeDataEventArgs e)
         {
@@ -159,13 +170,12 @@ namespace QDMSApp
                     _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.InstrumentID}~{(int)e.Frequency}")); // Start by sending the id+freq before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeBars);
                     _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized bar
-
                 }
             }
         }
 
         /// <summary>
-        ///     When tick data arrives from an external data source to the broker, this event is fired.
+        /// When tick data arrives from an external data source to the broker, this event is fired.
         /// </summary>
         private void BrokerRealTimeTickArrived(object sender, TickEventArgs e)
         {
@@ -179,7 +189,6 @@ namespace QDMSApp
                     _publisherSocket.SendMoreFrame(Encoding.UTF8.GetBytes($"{e.Tick.InstrumentID}~{(int)BarSize.Tick}")); // Start by sending the id+freq before the data
                     _publisherSocket.SendMoreFrame(MessageType.RealTimeTick);
                     _publisherSocket.SendFrame(ms.ToArray()); // Then send the serialized tick
-
                 }
             }
         }
@@ -188,80 +197,89 @@ namespace QDMSApp
         {
             lock (_requestConnectionString)
             {
-                if (_requestSocket != null)
+                if (_requestSocket == null)
                 {
-                    var requestType = _requestSocket.ReceiveFrameString();
-
-                    if (requestType == null)
-                    {
-                        return;
-                    }
-                    // Handle ping requests
-                    if (requestType.Equals(MessageType.Ping, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        _requestSocket.SendFrame(MessageType.Pong);
-
-                        return;
-                    }
-                    // Handle real time data requests
-                    if (requestType.Equals(MessageType.RTDRequest, StringComparison.InvariantCultureIgnoreCase)) // Two part message: first, "RTD" string. Then the RealTimeDataRequest object.
-                    {
-                        HandleRealTimeDataRequest();
-                    }
-                    // Manage cancellation requests
-                    // Three part message: first: MessageType.CancelRTD. Second: the instrument ID. Third: frequency.
-                    if (requestType.Equals(MessageType.CancelRTD, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        HandleRealTtimeDataCancelRequest();
-                    }
+                    return;
                 }
+
+                var requestType = _requestSocket.ReceiveFrameString();
+
+                if (requestType == null)
+                {
+                    _logger.Warn("Received RTD request with empty requestType");
+                    return;
+                }
+
+                HandleRequest(requestType);
             }
         }
-        #endregion
 
-        // Accept a real time data request
+        private void HandleRequest(string requestType)
+        {
+            if (requestType.Equals(MessageType.Ping, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //Ping
+                HandlePingRequest();
+            }
+            else if (requestType.Equals(MessageType.RTDRequest, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //Real time data req
+                HandleRealTimeDataRequest();
+            }
+            else if (requestType.Equals(MessageType.CancelRTD, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //Cancellation requests
+                HandleRealTtimeDataCancelRequest();
+            }
+        }
+
+        private void HandlePingRequest()
+        {
+            _requestSocket.SendFrame(MessageType.Pong);
+        }
+
+        #endregion Event handlers
+
+        /// <summary>
+        /// Accept a real time data request
+        /// </summary>
         private void HandleRealTimeDataRequest()
         {
+            // Two part message: first, "RTD" string.Then the RealTimeDataRequest object.
             using (var ms = new MemoryStream())
             {
                 bool hasMore;
                 var buffer = _requestSocket.ReceiveFrameBytes(out hasMore);
                 var request = MyUtils.ProtoBufDeserialize<RealTimeDataRequest>(buffer, ms);
                 // Make sure the ID and data sources are set
-                if (!request.Instrument.ID.HasValue)
+
+                //TODO: separate validator
+                var id = request?.Instrument?.ID;
+                if (!id.HasValue)
                 {
                     SendErrorReply("Instrument had no ID set.", buffer);
-
                     _logger.Error("Instrument with no ID requested.");
 
                     return;
                 }
 
-                if (request.Instrument.Datasource == null)
+                if (request?.Instrument?.Datasource == null)
                 {
                     SendErrorReply("Instrument had no data source set.", buffer);
-
                     _logger.Error("Instrument with no data source requested.");
 
                     return;
                 }
-                // With the current approach we can't handle multiple real time data streams from
-                // the same symbol and data source, but at different frequencies
 
-                // Forward the request to the broker
                 try
                 {
-                    if (_broker.RequestRealTimeData(request))
-                    {
-                        // And report success back to the requesting client
-                        _requestSocket.SendMoreFrame(MessageType.Success);
-                        // Along with the request
-                        _requestSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
-                    }
-                    else
-                    {
-                        throw new Exception("Unknown error.");
-                    }
+                    //Forward the request to the broker
+                    _broker.RequestRealTimeData(request);
+
+                    //And report success back to the requesting client
+                    _requestSocket.SendMoreFrame(MessageType.Success);
+                    //Along with the request
+                    _requestSocket.SendFrame(MyUtils.ProtoBufSerialize(request, ms));
                 }
                 catch (Exception ex)
                 {
@@ -272,25 +290,29 @@ namespace QDMSApp
             }
         }
 
-        // Accept a request to cancel a real time data stream
-        // Obviously we only actually cancel it if
+        /// <summary>
+        /// Accept a request to cancel a real time data stream Obviously we only actually cancel it if
+        /// </summary>
         private void HandleRealTtimeDataCancelRequest()
         {
+            //Three part message: first: MessageType.CancelRTD. Second: the instrument ID. Third: frequency.
             bool hasMore;
             var buffer = _requestSocket.ReceiveFrameBytes(out hasMore);
-            // Receive the instrument
+
             using (var ms = new MemoryStream())
             {
+                //parse
                 var instrument = MyUtils.ProtoBufDeserialize<Instrument>(buffer, ms);
-
                 var freqBuff = _requestSocket.ReceiveFrameBytes(out hasMore);
                 BarSize frequency = MyUtils.ProtoBufDeserialize<BarSize>(freqBuff, ms);
 
+                //cancel
                 if (instrument.ID != null)
                 {
                     _broker.CancelRTDStream(instrument.ID.Value, frequency);
                 }
-                // Two part message:
+
+                // Reply message:
                 // 1: MessageType.RTDCanceled
                 // 2: the instrument symbol
                 // 3: the frequency
@@ -300,11 +322,6 @@ namespace QDMSApp
             }
         }
 
-        /// <summary>
-        ///     Send an error reply to a real time data request.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="serializedRequest"></param>
         private void SendErrorReply(string message, byte[] serializedRequest)
         {
             _requestSocket.SendMoreFrame(MessageType.Error);
