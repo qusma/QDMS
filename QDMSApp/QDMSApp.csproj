@@ -96,6 +96,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Utils\DependencyInjection.cs" />
+    <Compile Include="Utils\LoggingUtils.cs" />
     <Compile Include="ViewModels\CheckBoxItem.cs" />
     <Compile Include="ViewModels\CheckBoxTag.cs" />
     <Compile Include="Utils\ColumnOptions.cs" />

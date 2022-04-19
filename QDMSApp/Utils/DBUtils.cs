@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
 using MySql.Data.EntityFramework;
 using MySql.Data.MySqlClient;
 using QDMSApp.Properties;
@@ -11,6 +12,8 @@ using System;
 using System.Configuration;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Deployment.Application;
+using System.Linq;
 using System.Reflection;
 
 namespace QDMSApp
@@ -193,6 +196,49 @@ namespace QDMSApp
             }
 
             return true;
+        }
+
+        internal static void CreateDatabases()
+        {
+            //create metadata db if it doesn't exist
+            var entityContext = new MyDBContext();
+            entityContext.Database.Initialize(false);
+
+            //seed the datasources no matter what, because these are added frequently
+            Seed.SeedDatasources(entityContext);
+
+            //check for any exchanges, seed the db with initial values if nothing is found
+            if (!entityContext.Exchanges.Any() ||
+                (ApplicationDeployment.IsNetworkDeployed && ApplicationDeployment.CurrentDeployment.IsFirstRun))
+            {
+                Seed.DoSeed();
+            }
+
+            entityContext.Dispose();
+
+            //create data db if it doesn't exist
+            var dataContext = new DataDBContext();
+            dataContext.Database.Initialize(false);
+            dataContext.Dispose();
+
+            //create quartz db if it doesn't exist
+            QuartzUtils.InitializeDatabase(Settings.Default.databaseType);
+        }
+
+        internal static void CheckDBConnection()
+        {
+            //if no db type has been selected, we gotta show that window no matter what
+            if (Settings.Default.databaseType != "MySql" && Settings.Default.databaseType != "SqlServer")
+            {
+                var dbDetailsWindow = new DBConnectionWindow();
+                dbDetailsWindow.ShowDialog();
+            }
+
+            if (!DBUtils.TestConnection())
+            {
+                var dbDetailsWindow = new DBConnectionWindow();
+                dbDetailsWindow.ShowDialog();
+            }
         }
     }
 }
