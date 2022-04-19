@@ -420,7 +420,7 @@ namespace QDMSApp
         }
 
         /// <summary>
-        ///
+        /// Make a request for continuous futures data.
         /// </summary>
         /// <returns>The last contract used in the construction of this continuous futures instrument.</returns>
         private Instrument GetContFutData(HistoricalDataRequest request, bool raiseDataEvent = true)

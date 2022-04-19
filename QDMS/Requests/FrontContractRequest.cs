@@ -14,11 +14,12 @@ namespace QDMS
     public class FrontContractRequest
     {
         /// <summary>
-        /// 
+        /// Request id
         /// </summary>
         public int ID { get; set; }
+
         /// <summary>
-        /// 
+        /// The futures instrument
         /// </summary>
         public Instrument Instrument { get; set; }
 
