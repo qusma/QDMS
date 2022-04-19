@@ -292,5 +292,22 @@ namespace QDMSApp
                 e.Count,
                 0);
         }
+
+        /// <summary>
+        /// Different instruments need to use different historical data type requests, this provides the right one
+        /// </summary>
+        /// <param name="instrument"></param>
+        /// <returns></returns>
+        public static HistoricalDataType GetDataType(Instrument instrument)
+        {
+            //when it comes to FOREX, IB doesn't return any data if you request Trades, you have to ask for Bid/Ask/Mid
+            if (instrument.Type == InstrumentType.Cash ||
+                instrument.Type == InstrumentType.Commodity)
+            {
+                return HistoricalDataType.Midpoint;
+            }
+
+            return HistoricalDataType.Trades;
+        }
     }
 }
