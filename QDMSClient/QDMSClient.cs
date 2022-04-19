@@ -796,30 +796,6 @@ namespace QDMSClient
             handler?.Invoke(sender, e);
         }
 
-        //These can be removed in a subsequent version
-        /// <summary>
-        /// Obsolete
-        /// </summary>
-        /// <returns></returns>
-        [Obsolete("Use GetInstruments instead")]
-        public List<Instrument> GetAllInstruments() => GetInstruments().Result.Result;
-        /// <summary>
-        /// Obsolete
-        /// </summary>
-        /// <param name="pred"></param>
-        /// <returns></returns>
-        [Obsolete("Use GetInstruments instead")]
-        public List<Instrument> FindInstruments(Expression<Func<Instrument, bool>> pred) =>
-            GetInstruments(pred).Result.Result;
-        /// <summary>
-        /// Obsolete
-        /// </summary>
-        /// <param name="instrument"></param>
-        /// <returns></returns>
-        [Obsolete("Use GetInstruments instead")]
-        public List<Instrument> FindInstruments(Instrument instrument = null) =>
-            GetInstruments(instrument).Result.Result;
-
         /// <summary>
         /// PropertyChanged
         /// </summary>
