@@ -102,6 +102,17 @@ namespace SampleApp
 
                 Thread.Sleep(3000);
 
+                //grab some dividends data
+                var divReq = new DividendRequest(DateTime.Now.AddDays(-365), DateTime.Now, symbol: "AAPL", dataLocation: DataLocation.ExternalOnly);
+                var dividendResult = client.GetDividends(divReq).Result;
+                if (dividendResult.WasSuccessful)
+                {
+                    foreach (var dividend in dividendResult.Result)
+                    {
+                        Console.WriteLine($"${dividend.Amount} payable on {dividend.PaymentDate}");
+                    }
+                }
+
                 //finally send a real time data request (from the simulated data datasource)
                 spy.Datasource.Name = "SIM";
                 var rtReq = new RealTimeDataRequest(spy, BarSize.OneSecond);
