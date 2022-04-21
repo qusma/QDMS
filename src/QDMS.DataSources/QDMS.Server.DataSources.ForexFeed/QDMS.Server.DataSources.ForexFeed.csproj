@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{798FDB21-915D-4F54-B1CB-753A636B1C90}</ProjectGuid>
+    <ProjectGuid>{55180C6D-A985-4171-BC78-E9B161164785}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>QDMS.Server.DataSources.BarChart</RootNamespace>
-    <AssemblyName>QDMS.Server.DataSources.BarChart</AssemblyName>
+    <RootNamespace>QDMS.Server.DataSources.ForexFeed</RootNamespace>
+    <AssemblyName>QDMS.Server.DataSources.ForexFeed</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -31,25 +31,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="ForexFeed, Version=0.9.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\ForexFeed\ForexFeed.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.6.8\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BarChart.cs" />
-    <Compile Include="BarChartUtils.cs" />
+    <Compile Include="FeedTimer.cs" />
+    <Compile Include="ForexFeed.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QDMS\QDMS.csproj">
+    <ProjectReference Include="..\..\..\QDMS.Server\QDMS.Server.csproj">
+      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
+      <Name>QDMS.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
       <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
       <Name>QDMS</Name>
     </ProjectReference>

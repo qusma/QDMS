@@ -9,8 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EntityData\EntityData.csproj" />
-    <ProjectReference Include="..\QDMS\QDMS.csproj" />
+    <ProjectReference Include="..\..\..\EntityData\EntityData.csproj" />
+    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj" />
   </ItemGroup>
 
 </Project>

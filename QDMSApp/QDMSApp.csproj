@@ -14,6 +14,10 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <ApplicationIcon>appbar.box.layered.ico</ApplicationIcon>
+    <GenerateManifests>true</GenerateManifests>
+    <SignManifests>true</SignManifests>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
@@ -30,15 +34,12 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationRevision>3</ApplicationRevision>
     <ApplicationVersion>0.10.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <ApplicationIcon>appbar.box.layered.ico</ApplicationIcon>
-    <GenerateManifests>true</GenerateManifests>
-    <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -448,62 +449,6 @@
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Name>EntityData</Name>
     </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
-      <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
-      <Name>QDMS.Server.DataSources.BarChart</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.Binance\QDMS.Server.DataSources.Binance.csproj">
-      <Project>{1975a3b2-fa08-4730-b00a-fdc41f14845b}</Project>
-      <Name>QDMS.Server.DataSources.Binance</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
-      <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
-      <Name>QDMS.Server.DataSources.Bloomberg</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.CBOE\QDMS.Server.DataSources.CBOE.fsproj">
-      <Project>{8f48ba67-7ebd-4620-815c-32ea5bcb4181}</Project>
-      <Name>QDMS.Server.DataSources.CBOE</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.Dividend.com\QDMS.Server.DataSources.Dividend.com.fsproj">
-      <Project>{95eef323-701b-44d9-bbce-8308edb23073}</Project>
-      <Name>QDMS.Server.DataSources.Dividend.com</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.ForexFeed\QDMS.Server.DataSources.ForexFeed.csproj">
-      <Project>{55180c6d-a985-4171-bc78-e9b161164785}</Project>
-      <Name>QDMS.Server.DataSources.ForexFeed</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
-      <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
-      <Name>QDMS.Server.DataSources.FRED</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
-      <Project>{3c2b9ce3-9054-46c4-902b-ae500a61b613}</Project>
-      <Name>QDMS.Server.DataSources.FXStreet</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj">
-      <Project>{723afac2-099b-410f-9d32-fe34611239e3}</Project>
-      <Name>QDMS.Server.DataSources.InteractiveBrokers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.Nasdaq\QDMS.Server.DataSources.Nasdaq.fsproj">
-      <Project>{4c4ef2b7-0ddc-42fc-902f-29c4f8161c12}</Project>
-      <Name>QDMS.Server.DataSources.Nasdaq</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
-      <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
-      <Name>QDMS.Server.DataSources.Quandl</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj">
-      <Project>{5c2c845c-0d1c-46ef-9b8f-66502dcde8ca}</Project>
-      <Name>QDMS.Server.DataSources.Yahoo</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj">
-      <Project>{0197ea02-a2ad-475f-9a73-7a0bcfc18891}</Project>
-      <Name>QDMS.Server.DataStorage.MySql</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QDMS.Server.DataStorage.SqlServer\QDMS.Server.DataStorage.SqlServer.csproj">
-      <Project>{17ade009-cab6-4389-93e1-afe1a2dbb18c}</Project>
-      <Name>QDMS.Server.DataStorage.SqlServer</Name>
-    </ProjectReference>
     <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj">
       <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
       <Name>QDMS.Server</Name>
@@ -515,6 +460,66 @@
     <ProjectReference Include="..\QDMS\QDMS.csproj">
       <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
       <Name>QDMS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
+      <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
+      <Name>QDMS.Server.DataSources.BarChart</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Binance\QDMS.Server.DataSources.Binance.csproj">
+      <Project>{1975a3b2-fa08-4730-b00a-fdc41f14845b}</Project>
+      <Name>QDMS.Server.DataSources.Binance</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Bloomberg\QDMS.Server.DataSources.Bloomberg.csproj">
+      <Project>{7979d0db-e6b4-410c-b3bb-cba4c2888cf3}</Project>
+      <Name>QDMS.Server.DataSources.Bloomberg</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.CBOE\QDMS.Server.DataSources.CBOE.fsproj">
+      <Project>{8f48ba67-7ebd-4620-815c-32ea5bcb4181}</Project>
+      <Name>QDMS.Server.DataSources.CBOE</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Dividend.com\QDMS.Server.DataSources.Dividend.com.fsproj">
+      <Project>{95eef323-701b-44d9-bbce-8308edb23073}</Project>
+      <Name>QDMS.Server.DataSources.Dividend.com</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.ForexFeed\QDMS.Server.DataSources.ForexFeed.csproj">
+      <Project>{55180c6d-a985-4171-bc78-e9b161164785}</Project>
+      <Name>QDMS.Server.DataSources.ForexFeed</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj">
+      <Project>{f83d3d20-6554-44d2-862d-c64f1ec3062b}</Project>
+      <Name>QDMS.Server.DataSources.FRED</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.FXStreet\QDMS.Server.DataSources.FXStreet.fsproj">
+      <Project>{3c2b9ce3-9054-46c4-902b-ae500a61b613}</Project>
+      <Name>QDMS.Server.DataSources.FXStreet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj">
+      <Project>{723afac2-099b-410f-9d32-fe34611239e3}</Project>
+      <Name>QDMS.Server.DataSources.InteractiveBrokers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Nasdaq\QDMS.Server.DataSources.Nasdaq.fsproj">
+      <Project>{4c4ef2b7-0ddc-42fc-902f-29c4f8161c12}</Project>
+      <Name>QDMS.Server.DataSources.Nasdaq</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Quandl\QDMS.Server.DataSources.Quandl.csproj">
+      <Project>{ca17ddc1-5e94-4a71-8d4b-b9e4cd00c7c1}</Project>
+      <Name>QDMS.Server.DataSources.Quandl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Tiingo\QDMS.Server.DataSources.Tiingo.csproj">
+      <Project>{7b273afa-c410-4ec8-92f7-81f70a8f2e96}</Project>
+      <Name>QDMS.Server.DataSources.Tiingo</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataSources\QDMS.Server.DataSources.Yahoo\QDMS.Server.DataSources.Yahoo.csproj">
+      <Project>{5c2c845c-0d1c-46ef-9b8f-66502dcde8ca}</Project>
+      <Name>QDMS.Server.DataSources.Yahoo</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataStorage\QDMS.Server.DataStorage.MySql\QDMS.Server.DataStorage.MySql.csproj">
+      <Project>{0197ea02-a2ad-475f-9a73-7a0bcfc18891}</Project>
+      <Name>QDMS.Server.DataStorage.MySql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\QDMS.DataStorage\QDMS.Server.DataStorage.SqlServer\QDMS.Server.DataStorage.SqlServer.csproj">
+      <Project>{17ade009-cab6-4389-93e1-afe1a2dbb18c}</Project>
+      <Name>QDMS.Server.DataStorage.SqlServer</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
