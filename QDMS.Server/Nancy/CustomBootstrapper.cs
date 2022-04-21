@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
 using QDMS.Server.Repositories;
+using QDMS.Server.Services;
 using QDMSApp;
 using Quartz;
 using System.Data.SqlClient;
@@ -73,6 +74,8 @@ namespace QDMS.Server.Nancy
             container.Register<IDividendsBroker>(_divb);
             container.Register<IEarningsAnnouncementBroker>(_eab);
             container.Register<JsonSerializer, CustomJsonSerializer>();
+
+            container.Register<IDatasourceService, DatasourceService>();
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
