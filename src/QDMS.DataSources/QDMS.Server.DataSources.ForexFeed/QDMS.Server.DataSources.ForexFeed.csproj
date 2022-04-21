@@ -33,7 +33,7 @@
   <ItemGroup>
     <Reference Include="ForexFeed, Version=0.9.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libraries\ForexFeed\ForexFeed.dll</HintPath>
+      <HintPath>..\..\..\libs\ForexFeed\ForexFeed.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
@@ -56,18 +56,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\QDMS.Server\QDMS.Server.csproj">
-      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
-      <Name>QDMS.Server</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
-      <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
-      <Name>QDMS</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\QDMS.Common\QDMS.Common.csproj">
+      <Project>{f460a979-a9c2-4954-980e-2c2053c0ada8}</Project>
+      <Name>QDMS.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

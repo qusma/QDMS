@@ -14,7 +14,7 @@ module fx =
         let countryCodeHelper = countryCodeHelper
         let error = Event<EventHandler<ErrorArgs>,ErrorArgs>()
         let logger = NLog.LogManager.GetCurrentClassLogger()
-
+        
         let buildUrl(fromDate, toDate) = 
             String.Format("https://calendar-api.fxstreet.com/en/api/v1/eventDates/{0:yyyy-MM-dd}/{1:yyyy-MM-dd}", fromDate, toDate)
 

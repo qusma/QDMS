@@ -94,14 +94,14 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\EntityData\EntityData.csproj">
-      <Name>EntityData</Name>
-      <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
+    <ProjectReference Include="..\..\QDMS.Common\QDMS.Common.csproj">
+      <Name>QDMS.Common</Name>
+      <Project>{f460a979-a9c2-4954-980e-2c2053c0ada8}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
-      <Name>QDMS</Name>
-      <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
+    <ProjectReference Include="..\..\QDMS.Dal\QDMS.Dal.csproj">
+      <Name>QDMS.Dal</Name>
+      <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

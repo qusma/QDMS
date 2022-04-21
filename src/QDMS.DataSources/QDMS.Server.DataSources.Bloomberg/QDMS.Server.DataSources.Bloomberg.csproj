@@ -31,8 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bloomberglp.Blpapi">
-      <HintPath>..\Libraries\BLPAPI\Bloomberglp.Blpapi.dll</HintPath>
+    <Reference Include="Bloomberglp.Blpapi, Version=3.6.2.0, Culture=neutral, PublicKeyToken=ec3efa8c033c2bc5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\libs\BLPAPI\Bloomberglp.Blpapi.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,15 +46,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
-      <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
-      <Name>QDMS</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\QDMS.Common\QDMS.Common.csproj">
+      <Project>{f460a979-a9c2-4954-980e-2c2053c0ada8}</Project>
+      <Name>QDMS.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -107,25 +107,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\EntityData\EntityData.csproj">
+    <ProjectReference Include="..\..\src\QDMS.Common\QDMS.Common.csproj">
+      <Project>{f460a979-a9c2-4954-980e-2c2053c0ada8}</Project>
+      <Name>QDMS.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\QDMS.Dal\QDMS.Dal.csproj">
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
-      <Name>EntityData</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\QDMS.Server\QDMS.Server.csproj">
-      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
-      <Name>QDMS.Server</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\QDMSClient\QDMSClient.csproj">
-      <Project>{1428051f-0912-4d36-a90f-0868c1c1d6b8}</Project>
-      <Name>QDMSClient</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\QDMSApp\QDMSApp.csproj">
-      <Project>{1ad82972-fd44-4ed2-b909-a0738f6c03fe}</Project>
-      <Name>QDMSApp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\QDMS\QDMS.csproj">
-      <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
-      <Name>QDMS</Name>
+      <Name>QDMS.Dal</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\QDMS.DataSources\QDMS.Server.DataSources.BarChart\QDMS.Server.DataSources.BarChart.csproj">
       <Project>{798fdb21-915d-4f54-b1cb-753a636b1c90}</Project>
@@ -190,6 +178,22 @@
     <ProjectReference Include="..\..\src\QDMS.DataStorage\QDMS.Server.DataStorage.TeaFiles\QDMS.Server.DataStorage.TeaFiles.csproj">
       <Project>{f0498a7c-b3a3-4ff6-b110-67d638034b1f}</Project>
       <Name>QDMS.Server.DataStorage.TeaFiles</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\QDMS.Server\QDMS.Server.csproj">
+      <Project>{c5427849-6011-4198-bca4-d7cdcf971e7c}</Project>
+      <Name>QDMS.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\QDMSApp\QDMSApp.csproj">
+      <Project>{1ad82972-fd44-4ed2-b909-a0738f6c03fe}</Project>
+      <Name>QDMSApp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\QDMSClient\QDMSClient.csproj">
+      <Project>{dfeaecb0-6206-4b62-a5f7-d16b2132621b}</Project>
+      <Name>QDMSClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\QDMSService\QDMSService.csproj">
+      <Project>{2b975f31-9f0f-4bbb-8bc2-8e014336b0ff}</Project>
+      <Name>QDMSService</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -277,7 +281,7 @@
       <Version>4.5.1</Version>
     </PackageReference>
     <PackageReference Include="System.ComponentModel.Annotations">
-      <Version>4.7.0</Version>
+      <Version>5.0.0</Version>
     </PackageReference>
     <PackageReference Include="System.Linq">
       <Version>4.3.0</Version>

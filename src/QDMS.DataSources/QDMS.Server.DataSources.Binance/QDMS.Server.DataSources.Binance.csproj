@@ -68,14 +68,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
-      <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
-      <Name>QDMS</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\QDMS.Common\QDMS.Common.csproj">
+      <Project>{f460a979-a9c2-4954-980e-2c2053c0ada8}</Project>
+      <Name>QDMS.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

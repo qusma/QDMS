@@ -5,8 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\EntityData\EntityData.csproj" />
-    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj" />
+    <ProjectReference Include="..\..\QDMS.Common\QDMS.Common.csproj" />
   </ItemGroup>
 
 </Project>

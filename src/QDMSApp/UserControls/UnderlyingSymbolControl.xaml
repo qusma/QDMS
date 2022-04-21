@@ -1,0 +1,114 @@
+﻿<UserControl x:Class="QDMSApp.UserControls.UnderlyingSymbolControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QDMSApp.UserControls"
+             xmlns:qdmsServer="clr-namespace:QDMSApp"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:qdms="clr-namespace:QDMS;assembly=QDMS.Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="470" d:DesignWidth="470">
+    <UserControl.Resources>
+        <qdmsServer:EnumBooleanConverter x:Key="EnumBooleanConverter" />
+
+        <ObjectDataProvider x:Key="DayTypes" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:DayType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="RelativeMonths" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:RelativeMonth"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="WeekDayCounts" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:WeekDayCount"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="DaysOfTheWeek" MethodName="GetValues" ObjectType="{x:Type system:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="qdms:DayOfTheWeek"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="302*"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Symbol">
+            <Grid>
+                <Label Grid.Row="0" Content="Symbol:" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" Width="79"/>
+
+                <TextBox Grid.Row="0" Name="SymbolTextBox" HorizontalAlignment="Left" Height="23" Margin="94,6,0,0" 
+                 TextWrapping="NoWrap" Text="{Binding Symbol,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120"/>
+            </Grid>
+
+        </GroupBox>
+
+        <GroupBox Header="Expiration Rule" HorizontalAlignment="Stretch" Grid.Row="1" VerticalAlignment="Top" MinHeight="290" DataContext="{Binding Rule}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="130"/>
+                    <RowDefinition Height="40"/>
+                </Grid.RowDefinitions>
+                <Label Content="Expires" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="54"/>
+                <TextBox Grid.Row="0" HorizontalAlignment="Left" Height="23" Margin="69,10,0,0" TextWrapping="Wrap" Text="{Binding DaysBefore}" 
+                         ToolTip="The contract expires this many days before the Reference day." VerticalAlignment="Top" Width="32"/>
+                <ComboBox Grid.Row="0" SelectedItem="{Binding DayType}" ItemsSource="{Binding Source={StaticResource DayTypes}}"
+                          ToolTip="Calendar days or business days for the calculation."
+                          HorizontalAlignment="Left" Margin="121,10,0,0" VerticalAlignment="Top" Width="120"/>
+                <Label Grid.Row="0" Content="days before:" HorizontalAlignment="Left" Margin="263,10,0,0" VerticalAlignment="Top" Width="103"/>
+
+                <Label Content="of the" HorizontalAlignment="Left" Margin="10,11,0,0" VerticalAlignment="Top" Width="45" Grid.Row="2"/>
+                <ComboBox HorizontalAlignment="Left" Margin="60,11,0,0" VerticalAlignment="Top" Width="120" Grid.Row="2" 
+                          ToolTip="The month that the reference day is in."
+                          ItemsSource="{Binding Source={StaticResource RelativeMonths}}" SelectedItem="{Binding ReferenceRelativeMonth}" />
+
+                <RadioButton Name="DaysBasedRefCheckBox"
+                             IsChecked="{Binding ReferenceDayType,Converter={StaticResource EnumBooleanConverter}, ConverterParameter=CalendarDays}"
+                    ToolTip="The reference day is set at a specified number of calendar days of a specified month." 
+                             
+                             Content="Nth day of the month:" HorizontalAlignment="Left" Margin="11,13,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+
+                <TextBox HorizontalAlignment="Left" Height="23" Margin="176,10,0,0" Grid.Row="1" 
+                         TextWrapping="NoWrap" 
+                         Text="{Binding ReferenceDays}" 
+                         IsEnabled="{Binding IsChecked, ElementName=DaysBasedRefCheckBox}"
+                         VerticalAlignment="Top" Width="36"/>
+
+
+
+                <RadioButton Name="WeeksBasedRefCheckBox"
+                             IsChecked="{Binding ReferenceDayType,Converter={StaticResource EnumBooleanConverter}, ConverterParameter=WeekDays}"
+                             ToolTip="The reference day is set at a particular day of the week of the nth week of the month."
+                             Content="The" HorizontalAlignment="Left" Margin="11,57,0,0" Grid.Row="1" VerticalAlignment="Top"
+                             
+                             />
+                <ComboBox HorizontalAlignment="Left" Margin="76,54,0,0" Grid.Row="1" VerticalAlignment="Top" Width="76"
+                          IsEnabled="{Binding IsChecked, ElementName=WeeksBasedRefCheckBox}"
+                          ItemsSource="{Binding Source={StaticResource WeekDayCounts}}" 
+                          SelectedItem="{Binding ReferenceWeekDayCount}"/>
+
+                <ComboBox HorizontalAlignment="Left" Margin="176,54,0,0" Grid.Row="1" VerticalAlignment="Top" Width="98"
+                          IsEnabled="{Binding IsChecked, ElementName=WeeksBasedRefCheckBox}"
+                          ItemsSource="{Binding Source={StaticResource DaysOfTheWeek}}" 
+                          SelectedItem="{Binding ReferenceWeekDay}"/>
+
+                <RadioButton Content="Last business day of the month." ToolTip="The reference day is the last business day of the month."
+                             Name="LastBusinessDayRadioBtn"
+                             IsChecked="{Binding ReferenceDayType,Converter={StaticResource EnumBooleanConverter}, ConverterParameter=LastDayOfMonth}"
+                             HorizontalAlignment="Left" Margin="11,101,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+
+                <CheckBox Grid.Row="2" Name="ForceRefDayBusinessDay" IsChecked="{Binding ReferenceDayMustBeBusinessDay}"
+                          Content="Reference day must be a business day." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,51,0,-30" Width="368" Height="20" />
+
+
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>
