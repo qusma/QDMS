@@ -116,7 +116,9 @@
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <ProjectReference Include="..\QDMS\QDMS.csproj">
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
       <Name>QDMS</Name>
       <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
       <Private>True</Private>

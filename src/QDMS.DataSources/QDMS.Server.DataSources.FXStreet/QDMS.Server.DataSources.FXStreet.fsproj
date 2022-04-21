@@ -92,12 +92,14 @@
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <ProjectReference Include="..\EntityData\EntityData.csproj">
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\EntityData\EntityData.csproj">
       <Name>EntityData</Name>
       <Project>{aea3426e-81b7-4c7e-a1cc-29743229cdcc}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\QDMS\QDMS.csproj">
+    <ProjectReference Include="..\..\..\QDMS\QDMS.csproj">
       <Name>QDMS</Name>
       <Project>{7ea40d71-4d14-4b86-b07d-932959fa0d20}</Project>
       <Private>True</Private>
