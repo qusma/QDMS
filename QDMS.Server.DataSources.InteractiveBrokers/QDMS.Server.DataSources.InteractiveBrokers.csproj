@@ -56,6 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IB.cs" />
+    <Compile Include="IB.Historical.cs" />
+    <Compile Include="IB.Realtime.cs" />
     <Compile Include="IBHistoricalDataCleaner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TWSUtils.cs" />

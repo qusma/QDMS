@@ -13,20 +13,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using System.Windows;
 using QDMSIBClient;
-using IBApi;
 using NLog;
 using QDMS;
-using BarSize = QDMS.BarSize;
 using LogLevel = NLog.LogLevel;
 
 namespace QDMSApp.DataSources
 {
-    public class IB : IHistoricalDataSource, IRealTimeDataSource
+    public partial class IB : IHistoricalDataSource, IRealTimeDataSource
     {
         private readonly IIBClient _client;
         private readonly Dictionary<int, RealTimeDataRequest> _realTimeDataRequests = new Dictionary<int, RealTimeDataRequest>();
@@ -57,11 +53,6 @@ namespace QDMSApp.DataSources
         /// Key: AssignedID, Value: TWS client ID
         /// </summary>
         private readonly Dictionary<int, int> _reverseRequestIDMap = new Dictionary<int, int>();
-
-        private readonly Queue<int> _realTimeRequestQueue = new Queue<int>();
-        private readonly Queue<int> _historicalRequestQueue = new Queue<int>();
-
-        private readonly ConcurrentDictionary<int, List<OHLCBar>> _arrivedHistoricalData = new ConcurrentDictionary<int, List<OHLCBar>>();
 
         /// <summary>
         /// Used to repeat failed requests after some time has passed.
@@ -128,19 +119,7 @@ namespace QDMSApp.DataSources
             _client.HistoricalDataUpdate += _client_HistoricalDataUpdate;
         }
 
-        /// <summary>
-        /// Called when historical data _updates_ (ie realtime data) are received
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void _client_HistoricalDataUpdate(object sender, QDMSIBClient.HistoricalDataEventArgs e)
-        {
-            if (e.Bar.Volume < 0) return;
 
-            var originalRequest = _realTimeDataRequests[e.RequestId];
-            var args = TWSUtils.HistoricalDataEventArgsToRealTimeDataEventArgs(e, originalRequest.Instrument.ID.Value, _requestIDMap[e.RequestId]);
-            RaiseEvent(DataReceived, this, args);
-        }
 
         /// <summary>
         /// Update the connection status.
@@ -148,30 +127,6 @@ namespace QDMSApp.DataSources
         void _connectionStatusUpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Connected = _client?.Connected ?? false;
-        }
-
-        /// <summary>
-        /// This event is raised when historical data arrives from TWS
-        /// </summary>
-        private void _client_HistoricalData(object sender, QDMSIBClient.HistoricalDataEventArgs e)
-        {
-            //if the data is arriving for a sub-request, we must get the id of the original request first
-            int id = GetTopLevelRequestId(e.RequestId);
-
-            if (!_historicalDataRequests.ContainsKey(id))
-            {
-                //this means we don't have a request with this key. If all works well,
-                //it should mean that this is actually a realtime data request using the new system
-                return;
-            }
-
-            var bar = TWSUtils.HistoricalDataEventArgsToOHLCBar(e);
-
-            //stocks need to have their volumes multiplied by 100, I think all other instrument types do not
-            if (_historicalDataRequests[id].Instrument.Type == InstrumentType.Stock)
-                bar.Volume *= 100;
-
-            _arrivedHistoricalData[id].Add(bar);
         }
 
         /// <summary>
@@ -187,45 +142,6 @@ namespace QDMSApp.DataSources
                 return _subRequestIDMap.ContainsKey(reqId)
                     ? _subRequestIDMap[reqId]
                     : reqId;
-            }
-        }
-
-        /// <summary>
-        /// Raised when a historical data req has completed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void _client_HistoricalDataEnd(object sender, HistoricalDataEndEventArgs e)
-        {
-            bool requestComplete = true;
-
-            int id = GetTopLevelRequestId(e.RequestId);
-
-            if (!_historicalDataRequests.ContainsKey(id))
-            {
-                //this means we don't have a request with this key. If all works well,
-                //it should mean that this is actually a realtime data request using the new system
-                return;
-            }
-
-            lock (_subReqMapLock)
-            {
-                if (_subRequestIDMap.ContainsKey(e.RequestId))
-                {
-                    //If there are multiple sub-requests, here we check if this is the last one
-                    requestComplete = ControlSubRequest(e.RequestId);
-
-                    if (requestComplete)
-                    {
-                        //If it was the last one, we need to order the data because sub-requests can arrive out of order
-                        _arrivedHistoricalData[id] = _arrivedHistoricalData[id].OrderBy(x => x.DTOpen).ToList();
-                    }
-                }
-            }
-
-            if (requestComplete)
-            {
-                HistoricalDataRequestComplete(id);
             }
         }
 
@@ -259,40 +175,6 @@ namespace QDMSApp.DataSources
                     return true;
                 }
             }
-        }
-
-        /// <summary>
-        /// This method is called when a historical data request has delivered all its bars
-        /// </summary>
-        /// <param name="requestID"></param>
-        private void HistoricalDataRequestComplete(int requestID)
-        {
-            var request = _historicalDataRequests[requestID];
-            List<OHLCBar> bars;
-            var removed = _arrivedHistoricalData.TryRemove(requestID, out bars);
-            if (!removed) return;
-
-            bars = IBHistoricalDataCleaner.CleanHistoricalData(request, bars);
-
-            //return the data through the HistoricalDataArrived event
-            RaiseEvent(HistoricalDataArrived, this, new QDMS.HistoricalDataEventArgs(request, bars));
-        }
-
-
-
-        /// <summary>
-        /// This event is raised when real time data arrives
-        /// We convert them and pass them on downstream
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void _client_RealTimeBar(object sender, RealTimeBarEventArgs e)
-        {
-            var originalRequest = _realTimeDataRequests[e.RequestId];
-            RealTimeDataEventArgs args = TWSUtils.RealTimeDataEventArgsConverter(e, originalRequest.Frequency);
-            args.InstrumentID = originalRequest.Instrument.ID.Value;
-            args.RequestID = _requestIDMap[e.RequestId];
-            RaiseEvent(DataReceived, this, args);
         }
 
         /// <summary>
@@ -382,35 +264,6 @@ namespace QDMSApp.DataSources
             RaiseEvent(Error, this, errorArgs);
         }
 
-        /// <summary>
-        /// Sometime realtime bars will stop, and we get the associated error. 
-        /// We handle this situation here.
-        /// </summary>
-        /// <param name="e"></param>
-        private void HandleRealtimeBarStop(ErrorEventArgs e)
-        {
-            RealTimeDataRequest req;
-            if (_realTimeDataRequests.TryGetValue(e.TickerId, out req))
-            {
-                _logger.Error(string.Format(" RT Req: {0} @ {1}. Restarting stream.",
-                    req.Instrument.Symbol,
-                    req.Frequency));
-
-                _client.CancelRealTimeBars(e.TickerId);
-
-                RestartRealtimeStream(req);
-            }
-            else
-            {
-                _logger.Error(e.ErrorMsg + " - Unable to find corresponding request");
-            }
-        }
-
-        private void RestartRealtimeStream(RealTimeDataRequest req)
-        {
-            RequestRealTimeData(req);
-        }
-
         private void HandleNoSecurityDefinitionError(ErrorEventArgs e)
         {
             //multiple errors share the same code, we need to filter the wrong ones out
@@ -448,188 +301,6 @@ namespace QDMSApp.DataSources
             
         }
 
-        private void HandleRealTimePacingViolationError(ErrorEventArgs e)
-        {
-            lock (_queueLock)
-            {
-                if (!_realTimeRequestQueue.Contains(e.TickerId))
-                {
-                    //since the request did not succeed, what we do is re-queue it and it gets requested again by the timer
-                    _realTimeRequestQueue.Enqueue(e.TickerId);
-                }
-            }
-        }
-
-        private void HandleHistoricalDataPacingViolationError(ErrorEventArgs e)
-        {
-            //the same error can mean different things:
-            //either no data at all was returned, in which case we complete the req
-            //or this is just a pacing violation in hich case we re-queue it
-            if (e.ErrorMsg.Contains("HMDS query returned no data") ||
-                e.ErrorMsg.Contains("No market data permissions"))
-            {
-                HandleNoDataReturnedToHistoricalRequest(e);
-            }
-            else
-            {
-                //simply a data pacing violation, re-queue
-                HandleHistoricalDataPacingViolation(e);
-            }
-        }
-
-        /// <summary>
-        /// We requested too much, just re-queue
-        /// </summary>
-        /// <param name="e"></param>
-        private void HandleHistoricalDataPacingViolation(ErrorEventArgs e)
-        {
-            lock (_queueLock)
-            {
-                if (!_historicalRequestQueue.Contains(e.TickerId))
-                {
-                    //same as above
-                    _historicalRequestQueue.Enqueue(e.TickerId);
-                }
-            }
-        }
-
-        /// <summary>
-        /// For some reason the historical data request had zero data returned.
-        /// </summary>
-        /// <param name="e"></param>
-        private void HandleNoDataReturnedToHistoricalRequest(ErrorEventArgs e)
-        {
-            //no data returned = we return an empty data set
-            int origId;
-
-            lock (_subReqMapLock)
-            {
-                //if the data is arriving for a sub-request, we must get the id of the original request first
-                //otherwise it's just the same id
-                origId = GetTopLevelRequestId(e.TickerId);
-            }
-
-            if (origId != e.TickerId)
-            {
-                //this is a subrequest - only complete the
-                if (ControlSubRequest(e.TickerId))
-                {
-                    HistoricalDataRequestComplete(origId);
-                }
-            }
-            else
-            {
-                HistoricalDataRequestComplete(origId);
-            }
-        }
-
-        /// <summary>
-        /// historical data request
-        /// </summary>
-        public void RequestHistoricalData(HistoricalDataRequest request)
-        {
-            //Historical data limitations: https://www.interactivebrokers.com/en/software/api/apiguide/api/historical_data_limitations.htm
-            //the issue here is that the request may not be fulfilled...so we need to keep track of the request
-            //and if we get an error regarding its failure, potentially send it again using a timer
-            int originalReqID = _requestCounter++;
-            _historicalDataRequests.TryAdd(originalReqID, request);
-            
-            _arrivedHistoricalData.TryAdd(originalReqID, new List<OHLCBar>());
-            
-            //if necessary, chop up the request into multiple chunks so as to abide
-            //the historical data limitations
-            if (TWSUtils.RequestObeysLimits(request))
-            {
-                //send the request, no need for subrequests
-                SendHistoricalRequest(originalReqID, request);
-            }
-            else
-            {
-                //create subrequests, add them to the ID map, and send them to TWS
-                SendHistoricalDataSubrequests(request, originalReqID);
-            }
-        }
-
-        /// <summary>
-        /// Splits up a request into valid sub-requests and sends them all
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="originalReqID"></param>
-        private void SendHistoricalDataSubrequests(HistoricalDataRequest request, int originalReqID)
-        {
-            var subRequests = SplitRequest(request);
-            _subRequestCount.Add(originalReqID, subRequests.Count);
-
-            foreach (HistoricalDataRequest subReq in subRequests)
-            {
-                lock (_subReqMapLock)
-                {
-                    _requestCounter++;
-                    _historicalDataRequests.TryAdd(_requestCounter, subReq);
-                    _subRequestIDMap.Add(_requestCounter, originalReqID);
-                    SendHistoricalRequest(_requestCounter, subReq);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Splits a historical data request into multiple pieces so that they obey the request limits
-        /// </summary>
-        private List<HistoricalDataRequest> SplitRequest(HistoricalDataRequest request)
-        {
-            var requests = new List<HistoricalDataRequest>();
-
-            //start at the end, and work backward in increments slightly lower than the max allowed time
-            int step = (int)(TWSUtils.MaxRequestLength(request.Frequency) * .95);
-            DateTime currentDate = request.EndingDate;
-            while (currentDate > request.StartingDate)
-            {
-                var newReq = (HistoricalDataRequest)request.Clone();
-                newReq.EndingDate = currentDate;
-                newReq.StartingDate = newReq.EndingDate.AddSeconds(-step);
-                if (newReq.StartingDate < request.StartingDate)
-                    newReq.StartingDate = request.StartingDate;
-
-                currentDate = currentDate.AddSeconds(-step);
-                requests.Add(newReq);
-            }
-
-            return requests;
-        }
-
-        private void SendHistoricalRequest(int id, HistoricalDataRequest request)
-        {
-            Log(LogLevel.Info, string.Format("Sent historical data request to TWS. ID: {0}, Symbol: {1}, {2} back from {3}",
-                id,
-                request.Instrument.Symbol,
-                TWSUtils.TimespanToDurationString((request.EndingDate - request.StartingDate), request.Frequency),
-                request.EndingDate.ToString("yyyy-MM-dd hh:mm:ss")));
-
-            TimeZoneInfo exchangeTZ = request.Instrument.GetTZInfo();
-            //we need to convert time from the exchange TZ to Local...the ib client then converts it to UTC
-            var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Utc);
-
-            try
-            {
-                _client.RequestHistoricalData
-                (
-                    id,
-                    TWSUtils.InstrumentToContract(request.Instrument),
-                    endingDate.ToString("yyyyMMdd HH:mm:ss") + " GMT",
-                    TWSUtils.TimespanToDurationString(request.EndingDate - request.StartingDate, request.Frequency),
-                    TWSUtils.BarSizeConverter(request.Frequency),
-                    TWSUtils.GetDataType(request.Instrument),
-                    request.RTHOnly,
-                    false
-                );
-            }
-            catch(Exception ex)
-            {
-                Log(LogLevel.Error, "IB: Could not send historical data request: " + ex.Message);
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not send historical data request: " + ex.Message, id));
-            }
-        }
-
         public void Connect()
         {
             if (_client.Connected) return;
@@ -652,74 +323,6 @@ namespace QDMSApp.DataSources
         }
 
         /// <summary>
-        /// real time data request
-        /// </summary>
-        public void RequestRealTimeData(RealTimeDataRequest request)
-        {
-            var id = _requestCounter++;
-            lock (_requestIDMapLock)
-            {
-                _realTimeDataRequests.Add(id, request);
-                _requestIDMap.Add(id, request.AssignedID);
-                if (_reverseRequestIDMap.ContainsKey(request.AssignedID))
-                {
-                    _reverseRequestIDMap[request.AssignedID] = id;
-                }
-                else
-                {
-                    _reverseRequestIDMap.Add(request.AssignedID, id);
-                }
-            }
-
-            try
-            {
-                Contract contract = TWSUtils.InstrumentToContract(request.Instrument);
-
-                if (_ibUseNewRealTimeDataSystem)
-                {
-                    //the new system uses the historical data update endpoint instead of realtime data
-                    _client.RequestHistoricalData(id, contract, "", 
-                        "60 S", QDMSIBClient.BarSize.FiveSeconds, HistoricalDataType.Trades, request.RTHOnly, true);
-
-                    //todo: write test
-                }
-                else
-                {
-                    _client.RequestRealTimeBars(
-                        id,
-                        contract,
-                        "TRADES",
-                        request.RTHOnly);
-                }
-            }
-            catch(Exception ex)
-            {
-                Log(LogLevel.Error, "IB: Could not send real time data request: " + ex.Message);
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Could not send real time data request: " + ex.Message));
-            }
-        }
-
-        public void CancelRealTimeData(int requestID)
-        {
-            if (_reverseRequestIDMap.TryGetValue(requestID, out int twsId))
-            {
-                if (_ibUseNewRealTimeDataSystem)
-                {
-                    _client.CancelHistoricalData(twsId);
-                }
-                else
-                {
-                    _client.CancelRealTimeBars(twsId);
-                }
-            }
-            else
-            {
-                RaiseEvent(Error, this, new ErrorArgs(-1, "Real time stream requested for cancelation not found. ID: " + requestID));
-            }
-            
-        }
-
-        /// <summary>
         /// Add a message to the log.
         ///</summary>
         private void Log(LogLevel level, string message)
@@ -738,43 +341,6 @@ namespace QDMSApp.DataSources
             {
                 ResendRealTimeRequests();
                 ResendHistoricalRequests();
-            }
-        }
-
-        private void ResendHistoricalRequests()
-        {
-            while (_historicalRequestQueue.Count > 0)
-            {
-                var requestID = _historicalRequestQueue.Dequeue();
-
-                var symbol = string.IsNullOrEmpty(_historicalDataRequests[requestID].Instrument.DatasourceSymbol)
-                    ? _historicalDataRequests[requestID].Instrument.Symbol
-                    : _historicalDataRequests[requestID].Instrument.DatasourceSymbol;
-
-                // We repeat the request _with the same id_ as used previously. This means the previous
-                // sub request mapping will still work
-                SendHistoricalRequest(requestID, _historicalDataRequests[requestID]);
-
-                Log(LogLevel.Info, string.Format("IB Repeating historical data request for {0} @ {1} with ID {2}",
-                        symbol,
-                        _historicalDataRequests[requestID].Frequency,
-                        requestID));
-            }
-        }
-
-        private void ResendRealTimeRequests()
-        {
-            while (_realTimeRequestQueue.Count > 0)
-            {
-                var requestID = _realTimeRequestQueue.Dequeue();
-                var symbol = string.IsNullOrEmpty(_realTimeDataRequests[requestID].Instrument.DatasourceSymbol)
-                    ? _realTimeDataRequests[requestID].Instrument.Symbol
-                    : _realTimeDataRequests[requestID].Instrument.DatasourceSymbol;
-
-                RequestRealTimeData(_realTimeDataRequests[requestID]);
-                Log(LogLevel.Info, string.Format("IB Repeating real time data request for {0} @ {1}",
-                        symbol,
-                        _realTimeDataRequests[requestID].Frequency));
             }
         }
 
