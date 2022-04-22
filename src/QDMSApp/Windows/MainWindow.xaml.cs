@@ -33,6 +33,7 @@ namespace QDMSApp
     {
         private readonly IDataClient _client;
         private readonly Logger _clientLogger = LogManager.GetLogger("client");
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private ProgressBar _progressBar;
 
@@ -152,45 +153,46 @@ namespace QDMSApp
             );
         }
 
-        //check the latest date we have available in local storage, then request historical data from that date to the current time
-        private void UpdateHistoricalDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
+        /// <summary>
+        /// Check the latest date we have available in local storage, 
+        /// then request historical data from that date to the current time
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="routedEventArgs"></param>
+        private async void UpdateHistoricalDataBtn_ItemClick(object sender, RoutedEventArgs routedEventArgs)
         {
             var frequency = (BarSize)((MenuItem)sender).Tag;
             List<Instrument> selectedInstruments = InstrumentsGrid.SelectedItems.Cast<Instrument>().ToList();
 
             int requestCount = 0;
 
-            using (IDataStorage localStorage = DataStorageFactory.Get())
+            foreach (Instrument i in selectedInstruments)
             {
-                foreach (Instrument i in selectedInstruments)
+                if (!i.ID.HasValue) continue;
+                ApiResponse<List<StoredDataInfo>> storageInfoResponse = await _client.GetLocallyAvailableDataInfo(i);
+
+                if (!storageInfoResponse.WasSuccessful)
                 {
-                    if (!i.ID.HasValue) continue;
-                    //TODO: add GetStorageInfo to client through REST, deprecate zmq, then remove dependency on DataStorageFactory here
-                    List<StoredDataInfo> storageInfo = localStorage.GetStorageInfo(i.ID.Value);
-                    if (storageInfo.Any(x => x.Frequency == frequency))
-                    {
-                        StoredDataInfo relevantStorageInfo = storageInfo.First(x => x.Frequency == frequency);
-                        _client.RequestHistoricalData(new HistoricalDataRequest(
-                            i,
-                            frequency,
-                            relevantStorageInfo.LatestDate + frequency.ToTimeSpan(),
-                            DateTime.Now,
-                            DataLocation.ExternalOnly,
-                            true));
-                        requestCount++;
-                    }
+                    _logger.Error("StorageInfo request failed, could not update data: " + string.Join(" ", storageInfoResponse.Errors));
+                    continue;
+                }
+
+                if (storageInfoResponse.Result.Any(x => x.Frequency == frequency))
+                {
+                    StoredDataInfo relevantStorageInfo = storageInfoResponse.Result.First(x => x.Frequency == frequency);
+                    _client.RequestHistoricalData(new HistoricalDataRequest(
+                        i,
+                        frequency,
+                        relevantStorageInfo.LatestDate + frequency.ToTimeSpan(),
+                        DateTime.Now,
+                        DataLocation.ExternalOnly,
+                        true));
+                    requestCount++;
                 }
             }
 
-            if (_progressBar.Value >= _progressBar.Maximum)
-            {
-                _progressBar.Maximum = requestCount;
-                _progressBar.Value = 0;
-            }
-            else
-            {
-                _progressBar.Maximum += requestCount;
-            }
+            _progressBar.Maximum = requestCount;
+            _progressBar.Value = 0;
         }
 
         //the application is closing, shut down all the servers and stuff
