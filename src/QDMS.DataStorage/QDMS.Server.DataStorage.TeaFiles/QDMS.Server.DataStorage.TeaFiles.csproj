@@ -32,12 +32,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DiscreteLogics.TeaFiles, Version=1.0.0.35, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TeaFiles.Net.1.0.0.35\lib\net40\DiscreteLogics.TeaFiles.dll</HintPath>
+      <HintPath>..\..\..\packages\TeaFiles.Net.1.0.0.35\lib\net40\DiscreteLogics.TeaFiles.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IO.Abstractions.6.0.7\lib\net40\System.IO.Abstractions.dll</HintPath>
+      <HintPath>..\..\..\packages\System.IO.Abstractions.6.0.7\lib\net40\System.IO.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
