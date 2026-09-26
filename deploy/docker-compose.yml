@@ -1,0 +1,63 @@
+# QDMS + Postgres. On the server:
+#   cp .env.example .env    # then fill it in
+#   docker compose up -d --build
+#
+# QTS/QDMSClient connect to <server>:5559 (HTTP) and 5555/5556/5557 (ZMQ) with the API key from .env.
+# Postgres is only published on the server's loopback: use an SSH tunnel to reach it from elsewhere
+# (e.g. for tools/QDMS.MigrateFromMySql): ssh -L 5432:localhost:5432 <server>
+
+name: qdms
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: qdms
+      POSTGRES_USER: qdms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qdms -d qdms"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  qdms:
+    build:
+      context: ..
+    image: qdms
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Qdms: Host=postgres;Database=qdms;Username=qdms;Password=${POSTGRES_PASSWORD}
+      Qdms__apiKey: ${QDMS_API_KEY:?set QDMS_API_KEY in .env}
+      Qdms__tiingoApiKey: ${TIINGO_API_KEY:-}
+      Qdms__enableInteractiveBrokers: ${IB_ENABLED:-false}
+      Qdms__ibClientHost: ${IB_HOST:-host.docker.internal}
+      Qdms__ibClientPort: ${IB_PORT:-4002}
+      Qdms__updateJobEmail: ${JOB_REPORT_EMAIL:-}
+      Qdms__updateJobEmailHost: ${SMTP_HOST:-}
+      Qdms__updateJobEmailUsername: ${SMTP_USERNAME:-}
+      Qdms__updateJobEmailPassword: ${SMTP_PASSWORD:-}
+      Qdms__updateJobEmailSender: ${SMTP_SENDER:-}
+      TZ: ${TZ:-UTC}
+    ports:
+      - "5559:5559"
+      - "5555:5555"
+      - "5556:5556"
+      - "5557:5557"
+    extra_hosts:
+      # lets the container reach an IB Gateway running on the host
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - logs:/app/logs
+
+volumes:
+  pgdata:
+  logs:

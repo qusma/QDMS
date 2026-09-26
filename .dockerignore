@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/logs/
+.git/
+.vs/
+.vscode/
+tests/
+tools/
+deploy/
+*.md

@@ -21,7 +21,7 @@ using System.Threading.Channels;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public class HistoricalDataBroker : IHistoricalDataBroker
     {
@@ -59,7 +59,7 @@ namespace QDMSApp
         private readonly Thread _requestHandlerThread;
 
         private Random _rand = new Random();
-        public ConcurrentNotifierBlockingList<HistoricalDataRequest> PendingRequests { get; } = new ConcurrentNotifierBlockingList<HistoricalDataRequest>();
+        public ConcurrentList<HistoricalDataRequest> PendingRequests { get; } = new ConcurrentList<HistoricalDataRequest>();
 
         public void Dispose()
         {

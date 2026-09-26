@@ -5,7 +5,6 @@
 // -----------------------------------------------------------------------
 
 using FluentValidation;
-using FluentValidation.Internal;
 using FluentValidation.Results;
 using System;
 using System.Collections.Generic;
@@ -15,29 +14,28 @@ namespace QDMS.Server.Validation
 {
     public class ExchangeValidator : AbstractValidator<Exchange>
     {
-        private static readonly List<string> Timezones = TimeZoneInfo.GetSystemTimeZones().Select(x => x.Id).ToList();
-
         public ExchangeValidator()
         {
             RuleFor(req => req.Name).NotEmpty().WithMessage("Name must have a value");
             RuleFor(req => req.LongName).NotEmpty().WithMessage("LongName must have a value");
-            RuleFor(req => req.Timezone).Must(x => Timezones.Contains(x)).WithMessage("Timezone does not exist");
+            //accepts both Windows and IANA ids, since existing data uses Windows ids
+            RuleFor(req => req.Timezone).Must(x => x != null && TimeZoneInfo.TryFindSystemTimeZoneById(x, out _)).WithMessage("Timezone does not exist");
 
             //rule for individual sessions
             var sessionValidator = new SessionValidator();
             RuleForEach(x => x.Sessions).SetValidator(sessionValidator);
 
             //rule for the sessions combined (check for overlaps)
-            AddRule(new DelegateValidator<Exchange>((exchange, ctx) =>
+            RuleFor(x => x.Sessions).Custom((sessions, ctx) =>
             {
-                List<string> errors;
-                if (!MyUtils.ValidateSessions(exchange.Sessions?.ToList<ISession>(), out errors))
+                if (!MyUtils.ValidateSessions(sessions?.ToList<ISession>(), out List<string> errors))
                 {
-                    return errors.Select(x => new ValidationFailure("Sessions", x));
+                    foreach (var error in errors)
+                    {
+                        ctx.AddFailure("Sessions", error);
+                    }
                 }
-
-                return Enumerable.Empty<ValidationFailure>();
-            }));
+            });
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using EntityData;
 using Microsoft.EntityFrameworkCore;
 using QDMS.Server.Brokers;
-using QDMSApp;
+using QDMS.Server;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -53,9 +53,9 @@ namespace QDMS.Server.Services
             return statuses;
         }
 
-        public ConcurrentNotifierBlockingList<RealTimeStreamInfo> GetActiveStreams()
+        public List<RealTimeStreamInfo> GetActiveStreams()
         {
-            return _rtb.ActiveStreams;
+            return _rtb.ActiveStreams.Collection;
         }
     }
 }

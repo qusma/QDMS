@@ -11,7 +11,7 @@ using IBApi;
 using QDMS;
 using QDMS.Utils;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public static class TWSUtils
     {
@@ -58,27 +58,38 @@ namespace QDMSApp
         {
             var bar = new OHLCBar
             {
-                DTOpen = e.Bar.Time,
+                DTOpen = e.Time,
                 Open = (decimal)e.Bar.Open,
                 High = (decimal)e.Bar.High,
                 Low = (decimal)e.Bar.Low,
                 Close = (decimal)e.Bar.Close,
-                Volume = e.Bar.Volume,
+                Volume = ToVolume(e.Bar.Volume),
             };
             return bar;
         }
+
+        /// <summary>
+        /// TWS sends sizes as decimals, with decimal.MaxValue meaning "not set" (and -1 for no volume, e.g. indices)
+        /// </summary>
+        public static long? ToVolume(decimal volume)
+        {
+            if (volume < 0 || volume >= long.MaxValue) return null;
+            return (long)volume;
+        }
+
+        private static double ToWap(decimal wap) => wap == decimal.MaxValue ? 0 : (double)wap;
 
         public static RealTimeDataEventArgs HistoricalDataEventArgsToRealTimeDataEventArgs(QDMSIBClient.HistoricalDataEventArgs e, int instrumentId, int reqId)
         {
             var rtdea = new RealTimeDataEventArgs(instrumentId,
                 QDMS.BarSize.FiveSeconds,
-                MyUtils.ConvertToTimestamp(e.Bar.Time),
+                MyUtils.ConvertToTimestamp(e.Time),
                 (decimal)e.Bar.Open,
                 (decimal)e.Bar.High,
                 (decimal)e.Bar.Low,
                 (decimal)e.Bar.Close,
-                e.Bar.Volume,
-                e.Bar.WAP,
+                ToVolume(e.Bar.Volume) ?? 0,
+                ToWap(e.Bar.WAP),
                 e.Bar.Count,
                 reqId);
             return rtdea;
@@ -287,8 +298,8 @@ namespace QDMSApp
                 (decimal)e.High,
                 (decimal)e.Low,
                 (decimal)e.Close,
-                e.Volume,
-                e.Wap,
+                ToVolume(e.Volume) ?? 0,
+                ToWap(e.Wap),
                 e.Count,
                 0);
         }

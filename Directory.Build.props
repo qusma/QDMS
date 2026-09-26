@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Authors>QUSMA</Authors>
+    <Copyright>Alexander Soffronow Pagonidis</Copyright>
+    <!-- missing XML docs on public members -->
+    <NoWarn>$(NoWarn);CS1591;CS0618</NoWarn>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

@@ -7,8 +7,10 @@
 using Newtonsoft.Json;
 using NLog;
 using QDMS.Server.Brokers;
-using QDMSApp;
+using QDMS.Server;
 using Quartz;
+using System.Threading.Tasks;
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +34,14 @@ namespace QDMS.Server.Jobs
             _instrumentManager = instrumentManager;
         }
 
-        public void Execute(IJobExecutionContext context)
+        public ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
+        {
+            //the job does blocking work on Quartz's worker thread
+            ExecuteJob(context);
+            return default;
+        }
+
+        private void ExecuteJob(IJobExecutionContext context)
         {
             _logger = LogManager.GetCurrentClassLogger();
 

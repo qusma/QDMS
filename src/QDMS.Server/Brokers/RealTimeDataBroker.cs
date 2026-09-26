@@ -6,7 +6,7 @@
 
 using NLog;
 using QDMS;
-using QDMSApp.DataSources;
+using QDMS.Server.DataSources;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ using System.Net;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     /// <summary>
     /// The RealTimeDataBroker sits between the HistoricalDataServer and the external data source adapters. Requests for new real time data
@@ -81,7 +81,7 @@ namespace QDMSApp
         /// <summary>
         /// Holds the active data streams. They KVP consists of key: request ID, value: data source name
         /// </summary>
-        public ConcurrentNotifierBlockingList<RealTimeStreamInfo> ActiveStreams { get; } = new ConcurrentNotifierBlockingList<RealTimeStreamInfo>();
+        public ConcurrentList<RealTimeStreamInfo> ActiveStreams { get; } = new ConcurrentList<RealTimeStreamInfo>();
 
         /// <summary>
         /// Holds the real time data sources.

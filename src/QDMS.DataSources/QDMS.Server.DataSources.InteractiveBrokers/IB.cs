@@ -20,7 +20,7 @@ using NLog;
 using QDMS;
 using LogLevel = NLog.LogLevel;
 
-namespace QDMSApp.DataSources
+namespace QDMS.Server.DataSources
 {
     public partial class IB : IHistoricalDataSource, IRealTimeDataSource
     {
@@ -234,6 +234,13 @@ namespace QDMSApp.DataSources
             {
                 RaiseRealtimeReqError(errorArgs, rtReq);
             }
+            else
+            {
+                //not about a request: connection/farm status (21xx codes are informational) or errors for unknown ids
+                int code = (int)e.ErrorCode;
+                _logger.Log(code >= 2100 && code < 2200 ? LogLevel.Info : LogLevel.Warn,
+                    "IB message {0} (id {1}): {2}", code, e.TickerId, e.ErrorMsg);
+            }
         }
 
         private void RaiseRealtimeReqError(ErrorArgs errorArgs, RealTimeDataRequest rtReq)
@@ -261,6 +268,7 @@ namespace QDMSApp.DataSources
                 histReq.RequestID);
 
             errorArgs.RequestID = origId;
+            _logger.Error("IB error {0}: {1}", errorArgs.ErrorCode, errorArgs.ErrorMessage);
             RaiseEvent(Error, this, errorArgs);
         }
 

@@ -7,7 +7,7 @@
 using QDMS;
 using System;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public interface IHistoricalDataBroker : IDisposable
     {

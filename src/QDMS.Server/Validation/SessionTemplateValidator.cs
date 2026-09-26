@@ -5,7 +5,6 @@
 // -----------------------------------------------------------------------
 
 using FluentValidation;
-using FluentValidation.Internal;
 using FluentValidation.Results;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,16 +22,16 @@ namespace QDMS.Server.Validation
             RuleForEach(x => x.Sessions).SetValidator(sessionValidator);
 
             //rule for the sessions combined (check for overlaps)
-            AddRule(new DelegateValidator<SessionTemplate>((template, ctx) =>
+            RuleFor(x => x.Sessions).Custom((sessions, ctx) =>
             {
-                List<string> errors;
-                if (!MyUtils.ValidateSessions(template.Sessions?.ToList<ISession>(), out errors))
+                if (!MyUtils.ValidateSessions(sessions?.ToList<ISession>(), out List<string> errors))
                 {
-                    return errors.Select(x => new ValidationFailure("Sessions", x));
+                    foreach (var error in errors)
+                    {
+                        ctx.AddFailure("Sessions", error);
+                    }
                 }
-
-                return Enumerable.Empty<ValidationFailure>();
-            }));
+            });
         }
     }
 }

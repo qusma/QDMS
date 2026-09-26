@@ -12,8 +12,8 @@ using IBApi;
 using Moq;
 using NUnit.Framework;
 using QDMS;
-using QDMSApp;
-using QDMSApp.DataSources;
+using QDMS.Server;
+using QDMS.Server.DataSources;
 using BarSize = QDMSIBClient.BarSize;
 using HistoricalDataEventArgs = QDMSIBClient.HistoricalDataEventArgs;
 
@@ -404,7 +404,7 @@ namespace QDMSTest
             bool received = false;
             _ibDatasource.DataReceived += (sender, e) => received = true;
 
-            _ibClientMock.Raise(x => x.HistoricalDataUpdate += null, new HistoricalDataEventArgs(requestID, new Bar(new DateTime(2014, 1, 15),
+            _ibClientMock.Raise(x => x.HistoricalDataUpdate += null, new HistoricalDataEventArgs(requestID, new Bar("20140115",
                     1,
                     2,
                     3,
@@ -451,7 +451,7 @@ namespace QDMSTest
             _ibClientMock.Raise(x => x.HistoricalData += null, 
                 new HistoricalDataEventArgs(
                     requestID, 
-                    new Bar(new DateTime(2014, 1, 15),
+                    new Bar("20140115",
                     1,
                     2,
                     3,
@@ -667,9 +667,9 @@ namespace QDMSTest
             Assert.AreEqual(3, requestIds.Count);
 
             //return the data
-            _ibClientMock.Raise(x => x.HistoricalData += null, new HistoricalDataEventArgs(requestIds[1], new Bar(new DateTime(2014, 1, 14, 1, 0, 0), 1, 2, 0, 1, 1, 0, 0)));
+            _ibClientMock.Raise(x => x.HistoricalData += null, new HistoricalDataEventArgs(requestIds[1], new Bar("20140114 01:00:00", 1, 2, 0, 1, 1, 0, 0)));
             _ibClientMock.Raise(x => x.HistoricalDataEnd += null, new HistoricalDataEndEventArgs(requestIds[1], new DateTime(2014, 1, 14, 1, 0, 0), new DateTime(2014, 1, 14, 1, 0, 0)));
-            _ibClientMock.Raise(x => x.HistoricalData += null, new HistoricalDataEventArgs(requestIds[2], new Bar(new DateTime(2014, 1, 14, 2, 0, 0), 1, 2, 0, 1, 0, 2, 0)));
+            _ibClientMock.Raise(x => x.HistoricalData += null, new HistoricalDataEventArgs(requestIds[2], new Bar("20140114 02:00:00", 1, 2, 0, 1, 0, 2, 0)));
             _ibClientMock.Raise(x => x.HistoricalDataEnd += null, new HistoricalDataEndEventArgs(requestIds[2], new DateTime(2014, 1, 14, 2, 0, 0), new DateTime(2014, 1, 14, 1, 0, 0)));
 
             //and make sure it's sent up in the HistoricalDataArrived event properly

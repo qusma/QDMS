@@ -2,8 +2,8 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using QDMS;
-using QDMSApp;
-using QDMSServer;
+using QDMS.Server;
+using QDMS.Server.Jobs;
 using Quartz;
 using System;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ namespace QDMSTest
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
-            job.Execute(_contextMock.Object);
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             _mailMock.Verify(x =>
                 x.Send(
@@ -110,7 +110,7 @@ namespace QDMSTest
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
-            job.Execute(_contextMock.Object);
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             _mailMock.Verify(x =>
                 x.Send(
@@ -142,7 +142,7 @@ namespace QDMSTest
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
-            job.Execute(_contextMock.Object);
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             _mailMock.Verify(x =>
                 x.Send(
@@ -178,7 +178,7 @@ namespace QDMSTest
                 .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
                 .Callback<HistoricalDataRequest>(y => req = y);
 
-            Task.Run(() => job.Execute(_contextMock.Object));
+            Task.Run(() => job.Execute(_contextMock.Object, CancellationToken.None).AsTask());
 
             Thread.Sleep(2000);
 
@@ -234,7 +234,7 @@ namespace QDMSTest
                             .Returns(data);
                     });
 
-            Task.Run(() => job.Execute(_contextMock.Object));
+            Task.Run(() => job.Execute(_contextMock.Object, CancellationToken.None).AsTask());
 
             Thread.Sleep(2000);
 
@@ -290,7 +290,7 @@ namespace QDMSTest
                         .Returns(data);
                 });
 
-            Task.Run(() => job.Execute(_contextMock.Object));
+            Task.Run(() => job.Execute(_contextMock.Object, CancellationToken.None).AsTask());
 
             Thread.Sleep(2000);
 

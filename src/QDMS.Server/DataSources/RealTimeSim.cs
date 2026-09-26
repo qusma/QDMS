@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Timers;
 
 #pragma warning disable 67
-namespace QDMSApp.DataSources
+namespace QDMS.Server.DataSources
 {
     public class RealTimeSim : IRealTimeDataSource, IDisposable
     {

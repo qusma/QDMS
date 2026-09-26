@@ -38,7 +38,7 @@ using Timer = System.Timers.Timer;
 
 #pragma warning disable 67
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public class ContinuousFuturesBroker : IContinuousFuturesBroker
     {
@@ -116,13 +116,13 @@ namespace QDMSApp
 
         private readonly Timer _reconnectTimer;
 
-        public ContinuousFuturesBroker(IDataClient client, IInstrumentSource instrumentRepo = null)
+        public ContinuousFuturesBroker(IDataClient client, IInstrumentSource instrumentRepo)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
             _client = client;
 
-            _instrumentRepo = instrumentRepo ?? new InstrumentRepository(new MyDBContext());
+            _instrumentRepo = instrumentRepo ?? throw new ArgumentNullException(nameof(instrumentRepo));
 
             _client.HistoricalDataReceived += _client_HistoricalDataReceived;
             _client.Error += _client_Error;

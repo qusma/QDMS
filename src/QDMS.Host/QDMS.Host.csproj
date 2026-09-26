@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>QDMS.Host</RootNamespace>
+    <AssemblyName>QDMS.Host</AssemblyName>
+    <UserSecretsId>qdms-host</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog.Web.AspNetCore" />
+    <PackageReference Include="Quartz" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QDMS.Server\QDMS.Server.csproj" />
+    <ProjectReference Include="..\QDMS.Dal\QDMS.Dal.csproj" />
+    <ProjectReference Include="..\QDMS.DataStorage\QDMS.Server.DataStorage.Postgres\QDMS.Server.DataStorage.Postgres.csproj" />
+    <ProjectReference Include="..\QDMS.DataSources\QDMS.Server.DataSources.InteractiveBrokers\QDMS.Server.DataSources.InteractiveBrokers.csproj" />
+    <ProjectReference Include="..\QDMS.DataSources\QDMS.Server.DataSources.Binance\QDMS.Server.DataSources.Binance.csproj" />
+    <ProjectReference Include="..\QDMS.DataSources\QDMS.Server.DataSources.FRED\QDMS.Server.DataSources.FRED.csproj" />
+    <ProjectReference Include="..\QDMS.DataSources\QDMS.Server.DataSources.Tiingo\QDMS.Server.DataSources.Tiingo.csproj" />
+  </ItemGroup>
+
+</Project>

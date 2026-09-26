@@ -6,10 +6,10 @@
 
 using EntityData;
 using NLog;
-using QDMSApp;
+using QDMS.Server;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -65,6 +65,7 @@ namespace QDMS.Server
             //If necessary, load sessions from teplate or exchange
             if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange != null)
             {
+                Context.Entry(instrument.Exchange).Collection(x => x.Sessions).Load();
                 instrument.Sessions = instrument.Exchange.Sessions.Select(x => x.ToInstrumentSession()).ToList();
             }
             else if (instrument.SessionsSource == SessionsSource.Exchange && instrument.Exchange == null)
@@ -184,15 +185,7 @@ namespace QDMS.Server
             var query = GetIQueryable();
 
             //A bad predicate can cause an exception here, but I think it should be handled further up
-            var instruments = await query.Where(pred).ToListAsync().ConfigureAwait(false);
-
-            foreach (Instrument i in instruments)
-            {
-                //hack because we can't load these in the normal way, see comment below
-                if (i.Exchange != null)
-                    i.Exchange.Sessions.ToList();
-            }
-            return instruments;
+            return await query.Where(pred).ToListAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -235,34 +228,19 @@ namespace QDMS.Server
                     BuildQueryFromSearchInstrument(search, ref query);
                 }
             }
-            var instrumentList = await query.ToListAsync().ConfigureAwait(false);
-            //see comment above, we can't include these in the original query due to a bug
-            //and we can't allow lazy loading of the sessions
-            //so we force them to be loaded right now
-            foreach (Instrument i in instrumentList.Where((x => x.Exchange != null && x.Exchange.Sessions != null)))
-            {
-                i.Exchange.Sessions.ToList();
-            }
-            return instrumentList;
+            return await query.ToListAsync().ConfigureAwait(false);
         }
 
         private IQueryable<Instrument> GetIQueryable()
         {
-            IQueryable<Instrument> query = Context.Instruments
+            return Context.Instruments
                 .Include(x => x.Tags)
-                .Include(x => x.Exchange)
-                .Include(x => x.PrimaryExchange)
+                .Include(x => x.Exchange).ThenInclude(x => x.Sessions)
+                .Include(x => x.PrimaryExchange).ThenInclude(x => x.Sessions)
                 .Include(x => x.Datasource)
                 .Include(x => x.Sessions)
-                //.Include(x => x.Exchange.Sessions)
-                //.Include(x => x.PrimaryExchange.Sessions)
-                .Include(x => x.ContinuousFuture)
-                .Include(x => x.ContinuousFuture.UnderlyingSymbol)
-                .AsQueryable();
-            //there's a bug in the mysql connector that prevents us from including those session collections right here
-            //it just crashes if you do. Devart connector works perfectly fine.
-            //We just hack around it by loading up the session collections separately.
-            return query;
+                .Include(x => x.ContinuousFuture).ThenInclude(x => x.UnderlyingSymbol)
+                .AsSplitQuery();
         }
 
         private static void BuildQueryFromSearchInstrument(Instrument search, ref IQueryable<Instrument> query)
@@ -321,7 +299,6 @@ namespace QDMS.Server
 
         private async Task<List<Instrument>> FindAllInstruments(IQueryable<Instrument> query)
         {
-            var allExchanges = Context.Exchanges.Include(x => x.Sessions).ToList();
             return await query.ToListAsync().ConfigureAwait(false);
         }
 

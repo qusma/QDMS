@@ -1,52 +1,50 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="DataUpdateJobFactory.cs" company="">
 // Copyright 2014 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
 using EntityData;
-using QDMS;
-using QDMS.Server;
+using Microsoft.EntityFrameworkCore;
 using QDMS.Server.Brokers;
-using QDMS.Server.Jobs;
 using Quartz;
-using Quartz.Spi;
+using Quartz.Extensibility;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace QDMSApp
+namespace QDMS.Server.Jobs
 {
+    /// <summary>
+    /// Builds update jobs. The job type is taken from the trigger group (see <see cref="JobTypes"/>).
+    /// Jobs that need the database get their own DbContext, disposed when the job is returned.
+    /// </summary>
     public class JobFactory : IJobFactory
     {
         private readonly IHistoricalDataBroker _hdb;
         private readonly IEconomicReleaseBroker _erb;
         private readonly IDividendsBroker _divb;
         private readonly IEarningsAnnouncementBroker _eab;
-
-        private string _host;
-        private int _port;
-        private string _username;
-        private string _password;
-        private string _sender;
-        private string _email;
-
-        private UpdateJobSettings _updateJobSettings;
-        private QDMS.IDataStorage _localStorage;
+        private readonly IDbContextFactory<MyDBContext> _contextFactory;
+        private readonly IDataStorage _localStorage;
+        private readonly ISettings _settings;
+        private readonly UpdateJobSettings _updateJobSettings;
 
         public JobFactory(IHistoricalDataBroker hdb,
             ISettings settings,
-            QDMS.IDataStorage localStorage,
+            IDataStorage localStorage,
             IEconomicReleaseBroker erb,
             IDividendsBroker divb,
-            IEarningsAnnouncementBroker eab) : base()
+            IEarningsAnnouncementBroker eab,
+            IDbContextFactory<MyDBContext> contextFactory)
         {
             _hdb = hdb;
-
-            _host = settings.updateJobEmailHost;
-            _port = settings.updateJobEmailPort;
-            _username = settings.updateJobEmailUsername;
-            _password = settings.updateJobEmailPassword;
-            _sender = settings.updateJobEmailSender;
-            _email = settings.updateJobEmail;
+            _settings = settings;
+            _localStorage = localStorage;
+            _erb = erb;
+            _divb = divb;
+            _eab = eab;
+            _contextFactory = contextFactory;
             _updateJobSettings = new UpdateJobSettings(
                 noDataReceived: settings.updateJobReportNoData,
                 errors: settings.updateJobReportErrors,
@@ -55,100 +53,64 @@ namespace QDMSApp
                 timeout: settings.updateJobTimeout,
                 toEmail: settings.updateJobEmail,
                 fromEmail: settings.updateJobEmailSender);
-            _localStorage = localStorage;
-            _erb = erb;
-            _divb = divb;
-            _eab = eab;
         }
 
-        /// <summary>
-        /// Called by the scheduler at the time of the trigger firing, in order to
-        ///             produce a <see cref="T:Quartz.IJob"/> instance on which to call Execute.
-        /// </summary>
-        /// <remarks>
-        /// It should be extremely rare for this method to throw an exception -
-        ///             basically only the the case where there is no way at all to instantiate
-        ///             and prepare the Job for execution.  When the exception is thrown, the
-        ///             Scheduler will move all triggers associated with the Job into the
-        ///             <see cref="F:Quartz.TriggerState.Error"/> state, which will require human
-        ///             intervention (e.g. an application restart after fixing whatever 
-        ///             configuration problem led to the issue wih instantiating the Job. 
-        /// </remarks>
-        /// <param name="bundle">The TriggerFiredBundle from which the <see cref="T:Quartz.IJobDetail"/>
-        ///               and other info relating to the trigger firing can be obtained.
-        ///             </param><param name="scheduler">a handle to the scheduler that is about to execute the job</param><throws>SchedulerException if there is a problem instantiating the Job. </throws>
-        /// <returns>
-        /// the newly instantiated Job
-        /// </returns>
-        public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
+        public ValueTask<JobScope> CreateJob(TriggerFiredBundle bundle, IScheduler scheduler, CancellationToken cancellationToken)
         {
             string type = bundle.Trigger.Key.Group;
 
+            if (type == JobTypes.EconomicRelease)
+            {
+                return new ValueTask<JobScope>(new JobScope(new EconomicReleaseUpdateJob(_erb, GetEmailSender(), _updateJobSettings), null));
+            }
+
+            MyDBContext context = _contextFactory.CreateDbContext();
+            var instrumentRepo = new InstrumentRepository(context);
+            IJob job;
             if (type == JobTypes.DataUpdate)
             {
-                return GetDataUpdateJob(bundle, scheduler);
-            }
-            else if (type == JobTypes.EconomicRelease)
-            {
-                return GetEconomicReleaseJob(bundle, scheduler);
+                job = new DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, instrumentRepo);
             }
             else if (type == JobTypes.DividendUpdate)
             {
-                return GetDividendUpdateJob(bundle, scheduler);
+                job = new DividendUpdateJob(_divb, GetEmailSender(), _updateJobSettings, instrumentRepo);
             }
             else if (type == JobTypes.EarningsUpdate)
             {
-                return GetEarningsUpdateJob(bundle, scheduler);
+                job = new EarningsUpdateJob(_eab, GetEmailSender(), _updateJobSettings, instrumentRepo);
+            }
+            else
+            {
+                context.Dispose();
+                throw new Exception("Unknown job type " + type);
             }
 
-            throw new Exception("Uknown job type " + type);
+            return new ValueTask<JobScope>(new JobScope(job, context));
         }
 
-        private IJob GetEconomicReleaseJob(TriggerFiredBundle bundle, IScheduler scheduler)
+        public ValueTask ReturnJob(JobScope scope, CancellationToken cancellationToken)
         {
-            return new EconomicReleaseUpdateJob(_erb, GetEmailSender(), _updateJobSettings);
+            (scope.State as IDisposable)?.Dispose();
+            return default;
         }
 
-        private IJob GetDataUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
-        {
-            //only provide the email sender if data exists to properly initialize it with
-            return new QDMSServer.DataUpdateJob(_hdb, GetEmailSender(), _updateJobSettings, _localStorage, new InstrumentRepository(new MyDBContext()));
-        }
-
-        private IJob GetDividendUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
-        {
-            return new DividendUpdateJob(_divb, GetEmailSender(), _updateJobSettings, new InstrumentRepository(new MyDBContext()));
-        }
-
-        private IJob GetEarningsUpdateJob(TriggerFiredBundle bundle, IScheduler scheduler)
-        {
-            return new EarningsUpdateJob(_eab, GetEmailSender(), _updateJobSettings, new InstrumentRepository(new MyDBContext()));
-        }
-
+        //only provide the email sender if there are settings to initialize it with
         private EmailSender GetEmailSender()
         {
-            if (!string.IsNullOrEmpty(_host) &&
-            !string.IsNullOrEmpty(_username) &&
-            !string.IsNullOrEmpty(_password) &&
-            !string.IsNullOrEmpty(_sender) &&
-            !string.IsNullOrEmpty(_email))
+            if (string.IsNullOrEmpty(_settings.updateJobEmailHost) ||
+                string.IsNullOrEmpty(_settings.updateJobEmailUsername) ||
+                string.IsNullOrEmpty(_settings.updateJobEmailPassword) ||
+                string.IsNullOrEmpty(_settings.updateJobEmailSender) ||
+                string.IsNullOrEmpty(_settings.updateJobEmail))
             {
-                return new EmailSender(
-                            _host,
-                            _username,
-                            _password,
-                            _port);
+                return null;
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// Allows the the job factory to destroy/cleanup the job if needed.
-        /// </summary>
-        public void ReturnJob(IJob job)
-        {
-
+            return new EmailSender(
+                _settings.updateJobEmailHost,
+                _settings.updateJobEmailUsername,
+                _settings.updateJobEmailPassword,
+                _settings.updateJobEmailPort);
         }
     }
 }

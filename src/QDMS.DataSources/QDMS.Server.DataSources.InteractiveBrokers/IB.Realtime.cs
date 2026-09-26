@@ -5,7 +5,7 @@ using QDMSIBClient;
 using System;
 using System.Collections.Generic;
 
-namespace QDMSApp.DataSources
+namespace QDMS.Server.DataSources
 {
     public partial class IB
     {

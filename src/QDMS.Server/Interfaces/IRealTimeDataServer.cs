@@ -1,4 +1,4 @@
-﻿namespace QDMSApp
+﻿namespace QDMS.Server
 {
     public interface IRealTimeDataServer
     {

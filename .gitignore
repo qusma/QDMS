@@ -121,3 +121,7 @@ Thumbs.db
 # JetBrains Rider (C# IDE)
 .idea/
 *.sln.iml
+
+# deployment secrets
+deploy/.env
+.env
