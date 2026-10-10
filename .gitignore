@@ -125,3 +125,7 @@ Thumbs.db
 # deployment secrets
 deploy/.env
 .env
+
+# web UI: npm dependencies and the build output served by QDMS.Host
+node_modules/
+src/QDMS.Host/wwwroot/ui/

@@ -18,8 +18,8 @@ namespace QDMS.Host
         public int histClientIBID { get; set; } = 99;
         public int rtdClientIBID { get; set; } = 98;
 
-        public int rtDBPubPort { get; set; } = 5556;
-        public int rtDBReqPort { get; set; } = 5557;
+        public int rtDBPubPort { get; set; } = 5557;
+        public int rtDBReqPort { get; set; } = 5556;
         public int hDBPort { get; set; } = 5555;
         public int httpPort { get; set; } = 5559;
         public string apiKey { get; set; }

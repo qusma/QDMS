@@ -210,10 +210,12 @@ namespace QDMS.Server.DataSources
             {
                 lock (_subReqMapLock)
                 {
-                    _requestCounter++;
-                    _historicalDataRequests.TryAdd(_requestCounter, subReq);
-                    _subRequestIDMap.Add(_requestCounter, originalReqID);
-                    SendHistoricalRequest(_requestCounter, subReq);
+                    //take the id the same way RequestHistoricalData does: incrementing first left the last sub-request with
+                    //the id that the next top-level request was then given, so its data went to the wrong request
+                    int subReqID = _requestCounter++;
+                    _historicalDataRequests.TryAdd(subReqID, subReq);
+                    _subRequestIDMap.Add(subReqID, originalReqID);
+                    SendHistoricalRequest(subReqID, subReq);
                 }
             }
         }

@@ -265,7 +265,7 @@ namespace QDMS.Server
                 Multiplier = instrument.Multiplier.ToString(),
                 Currency = instrument.Currency,
                 PrimaryExch = instrument.PrimaryExchange == null ? null : instrument.PrimaryExchange.Name,
-                SecIdType = "None",
+                SecIdType = "", //TWS now rejects the request if this is "None" (error 321, "Unknown security type : None")
                 Exchange = "",
                 SecId = ""
             };

@@ -53,15 +53,14 @@ Compose deployment (`deploy/`), WPF app and dead sources deleted, tests ported (
       Gateway (headless via IBC), and IB allows one session per username, so a Gateway with the trading login kicks out the desktop TWS. Options:
       a second username (market data subscriptions are per user), connect to the desktop TWS over the network (untick "localhost only", trust
       the server IP), or a paper login sharing live market data (unverified whether that works while live is logged in).
-- [ ] **Web UI** (after the Tiingo work below; it doesn't block data flow). Serve it as a static SPA from the host, on top of the HTTP API.
-      Minimum screens, taken from what the old WPF windows did:
-      - instruments list and add/edit/clone/delete
-      - datasources, exchanges, sessions, tags
-      - scheduled update jobs, with a run-now button (`POST /jobs/{type}/{name}/run` exists)
-      - a bar viewer/editor for one instrument
-      - CSV data import (needed for the VIX / pre-1990 backfills)
-      - log view
-      Until it exists, do admin work through the HTTP API, SQL, or small CLI commands on the host.
+- [x] **Web UI** (Sep 2026): `src/QDMS.Web` (React + TypeScript + Vite), served by the host at `/ui`. Instruments (add manually or from
+      Tiingo, edit, clone, delete, tags, update data), bar viewer/editor with chart, CSV import/export, data update jobs with run-now,
+      exchanges, session templates, underlying symbols, tags, data source status and the log. Checked in Edge (light/dark, phone width) against a
+      copy of the database. Remaining gaps:
+      - [ ] "Add instrument" from IB (contract search), Binance and FRED; only Tiingo and manual entry exist.
+      - [ ] Dividend, earnings and economic release jobs and browsers: skipped, there are no sources for them (see step 2).
+      - [ ] No automated UI tests; the check was a one-off Playwright script.
+      - [ ] The API key sits in the browser's localStorage and travels over plain HTTP, same as for the other clients (see the deploy note).
 - [ ] **CI**: AppVeyor config was deleted; add a GitHub Actions workflow (`dotnet test` works on ubuntu runners, which have Docker).
 
 ## P0 — step 2: get daily data flowing again
@@ -72,18 +71,44 @@ Compose deployment (`deploy/`), WPF app and dead sources deleted, tests ported (
 - [ ] **Tiingo rate limits**: requests go out one at a time with no throttling. The free tier has an hourly request cap (check the account's
       plan page), so a single update job over ~150 instruments may hit it; failed instruments are logged as errors and simply retried on the next
       run. Either spread the jobs out (several tags at different times), add a throttle in `Tiingo.cs`, or buy a paid plan.
-- [ ] **Re-point the production instruments.** QTS's production workspace (`FullPfolio2`) needs daily bars for these instrument IDs only
-      (the other IB IDs it references have no bars; they're for order execution):
-      - **Tiingo** (from Yahoo): AAPLn 93, QQQn 1598, TLTn 146 (these three use `datasource_symbol`), SPY 20, DXJ 101, EEM 189, EFA 107,
-        EWA 111, EWG 116, EWH 117, EWI 118, EWL 120, FXI 130, GDX 131, GLD 132, THD 145, UNG 596, VGK 147. Refetch full history (one request
-        each), so all adjusted prices come from one source.
-      - **IB** (from Yahoo): SPX 105, NDX 152, HSI 169, XJO 172 as they are; DAX 170 and SMI 155 also need `exchange_id` → EUREX (102), since IB
-        no longer knows `DTB`/`SOFFEX`. Clear `datasource_symbol` (the Yahoo `^GSPC`-style symbols). Keep the Yahoo history: IB closes match it
-        on overlapping dates.
-      - **IB already**: VIX 102, VIX3M 103.
-      All of this was verified on a copy of the import in Sep 2026 (every index fetched through QDMS from TWS). **Never point an index at Tiingo**:
-      e.g. `spx` there is an unrelated ASX stock (Spenda Ltd), so it would silently load the wrong data.
-      Other Yahoo instruments stay as they are (history frozen at Mar 2021, fine for research).
+- [x] **Tiingo instruments re-pointed and backfilled** (Oct 2026): AAPLn 93, QQQn 1598, TLTn 146, SPY 20, DXJ 101, EEM 189, EFA 107, EWA 111,
+      EWG 116, EWH 117, EWI 118, EWL 120, FXI 130, GDX 131, GLD 132, THD 145, UNG 596, VGK 147 now point at Tiingo and hold a curated daily
+      history to 2026-10-09: Tiingo as the base, with the old Yahoo bars (and Yahoo as of Oct 2026 as a third opinion) used where Tiingo was
+      wrong. A plain Tiingo refetch would **not** reproduce it, so don't delete and refetch these. Everything is in
+      `backups/tiingo-backfill-2026-10/` (gitignored): the bars before the change, the raw downloads, the curated files, a decision log per
+      instrument and the scripts (`merge.py` has the rules). The old bars are also in the table `bars_backup_yahoo_20261010`. What Tiingo gets wrong:
+      - Bad prints in 1996 for EWI/EWL (~90 days each) and scattered closes elsewhere; a duplicated bar on 2003-01-29 for several tickers;
+        pre-2001 fractional prices rounded to cents; split factors like 7.000007.
+      - Dividends: AAPL's first two (1987) missing; GDX 2007 doubled and 2011 wrong; VGK Dec 2020 on 12-18 instead of 12-21.
+      - Yahoo is no better on dividends: it has spurious copies of earlier payments (2003-12-16 for five iShares funds, EWI/EWL Dec 2000, EWL Dec 1998,
+        two for QQQ), so Yahoo-only dividends were not added.
+      - Unresolved, Yahoo kept: opens on 50-200 days per fund (mostly 2006-08), GDX/UNG closes in 2008. EWG 2020-12-14 dividend: Tiingo's 0.249 kept (Yahoo 0.387).
+      - Not tested yet: an incremental Tiingo update on top of the curated history (bars were current when loaded).
+- [x] **Index instruments re-pointed to IB and backfilled** (Oct 2026): SPX 105, NDX 152, HSI 169, XJO 172, DAX 170, SMI 155 moved from Yahoo to
+      Interactive Brokers (`datasource_symbol` cleared; DAX and SMI on EUREX, since IB no longer knows `DTB`/`SOFFEX`); VIX 102 and VIX3M 103 were
+      on IB already. All eight now run to 2026-10-09. Backups: tables `bars_backup_indices_20261010` and `instruments_backup_20261010`; downloads,
+      curated files, decision logs and scripts in `backups/tiingo-backfill-2026-10/indices/` (`idxmerge.py` has the rules).
+      - The six equity indices: stored bars before 2020 untouched; from 2020-01-02 IB is the base, out-voted where the stored bar and Yahoo
+        (Oct 2026) agree against it. IB sends flat filler bars (O=H=L=C) on market closures (HSI typhoon days, holidays): dropped, or replaced
+        from Yahoo where Yahoo has a real bar (NDX and VIX3M 2021-01-28). The last stored bar of an instrument can be a partial day.
+      - VIX and VIX3M: closes corrected to Cboe's official history over the whole series (VIX: 44 stored closes, mostly 2012-14 and early-close
+        days, and 29 of IB's after 2021; VIX3M: 7). Cboe's open/high/low have bad ticks in older years (and 47 early opens outside the day's
+        range), so stored O/H/L were kept and Cboe's used only after Jan 2021 where Yahoo confirmed them. **IB's VIX close is wrong on a few
+        days a year**, so daily IB updates will bring those back: re-check against `https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv`
+        now and then, or write a small Cboe source.
+      - NDX's stored split of 2.0 on 1994-01-03 is deliberate (the index level was halved), not a data error.
+      - **Never point an index at Tiingo**: e.g. `spx` there is an unrelated ASX stock (Spenda Ltd), so it would silently load the wrong data.
+      - Other Yahoo instruments stay as they are (history frozen at Mar 2021, fine for research).
+      - Open: bars saved from IB have no adjusted prices (`adj_*` null, as VIX had for 2017-21), while the backfilled index bars have
+        adj = raw. Check what QTS reads for indices before relying on daily IB updates.
+- [ ] **Publish QDMS-IBClient 2.0.1** (fix is in `../QDMS-IBClient`, uncommitted): current TWS (API server version 226) closes the connection
+      if any request arrives before it has finished accepting the client ("Ignoring API request ... since API is not accepted" in the TWS log),
+      and `Client.Connect` sent `reqIds` right after `StartApi`. It now waits for TWS's own next-valid-id message. Until 2.0.1 is on nuget.org
+      and referenced here, **IB only connects with the patched DLL copied by hand** into `src/QDMS.Host/bin/Debug/net10.0/` (the 2.0.0 one is
+      kept there as `.nuget-2.0.0.bak`); any `dotnet build` puts the broken one back.
+- [x] **Two IB source bugs fixed** (Oct 2026, uncommitted): `TWSUtils` set `SecIdType = "None"`, which TWS now rejects (error 321 "Unknown
+      security type : None"); and `IB.Historical` gave the last sub-request of a split request the id that the next request then reused, so
+      only the first multi-year request after startup returned its data.
 - [ ] **Update jobs**: one daily job for the Tiingo group, one for the IB group (IB only works while TWS is running on the desktop).
 - [ ] **Running QDMS on the desktop with TWS**: TWS API settings: socket clients enabled, port 7496, "localhost only" on, Read-Only API on while
       QTSTrader2 isn't trading (it's global, so untick it for live trading). QDMS must run natively on Windows (WSL's NAT address can't reach a
@@ -93,7 +118,9 @@ Compose deployment (`deploy/`), WPF app and dead sources deleted, tests ported (
       Options: Tiingo's per-bar `divCash` (now stored on the bars as `Dividend`) may cover dividends for QTS's needs; they'd also need writing to
       the `dividends` table, which is what QTS's `DividendRequest` reads;
       earnings needs a new source (EODHD calendar) or a decision to drop QTS's earnings-based signals.
-- [ ] **Port agreement with QTS**: the new host's `httpPort` defaults to **5559**. QTS's `CLIBacktesterCore` still uses 5551 (see QTS `TODO.md`).
+- [x] **Port agreement with QTS** (Sep 2026): QTS's backtester and CLI moved from HTTP port 5551 to **5559**. The modernized host also had
+      the real-time ports swapped (`rtDBPubPort`/`rtDBReqPort`); back to the old 5557/5556, which QDMSClient 0.10.3 expects. The local
+      Development API key is `123`, what QTS sends.
 
 ## Data cleanup (found importing the Mar 2021 dump, `../127_0_0_1.sql`)
 

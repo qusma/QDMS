@@ -19,11 +19,28 @@ sources deleted. Known issues and plans are in `TODO.md`.
 | `src/QDMS.Host` | net10.0 web | **Composition root** (`Program.cs`): config, DI, migrations + seeding at startup, hosted services |
 | `src/QDMS.DataSources/*` | net10.0 | IB, Binance, FRED, Tiingo |
 | `src/QDMS.DataStorage/…Postgres` | net10.0 | `PostgresStorage`: bar storage (binary COPY + `ON CONFLICT` upserts) |
+| `src/QDMS.Web` | React + TS | Web UI (Vite), built into `src/QDMS.Host/wwwroot/ui` and served at `/ui` (see Web UI below) |
 | `tests/QDMS.Test` | net10.0 | NUnit 4 + Moq. HTTP and storage tests run against Postgres via **Testcontainers (needs Docker)** |
 | `tools/QDMS.MigrateFromMySql` | net10.0 | One-off import from the old MySQL/MariaDB databases (`qdms`, `qdmsdata`, Quartz jobs) |
 | `deploy/` | | `docker-compose.yml` (Postgres + QDMS) and `.env.example`; `Dockerfile` is at the repo root |
 
-Build everything with `dotnet build QDMS.slnx`; test with `dotnet test QDMS.slnx`. Runs on Linux (and Windows).
+Build everything with `dotnet build QDMS.slnx`; test with `dotnet test QDMS.slnx`. Runs on Linux (and Windows). The web UI builds separately with npm
+(see Web UI).
+
+## Web UI
+
+`src/QDMS.Web`: React 19 + TypeScript + Vite, AG Grid for tables, lightweight-charts for bars, TanStack Query for fetching. It replaces the old
+WPF app's windows (no screens for the deleted data sources). The host serves it at `/ui` (`/` redirects there) without the API key; the page asks
+for the key and sends it on every call like any other client.
+
+- Build: `npm ci` then `npm run build` in `src/QDMS.Web` (writes `src/QDMS.Host/wwwroot/ui`, gitignored). `dotnet build` doesn't do this, so a
+  fresh clone serves no UI until you build it. The `Dockerfile` has a Node stage for it.
+- Dev: `npm run dev` (port 5173) proxies the API to a running QDMS on `http://localhost:5559` (override with `QDMS_URL`).
+- It talks to the existing endpoints plus UI-only ones under `/api` (`QDMS.Server/Http/WebUiEndpoints.cs`: bars, fetch, storage info,
+  currencies, time zones, log tail; `QDMS.Host/TiingoEndpoints.cs`: ticker search). QDMSClient doesn't use `/api`, so it may change freely.
+- JSON comes with Newtonsoft's `$id`/`$ref` markers; `src/api.ts` resolves them. Session times travel as `OpeningAsSeconds`/`ClosingAsSeconds`
+  (the `TimeSpan` properties are `[JsonIgnore]`d).
+- `node_modules` has platform-specific binaries: install it on the OS you build on (Windows here), not from WSL.
 
 ## Architecture (see `architecture.md`)
 
@@ -45,10 +62,10 @@ continuous futures, dividends, earnings, economic releases) → **data sources**
 
 `src/QDMS.Host/appsettings.json`, overridable with environment variables (`Qdms__apiKey`, `ConnectionStrings__Qdms`, …):
 - `ConnectionStrings:Qdms` (required), `ConnectionStrings:QdmsData` (optional)
-- `Qdms:apiKey` (required; clients send it as the raw `Authorization` header), ports `httpPort` 5559, `hDBPort` 5555, `rtDBPubPort` 5556,
-  `rtDBReqPort` 5557
+- `Qdms:apiKey` (required; clients send it as the raw `Authorization` header), ports `httpPort` 5559, `hDBPort` 5555, `rtDBReqPort` 5556,
+  `rtDBPubPort` 5557 (the same as the old QDMS; QDMSClient 0.10.3 expects them this way round)
 - `Qdms:enableInteractiveBrokers` (default false) plus `ibClientHost`/`ibClientPort` (IB Gateway), `tiingoApiKey`, update-job email settings
-- `appsettings.Development.json` sets `apiKey` to `dev` for local runs.
+- `appsettings.Development.json` sets `apiKey` to `123` for local runs (what QTS sends).
 
 Deploying: see the comments in `deploy/docker-compose.yml`. The image must keep ICU and tzdata (exchanges store Windows time zone IDs).
 

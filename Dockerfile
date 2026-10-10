@@ -2,6 +2,14 @@
 #   docker build -t qdms .
 # See deploy/docker-compose.yml for running it with Postgres.
 
+# web UI (src/QDMS.Web); vite writes it to ../QDMS.Host/wwwroot/ui
+FROM node:22-alpine AS web
+WORKDIR /src/src/QDMS.Web
+COPY src/QDMS.Web/package.json src/QDMS.Web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY src/QDMS.Web/ ./
+RUN npm run build
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
@@ -20,6 +28,7 @@ COPY src/QDMS.DataSources/QDMS.Server.DataSources.Tiingo/QDMS.Server.DataSources
 RUN dotnet restore src/QDMS.Host/QDMS.Host.csproj
 
 COPY src/ src/
+COPY --from=web /src/src/QDMS.Host/wwwroot/ui src/QDMS.Host/wwwroot/ui
 RUN dotnet publish src/QDMS.Host/QDMS.Host.csproj -c Release --no-restore -o /app
 
 # The Ubuntu-based image ships ICU and tzdata, which QDMS needs: exchanges store Windows time zone IDs

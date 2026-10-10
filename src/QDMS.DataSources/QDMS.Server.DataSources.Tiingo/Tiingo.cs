@@ -232,6 +232,47 @@ namespace QDMS.Server.DataSources.Tiingo
             return data;
         }
 
+        /// <summary>
+        /// Search Tiingo's tickers (stocks, ETFs, mutual funds) by ticker or name.
+        /// </summary>
+        public async Task<List<TiingoSearchResult>> Search(string query)
+        {
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                throw new InvalidOperationException("No Tiingo API key configured (Qdms:tiingoApiKey)");
+
+            string url = "https://api.tiingo.com/tiingo/utilities/search?query=" + Uri.EscapeDataString(query);
+            using var message = new HttpRequestMessage(HttpMethod.Get, url);
+            message.Headers.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
+            message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            using var response = await _client.SendAsync(message).ConfigureAwait(false);
+            string contents = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException($"Tiingo search failed: {(int)response.StatusCode} {ErrorDetail(contents)}");
+
+            return JsonConvert.DeserializeObject<List<TiingoSearchResult>>(contents) ?? new List<TiingoSearchResult>();
+        }
+
+        /// <summary>
+        /// Ticker metadata: name, exchange and the date range of the available prices.
+        /// </summary>
+        public async Task<TiingoTickerMeta> GetMeta(string ticker)
+        {
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                throw new InvalidOperationException("No Tiingo API key configured (Qdms:tiingoApiKey)");
+
+            using var message = new HttpRequestMessage(HttpMethod.Get, BaseUrl + Uri.EscapeDataString(ticker.ToLowerInvariant()));
+            message.Headers.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
+            message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            using var response = await _client.SendAsync(message).ConfigureAwait(false);
+            string contents = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException($"Tiingo metadata request failed: {(int)response.StatusCode} {ErrorDetail(contents)}");
+
+            return JsonConvert.DeserializeObject<TiingoTickerMeta>(contents);
+        }
+
         private static string FrequencyToResampleFreq(BarSize frequency)
         {
             switch (frequency)
@@ -278,6 +319,26 @@ namespace QDMS.Server.DataSources.Tiingo
             [JsonProperty("volume")] public decimal? Volume { get; set; }
             [JsonProperty("divCash")] public decimal DivCash { get; set; }
             [JsonProperty("splitFactor")] public decimal SplitFactor { get; set; }
+        }
+
+        public class TiingoSearchResult
+        {
+            [JsonProperty("ticker")] public string Ticker { get; set; }
+            [JsonProperty("name")] public string Name { get; set; }
+            [JsonProperty("assetType")] public string AssetType { get; set; }
+            [JsonProperty("isActive")] public bool IsActive { get; set; }
+            [JsonProperty("countryCode")] public string CountryCode { get; set; }
+            [JsonProperty("permaTicker")] public string PermaTicker { get; set; }
+        }
+
+        public class TiingoTickerMeta
+        {
+            [JsonProperty("ticker")] public string Ticker { get; set; }
+            [JsonProperty("name")] public string Name { get; set; }
+            [JsonProperty("exchangeCode")] public string ExchangeCode { get; set; }
+            [JsonProperty("startDate")] public string StartDate { get; set; }
+            [JsonProperty("endDate")] public string EndDate { get; set; }
+            [JsonProperty("description")] public string Description { get; set; }
         }
 
         private class TiingoError

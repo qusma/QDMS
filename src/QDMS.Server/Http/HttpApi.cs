@@ -55,6 +55,7 @@ namespace QDMS.Server.Http
             api.MapDividendEndpoints();
             api.MapEarningsAnnouncementEndpoints();
             api.MapEconomicReleaseEndpoints();
+            api.MapWebUiEndpoints();
 
             return api;
         }

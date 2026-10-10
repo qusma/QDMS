@@ -7,6 +7,7 @@
 using EntityData;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +57,15 @@ try
     InitializeDatabase(app.Services);
 
     app.UseQdmsErrorHandling();
-    app.MapQdmsApi(settings.apiKey);
+
+    //the web UI (src/QDMS.Web, built into wwwroot/ui) is public; it asks for the API key and sends it with every call
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+    app.MapGet("/", () => Results.Redirect("/ui/"));
+    app.MapFallbackToFile("/ui/{*path:nonfile}", "ui/index.html");
+
+    var api = app.MapQdmsApi(settings.apiKey);
+    api.MapTiingoEndpoints();
 
     app.Run();
 }
@@ -97,7 +106,8 @@ static void ConfigureServices(IServiceCollection services, QdmsSettings settings
     services.AddSingleton<FRED>();
     services.AddSingleton<IHistoricalDataSource>(sp => sp.GetRequiredService<Binance>());
     services.AddSingleton<IHistoricalDataSource>(sp => sp.GetRequiredService<FRED>());
-    services.AddSingleton<IHistoricalDataSource>(_ => new Tiingo(settings)); //stays disconnected without tiingoApiKey
+    services.AddSingleton(_ => new Tiingo(settings));
+    services.AddSingleton<IHistoricalDataSource>(sp => sp.GetRequiredService<Tiingo>()); //stays disconnected without tiingoApiKey
     services.AddSingleton<IRealTimeDataSource>(sp => sp.GetRequiredService<Binance>());
     if (settings.enableInteractiveBrokers)
     {

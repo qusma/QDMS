@@ -21,11 +21,21 @@ namespace QDMS.Server.Http
     {
         private static readonly Logger Logger = LogManager.GetLogger("QDMS.Server.Http");
 
+        private static bool IsQuiet(HttpRequest request) =>
+            request.Path == "/" ||
+            request.Path.StartsWithSegments("/ui") ||
+            (HttpMethods.IsGet(request.Method) &&
+             (request.Path.StartsWithSegments("/api/logs") ||
+              request.Path.StartsWithSegments("/datasources/status") ||
+              request.Path.StartsWithSegments("/datasources/activestreams")));
+
         public static IApplicationBuilder UseQdmsErrorHandling(this IApplicationBuilder app)
         {
             return app.Use(async (context, next) =>
             {
-                Logger.Info($"http server request {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
+                //the web UI's files and its status polling would drown out everything else
+                Logger.Log(IsQuiet(context.Request) ? LogLevel.Debug : LogLevel.Info,
+                    $"http server request {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
 
                 try
                 {
