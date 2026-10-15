@@ -109,14 +109,14 @@ Compose deployment (`deploy/`), WPF app and dead sources deleted, tests ported (
 - [x] **Two IB source bugs fixed** (Oct 2026, uncommitted): `TWSUtils` set `SecIdType = "None"`, which TWS now rejects (error 321 "Unknown
       security type : None"); and `IB.Historical` gave the last sub-request of a split request the id that the next request then reused, so
       only the first multi-year request after startup returned its data.
-- [ ] **Update jobs** (Oct 2026): `DailyTiingo` (tag `DailyTiingoUpdate`: the 38 funds FullPfolio2/3 use) at 02:30 and `DailyIB` (tag
-      `DailyIBUpdate`: the 8 indices they use, plus the old VXN, VVIX, VXMT and two VIX continuous futures) at 02:45, every day, server local time
-      (02:30 Europe = 20:30 New York; fine on a UTC server too). IB only works while TWS/Gateway is running. A test run on 2026-10-15 found three
-      bugs, fixed in source (uncommitted) but **not yet in the running host**, which needs a rebuild and restart (then copy the patched IB DLL back):
-      `DataUpdateJob` disposed the shared `IDataStorage` when it finished, so every later read or write of bars failed until restart
-      (`DataUpdateJobTest.JobDoesNotDisposeTheSharedStorage`); `updateJobTimeout` (seconds) was 5, too short for 38 requests (now 300);
-      and "run now" failed with "Unknown job type DEFAULT" because `JobFactory` read the type from the trigger's group instead of the job key's.
-      34 of the 38 Tiingo funds updated in that run (to 2026-10-14); XLP, XLU, XLV, XLY and the IB indices did not.
+- [x] **Update jobs** (Oct 2026): `DailyTiingo` (tag `DailyTiingoUpdate`: the 38 funds FullPfolio2/3 use) at 02:30 and `DailyIB` (tag
+      `DailyIBUpdate`: the 8 indices they use, plus VXN and VVIX) at 23:00, every day, server local time (Europe: after the US close and before
+      Sydney opens, so no partial bars; on a UTC server 23:00 would fall inside the ASX session, so move it). IB only works while TWS/Gateway is
+      running. Three bugs fixed on 2026-10-15 (`84c1ebd`): the job disposed the shared storage, a 5 s timeout, "run now" broken. VXMT and the two
+      VIX continuous futures were taken out of the tag (dead contracts, errors 162/200 every run).
+- [ ] **IB message 2188 is logged as an error** ("Up-to-the-second historical data requires additional subscription for the API"): it is
+      informational, the daily bars still arrive and are saved. But the update job seems to count it as the end of the request: `DailyIB`
+      logged "completed" before its data arrived. Treat 2188 as a warning in the IB source and don't end the request on it.
 - [ ] **Running QDMS on the desktop with TWS**: TWS API settings: socket clients enabled, port 7496, "localhost only" on, Read-Only API on while
       QTSTrader2 isn't trading (it's global, so untick it for live trading). QDMS must run natively on Windows (WSL's NAT address can't reach a
       localhost-only TWS): `Qdms__enableInteractiveBrokers=true`, `Qdms__ibClientPort=7496` (default 4002 is the Gateway paper port). Client IDs
