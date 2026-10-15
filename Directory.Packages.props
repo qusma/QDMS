@@ -21,7 +21,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="Quartz" Version="4.2.0" />
-    <PackageVersion Include="QDMS-IBClient" Version="2.0.0" />
+    <PackageVersion Include="QDMS-IBClient" Version="2.0.1" />
     <PackageVersion Include="MySqlConnector" Version="2.6.2" />
     <!-- tests -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
