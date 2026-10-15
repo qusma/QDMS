@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace QDMS.Server.Jobs
 {
     /// <summary>
-    /// Builds update jobs. The job type is taken from the trigger group (see <see cref="JobTypes"/>).
+    /// Builds update jobs. The job type is taken from the job key's group (see <see cref="JobTypes"/>).
     /// Jobs that need the database get their own DbContext, disposed when the job is returned.
     /// </summary>
     public class JobFactory : IJobFactory
@@ -57,7 +57,8 @@ namespace QDMS.Server.Jobs
 
         public ValueTask<JobScope> CreateJob(TriggerFiredBundle bundle, IScheduler scheduler, CancellationToken cancellationToken)
         {
-            string type = bundle.Trigger.Key.Group;
+            //the job key's group, not the trigger's: a job run on demand fires with a trigger in the DEFAULT group
+            string type = bundle.JobDetail.Key.Group;
 
             if (type == JobTypes.EconomicRelease)
             {

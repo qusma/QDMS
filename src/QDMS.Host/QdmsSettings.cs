@@ -31,7 +31,7 @@ namespace QDMS.Host
         public bool updateJobReportOutliers { get; set; } = true;
         public bool updateJobReportNoData { get; set; } = true;
         public bool updateJobTimeouts { get; set; } = true;
-        public int updateJobTimeout { get; set; } = 5;
+        public int updateJobTimeout { get; set; } = 300;
         public string updateJobEmail { get; set; }
         public string updateJobEmailHost { get; set; }
         public string updateJobEmailUsername { get; set; }

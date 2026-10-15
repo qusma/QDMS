@@ -282,8 +282,7 @@ namespace QDMS.Server.Jobs
                 }
             }
 
-            //Dispose stuff
-            _localStorage.Dispose();
+            //the local storage is the host's singleton: not ours to dispose
         }
 
         /// <summary>
