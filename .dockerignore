@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/logs/
+.git/
+.vs/
+.vscode/
+tests/
+tools/
+deploy/
+*.md
+**/node_modules/
+src/QDMS.Host/wwwroot/ui/

@@ -7,8 +7,9 @@
 using Newtonsoft.Json;
 using NLog;
 using QDMS;
-using QDMSApp;
+using QDMS.Server;
 using Quartz;
+using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +17,7 @@ using System.Linq;
 using System.Threading;
 using Calendar = QLNet.Calendar;
 
-namespace QDMSServer
+namespace QDMS.Server.Jobs
 {
     public class DataUpdateJob : IJob
     {
@@ -73,7 +74,14 @@ namespace QDMSServer
         ///             execution.
         /// </remarks>
         /// <param name="context">The execution context.</param>
-        public void Execute(IJobExecutionContext context)
+        public ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
+        {
+            //the job does blocking work on Quartz's worker thread
+            ExecuteJob(context);
+            return default;
+        }
+
+        private void ExecuteJob(IJobExecutionContext context)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
@@ -274,8 +282,7 @@ namespace QDMSServer
                 }
             }
 
-            //Dispose stuff
-            _localStorage.Dispose();
+            //the local storage is the host's singleton: not ours to dispose
         }
 
         /// <summary>

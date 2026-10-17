@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public interface IEmailService
     {

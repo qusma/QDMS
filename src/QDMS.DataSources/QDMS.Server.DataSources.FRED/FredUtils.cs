@@ -14,7 +14,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using QDMS;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public static class FredUtils
     {

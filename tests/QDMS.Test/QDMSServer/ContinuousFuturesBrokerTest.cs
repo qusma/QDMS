@@ -7,7 +7,7 @@
 using Moq;
 using NUnit.Framework;
 using QDMS;
-using QDMSApp;
+using QDMS.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;

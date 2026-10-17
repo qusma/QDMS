@@ -5,33 +5,17 @@
 // -----------------------------------------------------------------------
 
 using EntityData;
-using MySql.Data.MySqlClient;
-using Nancy;
-using Nancy.Responses.Negotiation;
-using QDMS.Server.Nancy;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace QDMS.Server
 {
     public static class ExtensionMethods
     {
-        public static Negotiator ValidationFailure(this NancyModule module)
-        {
-            return module.Negotiate
-                .WithModel(new ValidationErrorResponse(module.ModelValidationResult))
-                .WithStatusCode(HttpStatusCode.BadRequest);
-        }
-
-        public static Negotiator ValidationFailure(this NancyModule module, string error)
-        {
-            return module.Negotiate
-                .WithModel(new ValidationErrorResponse(error))
-                .WithStatusCode(HttpStatusCode.BadRequest);
-        }
-
         /// <summary>
         /// Updates a collection, adding/removing values. 
         /// All newValues must already exist in the database.
@@ -123,18 +107,42 @@ namespace QDMS.Server
             return context.GetLocal(entity) ?? context.Set<T>().FirstOrDefault(x => x.ID == entity.ID);
         }
 
-        public static bool IsUniqueKeyException(this SqlException ex)
+        /// <summary>
+        /// True if the exception (or one of its inner exceptions) is a Postgres unique constraint violation.
+        /// </summary>
+        public static bool IsUniqueKeyException(this Exception ex)
         {
-            return ex.Errors.Cast<SqlError>().Any(x => x.Number == 2601 || x.Number == 2627);
+            for (var e = ex; e != null; e = e.InnerException)
+            {
+                if (e is PostgresException pgEx && pgEx.SqlState == PostgresErrorCodes.UniqueViolation) return true;
+            }
+
+            return false;
         }
 
-        public static bool IsUniqueKeyException(this MySqlException ex)
+        /// <summary>
+        /// Inserts the entity, or copies its values onto the existing one matching the predicate.
+        /// Replaces EF6's AddOrUpdate. Checks entities tracked earlier in the same unit of work first.
+        /// </summary>
+        public static void Upsert<T>(this DbSet<T> dbSet, Expression<Func<T, bool>> match, T entity) where T : class
         {
-            return ex.Number == 1060 ||
-                ex.Number == 1061 ||
-                ex.Number == 1062 ||
-                ex.Number == 1088 ||
-                ex.Number == 1092;
+            var existing = dbSet.Local.FirstOrDefault(match.Compile()) ?? dbSet.FirstOrDefault(match);
+            if (existing == null)
+            {
+                dbSet.Add(entity);
+                return;
+            }
+
+            if (ReferenceEquals(existing, entity)) return;
+
+            //keep the existing primary key, update everything else
+            var entry = dbSet.Entry(existing);
+            foreach (var keyProperty in entry.Metadata.FindPrimaryKey().Properties)
+            {
+                keyProperty.PropertyInfo.SetValue(entity, keyProperty.PropertyInfo.GetValue(existing));
+            }
+
+            entry.CurrentValues.SetValues(entity);
         }
     }
 }

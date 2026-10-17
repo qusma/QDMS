@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.IO;
 
 // ReSharper disable once CheckNamespace
-namespace QDMSApp
+namespace QDMS.Server
 {
     public class HistoricalDataServer : IDisposable, IHistoricalDataServer
     {

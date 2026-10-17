@@ -14,7 +14,7 @@ using System.IO;
 using System.Text;
 
 // ReSharper disable once CheckNamespace
-namespace QDMSApp
+namespace QDMS.Server
 {
     /// <summary>
     /// This class handles networking for real time data data. Clients send their requests through ZeroMQ. Here they are parsed and then

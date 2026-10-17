@@ -6,11 +6,10 @@
 
 using EntityData;
 using NLog;
-using QDMSApp;
+using QDMS.Server;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.Entity.Migrations;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,8 +31,11 @@ namespace QDMS.Server.Brokers
 
         public event EventHandler<ErrorArgs> Error;
 
-        public EarningsAnnouncementBroker(IEnumerable<IEarningsAnnouncementSource> dataSources)
+        private readonly IDbContextFactory<MyDBContext> _contextFactory;
+
+        public EarningsAnnouncementBroker(IDbContextFactory<MyDBContext> contextFactory, IEnumerable<IEarningsAnnouncementSource> dataSources)
         {
+            _contextFactory = contextFactory;
             _defaultDataSource = "CBOE";
             DataSources = new ObservableDictionary<string, IEarningsAnnouncementSource>();
             if (dataSources != null)
@@ -101,13 +103,13 @@ namespace QDMS.Server.Brokers
             //save the data we got
             try
             {
-                using (var context = new MyDBContext())
+                using (var context = _contextFactory.CreateDbContext())
                 {
                     var dbSet = context.Set<EarningsAnnouncement>();
                     foreach (var ea in data)
                     {
                         //the data we get might be a duplicate and we want the latest values of everything, so we can't just insert
-                        dbSet.AddOrUpdate(x => new { x.Date, x.Symbol }, ea);
+                        dbSet.Upsert(x => x.Date == ea.Date && x.Symbol == ea.Symbol, ea);
                     }
                     context.SaveChanges();
                 }
@@ -124,7 +126,7 @@ namespace QDMS.Server.Brokers
 
         private async Task<List<EarningsAnnouncement>> FillLocalRequest(EarningsAnnouncementRequest request)
         {
-            using (var context = new MyDBContext())
+            using (var context = _contextFactory.CreateDbContext())
             {
                 var queryableData = context.EarningsAnnouncements
                     .Where(x =>
@@ -163,7 +165,7 @@ namespace QDMS.Server.Brokers
             }
             else
             {
-                return DataSources[_defaultDataSource];
+                return _defaultDataSource != null && DataSources.TryGetValue(_defaultDataSource, out var defaultSource) ? defaultSource : null;
             }
         }
 

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using NUnit.Framework;
 using QDMS;
-using QDMSApp;
+using QDMS.Server;
 
 namespace QDMSTest
 {

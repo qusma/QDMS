@@ -4,9 +4,10 @@ using QDMSIBClient;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
-namespace QDMSApp.DataSources
+namespace QDMS.Server.DataSources
 {
     public partial class IB
     {
@@ -43,11 +44,8 @@ namespace QDMSApp.DataSources
                 return;
             }
 
+            //API 10.x reports stock volumes in shares (the old API used lots of 100)
             var bar = TWSUtils.HistoricalDataEventArgsToOHLCBar(e);
-
-            //stocks need to have their volumes multiplied by 100, I think all other instrument types do not
-            if (_historicalDataRequests[id].Instrument.Type == InstrumentType.Stock)
-                bar.Volume *= 100;
 
             _arrivedHistoricalData[id].Add(bar);
         }
@@ -212,10 +210,12 @@ namespace QDMSApp.DataSources
             {
                 lock (_subReqMapLock)
                 {
-                    _requestCounter++;
-                    _historicalDataRequests.TryAdd(_requestCounter, subReq);
-                    _subRequestIDMap.Add(_requestCounter, originalReqID);
-                    SendHistoricalRequest(_requestCounter, subReq);
+                    //take the id the same way RequestHistoricalData does: incrementing first left the last sub-request with
+                    //the id that the next top-level request was then given, so its data went to the wrong request
+                    int subReqID = _requestCounter++;
+                    _historicalDataRequests.TryAdd(subReqID, subReq);
+                    _subRequestIDMap.Add(subReqID, originalReqID);
+                    SendHistoricalRequest(subReqID, subReq);
                 }
             }
         }
@@ -254,7 +254,8 @@ namespace QDMSApp.DataSources
                 request.EndingDate.ToString("yyyy-MM-dd hh:mm:ss")));
 
             TimeZoneInfo exchangeTZ = request.Instrument.GetTZInfo();
-            //we need to convert time from the exchange TZ to Local...the ib client then converts it to UTC
+            //convert from the exchange TZ to UTC, which TWS takes as yyyyMMdd-HH:mm:ss
+            //(current TWS versions reject the old "yyyyMMdd HH:mm:ss GMT" form with error 10314)
             var endingDate = TimeZoneInfo.ConvertTime(request.EndingDate, exchangeTZ, TimeZoneInfo.Utc);
 
             try
@@ -263,7 +264,7 @@ namespace QDMSApp.DataSources
                 (
                     id,
                     TWSUtils.InstrumentToContract(request.Instrument),
-                    endingDate.ToString("yyyyMMdd HH:mm:ss") + " GMT",
+                    endingDate.ToString("yyyyMMdd-HH:mm:ss", CultureInfo.InvariantCulture),
                     TWSUtils.TimespanToDurationString(request.EndingDate - request.StartingDate, request.Frequency),
                     TWSUtils.BarSizeConverter(request.Frequency),
                     TWSUtils.GetDataType(request.Instrument),

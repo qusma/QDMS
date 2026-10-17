@@ -6,11 +6,10 @@
 
 using EntityData;
 using NLog;
-using QDMSApp;
+using QDMS.Server;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.Entity.Migrations;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,8 +33,11 @@ namespace QDMS.Server.Brokers
 
         public ObservableDictionary<string, IEconomicReleaseSource> DataSources { get; }
 
-        public EconomicReleaseBroker(ISettings settings, IEnumerable<IEconomicReleaseSource> sources)
+        private readonly IDbContextFactory<MyDBContext> _contextFactory;
+
+        public EconomicReleaseBroker(IDbContextFactory<MyDBContext> contextFactory, ISettings settings, IEnumerable<IEconomicReleaseSource> sources)
         {
+            _contextFactory = contextFactory;
             _defaultDataSource = settings.EconomicReleaseDefaultDatasource;
             DataSources = new ObservableDictionary<string, IEconomicReleaseSource>();
             if (sources != null)
@@ -87,13 +89,13 @@ namespace QDMS.Server.Brokers
             //save the data we got
             try
             {
-                using (var context = new MyDBContext())
+                using (var context = _contextFactory.CreateDbContext())
                 {
                     var dbSet = context.Set<EconomicRelease>();
                     foreach (var release in data)
                     {
                         //the data we get might be a duplicate and we want the latest values of everything, so we can't just insert
-                        dbSet.AddOrUpdate(x => new { x.Name, x.Country, x.DateTime }, release);
+                        dbSet.Upsert(x => x.Name == release.Name && x.Country == release.Country && x.DateTime == release.DateTime, release);
                     }
                     context.SaveChanges();
                 }
@@ -127,7 +129,7 @@ namespace QDMS.Server.Brokers
             }
             else
             {
-                return DataSources[_defaultDataSource];
+                return _defaultDataSource != null && DataSources.TryGetValue(_defaultDataSource, out var defaultSource) ? defaultSource : null;
             }
         }
 
@@ -138,7 +140,7 @@ namespace QDMS.Server.Brokers
         /// <returns></returns>
         private async Task<List<EconomicRelease>> FillLocalRequest(EconomicReleaseRequest request)
         {
-            using (var context = new MyDBContext())
+            using (var context = _contextFactory.CreateDbContext())
             {
                 //this wrangling is necessary because MySql doesn't support TruncateTime()
                 //if a time is set, use it as the limit; if not, we want all events from that day

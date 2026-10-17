@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public interface IInstrumentSource
     {

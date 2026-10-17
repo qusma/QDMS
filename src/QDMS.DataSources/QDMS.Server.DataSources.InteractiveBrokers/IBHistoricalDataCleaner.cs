@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace QDMSApp.DataSources
+namespace QDMS.Server.DataSources
 {
     internal static class IBHistoricalDataCleaner
     {

@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using EntityData;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using NUnit.Framework;
 using QDMS;
@@ -32,7 +34,12 @@ namespace QDMSTest
             var settings = new Mock<ISettings>();
             settings.SetupGet(x => x.EconomicReleaseDefaultDatasource).Returns("Source2");
 
-            _broker = new EconomicReleaseBroker(settings.Object, new[] { _source1.Object, _source2.Object });
+            //releases fetched externally get saved locally
+            var dbOptions = new DbContextOptionsBuilder<MyDBContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+            var contextFactory = new Mock<IDbContextFactory<MyDBContext>>();
+            contextFactory.Setup(x => x.CreateDbContext()).Returns(() => new MyDBContext(dbOptions));
+
+            _broker = new EconomicReleaseBroker(contextFactory.Object, settings.Object, new[] { _source1.Object, _source2.Object });
         }
 
         [Test]

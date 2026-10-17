@@ -2,8 +2,8 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using QDMS;
-using QDMSApp;
-using QDMSServer;
+using QDMS.Server;
+using QDMS.Server.Jobs;
 using Quartz;
 using System;
 using System.Collections.Generic;
@@ -45,6 +45,25 @@ namespace QDMSTest
         }
 
         [Test]
+        public void JobDoesNotDisposeTheSharedStorage()
+        {
+            var settings = new UpdateJobSettings(timeout: 1);
+            var job = new DataUpdateJob(_brokerMock.Object, _mailMock.Object, settings, _localStorageMock.Object, _instrumentManagerMock.Object);
+
+            Instrument inst = new Instrument() { ID = 1, Symbol = "SPY", Currency = "USD", Type = InstrumentType.Stock };
+            _instrumentManagerMock
+                .Setup(x => x.FindInstruments(It.IsAny<Expression<Func<Instrument, bool>>>()))
+                .ReturnsAsync(new List<Instrument>() { inst });
+            _localStorageMock
+                .Setup(x => x.GetStorageInfo(It.IsAny<int>()))
+                .Returns(new List<StoredDataInfo>());
+
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+
+            _localStorageMock.Verify(x => x.Dispose(), Times.Never);
+        }
+
+        [Test]
         public void JobRequestsCorrectData()
         {
             //TODO write
@@ -75,7 +94,7 @@ namespace QDMSTest
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
-            job.Execute(_contextMock.Object);
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             _mailMock.Verify(x =>
                 x.Send(
@@ -110,7 +129,7 @@ namespace QDMSTest
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
-            job.Execute(_contextMock.Object);
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             _mailMock.Verify(x =>
                 x.Send(
@@ -142,7 +161,7 @@ namespace QDMSTest
                         LatestDate = DateTime.Now.AddDays(-2)
                     } });
 
-            job.Execute(_contextMock.Object);
+            job.Execute(_contextMock.Object, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             _mailMock.Verify(x =>
                 x.Send(
@@ -178,7 +197,7 @@ namespace QDMSTest
                 .Setup(x => x.RequestHistoricalData(It.IsAny<HistoricalDataRequest>()))
                 .Callback<HistoricalDataRequest>(y => req = y);
 
-            Task.Run(() => job.Execute(_contextMock.Object));
+            Task.Run(() => job.Execute(_contextMock.Object, CancellationToken.None).AsTask());
 
             Thread.Sleep(2000);
 
@@ -234,7 +253,7 @@ namespace QDMSTest
                             .Returns(data);
                     });
 
-            Task.Run(() => job.Execute(_contextMock.Object));
+            Task.Run(() => job.Execute(_contextMock.Object, CancellationToken.None).AsTask());
 
             Thread.Sleep(2000);
 
@@ -290,7 +309,7 @@ namespace QDMSTest
                         .Returns(data);
                 });
 
-            Task.Run(() => job.Execute(_contextMock.Object));
+            Task.Run(() => job.Execute(_contextMock.Object, CancellationToken.None).AsTask());
 
             Thread.Sleep(2000);
 

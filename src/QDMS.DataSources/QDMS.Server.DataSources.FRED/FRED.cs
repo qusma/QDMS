@@ -23,7 +23,7 @@ using QDMS;
 
 #pragma warning disable 67
 
-namespace QDMSApp.DataSources
+namespace QDMS.Server.DataSources
 {
     public class FRED : IHistoricalDataSource
     {

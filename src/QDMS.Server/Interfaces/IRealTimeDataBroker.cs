@@ -7,7 +7,7 @@
 using QDMS;
 using System;
 
-namespace QDMSApp
+namespace QDMS.Server
 {
     public interface IRealTimeDataBroker : IDisposable
     {
@@ -24,6 +24,6 @@ namespace QDMSApp
 
         bool CancelRTDStream(int instrumentID, BarSize frequency);
 
-        ConcurrentNotifierBlockingList<RealTimeStreamInfo> ActiveStreams { get; }
+        ConcurrentList<RealTimeStreamInfo> ActiveStreams { get; }
     }
 }

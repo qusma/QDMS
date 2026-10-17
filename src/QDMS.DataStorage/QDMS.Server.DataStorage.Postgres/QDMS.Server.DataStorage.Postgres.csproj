@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>QDMS.Server.DataStorage</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="NLog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\QDMS.Common\QDMS.Common.csproj" />
+  </ItemGroup>
+
+</Project>

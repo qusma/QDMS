@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/QDMS.Common/QDMS.Common.csproj" />
+    <Project Path="src/QDMS.Dal/QDMS.Dal.csproj" />
+    <Project Path="src/QDMS.Host/QDMS.Host.csproj" />
+    <Project Path="src/QDMS.Server/QDMS.Server.csproj" />
+    <Project Path="src/QDMSClient/QDMSClient.csproj" />
+  </Folder>
+  <Folder Name="/src/QDMS.DataSources/">
+    <Project Path="src/QDMS.DataSources/QDMS.Server.DataSources.Binance/QDMS.Server.DataSources.Binance.csproj" />
+    <Project Path="src/QDMS.DataSources/QDMS.Server.DataSources.FRED/QDMS.Server.DataSources.FRED.csproj" />
+    <Project Path="src/QDMS.DataSources/QDMS.Server.DataSources.InteractiveBrokers/QDMS.Server.DataSources.InteractiveBrokers.csproj" />
+    <Project Path="src/QDMS.DataSources/QDMS.Server.DataSources.Tiingo/QDMS.Server.DataSources.Tiingo.csproj" />
+  </Folder>
+  <Folder Name="/src/QDMS.DataStorage/">
+    <Project Path="src/QDMS.DataStorage/QDMS.Server.DataStorage.Postgres/QDMS.Server.DataStorage.Postgres.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/QDMS.Test/QDMS.Test.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/QDMS.MigrateFromMySql/QDMS.MigrateFromMySql.csproj" />
+  </Folder>
+</Solution>

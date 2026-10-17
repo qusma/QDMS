@@ -6,11 +6,10 @@
 
 using EntityData;
 using NLog;
-using QDMSApp;
+using QDMS.Server;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.Entity.Migrations;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,8 +31,11 @@ namespace QDMS.Server.Brokers
 
         public event EventHandler<ErrorArgs> Error;
 
-        public DividendsBroker(IEnumerable<IDividendDataSource> dataSources)
+        private readonly IDbContextFactory<MyDBContext> _contextFactory;
+
+        public DividendsBroker(IDbContextFactory<MyDBContext> contextFactory, IEnumerable<IDividendDataSource> dataSources)
         {
+            _contextFactory = contextFactory;
             _defaultDataSource = "Nasdaq";
             DataSources = new ObservableDictionary<string, IDividendDataSource>();
             if (dataSources != null)
@@ -103,13 +105,13 @@ namespace QDMS.Server.Brokers
             //save the data we got
             try
             {
-                using (var context = new MyDBContext())
+                using (var context = _contextFactory.CreateDbContext())
                 {
                     var dbSet = context.Set<Dividend>();
                     foreach (var dividend in data)
                     {
                         //the data we get might be a duplicate and we want the latest values of everything, so we can't just insert
-                        dbSet.AddOrUpdate(x => new { x.ExDate, x.Symbol }, dividend);
+                        dbSet.Upsert(x => x.ExDate == dividend.ExDate && x.Symbol == dividend.Symbol, dividend);
                     }
                     context.SaveChanges();
                 }
@@ -126,7 +128,7 @@ namespace QDMS.Server.Brokers
 
         private async Task<List<Dividend>> FillLocalRequest(DividendRequest request)
         {
-            using (var context = new MyDBContext())
+            using (var context = _contextFactory.CreateDbContext())
             {
                 var queryableData = context.Dividends
                     .Where(x =>
@@ -165,7 +167,7 @@ namespace QDMS.Server.Brokers
             }
             else
             {
-                return DataSources[_defaultDataSource];
+                return _defaultDataSource != null && DataSources.TryGetValue(_defaultDataSource, out var defaultSource) ? defaultSource : null;
             }
         }
 

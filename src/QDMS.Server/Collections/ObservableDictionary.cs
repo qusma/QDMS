@@ -37,7 +37,7 @@ using System.Runtime.Serialization;
 #pragma warning disable 693
 
 //namespace DrWPF.Windows.Data
-namespace QDMSApp
+namespace QDMS.Server
 {
     [Serializable]
     public class ObservableDictionary<TKey, TValue> :

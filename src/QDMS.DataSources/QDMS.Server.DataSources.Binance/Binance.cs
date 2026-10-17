@@ -17,7 +17,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using QDMS.Server.DataSources.Binance.Model;
-using WebSocket4Net;
 //TODO eventually split off to its own QDMS-BinanceClient package that covers the entire API
 //API documentation: https://www.binance.com/restapipub.html
 namespace QDMS.Server.DataSources.Binance
@@ -27,7 +26,7 @@ namespace QDMS.Server.DataSources.Binance
         /// <summary>
         /// Key = request id
         /// </summary>
-        private Dictionary<int, WebSocket> _sockets = new Dictionary<int, WebSocket>();
+        private Dictionary<int, StreamSocket> _sockets = new Dictionary<int, StreamSocket>();
         private Thread _downloaderThread;
         private HttpClient _httpClient;
         private int _requestCounter;
@@ -259,8 +258,7 @@ namespace QDMS.Server.DataSources.Binance
             {
                 string symbol = GetSymbol(request).ToLower();
                 string url = $"wss://stream.binance.com:9443/ws/{symbol}@aggTrade";
-                var tickSocket = new WebSocket(url);
-                tickSocket.MessageReceived += (s, e) => RealTimeTick(request.Instrument.ID.Value, request.AssignedID, e);
+                var tickSocket = new StreamSocket(url, msg => RealTimeTick(request.Instrument.ID.Value, request.AssignedID, msg));
                 _sockets.Add(id, tickSocket);
                 tickSocket.Open();
             }
@@ -269,24 +267,23 @@ namespace QDMS.Server.DataSources.Binance
                 string symbol = GetSymbol(request).ToLower();
                 string interval = BarSizetoInterval(request.Frequency);
                 string url = $"wss://stream.binance.com:9443/ws/{symbol}@kline_{interval}";
-                var barSocket = new WebSocket(url);
-                barSocket.MessageReceived += (s,e) => RealTimeBar(request.Instrument.ID.Value, request.AssignedID, e);
+                var barSocket = new StreamSocket(url, msg => RealTimeBar(request.Instrument.ID.Value, request.AssignedID, msg));
                 _sockets.Add(id, barSocket);
                 barSocket.Open();
             }
         }
 
-        private void RealTimeTick(int instrumentId, int reqId, MessageReceivedEventArgs e)
+        private void RealTimeTick(int instrumentId, int reqId, string message)
         {
-            var aggTrade = JsonConvert.DeserializeObject<AggTrade>(e.Message);
+            var aggTrade = JsonConvert.DeserializeObject<AggTrade>(message);
             var eventArgs = aggTrade.ToTickEventArgs(instrumentId);
 
             RaiseEvent(TickReceived, this, eventArgs);
         }
 
-        private void RealTimeBar(int instrumentId, int reqId, MessageReceivedEventArgs e)
+        private void RealTimeBar(int instrumentId, int reqId, string message)
         {
-            var kline = JsonConvert.DeserializeObject<Kline>(e.Message);
+            var kline = JsonConvert.DeserializeObject<Kline>(message);
             RaiseEvent(DataReceived, this,
                 new RealTimeDataEventArgs(instrumentId, 
                     IntervalToBarSize(kline.Bar.Interval),

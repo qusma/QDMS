@@ -1,27 +1,27 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="MyDBContext.cs" company="">
 // Copyright 2013 Alexander Soffronow Pagonidis
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System;
-using EntityData.Migrations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using QDMS;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity.Infrastructure.Annotations;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace EntityData
 {
-    public partial class MyDBContext : DbContext, IMyDbContext
+    /// <summary>
+    /// Metadata: instruments, exchanges, sessions, tags, jobs, dividends, earnings, economic releases.
+    /// Quartz's tables (qrtz_*) live in the same database; Quartz creates them itself.
+    /// </summary>
+    public class MyDBContext : DbContext, IMyDbContext
     {
-        public MyDBContext()
-            : base("Name=qdmsEntities")
+        public MyDBContext(DbContextOptions<MyDBContext> options) : base(options)
         {
-
         }
 
         public DbSet<Instrument> Instruments { get; set; }
@@ -41,240 +41,85 @@ namespace EntityData
         public DbSet<Dividend> Dividends { get; set; }
         public DbSet<EarningsAnnouncement> EarningsAnnouncements { get; set; }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
-            modelBuilder.Configurations.Add(new InstrumentConfig());
-            modelBuilder.Configurations.Add(new TagConfig());
-            modelBuilder.Configurations.Add(new ExchangeConfig());
-            modelBuilder.Configurations.Add(new DatasourceConfig());
-            modelBuilder.Configurations.Add(new UnderlyingSymbolConfig());
-            modelBuilder.Configurations.Add(new ContinuousFutureConfig());
-            modelBuilder.Configurations.Add(new DataUpdateJobConfig());
+            configurationBuilder.UseLocalDateTimes();
+        }
 
-            modelBuilder.Entity<ExchangeSession>().ToTable("exchangesessions");
-            modelBuilder.Entity<InstrumentSession>().ToTable("instrumentsessions");
-            modelBuilder.Entity<TemplateSession>().ToTable("templatesessions");
-
-            modelBuilder.Entity<Instrument>()
-            .HasMany(c => c.Tags)
-            .WithMany()
-            .Map(x =>
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Instrument>(e =>
             {
-                x.MapLeftKey("InstrumentID");
-                x.MapRightKey("TagID");
-                x.ToTable("tag_map");
+                e.Property(x => x.ID).ValueGeneratedOnAdd();
+                e.Property(x => x.Strike).HasPrecision(16, 8);
+                e.Property(x => x.MinTick).HasPrecision(16, 8);
+
+
+                e.HasOne(x => x.Exchange).WithMany().HasForeignKey(x => x.ExchangeID).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.PrimaryExchange).WithMany().HasForeignKey(x => x.PrimaryExchangeID).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Datasource).WithMany().HasForeignKey(x => x.DatasourceID).IsRequired().OnDelete(DeleteBehavior.Cascade);
+                e.HasMany(x => x.Sessions).WithOne(x => x.Instrument).HasForeignKey(x => x.InstrumentID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.ContinuousFuture).WithMany().HasForeignKey(x => x.ContinuousFutureID).OnDelete(DeleteBehavior.Restrict);
+
+                e.HasMany(x => x.Tags).WithMany().UsingEntity(
+                    "tag_map",
+                    r => r.HasOne(typeof(Tag)).WithMany().HasForeignKey("tag_id").OnDelete(DeleteBehavior.Cascade),
+                    l => l.HasOne(typeof(Instrument)).WithMany().HasForeignKey("instrument_id").OnDelete(DeleteBehavior.Cascade));
+
+                //NULLs are distinct, as they were in MySQL: e.g. two instruments with the same symbol and no expiration don't conflict
+                e.HasIndex(x => new { x.Symbol, x.Type, x.DatasourceID, x.ExchangeID, x.Expiration, x.Strike })
+                    .IsUnique();
             });
 
-            modelBuilder.Entity<Instrument>().Property(x => x.Strike).HasPrecision(16, 8);
-            modelBuilder.Entity<Instrument>().Property(x => x.MinTick).HasPrecision(16, 8);
+            modelBuilder.Entity<ContinuousFuture>(e =>
+            {
+                e.HasOne(x => x.Instrument).WithMany().HasForeignKey(x => x.InstrumentID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.UnderlyingSymbol).WithMany().HasForeignKey(x => x.UnderlyingSymbolID).OnDelete(DeleteBehavior.Cascade);
+            });
 
-            modelBuilder.Entity<ExchangeSession>().Property(x => x.OpeningTime).HasPrecision(0);
-            modelBuilder.Entity<ExchangeSession>().Property(x => x.ClosingTime).HasPrecision(0);
+            modelBuilder.Entity<DataUpdateJobSettings>(e =>
+            {
+                e.ToTable("data_update_jobs");
+                e.HasOne(x => x.Instrument).WithMany().HasForeignKey(x => x.InstrumentID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Tag).WithMany().HasForeignKey(x => x.TagID).OnDelete(DeleteBehavior.Cascade);
+            });
 
-            modelBuilder.Entity<InstrumentSession>().Property(x => x.OpeningTime).HasPrecision(0);
-            modelBuilder.Entity<InstrumentSession>().Property(x => x.ClosingTime).HasPrecision(0);
+            modelBuilder.Entity<Exchange>()
+                .HasMany(x => x.Sessions).WithOne(x => x.Exchange).HasForeignKey(x => x.ExchangeID).OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<TemplateSession>().Property(x => x.OpeningTime).HasPrecision(0);
-            modelBuilder.Entity<TemplateSession>().Property(x => x.ClosingTime).HasPrecision(0);
+            modelBuilder.Entity<SessionTemplate>()
+                .HasMany(x => x.Sessions).WithOne(x => x.Template).HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Dividend>().Property(x => x.Amount).HasPrecision(16,8);
+            modelBuilder.Entity<UnderlyingSymbol>(e =>
+            {
+                e.Ignore(x => x.Rule);
+                e.HasIndex(x => x.Symbol).IsUnique();
+            });
 
-            modelBuilder.Entity<EarningsAnnouncement>().Property(x => x.EarningsPerShare).HasPrecision(16, 8);
-            modelBuilder.Entity<EarningsAnnouncement>().Property(x => x.Forecast).HasPrecision(16, 8);
+            modelBuilder.Entity<Dividend>(e =>
+            {
+                e.Property(x => x.Amount).HasPrecision(16, 8);
+                e.HasIndex(x => x.ExDate);
+                e.HasIndex(x => x.Symbol);
+            });
 
+            modelBuilder.Entity<EarningsAnnouncement>(e =>
+            {
+                e.Property(x => x.EarningsPerShare).HasPrecision(16, 8);
+                e.Property(x => x.Forecast).HasPrecision(16, 8);
+                e.HasIndex(x => x.Symbol);
+                e.HasIndex(x => x.Date);
+            });
 
-            // Instrument
+            modelBuilder.Entity<EconomicRelease>(e =>
+            {
+                e.HasIndex(x => new { x.Name, x.Country, x.DateTime }).IsUnique();
+                e.HasIndex(x => x.Currency);
+            });
 
-            string uniqueIndex = "IX_Unique";
-
-            modelBuilder.Entity<Instrument>().Property(t => t.Symbol)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 1
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<Instrument>().Property(t => t.Type)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 2
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<Instrument>().Property(t => t.DatasourceID)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 3
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<Instrument>().Property(t => t.ExchangeID)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 4
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<Instrument>().Property(t => t.Expiration)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 5
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<Instrument>().Property(t => t.Strike)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute(uniqueIndex)
-                        {
-                            IsUnique = true,
-                            Order = 6
-                        }
-                    )
-                );
-
-            //Dividend
-            modelBuilder.Entity<Dividend>().Property(t => t.ExDate)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_ExDate")
-                    )
-                );
-
-            modelBuilder.Entity<Dividend>().Property(t => t.Symbol)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Symbol")
-                    )
-                );
-
-            //Currency
-            modelBuilder.Entity<Currency>().Property(t => t.Code)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Code")
-                        {
-                            IsUnique = true
-                        }
-                    )
-                );
-
-            //Currency
-            modelBuilder.Entity<Country>().Property(t => t.Name)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Country")
-                        {
-                            IsUnique = true
-                        }
-                    )
-                );
-
-            //EconomicRelease
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.Name)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Unique")
-                        {
-                            IsUnique = true,
-                            Order = 1
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.Country)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Unique")
-                        {
-                            IsUnique = true,
-                            Order = 2
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.DateTime)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Unique")
-                        {
-                            IsUnique = true,
-                            Order = 3
-                        }
-                    )
-                );
-
-            modelBuilder.Entity<EconomicRelease>().Property(t => t.Currency)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Currency")
-                    )
-                );
-
-            //UnderlyingSymbol
-            modelBuilder.Entity<UnderlyingSymbol>().Property(t => t.Symbol)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Symbol")
-                        {
-                            IsUnique = true
-                        }
-                    )
-                );
-
-            //EarningsAnnouncement
-            modelBuilder.Entity<EarningsAnnouncement>().Property(t => t.Symbol)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Symbol")
-                    )
-                );
-
-            modelBuilder.Entity<EarningsAnnouncement>().Property(t => t.Date)
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(
-                        new IndexAttribute("IX_Date")
-                    )
-                );
-
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<MyDBContext, MyDbContextConfiguration>());
+            modelBuilder.Entity<Currency>().HasIndex(x => x.Code).IsUnique();
+            modelBuilder.Entity<Country>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Datasource>().HasIndex(x => x.Name).IsUnique();
         }
 
         public void SetEntryState(object entity, EntityState state)
@@ -288,7 +133,7 @@ namespace EntityData
         }
     }
 
-    public interface IMyDbContext
+    public interface IMyDbContext : IDisposable
     {
         DbSet<Instrument> Instruments { get; set; }
         DbSet<Tag> Tags { get; set; }
@@ -307,19 +152,15 @@ namespace EntityData
         DbSet<Dividend> Dividends { get; set; }
         DbSet<EarningsAnnouncement> EarningsAnnouncements { get; set; }
 
-        DbChangeTracker ChangeTracker { get; }
-        DbContextConfiguration Configuration { get; }
-        Database Database { get; }
+        ChangeTracker ChangeTracker { get; }
+        DatabaseFacade Database { get; }
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
-        DbSet Set(Type entityType);
 
-        DbEntityEntry Entry(object entity);
-        DbEntityEntry<T> Entry<T>(T entity) where T : class;
+        EntityEntry Entry(object entity);
+        EntityEntry<T> Entry<T>(T entity) where T : class;
         int SaveChanges();
-        Task<int> SaveChangesAsync();
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
-        void Dispose();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         void SetEntryState(object entity, EntityState state);
         void UpdateEntryValues(object entity, object newValues);
     }
