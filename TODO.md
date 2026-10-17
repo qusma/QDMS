@@ -142,6 +142,10 @@ Compose deployment (`deploy/`), WPF app and dead sources deleted, tests ported (
 
 ## P1 — correctness and robustness
 
+- [ ] **IB real-time streams aren't re-requested after most errors.** `IB._client_Error` re-queues a real-time request only on error 420
+      (treated as a pacing violation; it is also IB's "no market data permissions"). After 10197 (no market data during a competing live session),
+      354 (not subscribed) or a stream that IB stops, the subscription stays dead until QDMS restarts, so a paper login's feed doesn't come back
+      when the live user logs out. Found Oct 2026 (QTS `deploy/PAPER-TEST.md` works around it with restarts).
 - [ ] **Smoke-test the remaining sources** (IB real-time, Binance, FRED) and record the result in the table in `AGENTS.md`. IB historical and
       Tiingo were verified in Sep 2026.
 - [ ] **IB errors can leave requests hanging** (from reading `IB.cs`, not observed yet): only codes 162/200/420/10225 are handled; any other
