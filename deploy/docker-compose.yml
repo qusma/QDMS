@@ -25,6 +25,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks: [qts-net]
 
   qdms:
     build:
@@ -47,17 +48,23 @@ services:
       Qdms__updateJobEmailPassword: ${SMTP_PASSWORD:-}
       Qdms__updateJobEmailSender: ${SMTP_SENDER:-}
       TZ: ${TZ:-UTC}
+    # published on the VPS's Tailscale address only (as written before, on every interface, i.e. the internet)
     ports:
-      - "5559:5559"
-      - "5555:5555"
-      - "5556:5556"
-      - "5557:5557"
-    extra_hosts:
-      # lets the container reach an IB Gateway running on the host
-      - "host.docker.internal:host-gateway"
+      - "100.100.24.70:5559:5559"
+      - "100.100.24.70:5555:5555"
+      - "100.100.24.70:5556:5556"
+      - "100.100.24.70:5557:5557"
+    # qts-net is shared with the IB Gateway (ib-gateway:4004) and the trader; the Gateway's API filter admits 172.31.250.16/29
+    networks:
+      qts-net:
+        ipv4_address: 172.31.250.17
     volumes:
       - logs:/app/logs
 
 volumes:
   pgdata:
   logs:
+
+networks:
+  qts-net:
+    external: true
